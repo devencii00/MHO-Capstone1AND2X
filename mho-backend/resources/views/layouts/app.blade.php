@@ -180,6 +180,33 @@
         var mainContent = document.getElementById('main-content');
         if (!mainContent) return; 
 
+        function afterContentSwap(url) {
+            // Re-run all inline scripts in main-content
+            Array.prototype.forEach.call(mainContent.querySelectorAll('script'), function (oldScript) {
+                var newScript = document.createElement('script');
+                Array.prototype.forEach.call(oldScript.attributes, function (attr) {
+                    newScript.setAttribute(attr.name, attr.value);
+                });
+                newScript.textContent = oldScript.textContent;
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+            });
+
+            // Fire DOMContentLoaded so script listeners registered via
+            // document.addEventListener('DOMContentLoaded', ...) will execute
+            document.dispatchEvent(new Event('DOMContentLoaded'));
+
+            // Update sidebar active nav indicator
+            updateSidebarActive(url);
+
+            // Restore sidebar scroll in case content reflow affected it
+            var sidebarEl = document.getElementById('sidebar-aside');
+            if (sidebarEl) {
+                var saved = null;
+                try { saved = window.localStorage.getItem('sidebar_scroll_top'); } catch (_) {}
+                if (saved) sidebarEl.scrollTop = parseInt(saved, 10) || 0;
+            }
+        }
+
         document.addEventListener('click', function (e) {
             var a = e.target.closest('a');
             if (!a) return;
@@ -202,7 +229,7 @@
                 mainContent.innerHTML = pageCache[url];
                 window.scrollTo(0, 0);
                 history.pushState(null, '', url);
-                updateSidebarActive(url);
+                afterContentSwap(url);
                 return;
             }
 
@@ -213,12 +240,10 @@
             fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                 .then(function (r) { return r.text(); })
                 .then(function (html) {
-                    // Extract the new #main-content from the fetched HTML
                     var parser = new DOMParser();
                     var doc = parser.parseFromString(html, 'text/html');
                     var newContent = doc.getElementById('main-content');
                     if (!newContent) {
-                        // Fallback: full page reload
                         window.location.href = url;
                         return;
                     }
@@ -230,26 +255,7 @@
                     window.scrollTo(0, 0);
                     history.pushState(null, '', url);
 
-                    // Re-run all main content's inline scripts
-                    Array.prototype.forEach.call(mainContent.querySelectorAll('script'), function (oldScript) {
-                        var newScript = document.createElement('script');
-                        Array.prototype.forEach.call(oldScript.attributes, function (attr) {
-                            newScript.setAttribute(attr.name, attr.value);
-                        });
-                        newScript.textContent = oldScript.textContent;
-                        oldScript.parentNode.replaceChild(newScript, oldScript);
-                    });
-
-                    // Update sidebar active nav indicator
-                    updateSidebarActive(url);
-
-                    // Restore sidebar scroll in case content reflow affected it
-                    var sidebarEl = document.getElementById('sidebar-aside');
-                    if (sidebarEl) {
-                        var saved = null;
-                        try { saved = window.localStorage.getItem('sidebar_scroll_top'); } catch (_) {}
-                        if (saved) sidebarEl.scrollTop = parseInt(saved, 10) || 0;
-                    }
+                    afterContentSwap(url);
                 })
                 .catch(function () {
                     window.location.href = url;
