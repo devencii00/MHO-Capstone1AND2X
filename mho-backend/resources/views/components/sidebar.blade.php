@@ -27,12 +27,12 @@
 <div class="flex items-start gap-3 p-6 border-b border-slate-100"> 
     
     <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white border border-slate-200 overflow-hidden"> 
-        <img src="{{ asset('images/opoldoc3.png') }}" alt="Opol Doctors Medical Clinic" class="w-full h-full object-cover"> 
+        <img src="{{ asset('images/MHOLogoV2.png') }}" alt="OPOL - MHO" class="w-full h-full object-cover"> 
     </div> 
 
      
     <div class="pt-0.78"> 
-        <div class="font-serif font-bold text-slate-900 text-sm leading-[1.2]">Opol Doctors Medical Clinic</div> 
+        <div class="font-serif font-bold text-slate-900 text-sm leading-[1.2]">OPOL - MHO</div> 
         <div class="text-slate-400 font-medium text-[0.68rem] uppercase tracking-widest">{{ $roleLabel }}</div> 
     </div> 
 </div>

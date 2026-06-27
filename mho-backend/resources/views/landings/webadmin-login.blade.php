@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Opol Doctors Clinic - Login</title>
+    <title>Opol Primary Healthcare - Login</title>
     @vite('resources/css/app.css')
-     <link rel="icon" type="image/x-icon" href="/images/opoldoc-weblog.ico">
+     <link rel="icon" type="image/x-icon" href="/images/logoMHO.ico">
        <link rel="stylesheet" href="{{ asset('assets/fonts/css/stylefont.css') }}">
     <style>
         .font-playfair { font-family: 'Playfair Display', serif; }
@@ -28,11 +28,11 @@
 
             <!-- Logo ring -->
             <div class="relative w-44 h-44 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center shadow-lg animate-pulseRing">
-                <img src="{{ asset('images/opoldoc.png') }}" alt="Opol Doctors Medical Clinic" class="w-32 h-32 object-contain drop-shadow-lg">
+                <img src="{{ asset('images/MHOLogoV2.png') }}" alt="OPOL - MHO" class="w-40 h-40 object-contain drop-shadow-lg">
             </div>
 
             <p class="mt-7 text-white/90 text-xs uppercase tracking-wide text-center">Trusted Healthcare Since</p>
-            <p class="font-playfair text-white text-lg font-bold text-center mt-1.5 leading-snug">Opol Doctors<br>Medical Clinic</p>
+            <p class="font-playfair text-white text-lg font-bold text-center mt-1.5 leading-snug">Opol Primary<br>Healthcare Facility</p>
 
             <div class="flex flex-wrap gap-2 justify-center mt-4">
                 <span class="text-white/80 text-[0.55rem] font-medium bg-white/20 border border-white/25 rounded-full px-3 py-1">General Medicine</span>

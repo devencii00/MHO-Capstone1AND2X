@@ -8,10 +8,10 @@
             <div class="p-6 border-b border-slate-100 bg-slate-50">
                 <div class="flex items-center gap-3">
                     <div class="w-11 h-11 rounded-xl overflow-hidden border border-slate-200 bg-white flex items-center justify-center">
-                        <img src="{{ asset('images/opoldoc3.png') }}" alt="Opol Doctors Medical Clinic" class="w-full h-full object-cover">
+                        <img src="{{ asset('images/opoldoc3.png') }}" alt="OPOL - MHO" class="w-full h-full object-cover">
                     </div>
                     <div>
-                        <div class="font-serif font-bold text-slate-900 leading-tight">Opol Doctors Medical Clinic</div>
+                        <div class="font-serif font-bold text-slate-900 leading-tight">OPOL - MHO</div>
                         <div class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Guest Walk-in</div>
                     </div>
                 </div>

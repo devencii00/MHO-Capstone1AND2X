@@ -191,7 +191,7 @@
                 var apptData = safeParseJson('adminAppointmentsPerDayChartData') || { labels: [], values: [] }
                 var revData = safeParseJson('adminRevenuePerMonthChartData') || { labels: [], values: [] }
 
-                renderLineChart(document.getElementById('adminAppointmentsPerDayChart'), apptData.labels || [], apptData.values || [], '#0891b2')
+                renderLineChart(document.getElementById('adminAppointmentsPerDayChart'), apptData.labels || [], apptData.values || [], '#0cce3d')
                 renderBarChart(document.getElementById('adminRevenuePerMonthChart'), revData.labels || [], revData.values || [], '#059669')
             })
         </script>

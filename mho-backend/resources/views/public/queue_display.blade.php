@@ -3,10 +3,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Queue Display — Opol Doctors Clinic</title>
+    <title>Queue Display — Opol Primary Healthcare</title>
     @vite('resources/css/app.css')
        <link rel="stylesheet" href="{{ asset('assets/fonts/css/stylefont.css') }}">
-         <link rel="icon" type="image/x-icon" href="/images/opoldoc-weblog.ico">
+         <link rel="icon" type="image/x-icon" href="/images/logoMHO.ico">
     <style>
         .scrollbar-hidden { scrollbar-width: none; }
         .scrollbar-hidden::-webkit-scrollbar { width: 0; height: 0; }

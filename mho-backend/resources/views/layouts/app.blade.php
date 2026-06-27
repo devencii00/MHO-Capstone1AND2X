@@ -3,10 +3,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title') | Opol Doctors Clinic</title>
+    <title>@yield('title') | Opol Primary Healthcare</title>
     @vite('resources/css/app.css')
       <link rel="stylesheet" href="{{ asset('assets/fonts/css/stylefont.css') }}">
-    <link rel="icon" type="image/x-icon" href="/images/opoldoc-weblog.ico">
+    <link rel="icon" type="image/x-icon" href="/images/logoMHO.ico">
     <style>
         .scrollbar-hidden {
             scrollbar-width: none;

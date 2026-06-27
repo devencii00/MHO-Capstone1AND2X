@@ -56,7 +56,7 @@ MAIL_PASSWORD="jkmx cwvb jkwb ifgj"
 # MAIL_PASSWORD="iunh uajv nhfv ifgj"
 MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS="opoldoctorsmedclinic@gmail.com"
-MAIL_FROM_NAME="Opol Doctors Medical Clinic System"
+MAIL_FROM_NAME="OPOL - MHO System"
 
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=

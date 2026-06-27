@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>First Login – Update Password</title>
     @vite('resources/css/app.css')
-     <link rel="icon" type="image/x-icon" href="/images/opoldoc-weblog.ico">
+     <link rel="icon" type="image/x-icon" href="/images/logoMHO.ico">
        <link rel="stylesheet" href="{{ asset('assets/fonts/css/stylefont.css') }}">
     <style>
         .font-playfair { font-family: 'Playfair Display', serif; }

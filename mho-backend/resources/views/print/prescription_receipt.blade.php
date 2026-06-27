@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Prescription Receipt — Opol Doctors Clinic</title>
+    <title>Prescription Receipt — Opol Primary Healthcare</title>
     @vite('resources/css/app.css')
     <style>
         @media print {
@@ -28,7 +28,7 @@
         <div class="bg-white border border-slate-200 rounded-3xl p-5 md:p-7">
             <div class="flex items-start justify-between gap-4">
                 <div>
-                    <div class="text-[0.72rem] uppercase tracking-widest text-slate-400">Opol Doctors Clinic</div>
+                    <div class="text-[0.72rem] uppercase tracking-widest text-slate-400">Opol Primary Healthcare</div>
                     <div class="text-lg font-semibold text-slate-900 mt-1">Prescription</div>
                     <div id="rxMeta" class="text-[0.78rem] text-slate-500 mt-1">Loading…</div>
                 </div>

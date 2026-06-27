@@ -10,7 +10,7 @@
         <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;">
             <div style="padding:20px 20px 12px;border-bottom:1px solid #f1f5f9;">
                 <div style="font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#64748b;">
-                    Opol Doctors Medical Clinic
+                    OPOL - MHO
                 </div>
               <div style="margin-top:8px;font-size:20px;font-weight:800;color:#0891b2;">
   Your Text Here
@@ -44,7 +44,7 @@
             </div>
 
             <div style="padding:12px 20px;border-top:1px solid #f1f5f9;font-size:11px;color:#94a3b8;">
-                This email was sent by the Opol Doctors Medical Clinic System.
+                This email was sent by the OPOL - MHO System.
             </div>
         </div>
     </div>
