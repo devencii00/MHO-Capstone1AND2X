@@ -53,7 +53,7 @@
     <div class="flex-1 flex flex-col min-h-screen">
         <x-header :role="$role" />
 
-        <div class="flex-1 p-8 md:p-5">
+        <div id="main-content" class="flex-1 p-8 md:p-5">
             @php
                 $mapping = [
                     'admin' => 'admindb',

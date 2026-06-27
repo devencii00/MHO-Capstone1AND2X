@@ -18,7 +18,7 @@
         $currentSection = 'patient-records';
     }
 
-    $navBase = 'flex items-center gap-2.5 p-2 rounded-xl text-[0.87rem] font-medium mb-1';
+    $navBase = 'flex items-center gap-2.5 p-2 rounded-xl text-[0.87rem] font-medium mb-1 relative';
     $navInactive = 'text-slate-600 hover:bg-slate-50 hover:text-slate-900';
     $navActive = 'bg-gradient-to-br from-green-50/20 to-green-100/10 text-green-700 relative';
 @endphp
@@ -33,7 +33,6 @@
     }
     #sidebar-aside:hover {
         width: 248px;
-        overflow: visible;
     }
 
     /* ── Independent scrollable nav area ── */
@@ -105,9 +104,12 @@
         display: none !important;
     }
 
-    /* ── Active state indicator: hidden when collapsed (bg tint suffices) ── */
-    #sidebar-aside:not(:hover) nav a .absolute {
-        display: none;
+    /* ── Active state indicator: smaller bar when collapsed ── */
+    #sidebar-aside:not(:hover) nav a .sidebar-active-badge {
+        width: 3px;
+        top: 35%;
+        bottom: 35%;
+        left: 3px;
     }
 </style>
 <div class="sidebar-logo-wrap flex items-center gap-3 p-6 border-b border-slate-100"> 
@@ -144,7 +146,7 @@
                     <x-lucide-layout-dashboard class="w-[18px] h-[18px] flex-shrink-0 {{ $isDashboardActive ? 'text-green-600' : '' }}" />
                     Dashboard
                     @if ($isDashboardActive)
-                        <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                        
                     @endif
                 </a>
             </div>
@@ -180,7 +182,7 @@
                     <x-lucide-layout-dashboard class="w-[18px] h-[18px] flex-shrink-0 {{ $isDashboardActive ? 'text-green-600' : '' }}" />
                     Dashboard
                     @if ($isDashboardActive)
-                        <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                        
                     @endif
                 </a>
             </div>
@@ -197,7 +199,7 @@
                     <x-lucide-stethoscope class="w-[18px] h-[18px] {{ $isDoctorManagement ? 'text-green-600' : '' }}" />
                     Doctors
                     @if ($isDoctorManagement)
-                        <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                        
                     @endif
                 </a>
 
@@ -205,7 +207,7 @@
                     <x-lucide-calendar class="w-[18px] h-[18px] {{ $isAppointments ? 'text-green-600' : '' }}" />
                     Appointments
                     @if ($isAppointments)
-                        <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                        
                     @endif
                 </a>
 
@@ -213,7 +215,7 @@
                     <x-lucide-clipboard class="w-[18px] h-[18px] {{ $isPatientRecords ? 'text-green-600' : '' }}" />
                     Patient Records
                     @if ($isPatientRecords)
-                        <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                        
                     @endif
                 </a>
             </div>
@@ -230,7 +232,7 @@
                     <x-lucide-briefcase-medical class="w-[18px] h-[18px] {{ $isServicesManagement ? 'text-green-600' : '' }}" />
                     Services
                     @if ($isServicesManagement)
-                        <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                        
                     @endif
                 </a>
 
@@ -238,7 +240,7 @@
                     <x-lucide-syringe class="w-[18px] h-[18px] {{ $isMedicinesManagement ? 'text-green-600' : '' }}" />
                     Medicines
                     @if ($isMedicinesManagement)
-                        <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                        
                     @endif
                 </a>
             </div>
@@ -255,7 +257,7 @@
                     <x-lucide-users class="w-[18px] h-[18px] {{ $isUserManagement ? 'text-green-600' : '' }}" />
                     Users
                     @if ($isUserManagement)
-                        <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                        
                     @endif
                 </a>
 
@@ -263,7 +265,7 @@
                     <x-lucide-user-check class="w-[18px] h-[18px] {{ $isVerificationOversight ? 'text-green-600' : '' }}" />
                     Verification Oversight
                     @if ($isVerificationOversight)
-                        <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                        
                     @endif
                 </a>
             </div>
@@ -280,7 +282,7 @@
                     <x-lucide-chart-no-axes-combined class="w-[18px] h-[18px] {{ $isReports ? 'text-green-600' : '' }}" />
                     Reports
                     @if ($isReports)
-                        <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                        
                     @endif
                 </a>
 
@@ -288,7 +290,7 @@
                     <x-lucide-folder class="w-[18px] h-[18px] {{ $isLogs ? 'text-green-600' : '' }}" />
                     Logs
                     @if ($isLogs)
-                        <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                        
                     @endif
                 </a>
 
@@ -296,7 +298,7 @@
                     <x-lucide-bot class="w-[18px] h-[18px] {{ $isChatbotManagement ? 'text-green-600' : '' }}" />
                     Chatbot
                     @if ($isChatbotManagement)
-                        <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                        
                     @endif
                 </a>
 
@@ -304,7 +306,7 @@
                     <x-lucide-settings class="w-[18px] h-[18px] {{ $isSettings ? 'text-green-600' : '' }}" />
                     Settings
                     @if ($isSettings)
-                        <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                        
                     @endif
                 </a>
             </div>
@@ -336,7 +338,7 @@
                 <x-lucide-user-plus class="w-[18px] h-[18px] {{ $isReceptionRegister ? 'text-green-600' : '' }}" />
                 Register patient
                 @if ($isReceptionRegister)
-                    <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                    
                 @endif
             </a>
 
@@ -344,7 +346,7 @@
                 <x-lucide-calendar class="w-[18px] h-[18px] {{ $isReceptionAppointments ? 'text-green-600' : '' }}" />
                 Appointments
                 @if ($isReceptionAppointments)
-                    <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                    
                 @endif
             </a>
 
@@ -352,7 +354,7 @@
                 <x-lucide-user-check class="w-[18px] h-[18px] {{ $isReceptionWalkIns ? 'text-green-600' : '' }}" />
                 Walk-ins
                 @if ($isReceptionWalkIns)
-                    <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                    
                 @endif
             </a>
 
@@ -360,7 +362,7 @@
                 <x-lucide-list class="w-[18px] h-[18px] {{ $isReceptionQueue ? 'text-green-600' : '' }}" />
                 Queue management
                 @if ($isReceptionQueue)
-                    <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                    
                 @endif
             </a>
             </div>
@@ -379,7 +381,7 @@
                 <x-lucide-credit-card class="w-[18px] h-[18px] {{ $isReceptionRecordPayments ? 'text-green-600' : '' }}" />
                 Record payments
                 @if ($isReceptionRecordPayments)
-                    <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                    
                 @endif
             </a>
             </div>
@@ -397,7 +399,7 @@
                 <x-lucide-user-check class="w-[18px] h-[18px] {{ $isReceptionVerificationOversight ? 'text-green-600' : '' }}" />
                 Verification requests
                 @if ($isReceptionVerificationOversight)
-                    <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                    
                 @endif
             </a>
             </div>
@@ -415,7 +417,7 @@
                     <x-lucide-messages-square class="w-[18px] h-[18px] {{ $isReceptionMessages ? 'text-green-600' : '' }}" />
                     Messages
                     @if ($isReceptionMessages)
-                        <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                        
                     @endif
                 </a>
             </div>
@@ -432,7 +434,7 @@
                     <x-lucide-settings class="w-[18px] h-[18px] {{ $isReceptionSettings ? 'text-green-600' : '' }}" />
                     Settings
                     @if ($isReceptionSettings)
-                        <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                        
                     @endif
                 </a>
             </div>
@@ -452,7 +454,7 @@
                 <x-lucide-file-text class="w-[18px] h-[18px] {{ $isDoctorSchedule ? 'text-green-600' : '' }}" />
                 My Schedule
                 @if ($isDoctorSchedule)
-                    <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                    
                 @endif
             </a>
 
@@ -460,7 +462,7 @@
                 <x-lucide-list class="w-[18px] h-[18px] {{ $isDoctorQueue ? 'text-green-600' : '' }}" />
                 Queue
                 @if ($isDoctorQueue)
-                    <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                    
                 @endif
             </a>
 
@@ -468,7 +470,7 @@
                 <x-lucide-clipboard-list class="w-[18px] h-[18px] {{ $isDoctorConsultation ? 'text-green-600' : '' }}" />
                 Consultation
                 @if ($isDoctorConsultation)
-                    <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                    
                 @endif
             </a>
 
@@ -476,7 +478,7 @@
                 <x-lucide-pill class="w-[18px] h-[18px] {{ $isDoctorPrescription ? 'text-green-600' : '' }}" />
                 Prescription
                 @if ($isDoctorPrescription)
-                    <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                    
                 @endif
             </a>
 
@@ -484,7 +486,7 @@
                 <x-lucide-history class="w-[18px] h-[18px] {{ $isDoctorHistory ? 'text-green-600' : '' }}" />
                 History
                 @if ($isDoctorHistory)
-                    <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                    
                 @endif
             </a>
 
@@ -494,7 +496,7 @@
                 <x-lucide-settings class="w-[18px] h-[18px] {{ $isDoctorSettings ? 'text-green-600' : '' }}" />
                 Settings
                 @if ($isDoctorSettings)
-                    <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                    
                 @endif
             </a>
         @elseif ($roleKey === 'patient')
@@ -508,7 +510,7 @@
                 <x-lucide-settings class="w-[18px] h-[18px] {{ $isPatientSettings ? 'text-green-600' : '' }}" />
                 Settings
                 @if ($isPatientSettings)
-                    <span class="absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500"></span>
+                    
                 @endif
             </a>
         @endif
@@ -605,6 +607,8 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
+            if (window.__sidebarInited) return;
+            window.__sidebarInited = true;
             var logoutButton = document.getElementById('sidebarLogoutButton')
             var logoutModal = document.getElementById('sidebarLogoutModal')
             var logoutCancel = document.getElementById('sidebarLogoutCancel')
@@ -682,25 +686,6 @@
             })
 
             var toggles = document.querySelectorAll('.sidebar-group-toggle')
-
-            // ── Restore sidebar scroll (backup inside DOMContentLoaded) ──
-            ;(function () {
-                var nav = document.querySelector('.sidebar-nav')
-                if (!nav) return
-                var saved = null
-                try { saved = window.localStorage.getItem('sidebar_scroll_top') } catch (_) {}
-                if (!saved) return
-                var top = parseInt(saved, 10) || 0
-                var tries = 0
-                ;(function poll() {
-                    nav.scrollTop = top
-                    tries++
-                    if (tries < 15 && nav.scrollTop !== top) {
-                        setTimeout(poll, 50)
-                    }
-                })()
-            })()
-
             toggles.forEach(function (btn) {
                 var group = btn.getAttribute('data-group')
                 if (!group) {
@@ -808,39 +793,34 @@
         })
     })();
 
-    // ── Sidebar scroll persistence ──
+    // ── Sidebar scroll: save on every scroll (throttled) ──
+    // Restore is handled in the layout (app.blade.php)
     (function () {
-        // Save on every scroll (throttled to ~150ms)
-        function attachSave(nav) {
-            var timer = null
-            nav.addEventListener('scroll', function () {
-                if (timer) clearTimeout(timer)
-                timer = setTimeout(function () {
-                    try { window.localStorage.setItem('sidebar_scroll_top', String(nav.scrollTop)) } catch (_) {}
-                }, 150)
-            })
-        }
+        var nav = document.querySelector('.sidebar-nav');
+        if (!nav) return;
+        var timer = null;
+        nav.addEventListener('scroll', function () {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(function () {
+                try { window.localStorage.setItem('sidebar_scroll_top', String(nav.scrollTop)); } catch (_) {}
+            }, 150);
+        });
+    })();
 
-        // Restore saved scroll — tries repeatedly to beat browser auto-scroll
-        function restore(nav) {
-            var saved = null
-            try { saved = window.localStorage.getItem('sidebar_scroll_top') } catch (_) {}
-            if (!saved) return
-            var top = parseInt(saved, 10) || 0
-            var attempts = 0
-            function trySet() {
-                nav.scrollTop = top
-                attempts++
-                if (attempts < 10 && nav.scrollTop !== top) {
-                    setTimeout(trySet, 30)
-                }
-            }
-            trySet()
-        }
-
-        var nav = document.querySelector('.sidebar-nav')
-        if (!nav) return
-        attachSave(nav)
-        restore(nav)
+    // ── On hover, scroll to active tab ──
+    (function () {
+        var aside = document.getElementById('sidebar-aside');
+        if (!aside) return;
+        aside.addEventListener('mouseenter', function () {
+            var nav = aside.querySelector('.sidebar-nav');
+            if (!nav) return;
+            var active = nav.querySelector('a.text-green-700');
+            if (!active) return;
+            var linkRect = active.getBoundingClientRect();
+            var navRect = nav.getBoundingClientRect();
+            if (linkRect.top >= navRect.top + 10 && linkRect.bottom <= navRect.bottom - 10) return;
+            var targetScroll = (linkRect.top - navRect.top) + nav.scrollTop - navRect.height / 2 + linkRect.height / 2;
+            nav.scrollTop = Math.max(0, Math.min(targetScroll, nav.scrollHeight - nav.clientHeight));
+        });
     })();
 </script>

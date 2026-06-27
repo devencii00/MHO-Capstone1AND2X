@@ -107,5 +107,161 @@
         }
     </script>
 
+    <script>
+    // ── Update sidebar's active nav indicator ──
+    function updateSidebarActive(url) {
+        var sidebarNav = document.querySelector('#sidebar-aside nav');
+        if (!sidebarNav) return;
+
+        // Clear all active states
+        var links = sidebarNav.querySelectorAll('a');
+        Array.prototype.forEach.call(links, function (link) {
+            link.classList.remove('bg-gradient-to-br', 'from-green-50/20', 'to-green-100/10', 'text-green-700');
+            link.classList.add('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
+            // Find and remove injected badge indicator
+            var badge = link.querySelector('.sidebar-active-badge');
+            if (badge) badge.remove();
+            var icon = link.querySelector('svg');
+            if (icon) icon.classList.remove('text-green-600');
+        });
+
+        // Find the matching link and activate it
+        var target = null;
+        Array.prototype.forEach.call(links, function (link) {
+            var href = link.getAttribute('href');
+            if (!href) return;
+            // Compare by route name + query params (handles relative & absolute URLs)
+            try {
+                var u = new URL(href, window.location.origin);
+                var cur = new URL(url, window.location.origin);
+                if (u.pathname === cur.pathname && u.search === cur.search) {
+                    target = link;
+                }
+            } catch (_) {
+                if (href === url) target = link;
+            }
+        });
+
+        // Fallback: match by section= query param in the clicked URL
+        if (!target) {
+            var section = null;
+            try { section = new URL(url, window.location.origin).searchParams.get('section'); } catch (_) {}
+            if (section) {
+                Array.prototype.forEach.call(links, function (link) {
+                    var lh = link.getAttribute('href');
+                    if (!lh) return;
+                    try {
+                        var ls = new URL(lh, window.location.origin).searchParams.get('section');
+                        if (ls === section) target = link;
+                    } catch (_) {}
+                });
+            }
+        }
+
+        if (target) {
+            target.classList.remove('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
+            target.classList.add('bg-gradient-to-br', 'from-green-50/20', 'to-green-100/10', 'text-green-700');
+            // Inject badge indicator (remove existing first to avoid duplicates)
+            var badge = target.querySelector('.sidebar-active-badge');
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'sidebar-active-badge absolute left-0 top-[25%] bottom-[25%] w-1.5 rounded-r bg-green-500';
+                target.appendChild(badge);
+            }
+            // Color the icon green
+            var icon = target.querySelector('svg');
+            if (icon) icon.classList.add('text-green-600');
+        }
+    }
+
+    // ── Custom page loader for SPA-like navigation ──
+    (function () {
+        var pageCache = {};
+        var mainContent = document.getElementById('main-content');
+        if (!mainContent) return; 
+
+        document.addEventListener('click', function (e) {
+            var a = e.target.closest('a');
+            if (!a) return;
+            // Only intercept sidebar nav links
+            if (!a.closest('#sidebar-aside nav')) return;
+            // Skip external links, download links, etc.
+            if (a.target === '_blank' || a.hasAttribute('download') || a.getAttribute('rel') === 'external') return;
+            // Skip if modifier held
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+            var href = a.getAttribute('href');
+            if (!href || href === '#' || href.startsWith('javascript:') || href.startsWith('http') && !href.startsWith(window.location.origin)) return;
+
+            e.preventDefault();
+
+            var url = href;
+
+            // Cached?
+            if (pageCache[url]) {
+                mainContent.innerHTML = pageCache[url];
+                window.scrollTo(0, 0);
+                history.pushState(null, '', url);
+                updateSidebarActive(url);
+                return;
+            }
+
+            // Show subtle loading indicator
+            mainContent.style.opacity = '0.4';
+            mainContent.style.transition = 'opacity 0.15s';
+
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (r) { return r.text(); })
+                .then(function (html) {
+                    // Extract the new #main-content from the fetched HTML
+                    var parser = new DOMParser();
+                    var doc = parser.parseFromString(html, 'text/html');
+                    var newContent = doc.getElementById('main-content');
+                    if (!newContent) {
+                        // Fallback: full page reload
+                        window.location.href = url;
+                        return;
+                    }
+
+                    var newHtml = newContent.innerHTML;
+                    pageCache[url] = newHtml;
+                    mainContent.innerHTML = newHtml;
+                    mainContent.style.opacity = '1';
+                    window.scrollTo(0, 0);
+                    history.pushState(null, '', url);
+
+                    // Re-run all main content's inline scripts
+                    Array.prototype.forEach.call(mainContent.querySelectorAll('script'), function (oldScript) {
+                        var newScript = document.createElement('script');
+                        Array.prototype.forEach.call(oldScript.attributes, function (attr) {
+                            newScript.setAttribute(attr.name, attr.value);
+                        });
+                        newScript.textContent = oldScript.textContent;
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                    });
+
+                    // Update sidebar active nav indicator
+                    updateSidebarActive(url);
+
+                    // Restore sidebar scroll in case content reflow affected it
+                    var sidebarEl = document.getElementById('sidebar-aside');
+                    if (sidebarEl) {
+                        var saved = null;
+                        try { saved = window.localStorage.getItem('sidebar_scroll_top'); } catch (_) {}
+                        if (saved) sidebarEl.scrollTop = parseInt(saved, 10) || 0;
+                    }
+                })
+                .catch(function () {
+                    window.location.href = url;
+                });
+        });
+
+        // Handle back/forward browser navigation
+        window.addEventListener('popstate', function () {
+            window.location.reload();
+        });
+    })();
+    </script>
+
 </body>
 </html>
