@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Queue Display — Opol Primary Healthcare</title>
     @vite('resources/css/app.css')
+    @vite('resources/js/app.js')
        <link rel="stylesheet" href="{{ asset('assets/fonts/css/stylefont.css') }}">
          <link rel="icon" type="image/x-icon" href="/images/logoMHO.ico">
     <style>
@@ -267,8 +268,8 @@
             if (doctorId) {
                 url += '&doctor_id=' + encodeURIComponent(doctorId);
             }
-            fetch(url, { headers: { 'Accept': 'application/json' } })
-                .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+            window.axios.get(url, { headers: { 'Accept': 'application/json' } })
+                .then(function (response) { return { ok: true, data: response.data }; })
                 .then(function (result) {
                     if (!result.ok) {
                         showError('Failed to load queue display.');

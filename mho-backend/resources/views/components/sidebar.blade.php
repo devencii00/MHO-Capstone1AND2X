@@ -23,28 +23,111 @@
     $navActive = 'bg-gradient-to-br from-green-50/20 to-green-100/10 text-green-700 relative';
 @endphp
 
-    <aside class="w-[248px] flex-shrink-0 bg-white flex flex-col fixed top-0 left-0 bottom-0 z-40 shadow-[4px_0_24px_rgba(15,23,42,0.05)] border-r border-slate-200">
-<div class="flex items-start gap-3 p-6 border-b border-slate-100"> 
-    
+    <aside id="sidebar-aside" class="flex-shrink-0 bg-white flex flex-col border-r border-slate-200 sticky top-0 self-start h-screen">
+<style>
+    #sidebar-aside {
+        width: 68px;
+        transition: width 0.1s ease-in-out;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+    #sidebar-aside:hover {
+        width: 248px;
+        overflow: visible;
+    }
+
+    /* ── Independent scrollable nav area ── */
+    #sidebar-aside .sidebar-nav {
+        flex: 1;
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
+    #sidebar-aside .sidebar-nav::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+    }
+
+    /* ── Bottom section stays pinned at bottom of sidebar ── */
+    #sidebar-aside .sidebar-bottom {
+        flex-shrink: 0;
+    }
+
+    /* ── Nav links: icon centered in collapsed sidebar, text fully hidden ── */
+    #sidebar-aside:not(:hover) nav a {
+        justify-content: center;
+        gap: 0;
+        padding: 0.5rem 0;
+        font-size: 0;
+    }
+    #sidebar-aside:not(:hover) nav a svg {
+        font-size: initial;
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+
+    /* ── Logo header: center icon when collapsed ── */
+    #sidebar-aside:not(:hover) .sidebar-logo-wrap {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    /* ── Bottom section: center items when collapsed ── */
+    #sidebar-aside:not(:hover) .sidebar-bottom {
+        padding-left: 0;
+        padding-right: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    #sidebar-aside:not(:hover) .sidebar-bottom > div:first-child {
+        justify-content: center;
+        padding: 0.5rem;
+        width: auto;
+        border-radius: 0.75rem;
+    }
+    #sidebar-aside:not(:hover) .sidebar-bottom > button {
+        justify-content: center;
+        padding: 0.5rem;
+        width: 40px;
+        height: 40px;
+        margin: 0 auto;
+        border-radius: 0.75rem;
+    }
+
+    /* ── Hide text/labels when collapsed ── */
+    #sidebar-aside:not(:hover) .sidebar-text,
+    #sidebar-aside:not(:hover) .sidebar-group-header,
+    #sidebar-aside:not(:hover) .sidebar-group-toggle,
+    #sidebar-aside:not(:hover) .sidebar-user-details,
+    #sidebar-aside:not(:hover) .sidebar-signout-label {
+        display: none !important;
+    }
+
+    /* ── Active state indicator: hidden when collapsed (bg tint suffices) ── */
+    #sidebar-aside:not(:hover) nav a .absolute {
+        display: none;
+    }
+</style>
+<div class="sidebar-logo-wrap flex items-center gap-3 p-6 border-b border-slate-100"> 
     <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white border border-slate-200 overflow-hidden"> 
         <img src="{{ asset('images/MHOLogoV2.png') }}" alt="OPOL - MHO" class="w-full h-full object-cover"> 
     </div> 
-
-     
-    <div class="pt-0.78"> 
+    <div class="sidebar-text pt-0.78 truncate"> 
         <div class="font-serif font-bold text-slate-900 text-sm leading-[1.2]">OPOL - MHO</div> 
         <div class="text-slate-400 font-medium text-[0.68rem] uppercase tracking-widest">{{ $roleLabel }}</div> 
     </div> 
 </div>
 
-    <nav class="flex-1 px-3 py-2 overflow-y-auto scrollbar-hidden">
+    <nav class="sidebar-nav flex-1 px-3 py-2 overflow-y-auto scrollbar-hidden">
         @php
             $isDashboardActive = $currentSection === 'overview';
         @endphp
 
         @if ($roleKey !== 'admin')
             @php
-                $groupHeaderBase = 'flex items-center justify-between gap-2 pt-4 pb-1 text-slate-400 text-[0.67rem] font-semibold uppercase tracking-widest';
+                $groupHeaderBase = 'sidebar-group-header flex items-center justify-between gap-2 pt-4 pb-1 text-slate-400 text-[0.67rem] font-semibold uppercase tracking-widest';
                 $groupToggleBtn = 'inline-flex items-center justify-center w-7 h-7 rounded-lg hover:bg-slate-50 text-slate-400 hover:text-slate-700';
                 $mainGroupKey = $roleKey . '-main';
             @endphp
@@ -81,7 +164,7 @@
                 $isLogs = $currentSection === 'logs';
                 $isSettings = $currentSection === 'settings';
 
-                $groupHeaderBase = 'flex items-center justify-between gap-2 pt-4 pb-1 text-slate-400 text-[0.67rem] font-semibold uppercase tracking-widest';
+                $groupHeaderBase = 'sidebar-group-header flex items-center justify-between gap-2 pt-4 pb-1 text-slate-400 text-[0.67rem] font-semibold uppercase tracking-widest';
                 $groupToggleBtn = 'inline-flex items-center justify-center w-7 h-7 rounded-lg hover:bg-slate-50 text-slate-400 hover:text-slate-700';
             @endphp
 
@@ -236,7 +319,7 @@
                 $isReceptionMessages = $currentSection === 'messages';
                 $isReceptionSettings = $currentSection === 'settings-reception';
 
-                $groupHeaderBase = 'flex items-center justify-between gap-2 pt-4 pb-1 text-slate-400 text-[0.67rem] font-semibold uppercase tracking-widest';
+                $groupHeaderBase = 'sidebar-group-header flex items-center justify-between gap-2 pt-4 pb-1 text-slate-400 text-[0.67rem] font-semibold uppercase tracking-widest';
                 $groupToggleBtn = 'inline-flex items-center justify-center w-7 h-7 rounded-lg hover:bg-slate-50 text-slate-400 hover:text-slate-700';
             @endphp
 
@@ -363,7 +446,7 @@
                 $isDoctorSettings = $currentSection === 'settings-doctor';
             @endphp
 
-            <div class="text-slate-400 text-[0.67rem] font-semibold uppercase tracking-widest mt-4 mb-1">Work</div>
+            <div class="sidebar-group-header text-slate-400 text-[0.67rem] font-semibold uppercase tracking-widest mt-4 mb-1">Work</div>
 
             <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'my-schedule']) }}" class="{{ $navBase }} {{ $isDoctorSchedule ? $navActive : $navInactive }}">
                 <x-lucide-file-text class="w-[18px] h-[18px] {{ $isDoctorSchedule ? 'text-green-600' : '' }}" />
@@ -405,7 +488,7 @@
                 @endif
             </a>
 
-            <div class="text-slate-400 text-[0.67rem] font-semibold uppercase tracking-widest mt-2 mb-1">Settings</div>
+            <div class="sidebar-group-header text-slate-400 text-[0.67rem] font-semibold uppercase tracking-widest mt-2 mb-1">Settings</div>
 
             <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'settings-doctor']) }}" class="{{ $navBase }} {{ $isDoctorSettings ? $navActive : $navInactive }}">
                 <x-lucide-settings class="w-[18px] h-[18px] {{ $isDoctorSettings ? 'text-green-600' : '' }}" />
@@ -419,7 +502,7 @@
                 $isPatientSettings = $currentSection === 'settings-patient';
             @endphp
 
-            <div class="text-slate-400 text-[0.67rem] font-semibold uppercase tracking-widest mt-4 mb-1">System</div>
+            <div class="sidebar-group-header text-slate-400 text-[0.67rem] font-semibold uppercase tracking-widest mt-4 mb-1">System</div>
 
             <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'settings-patient']) }}" class="{{ $navBase }} {{ $isPatientSettings ? $navActive : $navInactive }}">
                 <x-lucide-settings class="w-[18px] h-[18px] {{ $isPatientSettings ? 'text-green-600' : '' }}" />
@@ -431,20 +514,20 @@
         @endif
     </nav>
 
-    <div class="px-3 py-4 border-t border-slate-100">
+    <div class="sidebar-bottom px-3 py-4 border-t border-slate-100">
         <div class="flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 mb-2">
             <div class="w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-br from-green-400 to-green-700 text-white overflow-hidden">
                 <img id="sidebarUserImage" src="" class="hidden w-full h-full object-cover" alt="Profile">
                 <x-lucide-user id="sidebarUserIcon" class="w-[18px] h-[18px]" />
             </div>
-            <div>
+            <div class="sidebar-user-details">
                 <div id="sidebarUserName" class="text-slate-800 font-semibold text-[0.83rem] leading-tight">{{ $roleLabel }}</div>
                 <div id="sidebarUserEmail" class="text-slate-400 text-[0.7rem]"></div>
             </div>
         </div>
         <button id="sidebarLogoutButton" type="button" class="w-full flex items-center justify-center gap-2.5 p-2 rounded-xl border border-red-400/25 bg-red-50 text-red-600 text-[0.83rem] font-semibold hover:bg-red-100 hover:border-red-400/40">
             <x-lucide-log-out class="w-[16px] h-[16px]" />
-            Sign Out
+            <span class="sidebar-signout-label">Sign Out</span>
         </button>
     </div>
 </aside>
@@ -469,20 +552,41 @@
 <script>
     (function () {
         function sidebarApiFetch(path, options) {
+            var method = (options && options.method) ? options.method : 'GET'
+            var reqHeaders = (options && options.headers) ? Object.assign({}, options.headers) : {}
+            reqHeaders['Accept'] = 'application/json'
+
             var token = null
-            try {
-                token = window.localStorage ? window.localStorage.getItem('api_token') : null
-            } catch (_) {
-                token = null
-            }
-            var headers = (options && options.headers) ? Object.assign({}, options.headers) : {}
+            try { token = window.localStorage ? window.localStorage.getItem('api_token') : null } catch (_) { token = null }
             if (token) {
-                headers['Authorization'] = 'Bearer ' + token
+                reqHeaders['Authorization'] = 'Bearer ' + token
             }
-            if (!headers['Accept']) {
-                headers['Accept'] = 'application/json'
+
+            if (typeof window.axios === 'function') {
+                var config = { method: method, url: path, headers: reqHeaders }
+                if (options && options.body && method !== 'GET') {
+                    config.data = options.body
+                }
+                return window.axios(config).then(function (response) {
+                    return { ok: true, status: response.status, json: function () { return Promise.resolve(response.data) }, data: response.data }
+                }).catch(function (err) {
+                    var resp = (err && err.response) ? err.response : { status: 0, data: null }
+                    return { ok: false, status: resp.status, json: function () { return Promise.resolve(resp.data) }, data: resp.data }
+                })
             }
-            return fetch(path, Object.assign({}, options, { headers: headers }))
+
+            // Fallback to native fetch
+            var fetchOptions = { method: method, headers: reqHeaders }
+            if (options && options.body && method !== 'GET') {
+                fetchOptions.body = options.body
+            }
+            return fetch(path, fetchOptions).then(function (response) {
+                return response.json().then(function (data) {
+                    return { ok: response.ok, status: response.status, json: function () { return Promise.resolve(data) }, data: data }
+                })
+            }).catch(function () {
+                return { ok: false, status: 0, json: function () { return Promise.resolve(null) }, data: null }
+            })
         }
 
         function formatUserName(user) {
@@ -578,6 +682,25 @@
             })
 
             var toggles = document.querySelectorAll('.sidebar-group-toggle')
+
+            // ── Restore sidebar scroll (backup inside DOMContentLoaded) ──
+            ;(function () {
+                var nav = document.querySelector('.sidebar-nav')
+                if (!nav) return
+                var saved = null
+                try { saved = window.localStorage.getItem('sidebar_scroll_top') } catch (_) {}
+                if (!saved) return
+                var top = parseInt(saved, 10) || 0
+                var tries = 0
+                ;(function poll() {
+                    nav.scrollTop = top
+                    tries++
+                    if (tries < 15 && nav.scrollTop !== top) {
+                        setTimeout(poll, 50)
+                    }
+                })()
+            })()
+
             toggles.forEach(function (btn) {
                 var group = btn.getAttribute('data-group')
                 if (!group) {
@@ -683,5 +806,41 @@
                 })
                 .catch(function () {})
         })
-    })()
+    })();
+
+    // ── Sidebar scroll persistence ──
+    (function () {
+        // Save on every scroll (throttled to ~150ms)
+        function attachSave(nav) {
+            var timer = null
+            nav.addEventListener('scroll', function () {
+                if (timer) clearTimeout(timer)
+                timer = setTimeout(function () {
+                    try { window.localStorage.setItem('sidebar_scroll_top', String(nav.scrollTop)) } catch (_) {}
+                }, 150)
+            })
+        }
+
+        // Restore saved scroll — tries repeatedly to beat browser auto-scroll
+        function restore(nav) {
+            var saved = null
+            try { saved = window.localStorage.getItem('sidebar_scroll_top') } catch (_) {}
+            if (!saved) return
+            var top = parseInt(saved, 10) || 0
+            var attempts = 0
+            function trySet() {
+                nav.scrollTop = top
+                attempts++
+                if (attempts < 10 && nav.scrollTop !== top) {
+                    setTimeout(trySet, 30)
+                }
+            }
+            trySet()
+        }
+
+        var nav = document.querySelector('.sidebar-nav')
+        if (!nav) return
+        attachSave(nav)
+        restore(nav)
+    })();
 </script>

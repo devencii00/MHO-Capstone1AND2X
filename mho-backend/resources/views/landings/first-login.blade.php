@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Update Admin Credentials</title>
     @vite('resources/css/app.css')
+    @vite('resources/js/app.js')
     <link rel="stylesheet" href="{{ asset('assets/fonts/css/stylefont.css') }}">
     <style>
         .font-playfair { font-family: 'Playfair Display', serif; }
@@ -48,15 +49,67 @@
 
     <script>
         function apiFetch(path, options = {}) {
-            const token = window.localStorage ? window.localStorage.getItem('api_token') : null;
-            const headers = options.headers ? {...options.headers} : {};
+            var token = null;
+            try { token = window.localStorage ? window.localStorage.getItem('api_token') : null } catch (_) { token = null; }
+            var headers = options.headers ? Object.assign({}, options.headers) : {};
             if (token) {
                 headers['Authorization'] = 'Bearer ' + token;
             }
-            if (!headers['Accept']) {
-                headers['Accept'] = 'application/json';
+            headers['Accept'] = 'application/json';
+
+            var method = options.method || 'GET';
+
+            if (typeof window.axios === 'function') {
+                var config = { method: method, url: path, headers: headers };
+                if (options.body && method !== 'GET') {
+                    config.data = options.body;
+                }
+                if (options.signal) {
+                    config.signal = options.signal;
+                }
+                return window.axios(config).then(function (response) {
+                    return {
+                        ok: true,
+                        status: response.status,
+                        json: function () { return Promise.resolve(response.data) },
+                    };
+                }).catch(function (err) {
+                    if (err && err.response) {
+                        return {
+                            ok: false,
+                            status: err.response.status,
+                            json: function () { return Promise.resolve(err.response.data) },
+                        };
+                    }
+                    return {
+                        ok: false,
+                        status: 0,
+                        json: function () { return Promise.resolve(null) },
+                    };
+                });
             }
-            return fetch(path, {...options, headers});
+
+            // Fallback to native fetch
+            var fetchOptions = { method: method, headers: headers };
+            if (options.body && method !== 'GET') {
+                fetchOptions.body = options.body;
+            }
+            if (options.signal) {
+                fetchOptions.signal = options.signal;
+            }
+            return fetch(path, fetchOptions).then(function (response) {
+                return {
+                    ok: response.ok,
+                    status: response.status,
+                    json: function () { return response.json() },
+                };
+            }).catch(function () {
+                return {
+                    ok: false,
+                    status: 0,
+                    json: function () { return Promise.resolve(null) },
+                };
+            });
         }
 
         function togglePasswordVisibility(inputId, eyeId, eyeOffId) {

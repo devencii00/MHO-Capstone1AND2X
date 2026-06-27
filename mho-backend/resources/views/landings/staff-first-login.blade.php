@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>First Login – Update Password</title>
     @vite('resources/css/app.css')
+    @vite('resources/js/app.js')
      <link rel="icon" type="image/x-icon" href="/images/logoMHO.ico">
        <link rel="stylesheet" href="{{ asset('assets/fonts/css/stylefont.css') }}">
     <style>
@@ -45,20 +46,41 @@
 
     <script>
         function staffApiFetch(path, options) {
-            var token = null
-            try {
-                token = window.localStorage ? window.localStorage.getItem('api_token') : null
-            } catch (_) {
-                token = null
-            }
+            var token = null;
+            try { token = window.localStorage ? window.localStorage.getItem('api_token') : null } catch (_) { token = null }
             var headers = (options && options.headers) ? Object.assign({}, options.headers) : {}
             if (token) {
                 headers['Authorization'] = 'Bearer ' + token
             }
-            if (!headers['Accept']) {
-                headers['Accept'] = 'application/json'
+            headers['Accept'] = 'application/json'
+
+            var method = (options && options.method) ? options.method : 'GET'
+
+            if (typeof window.axios === 'function') {
+                var config = { method: method, url: path, headers: headers }
+                if (options && options.body && method !== 'GET') {
+                    config.data = options.body
+                }
+                return window.axios(config).then(function (response) {
+                    return { ok: true, status: response.status, json: function () { return Promise.resolve(response.data) }, data: response.data }
+                }).catch(function (err) {
+                    var resp = (err && err.response) ? err.response : { status: 0, data: null }
+                    return { ok: false, status: resp.status, json: function () { return Promise.resolve(resp.data) }, data: resp.data }
+                })
             }
-            return fetch(path, Object.assign({}, options, { headers: headers }))
+
+            // Fallback to native fetch
+            var fetchOptions = { method: method, headers: headers }
+            if (options && options.body && method !== 'GET') {
+                fetchOptions.body = options.body
+            }
+            return fetch(path, fetchOptions).then(function (response) {
+                return response.json().then(function (data) {
+                    return { ok: response.ok, status: response.status, json: function () { return Promise.resolve(data) }, data: data }
+                })
+            }).catch(function () {
+                return { ok: false, status: 0, json: function () { return Promise.resolve(null) }, data: null }
+            })
         }
 
         function togglePasswordVisibility(inputId, eyeId, eyeOffId) {

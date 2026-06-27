@@ -10,13 +10,13 @@
         <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;">
             <div style="padding:20px 20px 12px;border-bottom:1px solid #f1f5f9;">
                 <div style="font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#64748b;">
-                    OPOL - MHO
+                    OPOL PRIMARY HEALTHCARE FACILITY
                 </div>
               <div style="margin-top:8px;font-size:20px;font-weight:800;color:#0891b2;">
-  Your Text Here
+  Your account details
 </div>
 
-                    Your account details
+                    
                 </div>
                 <div style="margin-top:6px;font-size:13px;color:#475569;">
                     Use these credentials to sign in. You will be asked to change your password on first login.

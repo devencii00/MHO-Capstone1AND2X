@@ -3,10 +3,54 @@
 @section('title', 'Dashboard')
 
 @section('body')
+{{-- ── Auth guard overlay: shown when no valid session ── --}}
+<div id="authGuardOverlay" class="hidden fixed inset-0 z-[100] backdrop-blur-sm bg-white/60 flex items-center justify-center p-4">
+    <div class="w-full max-w-sm rounded-2xl bg-white border border-slate-200 shadow-[0_20px_80px_rgba(15,23,42,0.35)] p-8 text-center">
+        <div class="w-14 h-14 mx-auto rounded-full bg-red-50 flex items-center justify-center mb-4">
+            <x-lucide-lock class="w-7 h-7 text-red-500" />
+        </div>
+        <h2 class="text-lg font-bold text-slate-900 mb-2">Session Required</h2>
+        <p class="text-sm text-slate-500 mb-6">Please log in to continue accessing this page.</p>
+        <a href="{{ route('webadmin.login') }}"
+           class="inline-flex items-center justify-center w-full h-11 rounded-xl bg-gradient-to-br from-green-500 to-green-700 text-white font-semibold shadow-lg hover:from-green-600 hover:to-green-800 transition-colors">
+            Log In
+        </a>
+    </div>
+</div>
+<script>
+    // ── Auth guard: hide content if no valid session ──
+    (function () {
+        var token = null;
+        try { token = window.localStorage ? window.localStorage.getItem('api_token') : null } catch (_) {}
+        var overlay = document.getElementById('authGuardOverlay');
+        if (!overlay) return;
+
+        if (!token) {
+            overlay.classList.remove('hidden');
+            return;
+        }
+
+        function showOverlay() { overlay.classList.remove('hidden'); }
+
+        if (typeof window.axios === 'function') {
+            window.axios.get("{{ url('/api/user') }}", {
+                headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+            }).then(function (response) {
+                if (response.status !== 200) showOverlay();
+            }).catch(showOverlay);
+        } else {
+            fetch("{{ url('/api/user') }}", {
+                headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+            }).then(function (r) {
+                if (!r.ok) showOverlay();
+            }).catch(showOverlay);
+        }
+    })();
+</script>
 <div class="flex min-h-screen">
     <x-sidebar :role="$role" />
 
-    <div class="ml-[248px] flex-1 flex flex-col min-h-screen">
+    <div class="flex-1 flex flex-col min-h-screen">
         <x-header :role="$role" />
 
         <div class="flex-1 p-8 md:p-5">

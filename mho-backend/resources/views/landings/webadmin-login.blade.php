@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Opol Primary Healthcare - Login</title>
     @vite('resources/css/app.css')
+    @vite('resources/js/app.js')
      <link rel="icon" type="image/x-icon" href="/images/logoMHO.ico">
        <link rel="stylesheet" href="{{ asset('assets/fonts/css/stylefont.css') }}">
     <style>
@@ -101,6 +102,41 @@
     </div>
 
     <script>
+        // ── Auto-redirect if already logged in ──
+        (function () {
+            var token = null;
+            try { token = window.localStorage ? window.localStorage.getItem('api_token') : null } catch (_) {}
+            if (!token) return;
+
+            if (typeof window.axios === 'function') {
+                window.axios.get("{{ url('/api/user') }}", {
+                    headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+                }).then(function (response) {
+                    var resp = response.data;
+                    if (!resp || !resp.uuid) return;
+                    var role = 'admin';
+                    if (resp.current_role && resp.current_role.role_name) {
+                        role = String(resp.current_role.role_name).toLowerCase();
+                    }
+                    var target = "{{ url('/dashboard') }}/" + role + '?user_uuid=' + encodeURIComponent(resp.uuid);
+                    window.location.replace(target);
+                }).catch(function () {});
+            } else {
+                // Fallback via fetch
+                fetch("{{ url('/api/user') }}", {
+                    headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+                }).then(function (r) { return r.json(); }).then(function (resp) {
+                    if (!resp || !resp.uuid) return;
+                    var role = 'admin';
+                    if (resp.current_role && resp.current_role.role_name) {
+                        role = String(resp.current_role.role_name).toLowerCase();
+                    }
+                    var target = "{{ url('/dashboard') }}/" + role + '?user_uuid=' + encodeURIComponent(resp.uuid);
+                    window.location.replace(target);
+                }).catch(function () {});
+            }
+        })();
+
         async function handleSubmit(e) {
             e.preventDefault();
 
@@ -118,53 +154,41 @@
             spinner.classList.remove('hidden');
 
             try {
-                const response = await fetch("{{ url('/api/login') }}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({
+                // Fallback if axios is not loaded (e.g., Vite module failed)
+                if (typeof window.axios !== 'function') {
+                    var fetchResp = await fetch("{{ url('/api/login') }}", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({ email: emailInput.value, password: passwordInput.value }),
+                    });
+                    var fetchData = await fetchResp.json();
+                    if (!fetchResp.ok) {
+                        var msg = fetchData.message || 'Unable to sign in.';
+                        if (fetchResp.status === 422 && fetchData.errors) {
+                            var all = [];
+                            for (var k in fetchData.errors) {
+                                if (!Object.prototype.hasOwnProperty.call(fetchData.errors, k)) continue;
+                                var v = fetchData.errors[k];
+                                if (Array.isArray(v)) { for (var i = 0; i < v.length; i++) all.push(String(v[i])); }
+                                else if (v != null) all.push(String(v));
+                            }
+                            if (all.length) msg = all.join(' ');
+                        }
+                        errorBox.textContent = msg;
+                        errorBox.classList.remove('hidden');
+                        btn.disabled = false;
+                        spinner.classList.add('hidden');
+                        return;
+                    }
+                    data = fetchData;
+                } else {
+                    const response = await window.axios.post("{{ url('/api/login') }}", {
                         email: emailInput.value,
                         password: passwordInput.value,
-                    }),
-                });
-
-                let data = {};
-
-                try {
-                    data = await response.json();
-                } catch (_) {
-                    data = {};
-                }
-
-                if (!response.ok) {
-                    let message = data.message || 'Unable to sign in.';
-
-                    if (response.status === 422 && data.errors) {
-                        const allErrors = [];
-                        for (const key in data.errors) {
-                            if (!Object.prototype.hasOwnProperty.call(data.errors, key)) {
-                                continue;
-                            }
-                            const value = data.errors[key];
-                            if (Array.isArray(value)) {
-                                for (let i = 0; i < value.length; i++) {
-                                    allErrors.push(String(value[i]));
-                                }
-                            } else if (value != null) {
-                                allErrors.push(String(value));
-                            }
-                        }
-                        if (allErrors.length > 0) {
-                            message = allErrors.join(' ');
-                        }
-                    }
-
-                    errorBox.textContent = message;
-                    errorBox.classList.remove('hidden');
-
-                    return;
+                    }, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    var data = response.data;
                 }
 
                 if (data.token) {
@@ -215,8 +239,28 @@
                 }
 
                 window.location.href = target;
-            } catch (_) {
-                errorBox.textContent = 'Network error. Please try again.';
+            } catch (err) {
+                var message = 'Network error. Please try again.';
+                if (err && err.response) {
+                    var respData = err.response.data;
+                    if (respData && respData.message) {
+                        message = respData.message;
+                    }
+                    if (err.response.status === 422 && respData && respData.errors) {
+                        var allErrors = [];
+                        for (var key in respData.errors) {
+                            if (!Object.prototype.hasOwnProperty.call(respData.errors, key)) continue;
+                            var val = respData.errors[key];
+                            if (Array.isArray(val)) {
+                                for (var i = 0; i < val.length; i++) allErrors.push(String(val[i]));
+                            } else if (val != null) {
+                                allErrors.push(String(val));
+                            }
+                        }
+                        if (allErrors.length > 0) message = allErrors.join(' ');
+                    }
+                }
+                errorBox.textContent = message;
                 errorBox.classList.remove('hidden');
             } finally {
                 btn.disabled = false;

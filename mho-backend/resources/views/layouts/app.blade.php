@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title') | Opol Primary Healthcare</title>
     @vite('resources/css/app.css')
+    @vite('resources/js/app.js')
       <link rel="stylesheet" href="{{ asset('assets/fonts/css/stylefont.css') }}">
     <link rel="icon" type="image/x-icon" href="/images/logoMHO.ico">
     <style>
@@ -33,45 +34,75 @@
                 token = null
             }
 
-            var baseOptions = options || {}
-            var headers = baseOptions.headers ? Object.assign({}, baseOptions.headers) : {}
+            var method = (options && options.method) ? options.method : 'GET'
+            var reqHeaders = (options && options.headers) ? Object.assign({}, options.headers) : {}
+            reqHeaders['Accept'] = 'application/json'
 
             if (token) {
-                headers['Authorization'] = 'Bearer ' + token
+                reqHeaders['Authorization'] = 'Bearer ' + token
             }
 
-            if (!headers['Accept']) {
-                headers['Accept'] = 'application/json'
-            }
-
-            if (!headers['X-Requested-With']) {
-                headers['X-Requested-With'] = 'XMLHttpRequest'
-            }
-
-            var resolvedPath = path
-            try {
-                var u = new URL(String(path || ''), window.location.origin)
-                if (u.origin !== window.location.origin) {
-                    resolvedPath = u.pathname + u.search + u.hash
-                } else {
-                    resolvedPath = u.toString()
+            // Use axios if available, fall back to fetch
+            if (typeof window.axios === 'function') {
+                var axiosConfig = {
+                    method: method,
+                    url: path,
+                    headers: reqHeaders,
+                    timeout: 30000,
                 }
-            } catch (e) {
-                resolvedPath = path
+                if (options && options.body && method !== 'GET') {
+                    axiosConfig.data = options.body
+                }
+                if (options && options.signal) {
+                    axiosConfig.signal = options.signal
+                }
+                return window.axios(axiosConfig).then(function (response) {
+                    return {
+                        ok: response.status >= 200 && response.status < 300,
+                        status: response.status,
+                        json: function () { return Promise.resolve(response.data) },
+                        text: function () { return Promise.resolve(JSON.stringify(response.data)) },
+                    }
+                }).catch(function (err) {
+                    if (err && err.response) {
+                        return {
+                            ok: false,
+                            status: err.response.status,
+                            json: function () { return Promise.resolve(err.response.data) },
+                            text: function () { return Promise.resolve(JSON.stringify(err.response.data)) },
+                        }
+                    }
+                    return {
+                        ok: false,
+                        status: 0,
+                        json: function () { return Promise.resolve(null) },
+                        text: function () { return Promise.resolve('') },
+                    }
+                })
             }
 
-            if (typeof AbortController !== 'function') {
-                return fetch(resolvedPath, Object.assign({}, baseOptions, { headers: headers, credentials: 'same-origin' }))
+            // Fallback to native fetch
+            var fetchOptions = { method: method, headers: reqHeaders, credentials: 'same-origin' }
+            if (options && options.body && method !== 'GET') {
+                fetchOptions.body = options.body
             }
-
-            var controller = new AbortController()
-            var timeoutId = setTimeout(function () {
-                try { controller.abort() } catch (_) {}
-            }, 30000)
-
-            var merged = Object.assign({}, baseOptions, { headers: headers, credentials: 'same-origin', signal: controller.signal })
-            return fetch(resolvedPath, merged).finally(function () {
-                clearTimeout(timeoutId)
+            if (options && options.signal) {
+                fetchOptions.signal = options.signal
+            }
+            return fetch(path, fetchOptions).then(function (response) {
+                return {
+                    ok: response.ok,
+                    status: response.status,
+                    json: function () { return response.json() },
+                    text: function () { return response.text() },
+                }
+            }).catch(function (err) {
+                return {
+                    ok: false,
+                    status: 0,
+                    json: function () { return Promise.resolve(null) },
+                    text: function () { return Promise.resolve('') },
+                }
             })
         }
     </script>
