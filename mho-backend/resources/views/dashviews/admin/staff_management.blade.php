@@ -871,38 +871,40 @@
                         formData.append('_method', 'PUT')
 
                         function val(el) { return el ? String(el.value || '').trim() : '' }
+                        function appendIf(key, value) { if (value) formData.append(key, value) }
 
                         formData.append('role', val(doctorEditRole) || 'doctor')
-                        formData.append('firstname', val(doctorEditFirstname))
-                        formData.append('middlename', val(doctorEditMiddlename) || null)
-                        formData.append('lastname', val(doctorEditLastname))
+                        appendIf('firstname', val(doctorEditFirstname))
+                        formData.append('middlename', val(doctorEditMiddlename) || 'N/A')
+                        appendIf('lastname', val(doctorEditLastname))
                         var specVal = val(doctorEditSpecialization)
                         if (doctorEditRole && doctorEditRole.value === 'receptionist' && !specVal) {
                             specVal = 'N/A'
                         }
-                        formData.append('specialization', specVal || null)
-                        formData.append('sex', doctorEditSexMale && doctorEditSexMale.checked ? 'Male' : (doctorEditSexFemale && doctorEditSexFemale.checked ? 'Female' : null))
-                        formData.append('birthdate', val(doctorEditBirthdate) || null)
-                        formData.append('employment_status', val(doctorEditEmploymentStatus) || null)
-                        formData.append('prc_license', val(doctorEditPrcLicense) || null)
-                        formData.append('ptr_number', val(doctorEditPtrNumber) || null)
+                        appendIf('specialization', specVal)
+                        var sexVal = doctorEditSexMale && doctorEditSexMale.checked ? 'Male' : (doctorEditSexFemale && doctorEditSexFemale.checked ? 'Female' : null)
+                        appendIf('sex', sexVal)
+                        appendIf('birthdate', val(doctorEditBirthdate))
+                        appendIf('employment_status', val(doctorEditEmploymentStatus))
+                        appendIf('prc_license', val(doctorEditPrcLicense))
+                        appendIf('ptr_number', val(doctorEditPtrNumber))
 
                         var phRaw = val(doctorEditPhilhealth).replace(/[^\d]/g, '')
-                        formData.append('philhealth_number', phRaw || null)
+                        appendIf('philhealth_number', phRaw)
 
-                        formData.append('emergency_contact', val(doctorEditEmergencyContact) || null)
+                        appendIf('emergency_contact', val(doctorEditEmergencyContact))
 
                         var ecnRaw = val(doctorEditEmergencyContactNumber)
-                        formData.append('emergency_contact_number', ecnRaw ? parsePhoneRaw(ecnRaw) : null)
+                        appendIf('emergency_contact_number', ecnRaw ? parsePhoneRaw(ecnRaw) : null)
 
                         var active = null
                         if (doctorEditActiveYes && doctorEditActiveYes.checked) active = 1
                         else if (doctorEditActiveNo && doctorEditActiveNo.checked) active = 0
-                        formData.append('active_in_service', active)
+                        if (active !== null) formData.append('active_in_service', active)
 
                         var cRaw = val(doctorEditContact)
-                        formData.append('contact_number', cRaw ? parsePhoneRaw(cRaw) : null)
-                        formData.append('email', val(doctorEditEmail) || null)
+                        appendIf('contact_number', cRaw ? parsePhoneRaw(cRaw) : null)
+                        appendIf('email', val(doctorEditEmail))
 
                         // Attach profile file if selected
                         if (doctorEditProfileUpload && doctorEditProfileUpload.files && doctorEditProfileUpload.files[0]) {

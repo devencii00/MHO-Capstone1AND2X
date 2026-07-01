@@ -143,7 +143,7 @@ class UserController extends Controller
             'status' => ['sometimes', 'in:active,inactive,suspended'],
             'firstname' => ['sometimes', 'nullable', 'string', 'regex:/^[\p{L}\p{M}][\p{L}\p{M}\s\.\'\-\x{00B7}]*$/u'],
             'lastname' => ['sometimes', 'nullable', 'string', 'regex:/^[\p{L}\p{M}][\p{L}\p{M}\s\.\'\-\x{00B7}]*$/u'],
-            'middlename' => ['sometimes', 'nullable', 'string', 'regex:/^[\p{L}\p{M}][\p{L}\p{M}\s\.\'\-\x{00B7}]*$/u'],
+            'middlename' => ['sometimes', 'nullable', 'string', 'regex:/^(N\/A|[\p{L}\p{M}][\p{L}\p{M}\s\.\'\-\x{00B7}]*)$/u'],
             'birthdate' => ['sometimes', 'nullable', 'date'],
             'sex' => ['sometimes', 'nullable', 'string'],
             'civil_status' => ['sometimes', 'nullable', 'string'],
