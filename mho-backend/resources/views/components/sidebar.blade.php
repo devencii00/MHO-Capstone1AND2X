@@ -197,7 +197,7 @@
             <div data-group-body="admin-clinical">
                 <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'doctor-management']) }}" class="{{ $navBase }} {{ $isDoctorManagement ? $navActive : $navInactive }}">
                     <x-lucide-stethoscope class="w-[18px] h-[18px] {{ $isDoctorManagement ? 'text-green-600' : '' }}" />
-                    Doctors
+                    Staff
                     @if ($isDoctorManagement)
                         
                     @endif

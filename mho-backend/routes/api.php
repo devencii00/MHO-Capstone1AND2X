@@ -60,6 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('users', UserController::class);
     Route::apiResource('patients', PatientController::class);
     Route::apiResource('doctors', DoctorController::class);
+    Route::get('/staff', [DoctorController::class, 'staffIndex']);
     Route::patch('/doctors/{doctor}/availability', [DoctorController::class, 'setAvailability']);
     Route::get('/appointments/active-exists', [AppointmentController::class, 'activeExists']);
     Route::apiResource('appointments', AppointmentController::class);

@@ -1,19 +1,26 @@
 <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
     <div class="flex items-center justify-between mb-3">
-        <h2 class="text-sm font-semibold text-slate-900">Doctor Management</h2>
-        <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Doctors</span>
+        <h2 class="text-sm font-semibold text-slate-900">Staff Management</h2>
+        <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Staff</span>
     </div>
     <p class="text-xs text-slate-500 mb-4">
-        Manage doctor profiles and schedules. Doctor accounts are created in the Users module by assigning the Doctor role.
-    </p>
+      
 
     <div id="adminDoctorError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
     <div id="adminDoctorSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
 
     <div class="mb-3 flex flex-col gap-2 md:flex-row md:items-end">
         <div class="flex-1">
-            <label for="admin_doctor_search" class="block text-[0.7rem] text-slate-600 mb-1">Search doctors</label>
-            <input id="admin_doctor_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search by name or email">
+            <label for="admin_doctor_search" class="block text-[0.7rem] text-slate-600 mb-1">Search staff</label>
+            <input id="admin_doctor_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search by name, email, or role">
+        </div>
+        <div class="w-full md:w-32">
+            <label for="admin_staff_role_filter" class="block text-[0.7rem] text-slate-600 mb-1">Role</label>
+            <select id="admin_staff_role_filter" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                <option value="">All staff</option>
+                <option value="doctor">Doctors</option>
+                <option value="receptionist">Receptionists</option>
+            </select>
         </div>
         <div class="w-full md:w-40">
             <label for="admin_doctor_sort" class="block text-[0.7rem] text-slate-600 mb-1">Sort</label>
@@ -30,8 +37,11 @@
         <table class="min-w-full text-left text-xs text-slate-600">
             <thead>
                 <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
+                    <th class="py-2 pr-4 font-semibold">Profile</th>
                     <th class="py-2 pr-4 font-semibold">Name</th>
+                    <th class="py-2 pr-4 font-semibold">Role</th>
                     <th class="py-2 pr-4 font-semibold">Specialization</th>
+                    <th class="py-2 pr-4 font-semibold">Employee #</th>
                     <th class="py-2 pr-4 font-semibold">PRC #</th>
                     <th class="py-2 pr-4 font-semibold">PTR #</th>
                     <th class="py-2 pr-4 font-semibold">PHIC #</th>
@@ -51,7 +61,7 @@
     
     <!-- Schedule Modal -->
     <div id="adminDoctorScheduleModal" class="hidden fixed inset-0 z-50 bg-slate-900/40 items-center justify-center p-4">
-        <div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)]">
+        <div class="w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)]">
             <div class="sticky top-0 bg-white px-5 py-4 border-b border-slate-100 flex items-start justify-between gap-3 z-10">
                 <div>
                     <div class="text-sm font-semibold text-slate-900" id="adminDoctorScheduleTitle">Manage Schedule</div>
@@ -66,6 +76,13 @@
                 <div id="adminDoctorScheduleError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
                 <div id="adminDoctorScheduleSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
 
+                <div class="flex items-center justify-between mb-3">
+                    <button type="button" id="adminDoctorScheduleAddToggle" class="text-[0.78rem] font-semibold text-green-600 hover:text-green-700 underline underline-offset-2 cursor-pointer">
+                        + Add Schedule
+                    </button>
+                </div>
+
+                <div id="adminDoctorScheduleFormWrap" class="hidden">
                 <form id="adminDoctorScheduleForm" class="mb-5 grid gap-3 grid-cols-1 md:grid-cols-6 items-start">
                     <div>
                         <label for="admin_schedule_from_day" class="block text-[0.7rem] text-slate-600 mb-1">From day</label>
@@ -112,13 +129,14 @@
                         <input id="admin_schedule_room" type="number" min="1" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. 101">
                     </div>
                     <input type="hidden" id="admin_schedule_slot_minutes" value="60">
-                    <div class="md:col-span-6">
-                        <button type="submit" id="adminDoctorScheduleSubmit" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors w-full md:w-auto disabled:opacity-60">
+                    <div class="md:col-span-6 flex justify-end">
+                        <button type="submit" id="adminDoctorScheduleSubmit" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60">
                             <span id="adminDoctorScheduleSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
                             <span id="adminDoctorScheduleSubmitLabel">Generate schedule</span>
                         </button>
                     </div>
                 </form>
+                </div>
 
                 <div class="border-t border-slate-100 pt-4">
                     <h4 class="text-xs font-semibold text-slate-900 mb-3">Existing Schedules</h4>
@@ -143,17 +161,15 @@
                                 <option value="sun">Sunday</option>
                             </select>
                         </div>
+                        <button type="button" id="adminScheduleTimeTableViewBtn" class="px-3 py-2 rounded-xl border border-green-200 bg-green-50 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100">Time Table view</button>
                     </div>
 
                     <!-- Grouped Schedule View (by day, then time slots) -->
                     <div id="adminDoctorScheduleList" class="space-y-3 max-h-[300px] overflow-y-auto">
                     </div>
 
-                    <!-- Weekly Summary Grid (cleaner) -->
-                    <div class="mt-4">
-                        <h4 class="text-xs font-semibold text-slate-900 mb-2">Weekly Summary</h4>
-                        <div id="adminDoctorScheduleGrid" class="grid grid-cols-7 gap-1 text-[0.7rem]"></div>
-                    </div>
+                    <!-- Time Table View (hidden by default) -->
+                    <div id="adminDoctorTimeTableView" class="hidden mt-2"></div>
                 </div>
             </div>
         </div>
@@ -180,10 +196,10 @@
         </div>
     </div>
     <div id="adminDoctorEditOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/40 items-center justify-center p-4">
-        <div class="w-full max-w-lg rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] overflow-hidden">
+        <div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)]">
             <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
                 <div>
-                    <div class="text-sm font-semibold text-slate-900">Edit doctor</div>
+                    <div class="text-sm font-semibold text-slate-900">Edit Staff Info</div>
                     <div id="adminDoctorEditSubtitle" class="text-[0.72rem] text-slate-500">Update profile information.</div>
                 </div>
                 <button type="button" id="adminDoctorEditClose" class="text-slate-400 hover:text-slate-600">
@@ -192,44 +208,135 @@
             </div>
             <div class="p-5">
                 <div id="adminDoctorEditError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
-                <form id="adminDoctorEditForm" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                        <label for="adminDoctorEditFirstname" class="block text-[0.7rem] text-slate-600 mb-1">First name</label>
-                        <input id="adminDoctorEditFirstname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                <form id="adminDoctorEditForm" class="grid grid-cols-1 md:grid-cols-5 gap-5">
+                    <!-- LEFT: Form fields (3 cols) -->
+                    <div class="md:col-span-3 space-y-3">
+                        <div>
+                            <label for="adminDoctorEditRole" class="block text-[0.7rem] text-slate-600 mb-1">Position</label>
+                            <select id="adminDoctorEditRole" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                <option value="doctor">Doctor</option>
+                                <option value="receptionist">Receptionist</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label for="adminDoctorEditLastname" class="block text-[0.7rem] text-slate-600 mb-1">Last name</label>
+                                <input id="adminDoctorEditLastname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            </div>
+                            <div>
+                                <label for="adminDoctorEditFirstname" class="block text-[0.7rem] text-slate-600 mb-1">First name</label>
+                                <input id="adminDoctorEditFirstname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            </div>
+                            <div>
+                                <label for="adminDoctorEditMiddlename" class="block text-[0.7rem] text-slate-600 mb-1">Middle name <span class="text-slate-400">(optional)</span></label>
+                                <input id="adminDoctorEditMiddlename" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="N/A">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-[0.7rem] text-slate-600 mb-1">Sex</label>
+                                <div class="flex items-center gap-4 pt-1">
+                                    <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                                        <input type="radio" name="adminDoctorEditSex" value="Male" class="rounded-full text-green-600 focus:ring-green-500"> Male
+                                    </label>
+                                    <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                                        <input type="radio" name="adminDoctorEditSex" value="Female" class="rounded-full text-green-600 focus:ring-green-500"> Female
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="adminDoctorEditBirthdate" class="block text-[0.7rem] text-slate-600 mb-1">Birthdate</label>
+                                <input id="adminDoctorEditBirthdate" type="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            </div>
+                            <div>
+                                <label for="adminDoctorEditEmploymentStatus" class="block text-[0.7rem] text-slate-600 mb-1">Employment status</label>
+                                <select id="adminDoctorEditEmploymentStatus" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                    <option value="">—</option>
+                                    <option value="contractual">Contractual</option>
+                                    <option value="permanent">Permanent</option>
+                                </select>
+                            </div>
+                        </div>
+                        <hr class="border-slate-100">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label for="adminDoctorEditPrcLicense" class="block text-[0.7rem] text-slate-600 mb-1">PRC License Number</label>
+                                <input id="adminDoctorEditPrcLicense" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="7-digit number" maxlength="7">
+                            </div>
+                            <div>
+                                <label for="adminDoctorEditPhilhealth" class="block text-[0.7rem] text-slate-600 mb-1">PHIC Number</label>
+                                <input id="adminDoctorEditPhilhealth" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="01-234567890-1" maxlength="14">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label for="adminDoctorEditSpecialization" class="block text-[0.7rem] text-slate-600 mb-1">Specialization <span id="adminDoctorEditSpecRequired" class="text-red-500 hidden">*</span></label>
+                                <input id="adminDoctorEditSpecialization" type="text" list="adminDoctorSpecializationList" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. General Medicine">
+                                <span id="adminDoctorEditSpecHint" class="mt-1 text-[0.68rem] leading-tight text-slate-400 hidden"></span>
+                                <datalist id="adminDoctorSpecializationList">
+                                    <option value="Pediatrics"></option>
+                                    <option value="General Medicine"></option>
+                                    <option value="General Surgeon"></option>
+                                    <option value="Obstetrician - Gynecologist"></option>
+                                    <option value="Internal Medicine"></option>
+                                </datalist>
+                            </div>
+                            <div>
+                                <label for="adminDoctorEditPtrNumber" class="block text-[0.7rem] text-slate-600 mb-1">PTR Number</label>
+                                <input id="adminDoctorEditPtrNumber" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            </div>
+                        </div>
+                        <hr class="border-slate-100">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label for="adminDoctorEditEmergencyContact" class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact (name)</label>
+                                <input id="adminDoctorEditEmergencyContact" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            </div>
+                            <div>
+                                <label for="adminDoctorEditEmergencyContactNumber" class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact number</label>
+                                <input id="adminDoctorEditEmergencyContactNumber" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[0.7rem] text-slate-600 mb-1">Active in service?</label>
+                            <div class="flex items-center gap-4">
+                                <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                                    <input type="radio" name="adminDoctorEditActiveInService" value="1" class="rounded-full text-green-600 focus:ring-green-500"> Yes
+                                </label>
+                                <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                                    <input type="radio" name="adminDoctorEditActiveInService" value="0" class="rounded-full text-green-600 focus:ring-green-500"> No
+                                </label>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label for="adminDoctorEditMiddlename" class="block text-[0.7rem] text-slate-600 mb-1">Middle name</label>
-                        <input id="adminDoctorEditMiddlename" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                    </div>
-                    <div>
-                        <label for="adminDoctorEditLastname" class="block text-[0.7rem] text-slate-600 mb-1">Last name</label>
-                        <input id="adminDoctorEditLastname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                    </div>
-                    <div>
-                        <label for="adminDoctorEditSpecialization" class="block text-[0.7rem] text-slate-600 mb-1">Specialization</label>
-                        <input id="adminDoctorEditSpecialization" type="text" list="adminDoctorSpecializationList" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                        <datalist id="adminDoctorSpecializationList">
-                            <option value="Pediatrics"></option>
-                            <option value="General Medicine"></option>
-                            <option value="General Surgeon"></option>
-                            <option value="obstetrician - gynecologist"></option>
-                            <option value="Internal Medicine"></option>
-                        
-                        </datalist>
-                    </div>
-                    <div>
-                        <label for="adminDoctorEditLicense" class="block text-[0.7rem] text-slate-600 mb-1">License number</label>
-                        <input id="adminDoctorEditLicense" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                    </div>
-                    <div>
-                        <label for="adminDoctorEditContact" class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>
-                        <input id="adminDoctorEditContact" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63XXXXXXXXXX">
-                    </div>
+                    <!-- RIGHT: Profile panel (2 cols) -->
                     <div class="md:col-span-2">
-                        <label for="adminDoctorEditEmail" class="block text-[0.7rem] text-slate-600 mb-1">Email</label>
-                        <input id="adminDoctorEditEmail" type="email" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-5 text-center">
+                            <div class="text-[0.72rem] font-semibold text-slate-700 mb-3">Profile Photo</div>
+                            <div id="adminDoctorEditProfilePreview" class="w-32 h-32 mx-auto rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 overflow-hidden">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            </div>
+                            <div class="mt-3">
+                                <label for="adminDoctorEditProfileUpload" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-green-200 bg-green-50 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 cursor-pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                    Upload photo
+                                </label>
+                                <input id="adminDoctorEditProfileUpload" type="file" accept="image/*" class="hidden">
+                            </div>
+                            <div class="mt-4 text-left space-y-3">
+                                <div>
+                                    <label for="adminDoctorEditEmail" class="block text-[0.7rem] text-slate-600 mb-1">Email</label>
+                                    <input id="adminDoctorEditEmail" type="email" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                </div>
+                                <div>
+                                    <label for="adminDoctorEditContact" class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>
+                                    <input id="adminDoctorEditContact" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="md:col-span-2 flex items-center justify-end gap-2 pt-1">
+                    <!-- Bottom: Save / Cancel -->
+                    <div class="md:col-span-5 flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
                         <button type="button" id="adminDoctorEditCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
                         <button type="submit" id="adminDoctorEditSave" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 disabled:hover:bg-green-600">
                             <span id="adminDoctorEditSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
@@ -265,6 +372,7 @@
         var errorBox = document.getElementById('adminDoctorError')
         var successBox = document.getElementById('adminDoctorSuccess')
         var searchInput = document.getElementById('admin_doctor_search')
+        var roleFilter = document.getElementById('admin_staff_role_filter')
         var sortSelect = document.getElementById('admin_doctor_sort')
         var tableBody = document.getElementById('admin_doctor_table_body')
 
@@ -280,10 +388,11 @@
         var scheduleRoom = document.getElementById('admin_schedule_room')
         var scheduleSlotMinutes = document.getElementById('admin_schedule_slot_minutes')
         var scheduleList = document.getElementById('adminDoctorScheduleList')
-        var scheduleGrid = document.getElementById('adminDoctorScheduleGrid')
         var scheduleSubmit = document.getElementById('adminDoctorScheduleSubmit')
         var scheduleSpinner = document.getElementById('adminDoctorScheduleSpinner')
         var scheduleSubmitLabel = document.getElementById('adminDoctorScheduleSubmitLabel')
+        var scheduleAddToggle = document.getElementById('adminDoctorScheduleAddToggle')
+        var scheduleFormWrap = document.getElementById('adminDoctorScheduleFormWrap')
         var scheduleDayFilter = document.getElementById('adminScheduleDayFilter')
         var scheduleSelectAll = document.getElementById('adminScheduleSelectAll')
         var scheduleClearAll = document.getElementById('adminScheduleClearAll')
@@ -313,13 +422,26 @@
         var doctorEditForm = document.getElementById('adminDoctorEditForm')
         var doctorEditError = document.getElementById('adminDoctorEditError')
         var doctorEditSubtitle = document.getElementById('adminDoctorEditSubtitle')
+        var doctorEditRole = document.getElementById('adminDoctorEditRole')
         var doctorEditFirstname = document.getElementById('adminDoctorEditFirstname')
         var doctorEditMiddlename = document.getElementById('adminDoctorEditMiddlename')
         var doctorEditLastname = document.getElementById('adminDoctorEditLastname')
         var doctorEditSpecialization = document.getElementById('adminDoctorEditSpecialization')
-        var doctorEditLicense = document.getElementById('adminDoctorEditLicense')
+        var doctorEditSexMale = document.querySelector('input[name="adminDoctorEditSex"][value="Male"]')
+        var doctorEditSexFemale = document.querySelector('input[name="adminDoctorEditSex"][value="Female"]')
+        var doctorEditBirthdate = document.getElementById('adminDoctorEditBirthdate')
+        var doctorEditEmploymentStatus = document.getElementById('adminDoctorEditEmploymentStatus')
+        var doctorEditPrcLicense = document.getElementById('adminDoctorEditPrcLicense')
+        var doctorEditPhilhealth = document.getElementById('adminDoctorEditPhilhealth')
+        var doctorEditPtrNumber = document.getElementById('adminDoctorEditPtrNumber')
+        var doctorEditEmergencyContact = document.getElementById('adminDoctorEditEmergencyContact')
+        var doctorEditEmergencyContactNumber = document.getElementById('adminDoctorEditEmergencyContactNumber')
+        var doctorEditActiveYes = document.querySelector('input[name="adminDoctorEditActiveInService"][value="1"]')
+        var doctorEditActiveNo = document.querySelector('input[name="adminDoctorEditActiveInService"][value="0"]')
         var doctorEditContact = document.getElementById('adminDoctorEditContact')
         var doctorEditEmail = document.getElementById('adminDoctorEditEmail')
+        var doctorEditProfileUpload = document.getElementById('adminDoctorEditProfileUpload')
+        var doctorEditProfilePreview = document.getElementById('adminDoctorEditProfilePreview')
         var doctorEditSave = document.getElementById('adminDoctorEditSave')
         var doctorEditSpinner = document.getElementById('adminDoctorEditSpinner')
 
@@ -446,34 +568,150 @@
         }
 
         function openDoctorEditModal(doctor) {
-            if (!doctorEditOverlay) {
-                return
-            }
+            if (!doctorEditOverlay) return
             editingDoctorId = doctor && doctor.user_id ? String(doctor.user_id) : null
             showDoctorEditError('')
             setDoctorEditSubmitting(false)
 
             var fullName = ((doctor.firstname || '') + ' ' + (doctor.lastname || '')).trim()
-            if (!fullName) {
-                fullName = 'Doctor #' + (doctor.user_id || '')
-            }
-            if (doctorEditSubtitle) {
-                doctorEditSubtitle.textContent = 'Editing — ' + fullName
-            }
+            if (!fullName) fullName = doctor.email || ('Staff #' + (doctor.user_id || ''))
+            if (doctorEditSubtitle) doctorEditSubtitle.textContent = 'Editing — ' + fullName
 
+            if (doctorEditRole) doctorEditRole.value = doctor.role || 'doctor'
             if (doctorEditFirstname) doctorEditFirstname.value = doctor.firstname || ''
             if (doctorEditMiddlename) doctorEditMiddlename.value = doctor.middlename || ''
             if (doctorEditLastname) doctorEditLastname.value = doctor.lastname || ''
-            if (doctorEditSpecialization) doctorEditSpecialization.value = doctor.specialization || ''
-            if (doctorEditLicense) doctorEditLicense.value = doctor.prc_license || ''
+            if (doctorEditSpecialization) {
+                var specRequired = document.getElementById('adminDoctorEditSpecRequired')
+                var specHint = document.getElementById('adminDoctorEditSpecHint')
+                if (doctor.role === 'receptionist') {
+                    doctorEditSpecialization.value = doctor.specialization || 'N/A'
+                    doctorEditSpecialization.removeAttribute('required')
+                    if (specRequired) specRequired.classList.add('hidden')
+                    if (specHint) {
+                        specHint.textContent = 'Defaults to N/A for receptionists'
+                        specHint.classList.remove('hidden')
+                    }
+                } else {
+                    doctorEditSpecialization.value = doctor.specialization || ''
+                    doctorEditSpecialization.setAttribute('required', 'required')
+                    if (specRequired) specRequired.classList.remove('hidden')
+                    if (specHint) specHint.classList.add('hidden')
+                }
+            }
+
+            if (doctorEditSexMale) doctorEditSexMale.checked = doctor.sex === 'Male'
+            if (doctorEditSexFemale) doctorEditSexFemale.checked = doctor.sex === 'Female'
+            if (doctorEditBirthdate) {
+                var bd = doctor.birthdate || ''
+                doctorEditBirthdate.value = bd ? bd.slice(0, 10) : ''
+            }
+            if (doctorEditEmploymentStatus) doctorEditEmploymentStatus.value = doctor.employment_status || ''
+
+            if (doctorEditPrcLicense) doctorEditPrcLicense.value = doctor.prc_license || ''
+            if (doctorEditPhilhealth) {
+                var raw = doctor.philhealth_number || ''
+                doctorEditPhilhealth.value = raw ? formatPhilhealth(raw) : ''
+            }
+            if (doctorEditPtrNumber) doctorEditPtrNumber.value = doctor.ptr_number || ''
+
+            if (doctorEditEmergencyContact) doctorEditEmergencyContact.value = doctor.emergency_contact || ''
+            if (doctorEditEmergencyContactNumber) {
+                var ecn = doctor.emergency_contact_number || ''
+                doctorEditEmergencyContactNumber.value = ecn ? formatPhone(ecn) : ''
+            }
+
+            if (doctorEditActiveYes) doctorEditActiveYes.checked = doctor.active_in_service === true || doctor.active_in_service === 1
+            if (doctorEditActiveNo) doctorEditActiveNo.checked = doctor.active_in_service === false || doctor.active_in_service === 0 || doctor.active_in_service === null
+
             if (doctorEditContact) {
-                var normalizedContact = normalizePhilippinesNumber(doctor.contact_number || '')
-                doctorEditContact.value = normalizedContact || '+63'
+                var c = doctor.contact_number || ''
+                doctorEditContact.value = c ? formatPhone(c) : ''
             }
             if (doctorEditEmail) doctorEditEmail.value = doctor.email || ''
 
+            // Profile photo preview
+            updateProfilePreview(doctor.prof_path || null)
+
             doctorEditOverlay.classList.remove('hidden')
             doctorEditOverlay.classList.add('flex')
+        }
+
+        function updateProfilePreview(path) {
+            if (!doctorEditProfilePreview) return
+            if (path) {
+                doctorEditProfilePreview.innerHTML = '<img src="' + path.replace(/"/g,'&quot;') + '" alt="" class="w-full h-full object-cover">'
+            } else {
+                doctorEditProfilePreview.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+            }
+        }
+
+        function formatPhone(val) {
+            var s = String(val || '').replace(/[^\d]/g, '')
+            if (s.startsWith('63')) s = s.slice(2)
+            if (s.startsWith('0')) s = s.slice(1)
+            if (s.length === 10) return '+63 ' + s.slice(0,3) + ' ' + s.slice(3,6) + ' ' + s.slice(6)
+            return val || ''
+        }
+
+        function parsePhoneRaw(val) {
+            var s = String(val || '').replace(/[^\d]/g, '')
+            if (s.startsWith('63')) return '+' + s
+            if (s.startsWith('0')) return '+63' + s.slice(1)
+            return s ? '+63' + s : ''
+        }
+
+        function formatPhilhealth(val) {
+            var s = String(val || '').replace(/[^\d]/g, '')
+            if (s.length >= 2 && s.length <= 4) return s.slice(0,2) + '-' + s.slice(2)
+            if (s.length > 4 && s.length <= 11) return s.slice(0,2) + '-' + s.slice(2,9) + '-' + s.slice(9)
+            if (s.length > 11) return s.slice(0,2) + '-' + s.slice(2,11) + '-' + s.slice(11,12)
+            return s
+        }
+
+        // Auto-format phone inputs
+        function setupPhoneFormat(input) {
+            if (!input) return
+            input.addEventListener('input', function () {
+                var cursor = this.selectionStart
+                var oldLen = this.value.length
+                var raw = this.value.replace(/[^\d]/g, '')
+                if (raw.startsWith('63')) raw = raw.slice(2)
+                if (raw.startsWith('0')) raw = raw.slice(1)
+                if (raw.length > 10) raw = raw.slice(0, 10)
+                var formatted = raw ? '+63 ' : ''
+                if (raw.length > 0) formatted += raw.slice(0,3)
+                if (raw.length > 3) formatted += ' ' + raw.slice(3,6)
+                if (raw.length > 6) formatted += ' ' + raw.slice(6)
+                this.value = formatted
+                var newLen = this.value.length
+                this.setSelectionRange(cursor + (newLen - oldLen), cursor + (newLen - oldLen))
+            })
+        }
+        setupPhoneFormat(doctorEditContact)
+        setupPhoneFormat(doctorEditEmergencyContactNumber)
+
+        // Auto-format PHIC
+        if (doctorEditPhilhealth) {
+            doctorEditPhilhealth.addEventListener('input', function () {
+                var cursor = this.selectionStart
+                var raw = this.value.replace(/[^\d]/g, '')
+                if (raw.length > 12) raw = raw.slice(0, 12)
+                this.value = formatPhilhealth(raw)
+            })
+        }
+
+        // Profile upload preview
+        if (doctorEditProfileUpload) {
+            doctorEditProfileUpload.addEventListener('change', function () {
+                var file = this.files && this.files[0]
+                if (!file) return
+                var reader = new FileReader()
+                reader.onload = function (e) {
+                    updateProfilePreview(e.target.result)
+                }
+                reader.readAsDataURL(file)
+            })
         }
 
         function closeDoctorEditModal() {
@@ -568,6 +806,33 @@
             })
         }
 
+        // Role change handler — toggle specialization required / N/A default
+        if (doctorEditRole) {
+            doctorEditRole.addEventListener('change', function () {
+                if (!doctorEditSpecialization) return
+                var specRequired = document.getElementById('adminDoctorEditSpecRequired')
+                var specHint = document.getElementById('adminDoctorEditSpecHint')
+                if (this.value === 'receptionist') {
+                    if (!doctorEditSpecialization.value || doctorEditSpecialization.value === 'N/A') {
+                        doctorEditSpecialization.value = 'N/A'
+                    }
+                    doctorEditSpecialization.removeAttribute('required')
+                    if (specRequired) specRequired.classList.add('hidden')
+                    if (specHint) {
+                        specHint.textContent = 'Defaults to N/A for receptionists'
+                        specHint.classList.remove('hidden')
+                    }
+                } else {
+                    if (doctorEditSpecialization.value === 'N/A') {
+                        doctorEditSpecialization.value = ''
+                    }
+                    doctorEditSpecialization.setAttribute('required', 'required')
+                    if (specRequired) specRequired.classList.remove('hidden')
+                    if (specHint) specHint.classList.add('hidden')
+                }
+            })
+        }
+
         if (doctorEditForm) {
             doctorEditForm.addEventListener('submit', function (e) {
                 e.preventDefault()
@@ -598,34 +863,55 @@
 
                 confirmDoctorEditAction('Are you sure you want to save these changes?')
                     .then(function (confirmed) {
-                        if (!confirmed) {
-                            return null
-                        }
+                        if (!confirmed) return
 
                         setDoctorEditSubmitting(true)
 
-                        var payload = {
-                            firstname: f,
-                            middlename: m,
-                            lastname: l,
-                            specialization: doctorEditSpecialization ? String(doctorEditSpecialization.value || '').trim() : '',
-                            prc_license: doctorEditLicense ? String(doctorEditLicense.value || '').trim() : '',
-                            contact_number: c ? normalizePhilippinesNumber(c) : '',
-                            email: doctorEditEmail ? String(doctorEditEmail.value || '').trim() : ''
+                        var formData = new FormData()
+                        formData.append('_method', 'PUT')
+
+                        function val(el) { return el ? String(el.value || '').trim() : '' }
+
+                        formData.append('role', val(doctorEditRole) || 'doctor')
+                        formData.append('firstname', val(doctorEditFirstname))
+                        formData.append('middlename', val(doctorEditMiddlename) || null)
+                        formData.append('lastname', val(doctorEditLastname))
+                        var specVal = val(doctorEditSpecialization)
+                        if (doctorEditRole && doctorEditRole.value === 'receptionist' && !specVal) {
+                            specVal = 'N/A'
+                        }
+                        formData.append('specialization', specVal || null)
+                        formData.append('sex', doctorEditSexMale && doctorEditSexMale.checked ? 'Male' : (doctorEditSexFemale && doctorEditSexFemale.checked ? 'Female' : null))
+                        formData.append('birthdate', val(doctorEditBirthdate) || null)
+                        formData.append('employment_status', val(doctorEditEmploymentStatus) || null)
+                        formData.append('prc_license', val(doctorEditPrcLicense) || null)
+                        formData.append('ptr_number', val(doctorEditPtrNumber) || null)
+
+                        var phRaw = val(doctorEditPhilhealth).replace(/[^\d]/g, '')
+                        formData.append('philhealth_number', phRaw || null)
+
+                        formData.append('emergency_contact', val(doctorEditEmergencyContact) || null)
+
+                        var ecnRaw = val(doctorEditEmergencyContactNumber)
+                        formData.append('emergency_contact_number', ecnRaw ? parsePhoneRaw(ecnRaw) : null)
+
+                        var active = null
+                        if (doctorEditActiveYes && doctorEditActiveYes.checked) active = 1
+                        else if (doctorEditActiveNo && doctorEditActiveNo.checked) active = 0
+                        formData.append('active_in_service', active)
+
+                        var cRaw = val(doctorEditContact)
+                        formData.append('contact_number', cRaw ? parsePhoneRaw(cRaw) : null)
+                        formData.append('email', val(doctorEditEmail) || null)
+
+                        // Attach profile file if selected
+                        if (doctorEditProfileUpload && doctorEditProfileUpload.files && doctorEditProfileUpload.files[0]) {
+                            formData.append('prof_path', doctorEditProfileUpload.files[0])
                         }
 
-                        if (payload.middlename === '') payload.middlename = null
-                        if (payload.specialization === '') payload.specialization = null
-                        if (payload.prc_license === '') payload.prc_license = null
-                        if (payload.contact_number === '' || payload.contact_number === '+63') payload.contact_number = null
-                        if (payload.email === '') delete payload.email
-
-                        return apiFetch(apiUrl('/api/doctors') + "/" + editingDoctorId, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(payload)
+                        apiFetch(apiUrl('/api/doctors/' + editingDoctorId), {
+                            method: 'POST',
+                            body: formData
                         })
                             .then(readResponse)
                             .then(function (result) {
@@ -635,7 +921,7 @@
                                         var msg = firstKey && result.data.errors[firstKey] && result.data.errors[firstKey][0] ? result.data.errors[firstKey][0] : 'Validation error.'
                                         showDoctorEditError(String(msg))
                                     } else {
-                                        var msg2 = (result.data && result.data.message) ? result.data.message : 'Failed to update doctor.'
+                                        var msg2 = (result.data && result.data.message) ? result.data.message : 'Failed to update staff.'
                                         showDoctorEditError(String(msg2))
                                     }
                                     return
@@ -886,9 +1172,9 @@
 
         function loadDoctors() {
             if (!tableBody) return
-            tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading doctors…</td></tr>'
+            tableBody.innerHTML = '<tr><td colspan="9" class="py-4 text-center text-[0.78rem] text-slate-400">Loading staff…</td></tr>'
 
-            apiFetch(apiUrl('/api/doctors'), {
+            apiFetch(apiUrl('/api/staff'), {
                 method: 'GET'
             })
                 .then(function (response) {
@@ -898,15 +1184,14 @@
                 })
                 .then(function (result) {
                     if (!result.ok) {
-                        tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-red-500">Failed to load doctors.</td></tr>'
+                        tableBody.innerHTML = '<tr><td colspan="9" class="py-4 text-center text-[0.78rem] text-red-500">Failed to load staff.</td></tr>'
                         return
                     }
-                    var payload = result.data
-                    doctors = Array.isArray(payload.data) ? payload.data : payload
+                    doctors = Array.isArray(result.data) ? result.data : []
                     renderDoctors()
                 })
                 .catch(function () {
-                    tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-red-500">Network error while loading doctors.</td></tr>'
+                    tableBody.innerHTML = '<tr><td colspan="9" class="py-4 text-center text-[0.78rem] text-red-500">Network error while loading staff.</td></tr>'
                 })
         }
 
@@ -915,12 +1200,15 @@
 
             var query = searchInput ? searchInput.value.toLowerCase().trim() : ''
             var sort = sortSelect ? sortSelect.value : 'created_desc'
+            var roleFilterVal = roleFilter ? roleFilter.value : ''
 
-            var filtered = doctors.slice().filter(function (doctor) {
-                var name = ((doctor.firstname || '') + ' ' + (doctor.lastname || '')).toLowerCase().trim()
-                var email = (doctor.email || '').toLowerCase()
+            var filtered = doctors.slice().filter(function (staff) {
+                if (roleFilterVal && staff.role !== roleFilterVal) return false
+                var name = ((staff.firstname || '') + ' ' + (staff.lastname || '')).toLowerCase().trim()
+                var email = (staff.email || '').toLowerCase()
+                var roleText = (staff.role || '').toLowerCase()
                 if (!query) return true
-                return name.indexOf(query) !== -1 || email.indexOf(query) !== -1
+                return name.indexOf(query) !== -1 || email.indexOf(query) !== -1 || roleText.indexOf(query) !== -1
             })
 
             filtered.sort(function (a, b) {
@@ -933,43 +1221,62 @@
                 }
                 var da = a.created_at || ''
                 var db = b.created_at || ''
-                if (da < db) return sort === 'created_asc' ? -1 : 1
-                if (da > db) return sort === 'created_asc' ? 1 : -1
+                if (da < db) return sort === 'created_desc' ? 1 : -1
+                if (da > db) return sort === 'created_desc' ? -1 : 1
                 return 0
             })
 
             if (!filtered.length) {
-                tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No doctors found.</td></tr>'
+                tableBody.innerHTML = '<tr><td colspan="9" class="py-4 text-center text-[0.78rem] text-slate-400">' +
+                    (query ? 'No staff members match your search.' : 'No staff members found.') +
+                    '</td></tr>'
                 return
             }
 
             tableBody.innerHTML = ''
-
-            filtered.forEach(function (doctor) {
+            filtered.forEach(function (staff) {
                 var tr = document.createElement('tr')
                 tr.className = 'border-b border-slate-50 last:border-0'
 
-                var fullName = ((doctor.firstname || '') + ' ' + (doctor.lastname || '')).trim()
+                var fullName = ((staff.firstname || '') + ' ' + (staff.lastname || '')).trim()
                 if (!fullName) {
-                    fullName = doctor.email || ('Doctor #' + doctor.user_id)
+                    fullName = staff.email || ('Staff #' + staff.user_id)
                 }
-                var specialization = (doctor.specialization || '').trim()
-                var prc = (doctor.prc_license || '').trim()
-                var ptr = (doctor.ptr_number || '').trim()
-                var phic = (doctor.philhealth_number || '').trim()
+                var specialization = (staff.specialization || '').trim()
+                var empNum = (staff.employee_number || '').trim()
+                var prc = (staff.prc_license || '').trim()
+                var ptr = (staff.ptr_number || '').trim()
+                var phic = (staff.philhealth_number || '').trim()
+                var roleLabel = staff.role === 'doctor' ? 'Doctor' : (staff.role === 'receptionist' ? 'Receptionist' : (staff.role || '—'))
+                var profileImg = staff.prof_path ? staff.prof_path : null
 
                 tr.innerHTML =
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700 font-medium">' + fullName + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' +
-                        (specialization ? specialization : '<span class="text-slate-400">—</span>') +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' +
+                        (profileImg
+                            ? '<img src="' + profileImg.replace(/"/g,'&quot;') + '" alt="" class="w-10 h-10 rounded-lg object-cover border border-slate-200">'
+                            : '<div class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>'
+                        ) +
                     '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700 font-medium">' + fullName + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem]">' +
+                        '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] font-semibold border ' +
+                            (staff.role === 'doctor' ? 'text-green-700 bg-green-50 border-green-100' : 'text-blue-700 bg-blue-50 border-blue-100') +
+                        '">' + roleLabel + '</span>' +
+                    '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' +
+                        (specialization ? specialization : (staff.role === 'receptionist' ? 'N/A' : '<span class="text-slate-400">—</span>')) +
+                    '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (empNum ? empNum : '<span class="text-slate-400">—</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (prc ? prc : '<span class="text-slate-400">—</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (ptr ? ptr : '<span class="text-slate-400">—</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (phic ? phic : '<span class="text-slate-400">—</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem]">' +
                         '<div class="flex items-center gap-2 flex-wrap">' +
-                            '<button type="button" class="inline-flex items-center justify-center rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 transition-colors admin-doctor-edit" data-doctor-id="' + doctor.user_id + '">Edit</button>' +
-                            '<button type="button" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] font-semibold text-slate-700 hover:bg-slate-50 transition-colors admin-doctor-schedule" data-doctor-id="' + doctor.user_id + '" data-doctor-name="' + fullName.replace(/"/g, '&quot;') + '">Manage schedule</button>' +
+                            '<button type="button" class="inline-flex items-center justify-center rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 transition-colors admin-doctor-edit" data-doctor-id="' + staff.user_id + '">Edit Info</button>' +
+                            (staff.role === 'doctor'
+                                ? '<button type="button" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] font-semibold text-slate-700 hover:bg-slate-50 transition-colors admin-doctor-schedule" data-doctor-id="' + staff.user_id + '" data-doctor-name="' + fullName.replace(/"/g, '&quot;') + '">Manage schedule</button>'
+                                : ''
+                            ) +
                         '</div>' +
                     '</td>'
 
@@ -1024,14 +1331,13 @@
             if (!doctorId) return
             loadedSchedules = []
             scheduleList.innerHTML = '<div class="text-[0.78rem] text-slate-500">Loading schedules…</div>'
-            if (scheduleGrid) scheduleGrid.innerHTML = ''
             showDoctorError('')
             showDoctorSuccess('')
 
             fetchAllDoctorSchedules(doctorId, function (all) {
                 loadedSchedules = Array.isArray(all) ? all : []
                 renderGroupedSchedules()
-                renderScheduleGrid(loadedSchedules)
+                renderTimeTableView(loadedSchedules)
                 wireScheduleBulkActions(doctorId)
 
                 if (!scheduleListWired) {
@@ -1134,7 +1440,7 @@
             }, function (message) {
                 loadedSchedules = []
                 scheduleList.innerHTML = '<div class="text-[0.78rem] text-slate-500">' + String(message || 'Failed to load schedules.') + '</div>'
-                renderScheduleGrid([])
+                renderTimeTableView([])
             })
         }
 
@@ -1385,12 +1691,43 @@
                 if (scheduleSubmitLabel) scheduleSubmitLabel.textContent = 'Generate schedule'
                 showDoctorError('')
                 showDoctorSuccess('')
+                if (scheduleFormWrap) scheduleFormWrap.classList.add('hidden')
+                if (scheduleAddToggle) scheduleAddToggle.textContent = '+ Add Schedule'
             })
         }
         if (scheduleModal) {
             scheduleModal.addEventListener('click', function (e) {
                 if (e.target !== scheduleModal) return
                 if (scheduleClose) scheduleClose.click()
+            })
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                renderDoctors()
+            })
+        }
+        if (roleFilter) {
+            roleFilter.addEventListener('change', function () {
+                renderDoctors()
+            })
+        }
+        if (sortSelect) {
+            sortSelect.addEventListener('change', function () {
+                renderDoctors()
+            })
+        }
+
+        if (scheduleAddToggle && scheduleFormWrap) {
+            scheduleAddToggle.addEventListener('click', function () {
+                var isHidden = scheduleFormWrap.classList.contains('hidden')
+                if (isHidden) {
+                    scheduleFormWrap.classList.remove('hidden')
+                    scheduleAddToggle.textContent = '- Cancel'
+                } else {
+                    scheduleFormWrap.classList.add('hidden')
+                    scheduleAddToggle.textContent = '+ Add Schedule'
+                }
             })
         }
         if (scheduleForm) {
@@ -1554,62 +1891,111 @@ if (!currentScheduleId && !toDay) {
                     })
             })
         }
-        function renderScheduleGrid(schedules) {
-            if (!scheduleGrid) return
-            
-            var dayOrder = [
-                { key: 'mon', label: 'M' },
-                { key: 'tue', label: 'T' },
-                { key: 'wed', label: 'W' },
-                { key: 'thu', label: 'T' },
-                { key: 'fri', label: 'F' },
-                { key: 'sat', label: 'S' },
-                { key: 'sun', label: 'S' }
-            ]
 
-            // Build a simple summary per day
-            var summaryByDay = {}
-            for (var i = 0; i < dayOrder.length; i++) {
-                summaryByDay[dayOrder[i].key] = { count: 0, earliest: null, latest: null }
-            }
-
-            for (var s = 0; s < schedules.length; s++) {
-                var slot = schedules[s]
-                var day = slot && slot.day_of_week ? String(slot.day_of_week).toLowerCase() : ''
-                if (day && summaryByDay[day]) {
-                    summaryByDay[day].count++
-                    var start = (slot.start_time || '').slice(0, 5)
-                    var end = (slot.end_time || '').slice(0, 5)
-                    if (!summaryByDay[day].earliest || start < summaryByDay[day].earliest) {
-                        summaryByDay[day].earliest = start
-                    }
-                    if (!summaryByDay[day].latest || end > summaryByDay[day].latest) {
-                        summaryByDay[day].latest = end
-                    }
-                }
-            }
-
-            scheduleGrid.innerHTML = ''
-            for (var k = 0; k < dayOrder.length; k++) {
-                var d = dayOrder[k]
-                var data = summaryByDay[d.key]
-                var col = document.createElement('div')
-                col.className = 'rounded-lg border border-slate-200 bg-white p-2 text-center'
-                
-                var timeText = ''
-                if (data.count > 0) {
-                    var startShort = data.earliest ? formatTimeCompact(data.earliest) : ''
-                    var endShort = data.latest ? formatTimeCompact(data.latest) : ''
-                    timeText = '<div class="text-[0.65rem] text-slate-600 mt-1">' + startShort + '-' + endShort + '</div>'
+        var timetableVisible = false
+        var timetableBtn = document.getElementById('adminScheduleTimeTableViewBtn')
+        if (timetableBtn) {
+            timetableBtn.addEventListener('click', function () {
+                timetableVisible = !timetableVisible
+                var listEl = document.getElementById('adminDoctorScheduleList')
+                var ttEl = document.getElementById('adminDoctorTimeTableView')
+                if (!listEl || !ttEl) return
+                if (timetableVisible) {
+                    listEl.classList.add('hidden')
+                    ttEl.classList.remove('hidden')
+                    timetableBtn.textContent = 'Day view'
                 } else {
-                    timeText = '<div class="text-[0.65rem] text-slate-400 mt-1">—</div>'
+                    listEl.classList.remove('hidden')
+                    ttEl.classList.add('hidden')
+                    timetableBtn.textContent = 'Time Table view'
                 }
-                
-                col.innerHTML = '<div class="text-[0.68rem] font-semibold text-slate-500">' + d.label + '</div>' +
-                                '<div class="text-[0.7rem] font-bold text-slate-700">' + data.count + '</div>' +
-                                timeText
-                scheduleGrid.appendChild(col)
+            })
+        }
+
+        function renderTimeTableView(schedules) {
+            var ttEl = document.getElementById('adminDoctorTimeTableView')
+            if (!ttEl) return
+
+            if (!schedules || !schedules.length) {
+                ttEl.innerHTML = '<div class="text-[0.78rem] text-slate-500 p-4 text-center">No schedules to display.</div>'
+                return
             }
+
+            var dayOrder = ['mon','tue','wed','thu','fri','sat','sun']
+            var dayLabels = { mon:'Monday', tue:'Tuesday', wed:'Wednesday', thu:'Thursday', fri:'Friday', sat:'Saturday', sun:'Sunday' }
+            var dayColors = {
+                mon: { bg: '#eff6ff', head: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
+                tue: { bg: '#fefce8', head: '#fef9c3', text: '#854d0e', border: '#fde68a' },
+                wed: { bg: '#f0fdf4', head: '#dcfce7', text: '#166534', border: '#bbf7d0' },
+                thu: { bg: '#fdf4ff', head: '#fae8ff', text: '#86198f', border: '#f5d0fe' },
+                fri: { bg: '#fff7ed', head: '#ffedd5', text: '#9a3412', border: '#fed7aa' },
+                sat: { bg: '#f1f5f9', head: '#e2e8f0', text: '#334155', border: '#cbd5e1' },
+                sun: { bg: '#fef2f2', head: '#fecaca', text: '#991b1b', border: '#fecaca' }
+            }
+
+            // Collect all unique time slots across the week
+            var allSlots = []
+            var seenTimes = {}
+            for (var i = 0; i < schedules.length; i++) {
+                var s = schedules[i]
+                var start = (s.start_time || '').slice(0, 5)
+                var end = (s.end_time || '').slice(0, 5)
+                var tkey = start + '-' + end
+                if (!seenTimes[tkey]) {
+                    seenTimes[tkey] = true
+                    allSlots.push({ start: start, end: end, label: formatTimeCompact(start) + '–' + formatTimeCompact(end) })
+                }
+            }
+            allSlots.sort(function (a, b) { if (a.start < b.start) return -1; if (a.start > b.start) return 1; return 0 })
+
+            // Build lookup: day_key + time_key -> schedule
+            var slotMap = {}
+            for (var j = 0; j < schedules.length; j++) {
+                var s2 = schedules[j]
+                var dk = (s2.day_of_week || '').toLowerCase()
+                var st = (s2.start_time || '').slice(0, 5)
+                var et = (s2.end_time || '').slice(0, 5)
+                var tk = st + '-' + et
+                slotMap[dk + '|' + tk] = s2
+            }
+
+            var html = '<div class="overflow-x-auto"><table class="w-full text-[0.72rem] border-collapse">'
+            // Header row
+            html += '<tr><td class="p-1.5 font-semibold text-slate-600 text-center border" style="min-width:70px">Time</td>'
+            dayOrder.forEach(function (dk) {
+                var c = dayColors[dk] || dayColors.mon
+                html += '<td class="p-1.5 font-semibold text-center border" style="background:' + c.head + ';color:' + c.text + ';border-color:' + c.border + ';min-width:110px">' + dayLabels[dk] + '</td>'
+            })
+            html += '</tr>'
+
+            // Body rows
+            allSlots.forEach(function (slot) {
+                html += '<tr>'
+                html += '<td class="p-1.5 text-center font-medium text-slate-600 border bg-slate-50/80">' + slot.label + '</td>'
+                dayOrder.forEach(function (dk) {
+                    var c = dayColors[dk] || dayColors.mon
+                    var sch = slotMap[dk + '|' + slot.start + '-' + slot.end]
+                    if (sch) {
+                        var isUnavail = sch.is_available === false
+                        var txt = sch.room_number != null ? 'Room ' + sch.room_number : ''
+                        if (sch.max_patients != null) txt += (txt ? ' | ' : '') + 'Max ' + sch.max_patients
+                        var statusLabel = isUnavail ? 'Unavailable' : 'Available'
+                        html += '<td class="p-1.5 text-center border" style="background:' + c.bg + ';border-color:' + c.border + '">' +
+                            '<div class="font-semibold" style="color:' + c.text + '">' +
+                                '<span class="inline-flex items-center justify-center w-2 h-2 rounded-full ' + (isUnavail ? 'bg-rose-500' : 'bg-emerald-500') + ' mr-1"></span>' +
+                                statusLabel +
+                            '</div>' +
+                            (txt ? '<div class="text-[0.65rem] text-slate-500 mt-0.5">' + txt + '</div>' : '') +
+                        '</td>'
+                    } else {
+                        html += '<td class="p-1.5 text-center border" style="background:' + c.bg + ';border-color:' + c.border + '"><span class="text-slate-300">—</span></td>'
+                    }
+                })
+                html += '</tr>'
+            })
+
+            html += '</table></div>'
+            ttEl.innerHTML = html
         }
 
         loadDoctors()

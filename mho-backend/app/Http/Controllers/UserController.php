@@ -107,6 +107,14 @@ class UserController extends Controller
             abort(403);
         }
 
+        // Clean formatted phone numbers from the frontend
+        if ($request->has('contact_number')) {
+            $request->merge(['contact_number' => preg_replace('/[^\d+]/', '', $request->input('contact_number'))]);
+        }
+        if ($request->has('emergency_contact_number')) {
+            $request->merge(['emergency_contact_number' => preg_replace('/[^\d+]/', '', $request->input('emergency_contact_number'))]);
+        }
+
         $emailRules = ['sometimes', 'email', "unique:users,email,{$user->user_id},user_id"];
         if ($user->role === 'admin' && $user->is_first_login) {
             $emailRules[] = 'regex:/@(example\.com|gmail\.com|test\.com)$/i';
@@ -154,6 +162,7 @@ class UserController extends Controller
             'prc_license' => ['sometimes', 'nullable', 'string'],
             'specialization' => ['sometimes', 'nullable', 'string'],
             'hire_date' => ['sometimes', 'nullable', 'date'],
+            'prof_path' => ['sometimes', 'nullable', 'image', 'max:5120'],
         ], [
             'email.regex' => 'Email must be a valid email ending with @example.com.',
             'password.required' => 'Password is required.',
@@ -207,6 +216,14 @@ class UserController extends Controller
         }
 
         $user->update($data);
+
+        // Handle profile photo upload
+        if ($request->hasFile('prof_path')) {
+            $path = $request->file('prof_path')->store('profiles', 'public');
+            if ($path) {
+                $user->update(['prof_path' => $path]);
+            }
+        }
 
         LogEntry::write(
             optional($request->user())->user_id ? (int) $request->user()->user_id : null,

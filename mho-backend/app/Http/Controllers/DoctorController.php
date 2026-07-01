@@ -75,7 +75,7 @@ class DoctorController extends Controller
 
     public function update(Request $request, User $doctor)
     {
-        if ($doctor->role !== 'doctor') {
+        if (!in_array($doctor->role, ['doctor', 'receptionist'])) {
             abort(404);
         }
 
@@ -210,6 +210,29 @@ class DoctorController extends Controller
         );
 
         return response()->json($result);
+    }
+
+    public function staffIndex(Request $request)
+    {
+        $staff = User::query()
+            ->whereIn('role', ['doctor', 'receptionist'])
+            ->with(['doctorSchedules'])
+            ->get()
+            ->map(function (User $user) {
+                if ($user->role === 'doctor') {
+                    $availability = $this->availabilityForDoctorId((int) $user->user_id);
+                    $user->is_available = $availability['is_available'];
+                    $user->unavailable_reason = $availability['unavailable_reason'];
+                    $user->unavailable_at = $availability['unavailable_at'];
+                }
+                if ($user->prof_path) {
+                    $user->prof_path = \Illuminate\Support\Facades\Storage::url($user->prof_path);
+                }
+                return $user;
+            })
+            ->values();
+
+        return response()->json($staff);
     }
 
     private function availabilityForDoctorId(int $doctorId): array

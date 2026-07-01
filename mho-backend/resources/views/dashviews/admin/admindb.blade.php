@@ -8,7 +8,7 @@
 
         $sectionTitles = [
             'user-management' => 'User Management',
-            'doctor-management' => 'Doctor Management',
+            'doctor-management' => 'Staff Management',
             'services-management' => 'Services Management',
             'medicines-management' => 'Medicines',
             'appointments' => 'Appointments',
@@ -22,7 +22,7 @@
 
         $sectionSubtitles = [
             'user-management' => 'Create users, edit accounts, suspend or activate, search, and view dependents.',
-            'doctor-management' => 'Manage doctor profiles and schedules. Doctor accounts are created in the Users module by assigning the Doctor role.',
+            'doctor-management' => 'Manage staff profiles - doctors and receptionists. Edit profiles, schedules, and license information.',
             'services-management' => 'Add, edit, delete, and update pricing for clinic services.',
             'medicines-management' => 'Manage medicine reference data and active status.',
             'appointments' => 'Global appointment monitoring across doctors and dates.',
@@ -334,7 +334,7 @@ document.addEventListener('DOMContentLoaded', function () {
         @if ($sectionKey === 'user-management')
             @include('dashviews.admin.manage_user')
         @elseif ($sectionKey === 'doctor-management')
-            @include('dashviews.admin.doctors_specializations')
+            @include('dashviews.admin.staff_management')
         @elseif ($sectionKey === 'services-management')
             @include('dashviews.admin.services_management')
         @elseif ($sectionKey === 'medicines-management')
