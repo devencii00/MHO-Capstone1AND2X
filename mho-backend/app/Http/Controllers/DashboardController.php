@@ -94,7 +94,7 @@ class DashboardController extends Controller
                     ];
                 });
 
-            $recentUsers = User::withCount('children')->latest('user_id')->limit(10)->get();
+            $recentUsers = User::withCount('children')->latest('user_id')->limit(100)->get();
 
             $recentPatients = User::where('role', 'patient')
                 ->latest('user_id')

@@ -160,15 +160,11 @@
         var doctorUserId = {{ $doctorUserId > 0 ? $doctorUserId : 'null' }}
 
         function showError(message) {
-            if (!errorBox) return
-            errorBox.textContent = message || ''
-            errorBox.classList.toggle('hidden', !message)
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function showSuccess(message) {
-            if (!successBox) return
-            successBox.textContent = message || ''
-            successBox.classList.toggle('hidden', !message)
+            if (message && typeof showToast === 'function') showToast(message, 'success')
         }
 
         function setCallNextSubmitting(isSubmitting) {

@@ -589,9 +589,7 @@ if (!next.length) {
                     var selectedConversation = null
 
                     function showError(message) {
-                        if (!errorBox) return
-                        errorBox.textContent = message || ''
-                        errorBox.classList.toggle('hidden', !message)
+                        if (message && typeof showToast === 'function') showToast(message, 'error')
                     }
 
                     function escapeHtml(input) {

@@ -123,23 +123,11 @@
             })
 
             function showError(message) {
-                if (!errorBox) return
-                errorBox.textContent = message || ''
-                if (message) {
-                    errorBox.classList.remove('hidden')
-                } else {
-                    errorBox.classList.add('hidden')
-                }
+                if (message && typeof showToast === 'function') showToast(message, 'error')
             }
 
             function showSuccess(message) {
-                if (!successBox) return
-                successBox.textContent = message || ''
-                if (message) {
-                    successBox.classList.remove('hidden')
-                } else {
-                    successBox.classList.add('hidden')
-                }
+                if (message && typeof showToast === 'function') showToast(message, 'success')
             }
 
             if (!form) {
@@ -251,5 +239,37 @@
             })
         })
     </script>
+
+    <div id="toast-container"></div>
+
+    <script>
+    function showToast(message, type) {
+        if (!message) return
+        type = type || 'success'
+        var container = document.getElementById('toast-container')
+        if (!container) return
+        var icons = {success: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>', error: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>', info: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'}
+        var toast = document.createElement('div')
+        toast.className = 'toast toast-' + type
+        toast.innerHTML = (icons[type] || icons.info) + '<span>' + String(message).replace(/</g, '&lt;') + '</span><span class="toast-close" onclick="this.parentElement.classList.add(\'hide\');setTimeout(function(){this.parentElement.remove()}.bind(this),300)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>'
+        container.appendChild(toast)
+        requestAnimationFrame(function(){toast.classList.add('show')})
+        var t = setTimeout(function(){dismissToast(toast)},4000)
+        toast.addEventListener('click',function(e){if(e.target.closest('.toast-close'))return;clearTimeout(t);dismissToast(toast)})
+    }
+    function dismissToast(el){if(!el||el.classList.contains('hide'))return;el.classList.remove('show');el.classList.add('hide');setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el)},350)}
+    </script>
+
+    <style>
+    #toast-container{position:fixed;top:24px;right:24px;z-index:99999;display:flex;flex-direction:column;gap:12px;pointer-events:none}
+    #toast-container .toast{pointer-events:auto;display:flex;align-items:center;gap:12px;padding:16px 22px;border-radius:14px;font-size:0.9rem;font-weight:600;line-height:1.4;box-shadow:0 10px 40px rgba(15,23,42,0.18);transform:translateX(120%);opacity:0;transition:transform 0.4s cubic-bezier(0.22,1,0.36,1),opacity 0.35s ease;max-width:460px;min-width:280px;word-break:break-word;letter-spacing:0.01em}
+    #toast-container .toast.show{transform:translateX(0);opacity:1}
+    #toast-container .toast.hide{transform:translateX(120%);opacity:0}
+    #toast-container .toast.toast-success{background:#ecfdf5;border:2px solid #34d399;color:#064e3b}
+    #toast-container .toast.toast-error{background:#fef2f2;border:2px solid #f87171;color:#7f1d1d}
+    #toast-container .toast svg{width:22px;height:22px;flex-shrink:0}
+    #toast-container .toast .toast-close{margin-left:auto;cursor:pointer;opacity:0.4;flex-shrink:0;transition:opacity 0.15s}
+    #toast-container .toast .toast-close:hover{opacity:0.8}
+    </style>
 </body>
 </html>

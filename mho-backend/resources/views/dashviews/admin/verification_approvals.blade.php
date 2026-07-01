@@ -204,14 +204,7 @@
         var actionConfirmDefaultHtml = actionConfirm ? actionConfirm.innerHTML : ''
 
         function showError(message) {
-            if (!errorBox) return
-            if (!message) {
-                errorBox.classList.add('hidden')
-                errorBox.textContent = ''
-                return
-            }
-            errorBox.textContent = message
-            errorBox.classList.remove('hidden')
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function statusBadge(status) {

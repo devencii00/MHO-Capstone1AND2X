@@ -167,13 +167,7 @@
         var collapsedNodeMap = {}
 
         function showChatbotError(message) {
-            if (!errorBox) return
-            errorBox.textContent = message || ''
-            if (message) {
-                errorBox.classList.remove('hidden')
-            } else {
-                errorBox.classList.add('hidden')
-            }
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function setButtonLoading(button, isLoading, loadingText) {

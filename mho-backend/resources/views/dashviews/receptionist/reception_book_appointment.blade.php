@@ -2289,23 +2289,11 @@ function updateManageTodayButton() {
         }
 
         function showManageError(message) {
-            if (!manageError) return
-            manageError.textContent = message || ''
-            if (message) {
-                manageError.classList.remove('hidden')
-            } else {
-                manageError.classList.add('hidden')
-            }
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function showManageSuccess(message) {
-            if (!manageSuccess) return
-            manageSuccess.textContent = message || ''
-            if (message) {
-                manageSuccess.classList.remove('hidden')
-            } else {
-                manageSuccess.classList.add('hidden')
-            }
+            if (message && typeof showToast === 'function') showToast(message, 'success')
         }
 
         function showManageResult(data) {

@@ -517,9 +517,7 @@
         }
 
         function showScheduleAvailabilityError(message) {
-            if (!scheduleAvailabilityError) return
-            scheduleAvailabilityError.textContent = message || ''
-            scheduleAvailabilityError.classList.toggle('hidden', !message)
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function setScheduleAvailabilitySubmitting(isSubmitting) {

@@ -190,11 +190,10 @@
         </div>
     </div>
 
-   <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[400px]">
-        <table class="min-w-full text-left text-xs text-slate-600">
+   <div class="overflow-x-auto scrollbar-hidden mb-4">
+        <table id="adminUserTable" class="min-w-full text-left text-xs text-slate-600">
             <thead>
                 <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
-                    <th class="py-2 pr-4 font-semibold">ID</th>
                     <th class="py-2 pr-4 font-semibold">Employee no.</th>
                     <th class="py-2 pr-4 font-semibold">Hire date</th>
                     <th class="py-2 pr-4 font-semibold">Name</th>
@@ -236,7 +235,6 @@
                         data-created-ts="{{ optional($user->created_at)->timestamp ?? 0 }}"
                         data-status="{{ $status }}"
                         data-children-count="{{ $childrenCount }}">
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-500">#{{ $user->user_id }}</td>
                         <td class="py-2 pr-4 text-[0.78rem] text-slate-700">
                             @if ($user->employee_number)
                                 {{ $user->employee_number }}
@@ -301,7 +299,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="10" class="py-4 text-center text-[0.78rem] text-slate-400">
+                        <td colspan="9" class="py-4 text-center text-[0.78rem] text-slate-400">
                             No users found yet.
                         </td>
                     </tr>
@@ -309,6 +307,9 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination -->
+    <div id="adminUserPagination" class="flex items-center justify-center gap-3 pt-3 pb-1"></div>
 </div>
 
 <template id="adminManageUserIconArrowLeft">
@@ -316,7 +317,7 @@
 </template>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
         var iconArrowLeft = (function () {
             var tpl = document.getElementById('adminManageUserIconArrowLeft')
             return tpl ? String(tpl.innerHTML || '').trim() : ''
@@ -335,28 +336,11 @@
         var confirmResolver = null
 
         function showUserError(message) {
-            if (!errorBox) {
-                return
-            }
-            errorBox.textContent = message || ''
-            if (message) {
-                errorBox.classList.remove('hidden')
-            } else {
-                errorBox.classList.add('hidden')
-            }
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function showUserSuccess(message) {
-            if (!successBox) return
-            successBox.textContent = message || ''
-            if (message) {
-                successBox.classList.remove('hidden')
-                setTimeout(function () {
-                    showUserSuccess('')
-                }, 3500)
-            } else {
-                successBox.classList.add('hidden')
-            }
+            if (message && typeof showToast === 'function') showToast(message, 'success')
         }
 
         function setSubmitting(isSubmitting) {
@@ -383,6 +367,7 @@
                 confirmOverlay.classList.add('hidden')
                 confirmOverlay.classList.remove('flex')
             }
+            if (!result) submitting = false
             var resolver = confirmResolver
             confirmResolver = null
             if (typeof resolver === 'function') {
@@ -398,10 +383,14 @@
             })
         }
 
-        if (form) {
+        var submitting = false
+
+        if (form && !form.hasAttribute('data-submit-bound')) {
+            form.setAttribute('data-submit-bound', '1')
             form.addEventListener('submit', function (e) {
                 e.preventDefault()
 
+                if (submitting) return
                 showUserError('')
                 showUserSuccess('')
 
@@ -424,6 +413,7 @@
                 confirmAction('Create this user and email temporary credentials?')
                     .then(function (confirmed) {
                         if (!confirmed) return
+                        submitting = true
                         setSubmitting(true)
                         apiFetch("{{ url('/api/users/invite') }}", {
                             method: 'POST',
@@ -440,15 +430,17 @@
                                 })
                             })
                             .then(function (result) {
+                                submitting = false
                                 if (!result.ok) {
                                     var message = result.data && result.data.message ? result.data.message : 'Failed to create user.'
                                     showUserError(message)
+                                    setSubmitting(false)
                                     return
                                 }
 
                                 showUserSuccess('Account created and credentials email sent.')
                                 if (emailInput) emailInput.value = ''
-                                setTimeout(function () { window.location.reload() }, 700)
+                                setTimeout(function () { reloadTable() }, 1200)
                             })
                             .catch(function () {
                                 showUserError('Network error while creating user.')
@@ -489,7 +481,7 @@
                                     return
                                 }
                                 showUserSuccess('User deleted.')
-                                setTimeout(function () { window.location.reload() }, 700)
+                                setTimeout(function () { reloadTable() }, 1200)
                             })
                             .catch(function () {})
                     })
@@ -544,6 +536,25 @@
         var editingUserId = null
         var statusUserId = null
 
+        function reloadTable() {
+            fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (r) { return r.text() })
+                .then(function (html) {
+                    var parser = new DOMParser()
+                    var doc = parser.parseFromString(html, 'text/html')
+                    var oldTbody = document.querySelector('#adminUserTable tbody')
+                    var newTbody = doc.querySelector('#adminUserTable tbody')
+                    if (oldTbody && newTbody) {
+                        oldTbody.innerHTML = newTbody.innerHTML
+                        // Re-bind data attributes and re-initialize
+                        rows = Array.prototype.slice.call(document.querySelectorAll('.admin-user-row'))
+                        applyUserFilters()
+                    } else {
+                        window.location.reload()
+                    }
+                })
+                .catch(function () { window.location.reload() })
+        }
         function showInlineBox(el, message) {
             if (!el) return
             el.textContent = message || ''
@@ -822,8 +833,8 @@
                                 }
 
                                 closeUserEditModal()
-                                showUserSuccess('Changes saved.')
-                                setTimeout(function () { window.location.reload() }, 700)
+                                showUserSuccess('User changes saved successfully.')
+                                setTimeout(function () { reloadTable() }, 1200)
                             })
                             .catch(function () {
                                 showInlineBox(userEditError, 'Network error while updating user.')
@@ -874,8 +885,8 @@
                                     return
                                 }
                                 closeUserStatusModal()
-                                showUserSuccess('Status updated.')
-                                setTimeout(function () { window.location.reload() }, 700)
+                                showUserSuccess('User status updated successfully.')
+                                setTimeout(function () { reloadTable() }, 1200)
                             })
                             .catch(function () {
                                 showInlineBox(userStatusError, 'Network error while updating user status.')
@@ -1221,6 +1232,14 @@
             })
 
             applyUserSort()
+
+            userFilteredRows = []
+            for (var ri = 0; ri < rows.length; ri++) {
+                if (rows[ri].style.display !== 'none') {
+                    userFilteredRows.push(rows[ri])
+                }
+            }
+            showUserPage(1)
         }
 
         function applyUserSort() {
@@ -1263,6 +1282,74 @@
             })
         }
 
+        var userPerPage = 10
+        var userCurrentPage = 1
+        var userTotalEntries = 0
+        var userFilteredRows = []
+
+        function showUserPage(page) {
+            var visible = userFilteredRows
+            var total = visible.length
+            userTotalEntries = total
+            if (total === 0) {
+                userCurrentPage = 1
+                renderUserPagination()
+                return
+            }
+            var totalPages = Math.ceil(total / userPerPage)
+            if (page < 1 || page > totalPages) return
+            userCurrentPage = page
+            var start = (page - 1) * userPerPage
+            var end = Math.min(start + userPerPage, total)
+            var allRows = document.querySelectorAll('#adminUserTable .admin-user-row')
+            for (var ri = 0; ri < allRows.length; ri++) {
+                allRows[ri].style.display = 'none'
+            }
+            for (var ri = start; ri < end; ri++) {
+                visible[ri].style.display = ''
+            }
+            renderUserPagination()
+        }
+
+        function renderUserPagination() {
+            var pagination = document.getElementById('adminUserPagination')
+            if (!pagination) return
+            var total = userTotalEntries
+            if (total === 0) {
+                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
+                return
+            }
+            var totalPages = Math.ceil(total / userPerPage)
+            if (totalPages <= 1) {
+                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-400">' + total + ' entries</span>'
+                return
+            }
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
+                (userCurrentPage === 1 ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                '" data-page="prev"' + (userCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            for (var i = 1; i <= totalPages; i++) {
+                html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border ' +
+                    (i === userCurrentPage ? 'bg-green-600 text-white border-green-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                    '" data-page="' + i + '">' + i + '</button>'
+            }
+            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
+                (userCurrentPage === totalPages ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                '" data-page="next"' + (userCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            pagination.innerHTML = html
+
+            pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var p = btn.getAttribute('data-page')
+                    if (p === 'prev' && userCurrentPage > 1) showUserPage(userCurrentPage - 1)
+                    else if (p === 'next' && userCurrentPage < totalPages) showUserPage(userCurrentPage + 1)
+                    else if (p !== 'prev' && p !== 'next') showUserPage(parseInt(p, 10))
+                })
+            })
+        }
+
+        applyUserFilters()
+
         if (searchInput) {
             searchInput.addEventListener('input', applyUserFilters)
         }
@@ -1273,9 +1360,7 @@
             statusFilter.addEventListener('change', applyUserFilters)
         }
         if (sortSelect) {
-            sortSelect.addEventListener('change', applyUserSort)
+            sortSelect.addEventListener('change', applyUserFilters)
         }
-
-        applyUserFilters()
-    })
+    })()
 </script>

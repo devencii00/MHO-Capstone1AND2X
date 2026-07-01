@@ -1059,23 +1059,11 @@ function setWalkInTab(tab) {
         var guestLastNameInput = document.getElementById('reception_guest_lastname')
 
         function showGuestError(message) {
-            if (!guestErrorBox) return
-            guestErrorBox.textContent = message || ''
-            if (message) {
-                guestErrorBox.classList.remove('hidden')
-            } else {
-                guestErrorBox.classList.add('hidden')
-            }
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function showGuestSuccess(message) {
-            if (!guestSuccessBox) return
-            guestSuccessBox.textContent = message || ''
-            if (message) {
-                guestSuccessBox.classList.remove('hidden')
-            } else {
-                guestSuccessBox.classList.add('hidden')
-            }
+            if (message && typeof showToast === 'function') showToast(message, 'success')
         }
 
         function showGuestCreds(message) {
@@ -2016,15 +2004,11 @@ function setWalkInTab(tab) {
         }
 
         function showError(message) {
-            if (!errorBox) return
-            errorBox.textContent = message || ''
-            errorBox.classList.toggle('hidden', !message)
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function showSuccess(message) {
-            if (!successBox) return
-            successBox.textContent = message || ''
-            successBox.classList.toggle('hidden', !message)
+            if (message && typeof showToast === 'function') showToast(message, 'success')
         }
 
         function normalizeText(value) {

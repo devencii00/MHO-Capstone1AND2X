@@ -1174,23 +1174,11 @@
         }
 
         function showQueueError(message) {
-            if (!queueErrorBox) return
-            queueErrorBox.textContent = message || ''
-            if (message) {
-                queueErrorBox.classList.remove('hidden')
-            } else {
-                queueErrorBox.classList.add('hidden')
-            }
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function showQueueSuccess(message) {
-            if (!queueSuccessBox) return
-            queueSuccessBox.textContent = message || ''
-            if (message) {
-                queueSuccessBox.classList.remove('hidden')
-            } else {
-                queueSuccessBox.classList.add('hidden')
-            }
+            if (message && typeof showToast === 'function') showToast(message, 'success')
         }
 
         if (searchInput) {

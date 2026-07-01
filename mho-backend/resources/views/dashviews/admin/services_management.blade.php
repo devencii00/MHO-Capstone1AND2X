@@ -259,27 +259,11 @@
         }
 
         function showServiceError(message) {
-            if (!errorBox) return
-            stopBoxTimer('error')
-            errorBox.textContent = message || ''
-            if (message) {
-                errorBox.classList.remove('hidden')
-                scheduleBoxDismiss('error', function () { showServiceError('') })
-            } else {
-                errorBox.classList.add('hidden')
-            }
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function showServiceSuccess(message) {
-            if (!successBox) return
-            stopBoxTimer('success')
-            successBox.textContent = message || ''
-            if (message) {
-                successBox.classList.remove('hidden')
-                scheduleBoxDismiss('success', function () { showServiceSuccess('') })
-            } else {
-                successBox.classList.add('hidden')
-            }
+            if (message && typeof showToast === 'function') showToast(message, 'success')
         }
 
         function showInlineBox(el, message) {

@@ -201,39 +201,11 @@
         var medicineSuccessTimer = null
 
         function showError(message) {
-            if (!errorBox) return
-            if (medicineErrorTimer) {
-                clearTimeout(medicineErrorTimer)
-                medicineErrorTimer = null
-            }
-            if (!message) {
-                errorBox.textContent = ''
-                errorBox.classList.add('hidden')
-                return
-            }
-            errorBox.textContent = message
-            errorBox.classList.remove('hidden')
-            medicineErrorTimer = setTimeout(function () {
-                showError('')
-            }, 3200)
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function showSuccess(message) {
-            if (!successBox) return
-            if (medicineSuccessTimer) {
-                clearTimeout(medicineSuccessTimer)
-                medicineSuccessTimer = null
-            }
-            if (!message) {
-                successBox.textContent = ''
-                successBox.classList.add('hidden')
-                return
-            }
-            successBox.textContent = message
-            successBox.classList.remove('hidden')
-            medicineSuccessTimer = setTimeout(function () {
-                showSuccess('')
-            }, 3200)
+            if (message && typeof showToast === 'function') showToast(message, 'success')
         }
 
         function readApiMessage(result, fallback) {
@@ -641,9 +613,9 @@
                         return false
                     }
                     if (body && Object.prototype.hasOwnProperty.call(body, 'is_active')) {
-                        showSuccess(body.is_active ? 'Medicine activated.' : 'Medicine deactivated.')
+                        showSuccess(body.is_active ? 'Medicine activated successfully.' : 'Medicine deactivated successfully.')
                     } else {
-                        showSuccess('Medicine updated.')
+                        showSuccess('Medicine updated successfully.')
                     }
                     loadMedicines()
                     return true
@@ -731,7 +703,7 @@
                                         showError(readApiMessage(result, 'Failed to save medicine.'))
                                         return
                                     }
-                                    showSuccess('Medicine added.')
+                                    showSuccess('Medicine added successfully.')
                                     resetForm()
                                     loadMedicines()
                                 })

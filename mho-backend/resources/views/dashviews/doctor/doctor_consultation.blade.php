@@ -507,29 +507,11 @@
         }
 
         function showSaveSuccess(message, allowPrint) {
-            clearSuccessTimer()
-            if (saveSuccessText) saveSuccessText.textContent = message || ''
-            else if (saveSuccess) saveSuccess.textContent = message || ''
-            setPrintVisible(!!allowPrint)
-            setVisible(saveSuccess, true)
-            successHideTimer = setTimeout(function () {
-                setVisible(saveSuccess, false)
-            }, 5000)
+            if (message && typeof showToast === 'function') showToast(message, 'success')
         }
 
         function setVitalsFeedback(message, type) {
-            if (!vitalsFeedback) return
-            if (!message) {
-                vitalsFeedback.textContent = ''
-                vitalsFeedback.className = 'hidden mb-3 rounded-lg border px-3 py-2 text-[0.75rem]'
-                return
-            }
-
-            var cls = 'mb-3 rounded-lg border px-3 py-2 text-[0.75rem] '
-            if (type === 'error') cls += 'border-red-200 bg-red-50 text-red-700'
-            else cls += 'border-emerald-200 bg-emerald-50 text-emerald-700'
-            vitalsFeedback.className = cls
-            vitalsFeedback.textContent = message
+            if (message && typeof showToast === 'function') showToast(message, type === 'error' ? 'error' : 'success')
         }
 
         function setVitalsModalError(message) {

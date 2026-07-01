@@ -57,14 +57,7 @@
         var rows = []
 
         function showError(message) {
-            if (!errorBox) return
-            if (!message) {
-                errorBox.textContent = ''
-                errorBox.classList.add('hidden')
-                return
-            }
-            errorBox.textContent = message
-            errorBox.classList.remove('hidden')
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function escapeHtml(text) {

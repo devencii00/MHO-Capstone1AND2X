@@ -206,27 +206,11 @@
         }
 
         function showRegisterPatientError(message) {
-            if (!errorBox) return
-            errorBox.textContent = message || ''
-            if (message) {
-                errorBox.classList.remove('hidden')
-            } else {
-                errorBox.classList.add('hidden')
-            }
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function showRegisterPatientSuccess(message) {
-            if (!successBox) return
-            successBox.textContent = message || ''
-            if (message) {
-                successBox.classList.remove('hidden')
-                if (successTimer) clearTimeout(successTimer)
-                successTimer = setTimeout(function () {
-                    showRegisterPatientSuccess('')
-                }, 3500)
-            } else {
-                successBox.classList.add('hidden')
-            }
+            if (message && typeof showToast === 'function') showToast(message, 'success')
         }
 
         function showCredentials(payload) {

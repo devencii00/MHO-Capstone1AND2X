@@ -337,10 +337,8 @@ class UserController extends Controller
             $data['must_change_credentials'] = true;
         }
 
-        $user = \Illuminate\Support\Facades\DB::transaction(function () use ($data, $plainPassword, $request) {
+        $user = \Illuminate\Support\Facades\DB::transaction(function () use ($data, $request) {
             $user = User::create($data);
-
-            Mail::to($user->email)->send(new StaffInviteMail($user, $plainPassword));
 
             LogEntry::write(
                 optional($request->user())->user_id ? (int) $request->user()->user_id : null,
@@ -360,6 +358,9 @@ class UserController extends Controller
 
             return $user;
         });
+
+        // Send email after transaction — queued to avoid blocking the response
+        Mail::to($user->email)->queue(new StaffInviteMail($user, $plainPassword));
 
         return response()->json($user, 201);
     }

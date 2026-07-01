@@ -33,7 +33,7 @@
         </div>
     </div>
 
-<div class="overflow-x-auto overflow-y-auto scrollbar-hidden h-[320px]">
+<div class="overflow-x-auto scrollbar-hidden">
         <table class="min-w-full text-left text-xs text-slate-600">
             <thead>
                 <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
@@ -50,13 +50,16 @@
             </thead>
             <tbody id="admin_doctor_table_body">
                 <tr>
-                    <td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">
-                        Loading doctors…
+                    <td colspan="9" class="py-4 text-center text-[0.78rem] text-slate-400">
+                        Loading staff…
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination -->
+    <div id="adminStaffPagination" class="flex items-center justify-center gap-3 pt-3 pb-1"></div>
 
     
     <!-- Schedule Modal -->
@@ -368,13 +371,16 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
         var errorBox = document.getElementById('adminDoctorError')
         var successBox = document.getElementById('adminDoctorSuccess')
         var searchInput = document.getElementById('admin_doctor_search')
         var roleFilter = document.getElementById('admin_staff_role_filter')
         var sortSelect = document.getElementById('admin_doctor_sort')
         var tableBody = document.getElementById('admin_doctor_table_body')
+        var staffRows = []
+        var staffPage = 1
+        var staffPerPage = 10
 
         var scheduleModal = document.getElementById('adminDoctorScheduleModal')
         var scheduleTitle = document.getElementById('adminDoctorScheduleTitle')
@@ -527,39 +533,15 @@
         }
 
         function showDoctorError(message) {
-            if (!errorBox) return
-            errorBox.textContent = message || ''
-            if (message) {
-                errorBox.classList.remove('hidden')
-            } else {
-                errorBox.classList.add('hidden')
-            }
-            if (scheduleErrorBox) {
-                scheduleErrorBox.textContent = message || ''
-                scheduleErrorBox.classList.toggle('hidden', !message)
-            }
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function showDoctorSuccess(message) {
-            if (!successBox) return
-            successBox.textContent = message || ''
-            if (message) {
-                successBox.classList.remove('hidden')
-            } else {
-                successBox.classList.add('hidden')
-            }
-            if (scheduleSuccessBox) {
-                scheduleSuccessBox.textContent = message || ''
-                scheduleSuccessBox.classList.toggle('hidden', !message)
-            }
+            if (message && typeof showToast === 'function') showToast(message, 'success')
         }
 
         function showDoctorEditError(message) {
-            if (!doctorEditError) {
-                return
-            }
-            doctorEditError.textContent = message || ''
-            doctorEditError.classList.toggle('hidden', !message)
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function setDoctorEditSubmitting(isSubmitting) {
@@ -1232,6 +1214,8 @@
                 tableBody.innerHTML = '<tr><td colspan="9" class="py-4 text-center text-[0.78rem] text-slate-400">' +
                     (query ? 'No staff members match your search.' : 'No staff members found.') +
                     '</td></tr>'
+                staffRows = []
+                showStaffPage(1)
                 return
             }
 
@@ -1326,6 +1310,9 @@
                 })
             })
 
+            // Track staff rows and show first page
+            staffRows = Array.prototype.slice.call(tableBody.querySelectorAll('tr'))
+            showStaffPage(1)
         }
 
         function loadSchedulesForDoctor(doctorId) {
@@ -1592,7 +1579,7 @@
                         return
                     }
                     var deleted = result.data && result.data.deleted != null ? parseInt(result.data.deleted, 10) : null
-                    var finalMsg = successMessage || 'Schedules deleted.'
+                    var finalMsg = successMessage || 'Schedules deleted successfully.'
                     if (deleted != null && !isNaN(deleted)) {
                         finalMsg = finalMsg + ' Deleted ' + deleted + '.'
                     }
@@ -1706,17 +1693,17 @@
 
         if (searchInput) {
             searchInput.addEventListener('input', function () {
-                renderDoctors()
+                renderDoctorsWithReset()
             })
         }
         if (roleFilter) {
             roleFilter.addEventListener('change', function () {
-                renderDoctors()
+                renderDoctorsWithReset()
             })
         }
         if (sortSelect) {
             sortSelect.addEventListener('change', function () {
-                renderDoctors()
+                renderDoctorsWithReset()
             })
         }
 
@@ -2000,6 +1987,72 @@ if (!currentScheduleId && !toDay) {
             ttEl.innerHTML = html
         }
 
-        loadDoctors()
-    })
+        function showStaffPage(page) {
+            var total = staffRows.length
+            var totalPages = Math.ceil(total / staffPerPage) || 1
+            if (page < 1 || page > totalPages) return
+            staffPage = page
+            var start = (page - 1) * staffPerPage
+            var end = Math.min(start + staffPerPage, total)
+
+            staffRows.forEach(function (row, i) {
+                row.style.display = (i >= start && i < end) ? '' : 'none'
+            })
+
+            renderStaffPagination()
+        }
+
+        function renderStaffPagination() {
+            var pagination = document.getElementById('adminStaffPagination')
+            if (!pagination) return
+            var total = staffRows.length
+            var totalPages = Math.ceil(total / staffPerPage) || 1
+
+            if (total === 0) {
+                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
+                return
+            }
+
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+
+            if (totalPages <= 1) {
+                pagination.innerHTML = html
+                return
+            }
+
+            // Prev
+            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
+                (staffPage === 1 ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                '" data-page="prev"' + (staffPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            // Page numbers
+            for (var i = 1; i <= totalPages; i++) {
+                html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border ' +
+                    (i === staffPage ? 'bg-green-600 text-white border-green-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                    '" data-page="' + i + '">' + i + '</button>'
+            }
+            // Next
+            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
+                (staffPage === totalPages ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                '" data-page="next"' + (staffPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            pagination.innerHTML = html
+
+            pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var p = btn.getAttribute('data-page')
+                    if (p === 'prev' && staffPage > 1) { staffPage--; showStaffPage(staffPage) }
+                    else if (p === 'next' && staffPage < totalPages) { staffPage++; showStaffPage(staffPage) }
+                    else if (p !== 'prev' && p !== 'next') showStaffPage(parseInt(p, 10))
+                })
+            })
+        }
+
+        // Wrapper for filter/sort — resets to page 1
+        var renderDoctorsWithReset = function () {
+            staffPage = 1
+            renderDoctors()
+        }
+
+        // Call loadDoctors once
+        setTimeout(function () { loadDoctors() }, 0)
+    })()
 </script>

@@ -193,9 +193,7 @@
         }
 
         function showAccountError(message) {
-            if (!accountError) return
-            accountError.textContent = message || ''
-            accountError.classList.toggle('hidden', !message)
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function showAccountNotice(message) {

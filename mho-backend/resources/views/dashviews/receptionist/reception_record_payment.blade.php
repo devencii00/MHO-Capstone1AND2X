@@ -319,21 +319,15 @@
         }
 
         function showPaymentError(message) {
-            if (!paymentError) return
-            paymentError.textContent = message || ''
-            paymentError.classList.toggle('hidden', !message)
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function showPaymentSuccess(message) {
-            if (!paymentSuccess) return
-            paymentSuccess.textContent = message || ''
-            paymentSuccess.classList.toggle('hidden', !message)
+            if (message && typeof showToast === 'function') showToast(message, 'success')
         }
 
         function showTransactionsError(message) {
-            if (!txError) return
-            txError.textContent = message || ''
-            txError.classList.toggle('hidden', !message)
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function money(value) {
