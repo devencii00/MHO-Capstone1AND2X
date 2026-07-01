@@ -73,7 +73,7 @@
                     </div>
                     <div>
                         <label for="adminUserEditMiddlename" class="block text-[0.7rem] text-slate-600 mb-1">Middle name</label>
-                        <input id="adminUserEditMiddlename" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        <input id="adminUserEditMiddlename" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="N/A">
                     </div>
                     <div>
                         <label for="adminUserEditLastname" class="block text-[0.7rem] text-slate-600 mb-1">Last name</label>

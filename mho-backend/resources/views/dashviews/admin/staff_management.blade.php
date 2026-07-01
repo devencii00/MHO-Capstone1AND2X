@@ -857,7 +857,7 @@
 
                         formData.append('role', val(doctorEditRole) || 'doctor')
                         appendIf('firstname', val(doctorEditFirstname))
-                        formData.append('middlename', val(doctorEditMiddlename) || 'N/A')
+                        formData.append('middlename', val(doctorEditMiddlename) || '')
                         appendIf('lastname', val(doctorEditLastname))
                         var specVal = val(doctorEditSpecialization)
                         if (doctorEditRole && doctorEditRole.value === 'receptionist' && !specVal) {
