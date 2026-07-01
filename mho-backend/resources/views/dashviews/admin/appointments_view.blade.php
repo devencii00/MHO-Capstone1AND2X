@@ -73,6 +73,7 @@
             </tbody>
         </table>
     </div>
+    <div id="adminApptPagination" class="flex items-center justify-center gap-1 mt-3 flex-wrap"></div>
 </div>
 
 <!-- Appointment History Modal -->
@@ -142,6 +143,46 @@
         var tableBody = document.getElementById('admin_appt_table_body')
 
         var appointments = []
+        var apptPerPage = 10
+        var apptCurrentPage = 1
+        var apptFiltered = []
+
+        function renderApptPagination() {
+            var pagination = document.getElementById('adminApptPagination')
+            if (!pagination) return
+            var total = apptFiltered.length
+            if (total === 0) {
+                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
+                return
+            }
+            var totalPages = Math.ceil(total / apptPerPage)
+            if (totalPages <= 1) {
+                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-400">' + total + ' entries</span>'
+                return
+            }
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
+                (apptCurrentPage === 1 ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                '" data-page="prev"' + (apptCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            for (var i = 1; i <= totalPages; i++) {
+                html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border ' +
+                    (i === apptCurrentPage ? 'bg-green-600 text-white border-green-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                    '" data-page="' + i + '">' + i + '</button>'
+            }
+            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
+                (apptCurrentPage === totalPages ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                '" data-page="next"' + (apptCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            pagination.innerHTML = html
+            pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var p = btn.getAttribute('data-page')
+                    if (p === 'prev' && apptCurrentPage > 1) { apptCurrentPage--; renderAppointments() }
+                    else if (p === 'next' && apptCurrentPage < totalPages) { apptCurrentPage++; renderAppointments() }
+                    else if (p !== 'prev' && p !== 'next') { apptCurrentPage = parseInt(p, 10); renderAppointments() }
+                })
+            })
+        }
+
         var doctors = []
 
         function showError(message) {
@@ -537,13 +578,22 @@
                 if (da < db) return 1; if (da > db) return -1; return 0
             })
 
+            apptFiltered = deduped
+
             if (!deduped.length) {
                 tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No appointments found.</td></tr>'
+                renderApptPagination()
                 return
             }
 
+            var totalPages = Math.ceil(deduped.length / apptPerPage)
+            if (apptCurrentPage > totalPages) apptCurrentPage = totalPages
+            var start = (apptCurrentPage - 1) * apptPerPage
+            var end = Math.min(start + apptPerPage, deduped.length)
+            var pageSlice = deduped.slice(start, end)
+
             var html = ''
-            deduped.forEach(function (a) {
+            pageSlice.forEach(function (a) {
                 var dt = a.appointment_datetime ? String(a.appointment_datetime).replace('T', ' ').slice(0, 16) : '—'
                 var patient = personLabel(a.patient, 'Patient #' + (a.patient_id || ''))
                 var patientId = a.patient_id || (a.patient && a.patient.user_id) || ''
@@ -570,6 +620,7 @@
                     openHistoryModal(pid, pname)
                 })
             })
+            renderApptPagination()
         }
 
         if (dateInput) dateInput.addEventListener('change', renderAppointments)

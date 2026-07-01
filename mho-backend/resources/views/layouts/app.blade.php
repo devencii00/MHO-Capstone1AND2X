@@ -90,8 +90,6 @@
 </head>
 <body class="font-sans min-h-screen bg-slate-100 text-slate-800 [background-image:radial-gradient(ellipse_at_80%_0%,rgba(6,182,212,0.06)_0%,transparent_55%)]">
 
-    @yield('body')
-
     <script>
         window.apiFetch = function (path, options) {
             var token = null
@@ -175,6 +173,8 @@
             })
         }
     </script>
+
+    @yield('body')
 
     <script>
     // ── Update sidebar's active nav indicator ──

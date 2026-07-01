@@ -69,7 +69,7 @@
                     <th class="py-2 pr-4 font-semibold">Service</th>
                     <th class="py-2 pr-4 font-semibold">Description</th>
                     <th class="py-2 pr-4 font-semibold">Duration</th>
-                    <th class="py-2 pr-4 font-semibold">Price</th>
+                    <th class="py-2 pr-4 font-semibold">Fees</th>
                     <th class="py-2 pr-4 font-semibold">Status</th>
                     <th class="py-2 pr-4 font-semibold">Actions</th>
                 </tr>
@@ -83,6 +83,7 @@
             </tbody>
         </table>
     </div>
+    <div id="adminServicePagination" class="flex items-center justify-center gap-1 mt-3 flex-wrap"></div>
 </div>
 <div id="adminServiceConfirmOverlay" class="hidden fixed inset-0 z-[70] bg-slate-900/50 backdrop-blur-sm items-center justify-center p-4 transition-all duration-200">
     <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-slate-100 overflow-hidden">
@@ -186,6 +187,45 @@
 
         var services = []
         var editingServiceId = null
+        var servicePerPage = 10
+        var serviceCurrentPage = 1
+        var serviceFiltered = []
+
+        function renderServicePagination() {
+            var pagination = document.getElementById('adminServicePagination')
+            if (!pagination) return
+            var total = serviceFiltered.length
+            if (total === 0) {
+                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
+                return
+            }
+            var totalPages = Math.ceil(total / servicePerPage)
+            if (totalPages <= 1) {
+                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-400">' + total + ' entries</span>'
+                return
+            }
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
+                (serviceCurrentPage === 1 ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                '" data-page="prev"' + (serviceCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            for (var i = 1; i <= totalPages; i++) {
+                html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border ' +
+                    (i === serviceCurrentPage ? 'bg-green-600 text-white border-green-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                    '" data-page="' + i + '">' + i + '</button>'
+            }
+            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
+                (serviceCurrentPage === totalPages ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                '" data-page="next"' + (serviceCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            pagination.innerHTML = html
+            pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var p = btn.getAttribute('data-page')
+                    if (p === 'prev' && serviceCurrentPage > 1) { serviceCurrentPage--; renderServices() }
+                    else if (p === 'next' && serviceCurrentPage < totalPages) { serviceCurrentPage++; renderServices() }
+                    else if (p !== 'prev' && p !== 'next') { serviceCurrentPage = parseInt(p, 10); renderServices() }
+                })
+            })
+        }
 
         var serviceEditOverlay = document.getElementById('adminServiceEditOverlay')
         var serviceEditClose = document.getElementById('adminServiceEditClose')
@@ -480,14 +520,23 @@
                 return 0
             })
 
+            serviceFiltered = filtered
+
             if (!filtered.length) {
                 tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No services found.</td></tr>'
+                renderServicePagination()
                 return
             }
 
+            var totalPages = Math.ceil(filtered.length / servicePerPage)
+            if (serviceCurrentPage > totalPages) serviceCurrentPage = totalPages
+            var start = (serviceCurrentPage - 1) * servicePerPage
+            var end = Math.min(start + servicePerPage, filtered.length)
+            var pageSlice = filtered.slice(start, end)
+
             tableBody.innerHTML = ''
 
-            filtered.forEach(function (service) {
+            pageSlice.forEach(function (service) {
                 var tr = document.createElement('tr')
                 tr.className = 'border-b border-slate-50 last:border-0'
 
@@ -628,6 +677,7 @@
                         })
                 })
             })
+            renderServicePagination()
         }
 
         if (serviceEditForm) {

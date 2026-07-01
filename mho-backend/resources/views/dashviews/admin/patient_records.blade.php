@@ -58,6 +58,7 @@
         <table class="min-w-full text-left text-xs text-slate-600">
             <thead>
                 <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
+                    <th class="py-2 pr-4 font-semibold"></th>
                     <th class="py-2 pr-4 font-semibold">Patient</th>
                     <th class="py-2 pr-4 font-semibold">Address</th>
                     <th class="py-2 pr-4 font-semibold">Age</th>
@@ -68,13 +69,14 @@
             </thead>
             <tbody id="admin_pr_patients_table_body">
                 <tr>
-                    <td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">
+                    <td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">
                         Loading patients…
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
+    <div id="adminPrPagination" class="flex items-center justify-center gap-1 mt-3 flex-wrap"></div>
 </div>
 
 <div id="adminPrSlideoverOverlay" class="fixed inset-0 z-50 bg-black/30 opacity-0 pointer-events-none transition-opacity"></div>
@@ -97,25 +99,35 @@
 <div id="adminPrSlideoverPanel" class="fixed top-0 right-0 z-50 h-full w-full max-w-[560px] bg-white border-l border-slate-200 shadow-2xl translate-x-full transition-transform">
     <div class="h-full flex flex-col">
         <div class="flex items-start justify-between gap-3 p-5 border-b border-slate-100">
-            <div class="min-w-0">
-                <div id="adminPrPanelPatientName" class="text-sm font-semibold text-slate-900 truncate">Patient</div>
-                <div id="adminPrPanelPatientMeta" class="text-xs text-slate-500 mt-0.5 truncate"></div>
+            <div class="flex items-center gap-4 min-w-0">
+                <div id="adminPrPanelProfilePic" class="w-14 h-14 rounded-xl bg-slate-100 border border-slate-200 flex-shrink-0 overflow-hidden">
+                    <div class="w-full h-full flex items-center justify-center text-slate-400">
+                        <x-lucide-user class="w-8 h-8" />
+                    </div>
+                </div>
+                <div class="min-w-0">
+                    <div id="adminPrPanelPatientName" class="text-sm font-semibold text-slate-900 truncate">Patient</div>
+                    <div id="adminPrPanelPatientContact" class="text-xs text-slate-500 truncate"></div>
+                    <div id="adminPrPanelPatientMeta" class="text-xs text-slate-400 truncate"></div>
+                </div>
             </div>
             <button type="button" id="adminPrPanelClose" class="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800">
                 <x-lucide-x class="w-[18px] h-[18px]" />
             </button>
         </div>
 
-        <div class="p-5 border-b border-slate-100">
-            <div class="grid grid-cols-2 gap-3">
-                <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                    <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification status</div>
-                    <div id="adminPrPanelVerificationStatus" class="text-[0.8rem] font-semibold text-slate-700 mt-1">—</div>
-                </div>
-                <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                    <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient type</div>
-                    <div id="adminPrPanelPatientType" class="text-[0.8rem] font-semibold text-slate-700 mt-1">—</div>
-                </div>
+        <div class="p-5 border-b border-slate-100 grid grid-cols-3 gap-3">
+            <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification status</div>
+                <div id="adminPrPanelVerificationStatus" class="text-[0.8rem] font-semibold text-slate-700 mt-1">—</div>
+            </div>
+            <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient type</div>
+                <div id="adminPrPanelPatientType" class="text-[0.8rem] font-semibold text-slate-700 mt-1">—</div>
+            </div>
+            <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification ID</div>
+                <div id="adminPrPanelVerificationId" class="text-[0.8rem] font-semibold text-slate-700 mt-1">—</div>
             </div>
         </div>
 
@@ -206,11 +218,57 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        var apiBaseUrl = "{{ request()->getBasePath() }}/api"
+        var defaultProfilePicHtml = '<div class="w-full h-full flex items-center justify-center text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>'
         var patientsError = document.getElementById('adminPrPatientsError')
         var patientsSearch = document.getElementById('admin_pr_patients_search')
         var sortSelect = document.getElementById('admin_pr_sort')
         var patientsTableBody = document.getElementById('admin_pr_patients_table_body')
         var patientsRows = []
+        var prPerPage = 10
+        var prCurrentPage = 1
+        var prFiltered = []
+
+        function renderPrPagination() {
+            var pagination = document.getElementById('adminPrPagination')
+            if (!pagination) return
+            var total = prFiltered.length
+            var totalPages = Math.ceil(total / prPerPage)
+            if (totalPages <= 1) {
+                pagination.innerHTML = ''
+                return
+            }
+            var html = ''
+            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
+                (prCurrentPage === 1 ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                '" data-page="prev"' + (prCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            for (var i = 1; i <= totalPages; i++) {
+                html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border ' +
+                    (i === prCurrentPage ? 'bg-green-600 text-white border-green-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                    '" data-page="' + i + '">' + i + '</button>'
+            }
+            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
+                (prCurrentPage === totalPages ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                '" data-page="next"' + (prCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            pagination.innerHTML = html
+
+            pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var p = btn.getAttribute('data-page')
+                    if (p === 'prev' && prCurrentPage > 1) showPrPage(prCurrentPage - 1)
+                    else if (p === 'next' && prCurrentPage < totalPages) showPrPage(prCurrentPage + 1)
+                    else if (p !== 'prev' && p !== 'next') showPrPage(parseInt(p, 10))
+                })
+            })
+        }
+
+        function showPrPage(page) {
+            var totalPages = Math.ceil(prFiltered.length / prPerPage)
+            if (page < 1 || page > totalPages) return
+            prCurrentPage = page
+            renderPatientsTableRows()
+            renderPrPagination()
+        }
 
         var activeAgeFilter = 'all'
         var ageFilterButtons = Array.prototype.slice.call(document.querySelectorAll('.admin-pr-age-filter'))
@@ -225,9 +283,12 @@
         var panel = document.getElementById('adminPrSlideoverPanel')
         var panelClose = document.getElementById('adminPrPanelClose')
         var panelPatientName = document.getElementById('adminPrPanelPatientName')
+        var panelPatientContact = document.getElementById('adminPrPanelPatientContact')
         var panelPatientMeta = document.getElementById('adminPrPanelPatientMeta')
+        var panelProfilePic = document.getElementById('adminPrPanelProfilePic')
         var panelVerificationStatus = document.getElementById('adminPrPanelVerificationStatus')
         var panelPatientType = document.getElementById('adminPrPanelPatientType')
+        var panelVerificationId = document.getElementById('adminPrPanelVerificationId')
 
         var panelTabBackground = document.getElementById('adminPrPanelTabBackground')
         var panelTabVisits = document.getElementById('adminPrPanelTabVisits')
@@ -270,7 +331,7 @@
             if (!vitalsSideBody || !currentPatientId) return
             vitalsSideBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading vitals…</div>'
             openVitalsSidePanel()
-            apiFetch("{{ url('/api/vitals') }}?per_page=5&patient_id=" + encodeURIComponent(currentPatientId) + "&appointment_id=" + encodeURIComponent(appointmentId), { method: 'GET' })
+            apiFetch(apiBaseUrl + "/vitals?per_page=5&patient_id=" + encodeURIComponent(currentPatientId) + "&appointment_id=" + encodeURIComponent(appointmentId), { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -470,45 +531,26 @@
 
         function loadPatients() {
             if (!patientsTableBody) return
-            patientsTableBody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">Loading patients…</td></tr>'
+            patientsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading patients…</td></tr>'
             showInlineBox(patientsError, '')
 
-            var perPage = 100
-            var all = []
-
-            function fetchPage(page) {
-                return apiFetch("{{ url('/api/patients') }}?per_page=" + perPage + "&page=" + encodeURIComponent(page), { method: 'GET' })
-                    .then(function (response) {
-                        return response.json().then(function (data) {
-                            return { ok: response.ok, data: data }
-                        }).catch(function () {
-                            return { ok: response.ok, data: null }
-                        })
+            apiFetch(apiBaseUrl + "/patients?per_page=100", { method: 'GET' })
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        return { ok: response.ok, data: data }
+                    }).catch(function () {
+                        return { ok: false, data: null }
                     })
-                    .then(function (result) {
-                        if (!result.ok || !result.data) {
-                            throw new Error('LOAD_FAILED')
-                        }
-
-                        var pageRows = Array.isArray(result.data.data)
-                            ? result.data.data
-                            : (Array.isArray(result.data) ? result.data : [])
-
-                        all = all.concat(pageRows)
-
-                        var currentPage = (result.data && result.data.current_page) ? parseInt(result.data.current_page, 10) : page
-                        var lastPage = (result.data && result.data.last_page) ? parseInt(result.data.last_page, 10) : currentPage
-
-                        if (currentPage < lastPage) {
-                            return fetchPage(currentPage + 1)
-                        }
-                        return all
-                    })
-            }
-
-            fetchPage(1)
-                .then(function (rows) {
-                    patientsRows = Array.isArray(rows) ? rows : []
+                })
+                .then(function (result) {
+                    if (!result.ok || !result.data) {
+                        patientsRows = []
+                        showInlineBox(patientsError, 'Failed to load patients.')
+                        renderPatients()
+                        return
+                    }
+                    var rows = Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    patientsRows = rows
                     renderPatients()
                 })
                 .catch(function () {
@@ -584,20 +626,45 @@
                 return 0
             })
 
+            prFiltered = filtered
+
             if (!filtered.length) {
-                patientsTableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No patients found.</td></tr>'
+                patientsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No patients found.</td></tr>'
+                renderPrPagination()
                 return
             }
 
+            var totalPages = Math.ceil(filtered.length / prPerPage)
+            if (prCurrentPage > totalPages) prCurrentPage = totalPages
+            renderPatientsTableRows()
+            renderPrPagination()
+        }
+
+        function renderPatientsTableRows() {
+            if (!patientsTableBody) return
+            var filtered = prFiltered || []
+            if (!filtered.length) return
+
+            var start = (prCurrentPage - 1) * prPerPage
+            var end = Math.min(start + prPerPage, filtered.length)
+            var pageSlice = filtered.slice(start, end)
+
             var html = ''
-            filtered.forEach(function (p) {
+            pageSlice.forEach(function (p) {
                 var pid = p && p.user_id != null ? String(p.user_id) : ''
                 var name = fullName(p, 'Patient')
                 var address = p && p.address ? String(p.address) : ''
                 var age = ageFromBirthdate(p && p.birthdate ? String(p.birthdate) : null)
                 var sex = p && p.sex ? String(p.sex) : ''
                 var verificationType = p && p.verification_type ? String(p.verification_type) : ''
+                var profileImg = p && p.prof_path_url ? String(p.prof_path_url) : ''
                 html += '<tr class="border-b border-slate-50 last:border-0">' +
+                    '<td class="py-2 pr-4">' +
+                        (profileImg
+                            ? '<img src="' + profileImg.replace(/"/g,'&quot;') + '" alt="" class="w-10 h-10 rounded-lg object-cover border border-slate-200">'
+                            : '<div class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>'
+                        ) +
+                    '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(name) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (address ? escapeHtml(address) : '<span class="text-slate-400">—</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (age != null ? escapeHtml(age) : '<span class="text-slate-400">—</span>') + '</td>' +
@@ -605,7 +672,7 @@
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (verificationType ? escapeHtml(verificationType.charAt(0).toUpperCase() + verificationType.slice(1)) : '<span class="text-slate-400">—</span>') + '</td>' +
                     '<td class="py-2 pr-4">' +
                         '<button type="button" class="admin-pr-open-panel inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.78rem] font-semibold hover:bg-slate-50" data-patient-id="' + escapeHtml(pid) + '">' +
-                            'View background and visit history' +
+                            'View Details and History' +
                         '</button>' +
                     '</td>' +
                 '</tr>'
@@ -832,6 +899,11 @@
 
             if (panelVerificationStatus) panelVerificationStatus.textContent = '—'
             if (panelPatientType) panelPatientType.textContent = '—'
+            if (panelVerificationId) panelVerificationId.textContent = '—'
+            if (panelPatientContact) panelPatientContact.textContent = ''
+            if (panelProfilePic) {
+                panelProfilePic.innerHTML = defaultProfilePicHtml
+            }
 
             if (panelMedBgTableBody) {
                 panelMedBgTableBody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-[0.78rem] text-slate-400">Loading entries…</td></tr>'
@@ -843,7 +915,7 @@
                 panelVitalsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading vitals…</td></tr>'
             }
 
-            var medBgReq = apiFetch("{{ url('/api/medical-backgrounds') }}?per_page=100&patient_id=" + encodeURIComponent(currentPatientId), { method: 'GET' })
+            var medBgReq = apiFetch(apiBaseUrl + "/medical-backgrounds?per_page=100&patient_id=" + encodeURIComponent(currentPatientId), { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -852,7 +924,7 @@
                     })
                 })
 
-            var visitsReq = apiFetch("{{ url('/api/visits') }}?per_page=100&patient_id=" + encodeURIComponent(currentPatientId), { method: 'GET' })
+            var visitsReq = apiFetch(apiBaseUrl + "/visits?per_page=100&patient_id=" + encodeURIComponent(currentPatientId), { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -861,7 +933,7 @@
                     })
                 })
 
-            var vitalsReq = apiFetch("{{ url('/api/vitals') }}?per_page=100&patient_id=" + encodeURIComponent(currentPatientId), { method: 'GET' })
+            var vitalsReq = apiFetch(apiBaseUrl + "/vitals?per_page=100&patient_id=" + encodeURIComponent(currentPatientId), { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -870,7 +942,7 @@
                     })
                 })
 
-            var verificationReq = apiFetch("{{ url('/api/patient-verifications') }}?per_page=1&patient_id=" + encodeURIComponent(currentPatientId), { method: 'GET' })
+            var verificationReq = apiFetch(apiBaseUrl + "/patient-verifications?per_page=1&patient_id=" + encodeURIComponent(currentPatientId), { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -916,6 +988,7 @@
                     if (!verRes || !verRes.ok || !verRes.data) {
                         if (panelVerificationStatus) panelVerificationStatus.textContent = '—'
                         if (panelPatientType) panelPatientType.textContent = '—'
+                        if (panelVerificationId) panelVerificationId.textContent = '—'
                     } else {
                         var verRows = Array.isArray(verRes.data.data) ? verRes.data.data : (Array.isArray(verRes.data) ? verRes.data : [])
                         var latest = verRows && verRows.length ? verRows[0] : null
@@ -924,6 +997,14 @@
                         }
                         if (panelPatientType) {
                             panelPatientType.textContent = latest && latest.type ? String(latest.type) : '—'
+                        }
+                        if (panelVerificationId) {
+                            var docUrl = latest && latest.document_url ? String(latest.document_url) : ''
+                            if (docUrl) {
+                                panelVerificationId.innerHTML = '<a href="' + docUrl.replace(/"/g,'&quot;') + '" target="_blank" class="text-green-700 underline hover:text-green-800">View ID</a>'
+                            } else {
+                                panelVerificationId.textContent = '—'
+                            }
                         }
                     }
                 })
@@ -940,8 +1021,13 @@
                 })
         }
 
-        if (patientsSearch) patientsSearch.addEventListener('input', renderPatients)
-        if (sortSelect) sortSelect.addEventListener('change', renderPatients)
+        function searchAndRender() {
+            prCurrentPage = 1
+            renderPatients()
+        }
+
+        if (patientsSearch) patientsSearch.addEventListener('input', searchAndRender)
+        if (sortSelect) sortSelect.addEventListener('change', searchAndRender)
 
         if (ageFilterButtons && ageFilterButtons.length) {
             ageFilterButtons.forEach(function (btn) {
@@ -949,6 +1035,7 @@
                     var next = this.getAttribute('data-age-filter') || 'all'
                     activeAgeFilter = next
                     setAgeFilterActiveStyles()
+                    prCurrentPage = 1
                     renderPatients()
                 })
             })
@@ -967,12 +1054,23 @@
                 var name = fullName(patient, 'Patient')
                 var address = patient && patient.address ? String(patient.address) : ''
                 var age = ageFromBirthdate(patient && patient.birthdate ? String(patient.birthdate) : null)
+                var contact = patient && patient.contact_number ? String(patient.contact_number) : ''
+                var profileImg = patient && patient.prof_path_url ? String(patient.prof_path_url) : ''
 
                 if (panelPatientName) panelPatientName.textContent = name
+                if (panelPatientContact) panelPatientContact.textContent = contact ? 'Contact: ' + contact : ''
                 var metaParts = []
                 if (address) metaParts.push(address)
                 if (age != null) metaParts.push('Age ' + String(age))
                 if (panelPatientMeta) panelPatientMeta.textContent = metaParts.join(' • ')
+
+                if (panelProfilePic) {
+                    if (profileImg) {
+                        panelProfilePic.innerHTML = '<img src="' + profileImg.replace(/"/g,'&quot;') + '" alt="" class="w-full h-full object-cover">'
+                    } else {
+                        panelProfilePic.innerHTML = defaultProfilePicHtml
+                    }
+                }
 
                 setPanelTab('background')
                 openPanel()
@@ -1019,7 +1117,6 @@
         }
 
         setAgeFilterActiveStyles()
-        renderPatients()
         loadPatients()
     })
 </script>

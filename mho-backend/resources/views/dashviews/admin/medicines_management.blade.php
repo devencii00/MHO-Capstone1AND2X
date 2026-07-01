@@ -87,6 +87,7 @@
             </tbody>
         </table>
     </div>
+    <div id="adminMedPagination" class="flex items-center justify-center gap-1 mt-3 flex-wrap"></div>
 </div>
 
 <div id="adminMedicineDuplicateOverlay" class="hidden fixed inset-0 z-[75] bg-slate-900/40 items-center justify-center p-4">
@@ -197,6 +198,45 @@
 
         var medicines = []
         var editingId = null
+        var medPerPage = 10
+        var medCurrentPage = 1
+        var medFiltered = []
+
+        function renderMedPagination() {
+            var pagination = document.getElementById('adminMedPagination')
+            if (!pagination) return
+            var total = medFiltered.length
+            if (total === 0) {
+                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
+                return
+            }
+            var totalPages = Math.ceil(total / medPerPage)
+            if (totalPages <= 1) {
+                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-400">' + total + ' entries</span>'
+                return
+            }
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
+                (medCurrentPage === 1 ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                '" data-page="prev"' + (medCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            for (var i = 1; i <= totalPages; i++) {
+                html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border ' +
+                    (i === medCurrentPage ? 'bg-green-600 text-white border-green-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                    '" data-page="' + i + '">' + i + '</button>'
+            }
+            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
+                (medCurrentPage === totalPages ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                '" data-page="next"' + (medCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            pagination.innerHTML = html
+            pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var p = btn.getAttribute('data-page')
+                    if (p === 'prev' && medCurrentPage > 1) { medCurrentPage--; renderMedicines() }
+                    else if (p === 'next' && medCurrentPage < totalPages) { medCurrentPage++; renderMedicines() }
+                    else if (p !== 'prev' && p !== 'next') { medCurrentPage = parseInt(p, 10); renderMedicines() }
+                })
+            })
+        }
         var medicineErrorTimer = null
         var medicineSuccessTimer = null
 
@@ -504,13 +544,22 @@
                 return 0
             })
 
+            medFiltered = filtered
+
             if (!filtered.length) {
                 tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No medicines found.</td></tr>'
+                renderMedPagination()
                 return
             }
 
+            var totalPages = Math.ceil(filtered.length / medPerPage)
+            if (medCurrentPage > totalPages) medCurrentPage = totalPages
+            var start = (medCurrentPage - 1) * medPerPage
+            var end = Math.min(start + medPerPage, filtered.length)
+            var pageSlice = filtered.slice(start, end)
+
             var html = ''
-            filtered.forEach(function (m) {
+            pageSlice.forEach(function (m) {
                 var active = !!m.is_active
                 var badge = active
                     ? '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border bg-emerald-50 text-emerald-700 border-emerald-100">Active</span>'
@@ -535,6 +584,7 @@
 
             tableBody.innerHTML = html
             bindTableActions()
+            renderMedPagination()
         }
 
         function bindTableActions() {
