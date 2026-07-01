@@ -268,17 +268,15 @@
             if (doctorId) {
                 url += '&doctor_id=' + encodeURIComponent(doctorId);
             }
-            window.axios.get(url, { headers: { 'Accept': 'application/json' } })
-                .then(function (response) { return { ok: true, data: response.data }; })
-                .then(function (result) {
-                    if (!result.ok) {
-                        showError('Failed to load queue display.');
-                        return;
-                    }
-                    render(result.data);
+            // Use native fetch — this page is anonymous so window.axios may not be available
+            var headers = { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
+            fetch(url, { headers: headers })
+                .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                .then(function (data) {
+                    render(data);
                 })
                 .catch(function () {
-                    showError('Network error while loading queue display.');
+                    // silent fail — polling will retry
                 });
         }
 
@@ -299,8 +297,39 @@
         }
 
         load();
-        setInterval(load, 5000);
-        setInterval(updateCountdowns, 60000);
+
+        // ── Realtime via Reverb ──
+        (function () {
+            var echoAvailable = typeof window.Echo !== 'undefined' && window.Echo;
+
+            if (echoAvailable) {
+                try {
+                    window.Echo.channel('queue.display')
+                        .listen('.queue.updated', function (data) {
+                            var timeReceived = Date.now();
+                            if (data && data.fired_at) {
+                                var absoluteDelay = timeReceived - data.fired_at;
+                                console.log('[QueueDisplay] Reverb fired: ' + absoluteDelay + 'ms');
+                            }
+                            document.dispatchEvent(new CustomEvent('queue:updated', { detail: data }));
+                            load();
+                        });
+                    console.log('[QueueDisplay] Echo listener attached to queue.display');
+                } catch (e) {
+                    console.error('[QueueDisplay] Echo subscribe failed:', e);
+                    echoAvailable = false;
+                }
+            }
+
+            // Fallback polling only when Echo is unavailable
+            if (!echoAvailable) {
+                console.warn('[QueueDisplay] Echo not available — using 30s polling fallback');
+                setInterval(load, 30000);
+            }
+        })();
+
+        // Local countdown ticker (does not fetch data)
+        setInterval(updateCountdowns, 30000);
     })();
 </script>
 </body>

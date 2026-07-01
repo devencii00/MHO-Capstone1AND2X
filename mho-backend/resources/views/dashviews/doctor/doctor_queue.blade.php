@@ -340,5 +340,22 @@
         }
 
         applyDoctorQueueFilters()
+
+        if (typeof window.Echo !== 'undefined' && window.Echo && doctorUserId) {
+            try {
+                window.Echo.private('queue.' + doctorUserId)
+                    .listen('.queue.updated', function (data) {
+                        var timeReceived = Date.now();
+                        if (data && data.fired_at) {
+                            var absoluteDelay = timeReceived - data.fired_at;
+                            console.log('[DoctorQueue] Reverb fired: ' + absoluteDelay + 'ms');
+                        }
+                        window.location.reload()
+                    })
+                console.log('[DoctorQueue] Echo listener attached to queue.' + doctorUserId)
+            } catch (e) {
+                console.error('[DoctorQueue] Echo subscribe failed:', e)
+            }
+        }
     })
 </script>

@@ -20,6 +20,7 @@ use App\Http\Controllers\VisitController;
 use App\Http\Controllers\WalkInController;
 use App\Http\Controllers\GuestWalkInLinkController;
 use App\Http\Controllers\PublicGuestWalkInController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -33,6 +34,11 @@ Route::post('/public/guest-walk-in/{token}', [PublicGuestWalkInController::class
 Route::get('/public/guest-walk-in/{token}/check', [PublicGuestWalkInController::class, 'checkDuplicates']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    // Broadcast auth for Reverb private channels
+    Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
+        return Broadcast::auth($request);
+    });
+
     Route::get('/user', function (\Illuminate\Http\Request $request) {
         return $request->user();
     });

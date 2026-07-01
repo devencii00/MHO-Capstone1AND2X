@@ -52,9 +52,12 @@ class MedicalBackgroundController extends Controller
         $isPatient = $currentUser && $currentUser->role === 'patient';
 
         $rules = [
-            'category' => ['required', 'in:allergy_food,allergy_drug,condition'],
+            'category' => ['required', 'in:allergy_food,allergy_drug,condition,history_present_illness,family_social_history,surgical_history'],
             'name' => ['required', 'string'],
             'notes' => ['nullable', 'string'],
+            'diagnosis_date' => ['nullable', 'date'],
+            'diagnosis_time' => ['nullable', 'date_format:H:i'],
+            'procedure_date' => ['nullable', 'date'],
         ];
 
         $rules['patient_id'] = [$isPatient ? 'sometimes' : 'required', 'exists:users,user_id'];
@@ -109,9 +112,12 @@ class MedicalBackgroundController extends Controller
 
         $data = $request->validate([
             'patient_id' => ['sometimes', 'exists:users,user_id'],
-            'category' => ['sometimes', 'in:allergy_food,allergy_drug,condition'],
+            'category' => ['sometimes', 'in:allergy_food,allergy_drug,condition,history_present_illness,family_social_history,surgical_history'],
             'name' => ['sometimes', 'string'],
             'notes' => ['sometimes', 'nullable', 'string'],
+            'diagnosis_date' => ['nullable', 'date'],
+            'diagnosis_time' => ['nullable', 'date_format:H:i'],
+            'procedure_date' => ['nullable', 'date'],
         ]);
 
         if ($isPatient) {

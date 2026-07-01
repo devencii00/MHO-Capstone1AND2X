@@ -183,7 +183,7 @@
                         if (doctorInfoEl) {
                             var doctorMeta = [];
                             if (doctor && doctor.specialization) doctorMeta.push(doctor.specialization);
-                            if (doctor && doctor.license_number) doctorMeta.push('Lic: ' + doctor.license_number);
+                            if (doctor && doctor.prc_license) doctorMeta.push('Lic: ' + doctor.prc_license);
                             doctorInfoEl.textContent = doctorMeta.length ? doctorMeta.join(' • ') : '—';
                         }
 

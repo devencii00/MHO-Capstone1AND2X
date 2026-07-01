@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\QueueUpdated;
 use App\Models\Appointment;
 use App\Models\Notification;
 use App\Models\Queue;
@@ -181,6 +182,13 @@ class WalkInController extends Controller
 
         if ($createQueue) {
             Notification::notifyReceptionists('[Walk-in Registered] A new patient was registered.', 'appointment');
+
+            if ($result['queue'] ?? null) {
+                $queueModel = $result['queue'];
+                $queueModel->loadMissing(['appointment.patient', 'appointment.doctor', 'appointment.services']);
+                $doctorId = $queueModel->appointment ? (int) $queueModel->appointment->doctor_id : null;
+                QueueUpdated::dispatch($doctorId, $queueModel->toArray());
+            }
         } else {
             Notification::notifyReceptionists('A guest patient submitted a queue request.', 'appointment');
         }

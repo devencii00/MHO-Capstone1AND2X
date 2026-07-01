@@ -1376,7 +1376,10 @@
                     }
 
                     showQueueSuccess(successMessage || 'Queue updated.')
-                    window.location.reload()
+                    // Silently refresh the entire main content via page loader
+                    refreshFullPage()
+                    loadQueueRequests()
+                    fetchQueueSnapshot()
                 })
                 .catch(function () {
                     showQueueError('Network error while updating queue.')
@@ -1464,7 +1467,9 @@
                         }
 
                         showQueueSuccess(selectedDoctorId ? 'Next patient for selected doctor is now serving.' : 'Next patient is now serving.')
-                        window.location.reload()
+                        refreshFullPage()
+                        loadQueueRequests()
+                        fetchQueueSnapshot()
                     })
                     .catch(function () {
                         showQueueError('Network error while calling next.')
@@ -1667,7 +1672,65 @@
             }
         })
 
-        fetchQueueSnapshot()
-        setInterval(fetchQueueSnapshot, 5000)
+        // ── Helper: silently refresh entire main content via page loader fetch ──
+        function refreshFullPage() {
+            var url = window.location.href
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (r) { return r.text(); })
+                .then(function (html) {
+                    var parser = new DOMParser()
+                    var doc = parser.parseFromString(html, 'text/html')
+                    var newContent = doc.getElementById('main-content')
+                    if (newContent) {
+                        // Flag to prevent duplicate init on re-execution
+                        window.__queueRefreshing = true
+                        document.getElementById('main-content').innerHTML = newContent.innerHTML
+                        // Re-run scripts in the new content
+                        Array.prototype.forEach.call(document.getElementById('main-content').querySelectorAll('script'), function (oldScript) {
+                            var newScript = document.createElement('script')
+                            Array.prototype.forEach.call(oldScript.attributes, function (attr) {
+                                newScript.setAttribute(attr.name, attr.value)
+                            })
+                            newScript.textContent = oldScript.textContent
+                            oldScript.parentNode.replaceChild(newScript, oldScript)
+                        })
+                        document.dispatchEvent(new Event('DOMContentLoaded'))
+                        // Restore sidebar scroll
+                        var sidebarEl = document.getElementById('sidebar-aside')
+                        if (sidebarEl) {
+                            var saved = null
+                            try { saved = window.localStorage.getItem('sidebar_scroll_top') } catch (_) {}
+                            if (saved) sidebarEl.scrollTop = parseInt(saved, 10) || 0
+                        }
+                    }
+                })
+                .catch(function () {
+                    window.location.reload()
+                })
+        }
+
+        // Only set up polling and Echo listener once (not after each refresh)
+        if (!window.__queueInited) {
+            window.__queueInited = true
+            fetchQueueSnapshot()
+
+            if (typeof window.Echo !== 'undefined' && window.Echo) {
+                try {
+                    window.Echo.private('queue.all')
+                        .listen('.queue.updated', function (data) {
+                            var timeReceived = Date.now();
+                            if (data && data.fired_at) {
+                                var absoluteDelay = timeReceived - data.fired_at;
+                                console.log('[ReceptionQueue] Reverb fired: ' + absoluteDelay + 'ms');
+                            }
+                            document.dispatchEvent(new CustomEvent('queue:updated', { detail: data }));
+                            refreshFullPage()
+                        })
+                    console.log('[ReceptionQueue] Echo listener attached to private queue.all')
+                } catch (e) {
+                    console.error('[ReceptionQueue] Echo subscribe failed:', e)
+                }
+            }
+        }
     })
 </script>

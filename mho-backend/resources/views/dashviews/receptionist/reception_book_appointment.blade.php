@@ -2745,5 +2745,14 @@ function updateManageTodayButton() {
         })
 
         loadManageAppointments()
+
+        // ── Reverb listener for appointment slot changes ──
+        if (typeof window.Echo !== 'undefined' && window.Echo) {
+            // Listen for all doctor appointments to refresh the manage list
+            window.Echo.private('appointments.all')
+                .listen('.appointment.updated', function (e) {
+                    loadManageAppointments()
+                });
+        }
     })
 </script>

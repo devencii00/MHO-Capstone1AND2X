@@ -42,29 +42,41 @@
         </div>
 
         <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
-                <div class="font-serif font-bold text-[1.6rem] text-slate-900 mb-1">
+            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-[0.78rem] text-slate-500">Total patients</span>
+                    <x-lucide-users class="w-[17px] h-[17px] text-green-600" />
+                </div>
+                <div class="font-serif font-bold text-xl text-slate-900">
                     {{ number_format((int) ($metrics['patientCount'] ?? 0)) }}
                 </div>
-                <div class="text-[0.8rem] text-slate-500">Total patients</div>
             </div>
-            <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
-                <div class="font-serif font-bold text-[1.6rem] text-slate-900 mb-1">
+            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-[0.78rem] text-slate-500">Total doctors</span>
+                    <x-lucide-stethoscope class="w-[17px] h-[17px] text-green-600" />
+                </div>
+                <div class="font-serif font-bold text-xl text-slate-900">
                     {{ number_format((int) ($metrics['doctorCount'] ?? 0)) }}
                 </div>
-                <div class="text-[0.8rem] text-slate-500">Total doctors</div>
             </div>
-            <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
-                <div class="font-serif font-bold text-[1.6rem] text-slate-900 mb-1">
+            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-[0.78rem] text-slate-500">Today’s appointments</span>
+                    <x-lucide-calendar-check class="w-[17px] h-[17px] text-green-600" />
+                </div>
+                <div class="font-serif font-bold text-xl text-slate-900">
                     {{ number_format((int) ($metrics['appointmentsToday'] ?? 0)) }}
                 </div>
-                <div class="text-[0.8rem] text-slate-500">Today’s appointments</div>
             </div>
-            <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
-                <div class="font-serif font-bold text-[1.6rem] text-slate-900 mb-1">
+            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-[0.78rem] text-slate-500">Today’s revenue</span>
+                    <x-lucide-coins class="w-[17px] h-[17px] text-green-600" />
+                </div>
+                <div class="font-serif font-bold text-xl text-slate-900">
                     ₱{{ number_format((float) ($metrics['revenueToday'] ?? 0), 2) }}
                 </div>
-                <div class="text-[0.8rem] text-slate-500">Today’s revenue</div>
             </div>
         </div>
 
@@ -204,8 +216,8 @@
             <p class="text-xs text-slate-500 mb-3">
                 Latest system actions from the audit log.
             </p>
-            <div class="overflow-x-auto overflow-y-auto scrollbar-hidden h-[300px]">
-                <table class="min-w-full text-left text-xs text-slate-600">
+            <div class="overflow-x-auto">
+                <table id="adminRecentActivitiesTable" class="min-w-full text-left text-xs text-slate-600">
                     <thead>
                         <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
                             <th class="py-2 pr-4 font-semibold">When</th>
@@ -214,9 +226,9 @@
                             <th class="py-2 pr-4 font-semibold">Record</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="adminRecentActivitiesBody">
                         @forelse (($adminRecentAuditLogs ?? []) as $log)
-                            <tr class="border-b border-slate-50 last:border-0">
+                            <tr class="border-b border-slate-50 last:border-0 admin-activity-row">
                                 <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
                                     {{ optional($log->created_at)->format('Y-m-d H:i') ?? '—' }}
                                 </td>
@@ -235,7 +247,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr>
+                            <tr id="adminRecentActivitiesEmpty">
                                 <td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">
                                     No recent activities recorded yet.
                                 </td>
@@ -243,7 +255,69 @@
                         @endforelse
                     </tbody>
                 </table>
+                <div id="adminRecentActivitiesPagination" class="flex items-center justify-center gap-3 pt-3 pb-1"></div>
             </div>
+        </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var rows = document.querySelectorAll('#adminRecentActivitiesBody .admin-activity-row');
+    var empty = document.getElementById('adminRecentActivitiesEmpty');
+    var pagination = document.getElementById('adminRecentActivitiesPagination');
+
+    if (!rows.length || !pagination) return;
+
+    var perPage = 10;
+    var total = rows.length;
+    var totalPages = Math.ceil(total / perPage);
+    var currentPage = 1;
+
+    function showPage(page) {
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        var start = (page - 1) * perPage;
+        var end = Math.min(start + perPage, total);
+        rows.forEach(function (row, i) {
+            row.style.display = (i >= start && i < end) ? '' : 'none';
+        });
+        renderPagination();
+    }
+
+    function renderPagination() {
+        if (totalPages <= 1) {
+            pagination.innerHTML = '';
+            return;
+        }
+        var html = '';
+        // Prev
+        html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
+            (currentPage === 1 ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
+            '" data-page="prev"' + (currentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>';
+        // Page numbers
+        for (var i = 1; i <= totalPages; i++) {
+            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border ' +
+                (i === currentPage ? 'bg-green-600 text-white border-green-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                '" data-page="' + i + '">' + i + '</button>';
+        }
+        // Next
+        html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
+            (currentPage === totalPages ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
+            '" data-page="next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next ›</button>';
+        pagination.innerHTML = html;
+
+        pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var p = btn.getAttribute('data-page');
+                if (p === 'prev' && currentPage > 1) showPage(currentPage - 1);
+                else if (p === 'next' && currentPage < totalPages) showPage(currentPage + 1);
+                else if (p !== 'prev' && p !== 'next') showPage(parseInt(p, 10));
+            });
+        });
+    }
+
+    showPage(1);
+});
+</script>
         </div>
 
     @else

@@ -32,9 +32,9 @@
                 <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
                     <th class="py-2 pr-4 font-semibold">Name</th>
                     <th class="py-2 pr-4 font-semibold">Specialization</th>
-                    <th class="py-2 pr-4 font-semibold">License #</th>
-                    <th class="py-2 pr-4 font-semibold">Contact</th>
-                    <th class="py-2 pr-4 font-semibold">Schedule summary</th>
+                    <th class="py-2 pr-4 font-semibold">PRC #</th>
+                    <th class="py-2 pr-4 font-semibold">PTR #</th>
+                    <th class="py-2 pr-4 font-semibold">PHIC #</th>
                     <th class="py-2 pr-4 font-semibold">Actions</th>
                 </tr>
             </thead>
@@ -179,54 +179,6 @@
             </div>
         </div>
     </div>
-    <div id="adminDoctorAvailabilityOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/40 items-center justify-center p-4">
-        <div class="w-full max-w-2xl rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] overflow-hidden">
-            <div class="px-5 py-4 border-b border-slate-100 flex items-start justify-between gap-3">
-                <div>
-                    <div class="text-sm font-semibold text-slate-900" id="adminDoctorAvailabilityTitle">Manage Availability</div>
-                    <div class="text-[0.72rem] text-slate-500">Select time slots and mark them available/unavailable.</div>
-                </div>
-                <button type="button" id="adminDoctorAvailabilityClose" class="text-slate-400 hover:text-slate-600">
-                    <x-lucide-x class="w-[20px] h-[20px]" />
-                </button>
-            </div>
-            <div class="p-5">
-                <div id="adminDoctorAvailabilityError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3 items-end">
-                    <div>
-                        <label for="adminDoctorAvailabilityDayFilter" class="block text-[0.7rem] text-slate-600 mb-1">Filter by day</label>
-                        <select id="adminDoctorAvailabilityDayFilter" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                            <option value="">All days</option>
-                            <option value="mon">Mon</option>
-                            <option value="tue">Tue</option>
-                            <option value="wed">Wed</option>
-                            <option value="thu">Thu</option>
-                            <option value="fri">Fri</option>
-                            <option value="sat">Sat</option>
-                            <option value="sun">Sun</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="adminDoctorAvailabilityMode" class="block text-[0.7rem] text-slate-600 mb-1">Action</label>
-                        <select id="adminDoctorAvailabilityMode" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                            <option value="unavailable">Mark unavailable</option>
-                            <option value="available">Mark available</option>
-                        </select>
-                    </div>
-                    <div class="flex items-center justify-end gap-2">
-                        <button type="button" id="adminDoctorAvailabilitySave" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors w-full disabled:opacity-60 disabled:hover:bg-green-600">
-                            <span id="adminDoctorAvailabilitySpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                            Save
-                        </button>
-                    </div>
-                </div>
-
-                <div id="adminDoctorAvailabilityList" class="max-h-[55vh] overflow-y-auto scrollbar-hidden space-y-3"></div>
-            </div>
-        </div>
-    </div>
-
     <div id="adminDoctorEditOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/40 items-center justify-center p-4">
         <div class="w-full max-w-lg rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] overflow-hidden">
             <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -339,16 +291,6 @@
         var scheduleBulkDay = document.getElementById('adminScheduleBulkDay')
         var scheduleDeleteDay = document.getElementById('adminScheduleDeleteDay')
         var scheduleDeleteAll = document.getElementById('adminScheduleDeleteAll')
-        var availabilityOverlay = document.getElementById('adminDoctorAvailabilityOverlay')
-        var availabilityTitle = document.getElementById('adminDoctorAvailabilityTitle')
-        var availabilityClose = document.getElementById('adminDoctorAvailabilityClose')
-        var availabilityError = document.getElementById('adminDoctorAvailabilityError')
-        var availabilityDayFilter = document.getElementById('adminDoctorAvailabilityDayFilter')
-        var availabilityMode = document.getElementById('adminDoctorAvailabilityMode')
-        var availabilityList = document.getElementById('adminDoctorAvailabilityList')
-        var availabilitySave = document.getElementById('adminDoctorAvailabilitySave')
-        var availabilitySpinner = document.getElementById('adminDoctorAvailabilitySpinner')
-
         var confirmOverlay = document.getElementById('adminConfirmOverlay')
         var confirmMessage = document.getElementById('adminConfirmMessage')
         var confirmOk = document.getElementById('adminConfirmOk')
@@ -362,8 +304,6 @@
         var currentDoctorIdForSchedule = null
         var currentScheduleId = null
         var loadedSchedules = []
-        var currentDoctorIdForAvailability = null
-        var loadedAvailabilitySchedules = []
         var doctors = []
         var scheduleListWired = false
 
@@ -525,7 +465,7 @@
             if (doctorEditMiddlename) doctorEditMiddlename.value = doctor.middlename || ''
             if (doctorEditLastname) doctorEditLastname.value = doctor.lastname || ''
             if (doctorEditSpecialization) doctorEditSpecialization.value = doctor.specialization || ''
-            if (doctorEditLicense) doctorEditLicense.value = doctor.license_number || ''
+            if (doctorEditLicense) doctorEditLicense.value = doctor.prc_license || ''
             if (doctorEditContact) {
                 var normalizedContact = normalizePhilippinesNumber(doctor.contact_number || '')
                 doctorEditContact.value = normalizedContact || '+63'
@@ -669,14 +609,14 @@
                             middlename: m,
                             lastname: l,
                             specialization: doctorEditSpecialization ? String(doctorEditSpecialization.value || '').trim() : '',
-                            license_number: doctorEditLicense ? String(doctorEditLicense.value || '').trim() : '',
+                            prc_license: doctorEditLicense ? String(doctorEditLicense.value || '').trim() : '',
                             contact_number: c ? normalizePhilippinesNumber(c) : '',
                             email: doctorEditEmail ? String(doctorEditEmail.value || '').trim() : ''
                         }
 
                         if (payload.middlename === '') payload.middlename = null
                         if (payload.specialization === '') payload.specialization = null
-                        if (payload.license_number === '') payload.license_number = null
+                        if (payload.prc_license === '') payload.prc_license = null
                         if (payload.contact_number === '' || payload.contact_number === '+63') payload.contact_number = null
                         if (payload.email === '') delete payload.email
 
@@ -721,17 +661,6 @@
             if (scheduleSubmit) scheduleSubmit.disabled = !!isSubmitting
             if (scheduleSpinner) scheduleSpinner.classList.toggle('hidden', !isSubmitting)
             if (scheduleSubmitLabel) scheduleSubmitLabel.textContent = currentScheduleId ? (isSubmitting ? 'Saving...' : 'Save changes') : (isSubmitting ? 'Saving...' : 'Generate schedule')
-        }
-
-        function showAvailabilityError(message) {
-            if (!availabilityError) return
-            availabilityError.textContent = message || ''
-            availabilityError.classList.toggle('hidden', !message)
-        }
-
-        function setAvailabilitySubmitting(isSubmitting) {
-            if (availabilitySave) availabilitySave.disabled = !!isSubmitting
-            if (availabilitySpinner) availabilitySpinner.classList.toggle('hidden', !isSubmitting)
         }
 
         function stopConfirmCountdown() {
@@ -1022,66 +951,25 @@
 
                 var fullName = ((doctor.firstname || '') + ' ' + (doctor.lastname || '')).trim()
                 if (!fullName) {
-                    fullName = 'Doctor #' + doctor.user_id
+                    fullName = doctor.email || ('Doctor #' + doctor.user_id)
                 }
                 var specialization = (doctor.specialization || '').trim()
-                var licenseNumber = (doctor.license_number || '').trim()
-                var contactNumber = (doctor.contact_number || '').trim()
-                var schedules = Array.isArray(doctor.doctor_schedules) ? doctor.doctor_schedules : []
-                var scheduleCount = schedules.length
-                var daySet = {}
-                schedules.forEach(function (s) {
-                    if (s && s.day_of_week) {
-                        daySet[String(s.day_of_week).toLowerCase()] = true
-                    }
-                })
-                var dayKeys = Object.keys(daySet)
-                var dayOrder = ['mon','tue','wed','thu','fri','sat','sun']
-                dayKeys.sort(function (a, b) {
-                    return dayOrder.indexOf(a) - dayOrder.indexOf(b)
-                })
-                var scheduleSummary = 'No schedules'
-                if (scheduleCount && dayKeys.length) {
-                    var fromDay = dayKeys[0]
-                    var toDay = dayKeys[dayKeys.length - 1]
-                    var dayText = fromDay === toDay ? ('[ ' + String(fromDay).toUpperCase() + ' ]') : ('[ ' + String(fromDay).toUpperCase() + ' - ' + String(toDay).toUpperCase() + ' ]')
-
-                    var range = (schedules || []).reduce(function (acc, s) {
-                        var st = String(s && s.start_time ? s.start_time : '').slice(0, 5)
-                        var et = String(s && s.end_time ? s.end_time : '').slice(0, 5)
-                        if (/^\d{2}:\d{2}$/.test(st)) {
-                            if (!acc.start || st < acc.start) acc.start = st
-                        }
-                        if (/^\d{2}:\d{2}$/.test(et)) {
-                            if (!acc.end || et > acc.end) acc.end = et
-                        }
-                        return acc
-                    }, { start: null, end: null })
-
-                    var timeText = (range && range.start && range.end)
-                        ? ('[ ' + (formatTimeCompact(range.start) || range.start) + ' - ' + (formatTimeCompact(range.end) || range.end) + ' ]')
-                        : ''
-
-                    scheduleSummary = dayText + (timeText ? (' ' + timeText) : '')
-                }
-                var unavailableCount = schedules.filter(function (s) { return s && s.is_available === false }).length
-                var availabilityLabel = scheduleCount ? (unavailableCount ? ('Unavailable slots: ' + unavailableCount) : 'All slots available') : 'No schedule'
-                var availabilityClass = scheduleCount && unavailableCount ? 'text-rose-700 bg-rose-50 border-rose-100' : 'text-emerald-700 bg-emerald-50 border-emerald-100'
+                var prc = (doctor.prc_license || '').trim()
+                var ptr = (doctor.ptr_number || '').trim()
+                var phic = (doctor.philhealth_number || '').trim()
 
                 tr.innerHTML =
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + fullName + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700 font-medium">' + fullName + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' +
                         (specialization ? specialization : '<span class="text-slate-400">—</span>') +
-                        '<div class="mt-1 inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] font-semibold border ' + availabilityClass + '">' + availabilityLabel + '</div>' +
                     '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (licenseNumber ? licenseNumber : '<span class="text-slate-400">—</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (contactNumber ? contactNumber : '<span class="text-slate-400">—</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + scheduleSummary + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (prc ? prc : '<span class="text-slate-400">—</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (ptr ? ptr : '<span class="text-slate-400">—</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (phic ? phic : '<span class="text-slate-400">—</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem]">' +
                         '<div class="flex items-center gap-2 flex-wrap">' +
                             '<button type="button" class="inline-flex items-center justify-center rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 transition-colors admin-doctor-edit" data-doctor-id="' + doctor.user_id + '">Edit</button>' +
                             '<button type="button" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] font-semibold text-slate-700 hover:bg-slate-50 transition-colors admin-doctor-schedule" data-doctor-id="' + doctor.user_id + '" data-doctor-name="' + fullName.replace(/"/g, '&quot;') + '">Manage schedule</button>' +
-                            '<button type="button" class="inline-flex items-center justify-center rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-[0.72rem] font-semibold text-amber-700 hover:bg-amber-100 transition-colors admin-doctor-availability" data-doctor-id="' + doctor.user_id + '">Availability</button>' +
                         '</div>' +
                     '</td>'
 
@@ -1117,7 +1005,7 @@
                     setScheduleSubmitting(false)
                     
                     if (scheduleTitle) {
-                        scheduleTitle.textContent = 'Manage Schedule — ' + name
+                        scheduleTitle.textContent = 'Manage Schedule | ' + name
                     }
                     
                     if (scheduleModal) {
@@ -1129,17 +1017,6 @@
                 })
             })
 
-            var availabilityButtons = tableBody.querySelectorAll('.admin-doctor-availability')
-            availabilityButtons.forEach(function (button) {
-                button.addEventListener('click', function () {
-                    var id = this.getAttribute('data-doctor-id')
-                    var doctor = doctors.find(function (d) { return String(d.user_id) === String(id) })
-                    if (!doctor) return
-                    var fullName = ((doctor.firstname || '') + ' ' + (doctor.lastname || '')).trim()
-                    if (!fullName) fullName = 'Doctor #' + doctor.user_id
-                    openAvailabilityModal(String(doctor.user_id), fullName)
-                })
-            })
         }
 
         function loadSchedulesForDoctor(doctorId) {
@@ -1160,6 +1037,24 @@
                 if (!scheduleListWired) {
                     scheduleListWired = true
                     scheduleList.addEventListener('click', function (e) {
+                        var toggleBtn = e.target && e.target.closest ? e.target.closest('button.admin-schedule-toggle[data-day]') : null
+                        if (toggleBtn) {
+                            var day = toggleBtn.getAttribute('data-day') || ''
+                            var container = document.getElementById('adminScheduleDay_' + day)
+                            if (!container) return
+                            var extras = container.querySelectorAll('.admin-schedule-slot-extra')
+                            var allHidden = true
+                            extras.forEach(function (el) { if (!el.classList.contains('hidden')) allHidden = false })
+                            if (allHidden) {
+                                extras.forEach(function (el) { el.classList.remove('hidden') })
+                                toggleBtn.textContent = 'Retract'
+                            } else {
+                                extras.forEach(function (el) { el.classList.add('hidden') })
+                                toggleBtn.textContent = 'Show all'
+                            }
+                            return
+                        }
+
                         var editBtn = e.target && e.target.closest ? e.target.closest('button.admin-schedule-edit[data-schedule-id]') : null
                         if (editBtn) {
                             var sid = editBtn.getAttribute('data-schedule-id') || ''
@@ -1196,6 +1091,44 @@
                                 })
                             return
                         }
+                    })
+
+                    scheduleList.addEventListener('change', function (e) {
+                        var sel = e.target && e.target.closest ? e.target.closest('select.admin-schedule-availability') : null
+                        if (!sel || !currentDoctorIdForSchedule) return
+                        var sid = sel.getAttribute('data-schedule-id') || ''
+                        var newVal = sel.value === '1'
+                        var label = newVal ? 'Available' : 'Unavailable'
+                        confirmAction('Are you sure you want to set this slot to ' + label + '?', { confirmText: 'Yes, ' + label })
+                            .then(function (confirmed) {
+                                if (!confirmed) {
+                                    sel.value = newVal ? '0' : '1'
+                                    return
+                                }
+                                var ids = [parseInt(sid, 10)]
+                                if (isNaN(ids[0])) return
+                                apiFetch(apiUrl('/api/doctor-schedules/bulk-availability'), {
+                                    method: 'PATCH',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ schedule_ids: ids, is_available: newVal })
+                                })
+                                    .then(function (r) { return readResponse(r) })
+                                    .then(function (result) {
+                                        if (!result.ok) {
+                                            showDoctorError('Failed to update availability.')
+                                            sel.value = newVal ? '0' : '1'
+                                            return
+                                        }
+                                        showDoctorSuccess('Slot set to ' + label + '.')
+                                        loadDoctors()
+                                        loadSchedulesForDoctor(currentDoctorIdForSchedule)
+                                    })
+                                    .catch(function () {
+                                        showDoctorError('Network error.')
+                                        sel.value = newVal ? '0' : '1'
+                                    })
+                            })
+                            .catch(function () {})
                     })
                 }
             }, function (message) {
@@ -1252,35 +1185,42 @@
             dayOrder.forEach(function (d) {
                 var rows = grouped[d.key] || []
                 if (!rows.length) return
+                var dayId = 'adminScheduleDay_' + d.key
                 html += '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
                     '<div class="flex items-center justify-between mb-2">' +
                         '<div class="text-[0.72rem] font-semibold text-slate-900">' + d.label + '</div>' +
-                        '<div class="text-[0.7rem] text-slate-400">' + rows.length + ' slot(s)</div>' +
-                    '</div>'
+                        '<div class="flex items-center gap-2">' +
+                            '<div class="text-[0.7rem] text-slate-400">' + rows.length + ' slot(s)</div>' +
+                            (rows.length > 1 ? '<button type="button" class="admin-schedule-toggle text-[0.68rem] font-semibold text-green-600 hover:text-green-700 underline" data-day="' + d.key + '">Show all</button>' : '') +
+                        '</div>' +
+                    '</div>' +
+                    '<div id="' + dayId + '">'
 
-                rows.forEach(function (s) {
+                rows.forEach(function (s, idx) {
                     var start = String(s && s.start_time ? s.start_time : '').slice(0, 5)
                     var end = String(s && s.end_time ? s.end_time : '').slice(0, 5)
                     var label = (formatTimeLabel(start) || start) + '–' + (formatTimeLabel(end) || end)
                     var id = s && s.schedule_id != null ? String(s.schedule_id) : ''
                     var isUnavailable = s && s.is_available === false
-                    var badgeClass = isUnavailable ? 'text-rose-700 bg-rose-50 border-rose-100' : 'text-emerald-700 bg-emerald-50 border-emerald-100'
-                    var badgeText = isUnavailable ? 'Unavailable' : 'Available'
+                    var hiddenClass = idx > 0 ? ' hidden admin-schedule-slot-extra' : ''
 
-                    html += '<div class="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2 mb-1">' +
+                    html += '<div class="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2 mb-1' + hiddenClass + '">' +
                         '<label class="flex items-center gap-2">' +
                             '<input type="checkbox" class="admin-schedule-check rounded border-slate-300 text-green-600 focus:ring-green-500" data-schedule-id="' + id + '">' +
                             '<span class="text-[0.78rem] text-slate-700 font-semibold">' + label + '</span>' +
                         '</label>' +
                         '<div class="flex items-center gap-2 shrink-0">' +
-                            '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] font-semibold border ' + badgeClass + '">' + badgeText + '</span>' +
+                            '<select class="admin-schedule-availability text-[0.72rem] font-semibold rounded-lg border px-2 py-1 outline-none cursor-pointer ' + (isUnavailable ? 'text-rose-700 bg-rose-50 border-rose-200' : 'text-emerald-700 bg-emerald-50 border-emerald-200') + '" data-schedule-id="' + id + '">' +
+                                '<option value="1"' + (isUnavailable ? '' : ' selected') + '>Available</option>' +
+                                '<option value="0"' + (isUnavailable ? ' selected' : '') + '>Unavailable</option>' +
+                            '</select>' +
                             '<button type="button" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1 text-[0.72rem] font-semibold text-slate-700 hover:bg-slate-50 transition-colors admin-schedule-edit" data-schedule-id="' + id + '">Edit</button>' +
                             '<button type="button" class="inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-1 text-[0.72rem] font-semibold text-rose-700 hover:bg-rose-100 transition-colors admin-schedule-delete" data-schedule-id="' + id + '">Delete</button>' +
                         '</div>' +
                     '</div>'
                 })
 
-                html += '</div>'
+                html += '</div></div>'
             })
 
             if (!html) {
@@ -1426,219 +1366,6 @@
                         })
                 }
             }
-        }
-
-        function openAvailabilityModal(doctorId, doctorName) {
-            currentDoctorIdForAvailability = doctorId
-            loadedAvailabilitySchedules = []
-            showAvailabilityError('')
-            setAvailabilitySubmitting(false)
-
-            if (availabilityTitle) {
-                availabilityTitle.textContent = 'Manage Availability — ' + (doctorName || ('Doctor #' + doctorId))
-            }
-            if (availabilityDayFilter) availabilityDayFilter.value = ''
-            if (availabilityMode) availabilityMode.value = 'unavailable'
-            if (availabilityList) availabilityList.innerHTML = 'Loading schedules…'
-
-            if (availabilityOverlay) {
-                availabilityOverlay.classList.remove('hidden')
-                availabilityOverlay.classList.add('flex')
-            }
-
-            loadAvailabilitySchedulesForDoctor(doctorId)
-        }
-
-        function closeAvailabilityModal() {
-            if (availabilityOverlay) {
-                availabilityOverlay.classList.add('hidden')
-                availabilityOverlay.classList.remove('flex')
-            }
-            currentDoctorIdForAvailability = null
-            loadedAvailabilitySchedules = []
-            showAvailabilityError('')
-            setAvailabilitySubmitting(false)
-        }
-
-        function loadAvailabilitySchedulesForDoctor(doctorId) {
-            if (!availabilityList || !doctorId) return
-            availabilityList.innerHTML = 'Loading schedules…'
-            loadedAvailabilitySchedules = []
-
-            fetchAllDoctorSchedules(doctorId, function (all) {
-                loadedAvailabilitySchedules = Array.isArray(all) ? all : []
-                renderAvailabilityList()
-            }, function (message) {
-                showAvailabilityError(message || 'Failed to load schedules.')
-                availabilityList.innerHTML = ''
-            })
-        }
-
-        function renderAvailabilityList() {
-            if (!availabilityList) return
-            var dayFilter = availabilityDayFilter ? String(availabilityDayFilter.value || '').toLowerCase() : ''
-            var dayOrder = [
-                { key: 'mon', label: 'Monday' },
-                { key: 'tue', label: 'Tuesday' },
-                { key: 'wed', label: 'Wednesday' },
-                { key: 'thu', label: 'Thursday' },
-                { key: 'fri', label: 'Friday' },
-                { key: 'sat', label: 'Saturday' },
-                { key: 'sun', label: 'Sunday' }
-            ]
-            if (!Array.isArray(dayOrder)) dayOrder = []
-
-            var grouped = {}
-            for (var i = 0; i < dayOrder.length; i++) {
-                grouped[dayOrder[i].key] = []
-            }
-
-            var availabilitySlots = Array.isArray(loadedAvailabilitySchedules) ? loadedAvailabilitySchedules : []
-            for (var a = 0; a < availabilitySlots.length; a++) {
-                var s = availabilitySlots[a]
-                var key = s && s.day_of_week ? String(s.day_of_week).toLowerCase() : ''
-                if (!key || !grouped[key]) continue
-                if (dayFilter && dayFilter !== key) continue
-                grouped[key].push(s)
-            }
-
-            for (var j = 0; j < dayOrder.length; j++) {
-                var dayKey = dayOrder[j].key
-                grouped[dayKey].sort(function (a, b) {
-                    var sa = String(a.start_time || '').slice(0, 5)
-                    var sb = String(b.start_time || '').slice(0, 5)
-                    if (sa < sb) return -1
-                    if (sa > sb) return 1
-                    return 0
-                })
-            }
-
-            var html = ''
-            for (var k = 0; k < dayOrder.length; k++) {
-                var d = dayOrder[k]
-                var rows = grouped[d.key] || []
-                if (!rows.length) continue
-                html += '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
-                    '<div class="text-[0.72rem] font-semibold text-slate-900 mb-2">' + d.label + '</div>'
-
-                for (var r = 0; r < rows.length; r++) {
-                    var s2 = rows[r]
-                    var start = String(s2.start_time || '').slice(0, 5)
-                    var end = String(s2.end_time || '').slice(0, 5)
-                    var label = (formatTimeLabel(start) || start) + '–' + (formatTimeLabel(end) || end)
-                    var isUnavailable = s2.is_available === false
-                    var badgeClass = isUnavailable ? 'text-rose-700 bg-rose-50 border-rose-100' : 'text-emerald-700 bg-emerald-50 border-emerald-100'
-                    var badgeText = isUnavailable ? 'Unavailable' : 'Available'
-
-                    html += '<label class="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2 mb-1">' +
-                        '<div class="flex items-center gap-2">' +
-                            '<input type="checkbox" class="rounded border-slate-300 text-green-600 focus:ring-green-500" data-schedule-id="' + s2.schedule_id + '">' +
-                            '<span class="text-[0.78rem] text-slate-700 font-semibold">' + label + '</span>' +
-                        '</div>' +
-                        '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] font-semibold border ' + badgeClass + '">' + badgeText + '</span>' +
-                    '</label>'
-                }
-
-                html += '</div>'
-            }
-
-            if (!html) {
-                html = '<div class="text-[0.78rem] text-slate-500">No schedules found for the selected filter.</div>'
-            }
-
-            availabilityList.innerHTML = html
-        }
-
-        if (searchInput) {
-            searchInput.addEventListener('input', function () {
-                renderDoctors()
-            })
-        }
-        if (sortSelect) {
-            sortSelect.addEventListener('change', function () {
-                renderDoctors()
-            })
-        }
-
-        if (availabilityClose) {
-            availabilityClose.addEventListener('click', function () {
-                closeAvailabilityModal()
-            })
-        }
-        if (availabilityOverlay) {
-            availabilityOverlay.addEventListener('click', function (e) {
-                if (e.target === availabilityOverlay) {
-                    closeAvailabilityModal()
-                }
-            })
-        }
-        if (availabilityDayFilter) {
-            availabilityDayFilter.addEventListener('change', function () {
-                renderAvailabilityList()
-            })
-        }
-        if (availabilitySave) {
-            availabilitySave.addEventListener('click', function () {
-                showAvailabilityError('')
-                if (!currentDoctorIdForAvailability) {
-                    showAvailabilityError('No doctor selected.')
-                    return
-                }
-                if (!availabilityList) {
-                    showAvailabilityError('Schedule list not available.')
-                    return
-                }
-
-                var checked = availabilityList.querySelectorAll('input[type="checkbox"][data-schedule-id]:checked')
-                var ids = []
-                checked.forEach(function (c) {
-                    var id = c.getAttribute('data-schedule-id')
-                    if (id) ids.push(parseInt(id, 10))
-                })
-
-                if (!ids.length) {
-                    showAvailabilityError('Select at least one time slot.')
-                    return
-                }
-
-                var mode = availabilityMode ? String(availabilityMode.value || '') : 'unavailable'
-                var isAvailable = mode === 'available'
-
-                confirmAction('Are you sure you want to save this schedule?')
-                    .then(function (confirmed) {
-                        if (!confirmed) return
-                        setAvailabilitySubmitting(true)
-
-                        apiFetch(apiUrl('/api/doctor-schedules/bulk-availability'), {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                schedule_ids: ids,
-                                is_available: isAvailable
-                            })
-                        })
-                            .then(function (response) { return readResponse(response) })
-                            .then(function (result) {
-                                if (!result.ok) {
-                                    var msg = (result.data && result.data.message) ? String(result.data.message) : 'Failed to update availability.'
-                                    showAvailabilityError(msg)
-                                    return
-                                }
-                                showDoctorSuccess('Availability updated.')
-                                loadDoctors()
-                                loadAvailabilitySchedulesForDoctor(currentDoctorIdForAvailability)
-                                if (currentDoctorIdForSchedule && String(currentDoctorIdForSchedule) === String(currentDoctorIdForAvailability)) {
-                                    loadSchedulesForDoctor(currentDoctorIdForSchedule)
-                                }
-                            })
-                            .catch(function () {
-                                showAvailabilityError('Network error while updating availability.')
-                            })
-                            .finally(function () {
-                                setAvailabilitySubmitting(false)
-                            })
-                    })
-            })
         }
 
               if (scheduleClose) {

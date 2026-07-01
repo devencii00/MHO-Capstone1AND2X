@@ -265,5 +265,21 @@
                 }
             })
         })
+
+        // ── Reverb listener for real-time notifications ──
+        (function () {
+            var userId = null;
+            try { var data = window.localStorage ? window.localStorage.getItem('user_data') : null; if (data) { var parsed = JSON.parse(data); userId = parsed && parsed.user_id ? parsed.user_id : null; } } catch (_) {}
+            if (typeof window.Echo !== 'undefined' && window.Echo && userId) {
+                window.Echo.private('notifications.' + userId)
+                    .listen('.notification.new', function (e) {
+                        var btn = document.getElementById('headerNotificationButton');
+                        if (btn) btn.click();
+                        // Also update the dot if panel isn't open yet
+                        var dot = document.getElementById('headerNotificationDot');
+                        if (dot) dot.classList.remove('hidden');
+                    });
+            }
+        })();
     })()
 </script>

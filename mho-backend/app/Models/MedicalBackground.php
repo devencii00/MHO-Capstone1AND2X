@@ -18,6 +18,15 @@ class MedicalBackground extends Model
         'category',
         'name',
         'notes',
+        'diagnosis_date',
+        'diagnosis_time',
+        'procedure_date',
+    ];
+
+    protected $casts = [
+        'diagnosis_date' => 'date',
+        'diagnosis_time' => 'datetime:H:i:s',
+        'procedure_date' => 'date',
     ];
 
     public function patient()

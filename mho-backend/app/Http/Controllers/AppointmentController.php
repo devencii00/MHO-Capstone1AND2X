@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\AppointmentSlotUpdated;
 use App\Models\Appointment;
 use App\Models\Conversation;
 use App\Models\DoctorSchedule;
@@ -111,7 +112,7 @@ class AppointmentController extends Controller
                         ->orWhere('firstname', 'like', $contains)
                         ->orWhere('lastname', 'like', $contains)
                         ->orWhere('middlename', 'like', $contains)
-                        ->orWhere('license_number', 'like', $contains)
+                        ->orWhere('prc_license', 'like', $contains)
                         ->orWhere('specialization', 'like', $contains)
                         ->orWhereRaw("TRIM(CONCAT_WS(' ', firstname, middlename, lastname)) like ?", [$contains]);
 
@@ -586,6 +587,11 @@ class AppointmentController extends Controller
                 'status' => (string) ($appointment->status ?? ''),
             ]
         );
+
+        // Broadcast slot update via Reverb
+        if ($appointment->doctor_id) {
+            event(new AppointmentSlotUpdated($appointment->doctor_id, $appointment->toArray()));
+        }
 
         return response()->json($appointment, 201);
     }

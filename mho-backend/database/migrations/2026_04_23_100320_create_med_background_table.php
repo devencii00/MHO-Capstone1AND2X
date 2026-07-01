@@ -11,26 +11,39 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('medical_backgrounds', function (Blueprint $table) {
-            $table->id('medical_background_id');
+   Schema::create('medical_backgrounds', function (Blueprint $table) {
+    $table->id('medical_background_id');
 
-            $table->unsignedBigInteger('patient_id');
-            $table->foreign('patient_id')
-                ->references('user_id')
-                ->on('users')
-                ->cascadeOnDelete();
+    $table->unsignedBigInteger('patient_id');
+    $table->foreign('patient_id')
+        ->references('user_id')
+        ->on('users')
+        ->cascadeOnDelete();
 
-            $table->enum('category', ['allergy_food', 'allergy_drug', 'condition']);
-            $table->string('name'); // e.g. Asthma, Penicillin allergy
+    $table->enum('category', [
+        'allergy_food',
+        'allergy_drug',
+        'condition',
+        'history_present_illness',
+        'family_social_history',
+        'surgical_history'
+    ]);
 
-            $table->text('notes')->nullable();
+    $table->string('name');
 
-            $table->timestamps();
+    $table->text('notes')->nullable();
 
-            $table->index('patient_id');
-            $table->index('category');
-            $table->index(['patient_id', 'category']);
-        });
+    $table->date('diagnosis_date')->nullable();
+    $table->time('diagnosis_time')->nullable();
+
+    $table->date('procedure_date')->nullable();
+
+    $table->timestamps();
+
+    $table->index('patient_id');
+    $table->index('category');
+    $table->index(['patient_id', 'category']);
+});
     }
 
     /**

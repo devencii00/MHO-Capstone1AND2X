@@ -489,6 +489,15 @@ if (!next.length) {
                 }
 
                 load()
+
+                if (typeof window.Echo !== 'undefined' && window.Echo) {
+                    try {
+                        window.Echo.private('queue.all')
+                            .listen('.queue.updated', function () {
+                                load()
+                            })
+                    } catch (_) {}
+                }
             })
         </script>
     @else
@@ -811,6 +820,19 @@ if (!next.length) {
                     }
 
                     loadConversations()
+
+                    // ── Reverb listener for real-time messages ──
+                    if (typeof window.Echo !== 'undefined' && window.Echo) {
+                        var userId = null;
+                        try { var data = window.localStorage ? window.localStorage.getItem('user_data') : null; if (data) { var parsed = JSON.parse(data); userId = parsed && parsed.user_id ? parsed.user_id : null; } } catch (_) {}
+                        if (userId) {
+                            window.Echo.private('notifications.' + userId)
+                                .listen('.notification.new', function (e) {
+                                    // Refresh conversation list when new notification/message arrives
+                                    loadConversations(selectedConversation ? selectedConversation.conversation_id : null)
+                                });
+                        }
+                    }
                 })
             </script>
         @endif

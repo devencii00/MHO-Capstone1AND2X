@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\QueueUpdated;
 use App\Models\Appointment;
 use App\Models\Conversation;
 use App\Models\DoctorSchedule;
@@ -339,6 +340,13 @@ class QueueController extends Controller
             ], 422);
         }
 
+        if (! empty($result['queue'])) {
+            $this->broadcastQueueUpdated(
+                (int) ($result['queue']->appointment?->doctor_id ?? 0) ?: null,
+                $result['queue']
+            );
+        }
+
         return response()->json([
             'message' => 'Guest queue request accepted and added to the queue.',
             'appointment' => $result['appointment'],
@@ -412,7 +420,13 @@ class QueueController extends Controller
             'status' => 'waiting',
         ]);
 
-        return response()->json($queue->load(['appointment.patient', 'appointment.doctor']), 201);
+        $queue->load(['appointment.patient', 'appointment.doctor']);
+        $this->broadcastQueueUpdated(
+            $queue->appointment ? (int) $queue->appointment->doctor_id : null,
+            $queue
+        );
+
+        return response()->json($queue, 201);
     }
 
     public function callNext(Request $request)
@@ -506,6 +520,8 @@ class QueueController extends Controller
                     ],
                 ], 422);
             }
+
+            $this->broadcastQueueUpdated($selectedDoctorId, $nextForDoctor);
 
             return response()->json([
                 'queue' => $nextForDoctor,
@@ -672,6 +688,11 @@ class QueueController extends Controller
                 ],
             ], 422);
         }
+
+        $this->broadcastQueueUpdated(
+            $next->appointment ? (int) $next->appointment->doctor_id : null,
+            $next
+        );
 
         return response()->json([
             'queue' => $next,
@@ -849,6 +870,8 @@ class QueueController extends Controller
             return $queue->load(['appointment.patient', 'appointment.doctor', 'appointment.services']);
         });
 
+        $this->broadcastQueueUpdated((int) $data['doctor_id'], $result);
+
         return response()->json($result, 201);
     }
 
@@ -985,7 +1008,23 @@ class QueueController extends Controller
             }
         }
 
+        $this->broadcastQueueUpdated(
+            $queue->appointment ? (int) $queue->appointment->doctor_id : null,
+            $queue
+        );
+
         return $queue;
+    }
+
+    private function broadcastQueueUpdated(?int $doctorId, ?Queue $queue = null): void
+    {
+        $payload = null;
+        if ($queue) {
+            $queue->loadMissing(['appointment.patient', 'appointment.doctor', 'appointment.services']);
+            $payload = $queue->toArray();
+        }
+
+        event(new QueueUpdated($doctorId, $payload));
     }
 
     private function isDoctorUnavailable(int $doctorId): bool
@@ -1001,7 +1040,12 @@ class QueueController extends Controller
             abort(403);
         }
 
+        $queue->loadMissing('appointment');
+        $doctorId = $queue->appointment ? (int) $queue->appointment->doctor_id : null;
+
         $queue->delete();
+
+        $this->broadcastQueueUpdated($doctorId);
 
         return response()->json([
             'message' => 'Queue entry deleted',
