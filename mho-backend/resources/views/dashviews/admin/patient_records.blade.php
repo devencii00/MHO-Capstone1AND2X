@@ -61,12 +61,14 @@
                     <th class="py-2 pr-4 font-semibold">Patient</th>
                     <th class="py-2 pr-4 font-semibold">Address</th>
                     <th class="py-2 pr-4 font-semibold">Age</th>
+                    <th class="py-2 pr-4 font-semibold">Sex</th>
+                    <th class="py-2 pr-4 font-semibold">Type</th>
                     <th class="py-2 pr-4 font-semibold">Action</th>
                 </tr>
             </thead>
             <tbody id="admin_pr_patients_table_body">
                 <tr>
-                    <td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">
+                    <td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">
                         Loading patients…
                     </td>
                 </tr>
@@ -76,6 +78,22 @@
 </div>
 
 <div id="adminPrSlideoverOverlay" class="fixed inset-0 z-50 bg-black/30 opacity-0 pointer-events-none transition-opacity"></div>
+
+<!-- Vitals side panel (slides from left inside the main slideover) -->
+<div id="adminPrVitalsSidePanel" class="fixed top-0 left-0 z-[51] h-full w-full max-w-[300px] bg-white border-r border-slate-200 shadow-2xl -translate-x-full transition-transform">
+    <div class="h-full flex flex-col">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 shrink-0">
+            <div class="text-[0.78rem] font-semibold text-slate-900">Vitals</div>
+            <button type="button" id="adminPrVitalsSideClose" class="text-slate-400 hover:text-slate-600">
+                <x-lucide-x class="w-[18px] h-[18px]" />
+            </button>
+        </div>
+        <div id="adminPrVitalsSideBody" class="flex-1 overflow-y-auto p-3 space-y-2">
+            <div class="text-center text-[0.78rem] text-slate-400 py-8">Loading vitals…</div>
+        </div>
+    </div>
+</div>
+
 <div id="adminPrSlideoverPanel" class="fixed top-0 right-0 z-50 h-full w-full max-w-[560px] bg-white border-l border-slate-200 shadow-2xl translate-x-full transition-transform">
     <div class="h-full flex flex-col">
         <div class="flex items-start justify-between gap-3 p-5 border-b border-slate-100">
@@ -118,13 +136,14 @@
                             <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
                                 <th class="py-2 pr-4 font-semibold">Category</th>
                                 <th class="py-2 pr-4 font-semibold">Name</th>
+                                <th class="py-2 pr-4 font-semibold">Diagnosis Date</th>
+                                <th class="py-2 pr-4 font-semibold">Procedure Date</th>
                                 <th class="py-2 pr-4 font-semibold">Notes</th>
-                                <th class="py-2 pr-4 font-semibold">Created</th>
                             </tr>
                         </thead>
                         <tbody id="adminPrPanelMedBgTableBody">
                             <tr>
-                                <td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">
+                                <td colspan="5" class="py-4 text-center text-[0.78rem] text-slate-400">
                                     Select a patient to view entries.
                                 </td>
                             </tr>
@@ -139,16 +158,15 @@
                     <table class="min-w-full text-left text-xs text-slate-600">
                         <thead>
                             <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
-                                <th class="py-2 pr-4 font-semibold">Transaction</th>
-                                <th class="py-2 pr-4 font-semibold">Appointment</th>
                                 <th class="py-2 pr-4 font-semibold">Doctor</th>
                                 <th class="py-2 pr-4 font-semibold">Visit date</th>
-                                <th class="py-2 pr-4 font-semibold">Amount</th>
+                                <th class="py-2 pr-4 font-semibold">Fees</th>
+                                <th class="py-2 pr-4 font-semibold">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="adminPrPanelVisitsTableBody">
                             <tr>
-                                <td colspan="5" class="py-4 text-center text-[0.78rem] text-slate-400">
+                                <td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">
                                     Select a patient to view visits.
                                 </td>
                             </tr>
@@ -229,6 +247,78 @@
 
         var currentPatientId = null
         var expandedVitalId = null
+
+        var vitalsSidePanel = document.getElementById('adminPrVitalsSidePanel')
+        var vitalsSideClose = document.getElementById('adminPrVitalsSideClose')
+        var vitalsSideBody = document.getElementById('adminPrVitalsSideBody')
+
+        function closeVitalsSidePanel() {
+            if (vitalsSidePanel) {
+                vitalsSidePanel.classList.add('-translate-x-full')
+                vitalsSidePanel.classList.remove('translate-x-0')
+            }
+        }
+
+        function openVitalsSidePanel() {
+            if (vitalsSidePanel) {
+                vitalsSidePanel.classList.remove('-translate-x-full')
+                vitalsSidePanel.classList.add('translate-x-0')
+            }
+        }
+
+        function loadVitalsForAppointment(appointmentId) {
+            if (!vitalsSideBody || !currentPatientId) return
+            vitalsSideBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading vitals…</div>'
+            openVitalsSidePanel()
+            apiFetch("{{ url('/api/vitals') }}?per_page=5&patient_id=" + encodeURIComponent(currentPatientId) + "&appointment_id=" + encodeURIComponent(appointmentId), { method: 'GET' })
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        return { ok: response.ok, data: data }
+                    }).catch(function () { return { ok: false, data: null } })
+                })
+                .then(function (result) {
+                    if (!result.ok || !result.data) {
+                        vitalsSideBody.innerHTML = '<div class="text-center text-[0.78rem] text-red-500 py-8">Failed to load vitals.</div>'
+                        return
+                    }
+                    var vitals = Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    if (!vitals.length) {
+                        vitalsSideBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No vitals recorded for this visit.</div>'
+                        return
+                    }
+                    var html = ''
+                    vitals.forEach(function (v) {
+                        var recorded = v && v.recorded_at ? formatRecordedAt(v.recorded_at) : '—'
+                        var height = v && v.height_cm != null ? formatNumeric(v.height_cm, 1) : '—'
+                        var weight = v && v.weight_kg != null ? formatNumeric(v.weight_kg, 1) : '—'
+                        var bp = v && v.blood_pressure ? String(v.blood_pressure) : '—'
+                        var temp = v && v.temperature != null ? formatNumeric(v.temperature, 1) : '—'
+                        var pulse = v && v.pulse_rate != null ? String(v.pulse_rate) : '—'
+                        var bmi = '—'
+                        if (v && v.height_cm && v.weight_kg && parseFloat(v.height_cm) > 0) {
+                            var hm = parseFloat(v.height_cm) / 100
+                            var wk = parseFloat(v.weight_kg)
+                            var bmiVal = wk / (hm * hm)
+                            if (isFinite(bmiVal)) bmi = bmiVal.toFixed(1)
+                        }
+                        html += '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
+                            '<div class="text-[0.72rem] text-slate-500 mb-2">' + escapeHtml(recorded) + '</div>' +
+                            '<div class="text-[0.72rem] space-y-1.5">' +
+                                '<div class="flex items-center justify-between"><span class="text-slate-500">Height</span><span class="text-slate-800 font-medium">' + escapeHtml(height) + ' cm</span></div>' +
+                                '<div class="flex items-center justify-between"><span class="text-slate-500">Weight</span><span class="text-slate-800 font-medium">' + escapeHtml(weight) + ' kg</span></div>' +
+                                '<div class="flex items-center justify-between"><span class="text-slate-500">BMI</span><span class="text-slate-800 font-medium">' + escapeHtml(bmi) + '</span></div>' +
+                                '<div class="flex items-center justify-between"><span class="text-slate-500">BP</span><span class="text-slate-800 font-medium">' + escapeHtml(bp) + '</span></div>' +
+                                '<div class="flex items-center justify-between"><span class="text-slate-500">Temp</span><span class="text-slate-800 font-medium">' + escapeHtml(temp) + ' °C</span></div>' +
+                                '<div class="flex items-center justify-between"><span class="text-slate-500">Pulse</span><span class="text-slate-800 font-medium">' + escapeHtml(pulse) + ' bpm</span></div>' +
+                            '</div>' +
+                        '</div>'
+                    })
+                    vitalsSideBody.innerHTML = html
+                })
+                .catch(function () {
+                    vitalsSideBody.innerHTML = '<div class="text-center text-[0.78rem] text-red-500 py-8">Network error loading vitals.</div>'
+                })
+        }
 
         function escapeHtml(text) {
             return String(text || '')
@@ -495,7 +585,7 @@
             })
 
             if (!filtered.length) {
-                patientsTableBody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">No patients found.</td></tr>'
+                patientsTableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No patients found.</td></tr>'
                 return
             }
 
@@ -505,10 +595,14 @@
                 var name = fullName(p, 'Patient')
                 var address = p && p.address ? String(p.address) : ''
                 var age = ageFromBirthdate(p && p.birthdate ? String(p.birthdate) : null)
+                var sex = p && p.sex ? String(p.sex) : ''
+                var verificationType = p && p.verification_type ? String(p.verification_type) : ''
                 html += '<tr class="border-b border-slate-50 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(name) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (address ? escapeHtml(address) : '<span class="text-slate-400">—</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (age != null ? escapeHtml(age) : '<span class="text-slate-400">—</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (sex ? escapeHtml(sex.charAt(0).toUpperCase() + sex.slice(1)) : '<span class="text-slate-400">—</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (verificationType ? escapeHtml(verificationType.charAt(0).toUpperCase() + verificationType.slice(1)) : '<span class="text-slate-400">—</span>') + '</td>' +
                     '<td class="py-2 pr-4">' +
                         '<button type="button" class="admin-pr-open-panel inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.78rem] font-semibold hover:bg-slate-50" data-patient-id="' + escapeHtml(pid) + '">' +
                             'View background and visit history' +
@@ -533,17 +627,23 @@
         function renderPanelMedicalBackground(entries) {
             if (!panelMedBgTableBody) return
             if (!entries || !entries.length) {
-                panelMedBgTableBody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">No medical background entries found.</td></tr>'
+                panelMedBgTableBody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-[0.78rem] text-slate-400">No medical background entries found.</td></tr>'
                 return
             }
             var html = ''
             entries.forEach(function (r) {
-                var created = r && r.created_at ? String(r.created_at).slice(0, 10) : '—'
+                var diagnosisDate = r && r.diagnosis_date ? String(r.diagnosis_date) : ''
+                var diagnosisTime = r && r.diagnosis_time ? String(r.diagnosis_time) : ''
+                if (diagnosisDate || diagnosisTime) {
+                    diagnosisDate = (diagnosisDate || '') + (diagnosisTime ? ' ' + diagnosisTime.slice(0, 5) : '')
+                }
+                var procedureDate = r && r.procedure_date ? String(r.procedure_date) : ''
                 html += '<tr class="border-b border-slate-50 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(categoryLabel(r.category)) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(r && r.name ? String(r.name) : '—') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosisDate ? escapeHtml(diagnosisDate) : '<span class="text-slate-400">—</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (procedureDate ? escapeHtml(procedureDate) : '<span class="text-slate-400">—</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (r && r.notes ? escapeHtml(String(r.notes)) : '<span class="text-slate-400">—</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(created) + '</td>' +
                 '</tr>'
             })
             panelMedBgTableBody.innerHTML = html
@@ -552,28 +652,36 @@
         function renderPanelVisits(rows) {
             if (!panelVisitsTableBody) return
             if (!rows || !rows.length) {
-                panelVisitsTableBody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-[0.78rem] text-slate-400">No visits found.</td></tr>'
+                panelVisitsTableBody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">No visits found.</td></tr>'
                 return
             }
             var html = ''
             rows.forEach(function (v) {
-                var txnId = v && v.transaction_id != null ? String(v.transaction_id) : ''
-                var apptId = v && v.appointment_id != null ? String(v.appointment_id) : ''
                 var appt = v && v.appointment ? v.appointment : null
+                var apptId = appt && appt.appointment_id != null ? String(appt.appointment_id) : ''
                 var doctor = appt && appt.doctor ? appt.doctor : null
                 var dateRaw = v && (v.visit_datetime || v.transaction_datetime) ? String(v.visit_datetime || v.transaction_datetime) : ''
                 var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '—'
-                var amount = v && v.amount != null ? ('₱' + parseFloat(v.amount || 0).toFixed(2)) : '—'
+                var fees = v && v.amount != null ? ('₱' + parseFloat(v.amount || 0).toFixed(2)) : '—'
 
                 html += '<tr class="border-b border-slate-50 last:border-0">' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">#' + escapeHtml(txnId || '—') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (apptId ? ('#' + escapeHtml(apptId)) : '<span class="text-slate-400">—</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(fullName(doctor, 'Doctor')) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(dateText) + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(amount) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(fees) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem]">' +
+                        '<button type="button" class="admin-pr-view-vitals inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.72rem] font-semibold hover:bg-slate-50" data-appointment-id="' + escapeHtml(apptId) + '">View Vitals</button>' +
+                    '</td>' +
                 '</tr>'
             })
             panelVisitsTableBody.innerHTML = html
+
+            panelVisitsTableBody.querySelectorAll('.admin-pr-view-vitals').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var apptId = this.getAttribute('data-appointment-id')
+                    if (!apptId || !currentPatientId) return
+                    loadVitalsForAppointment(apptId)
+                })
+            })
         }
 
         function doctorLabelFromVitals(v) {
@@ -726,10 +834,10 @@
             if (panelPatientType) panelPatientType.textContent = '—'
 
             if (panelMedBgTableBody) {
-                panelMedBgTableBody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">Loading entries…</td></tr>'
+                panelMedBgTableBody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-[0.78rem] text-slate-400">Loading entries…</td></tr>'
             }
             if (panelVisitsTableBody) {
-                panelVisitsTableBody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-[0.78rem] text-slate-400">Loading visits…</td></tr>'
+                panelVisitsTableBody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">Loading visits…</td></tr>'
             }
             if (panelVitalsTableBody) {
                 panelVitalsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading vitals…</td></tr>'
@@ -874,8 +982,13 @@
 
         closePanel()
 
+        if (vitalsSideClose) vitalsSideClose.addEventListener('click', closeVitalsSidePanel)
+
         if (panelClose) panelClose.addEventListener('click', closePanel)
-        if (overlay) overlay.addEventListener('click', closePanel)
+        if (overlay) overlay.addEventListener('click', function () {
+            closeVitalsSidePanel()
+            closePanel()
+        })
 
         if (panelTabBackground) panelTabBackground.addEventListener('click', function () { setPanelTab('background') })
         if (panelTabVisits) panelTabVisits.addEventListener('click', function () { setPanelTab('visits') })
