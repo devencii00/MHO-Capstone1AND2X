@@ -6,7 +6,7 @@
     <title>First Login – Update Password</title>
     @vite('resources/css/app.css')
     @vite('resources/js/app.js')
-     <link rel="icon" type="image/x-icon" href="/images/logoMHO.ico">
+     <link rel="icon" type="image/x-icon" href="/images/logoMHOV2.ico">
        <link rel="stylesheet" href="{{ asset('assets/fonts/css/stylefont.css') }}">
     <style>
         .font-playfair { font-family: 'Playfair Display', serif; }

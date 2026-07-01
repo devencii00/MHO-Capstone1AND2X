@@ -76,7 +76,7 @@
             </tbody>
         </table>
     </div>
-    <div id="adminPrPagination" class="flex items-center justify-center gap-1 mt-3 flex-wrap"></div>
+    <div id="adminPrPagination" class="flex items-center justify-center gap-3 pt-3 pb-1 flex-wrap"></div>
 </div>
 
 <div id="adminPrSlideoverOverlay" class="fixed inset-0 z-50 bg-black/30 opacity-0 pointer-events-none transition-opacity"></div>
@@ -224,50 +224,66 @@
         var patientsSearch = document.getElementById('admin_pr_patients_search')
         var sortSelect = document.getElementById('admin_pr_sort')
         var patientsTableBody = document.getElementById('admin_pr_patients_table_body')
+        var pagination = document.getElementById('adminPrPagination')
         var patientsRows = []
-        var prPerPage = 10
-        var prCurrentPage = 1
-        var prFiltered = []
+        var perPage = 10
+        var currentPage = 1
 
-        function renderPrPagination() {
-            var pagination = document.getElementById('adminPrPagination')
+        function getPatientTableRows() {
+            return document.querySelectorAll('#admin_pr_patients_table_body .admin-pr-patient-row')
+        }
+
+        function showPage(page) {
+            var rows = getPatientTableRows()
+            var total = rows.length
+            if (!total || !pagination) return
+
+            var totalPages = Math.ceil(total / perPage)
+            if (page < 1 || page > totalPages) return
+            currentPage = page
+            var start = (page - 1) * perPage
+            var end = Math.min(start + perPage, total)
+            rows.forEach(function (row, i) {
+                row.style.display = (i >= start && i < end) ? '' : 'none'
+            })
+            renderPagination()
+        }
+
+        function renderPagination() {
             if (!pagination) return
-            var total = prFiltered.length
-            var totalPages = Math.ceil(total / prPerPage)
-            if (totalPages <= 1) {
-                pagination.innerHTML = ''
+            var rows = getPatientTableRows()
+            var total = rows.length
+            if (total === 0) {
+                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
                 return
             }
-            var html = ''
+            var totalPages = Math.ceil(total / perPage)
+            if (totalPages <= 1) {
+                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-400">' + total + ' entries</span>'
+                return
+            }
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
             html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
-                (prCurrentPage === 1 ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
-                '" data-page="prev"' + (prCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+                (currentPage === 1 ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                '" data-page="prev"' + (currentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
             for (var i = 1; i <= totalPages; i++) {
                 html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border ' +
-                    (i === prCurrentPage ? 'bg-green-600 text-white border-green-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                    (i === currentPage ? 'bg-green-600 text-white border-green-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer') +
                     '" data-page="' + i + '">' + i + '</button>'
             }
             html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
-                (prCurrentPage === totalPages ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
-                '" data-page="next"' + (prCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+                (currentPage === totalPages ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
+                '" data-page="next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
             pagination.innerHTML = html
 
             pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var p = btn.getAttribute('data-page')
-                    if (p === 'prev' && prCurrentPage > 1) showPrPage(prCurrentPage - 1)
-                    else if (p === 'next' && prCurrentPage < totalPages) showPrPage(prCurrentPage + 1)
-                    else if (p !== 'prev' && p !== 'next') showPrPage(parseInt(p, 10))
+                    if (p === 'prev' && currentPage > 1) showPage(currentPage - 1)
+                    else if (p === 'next' && currentPage < totalPages) showPage(currentPage + 1)
+                    else if (p !== 'prev' && p !== 'next') showPage(parseInt(p, 10))
                 })
             })
-        }
-
-        function showPrPage(page) {
-            var totalPages = Math.ceil(prFiltered.length / prPerPage)
-            if (page < 1 || page > totalPages) return
-            prCurrentPage = page
-            renderPatientsTableRows()
-            renderPrPagination()
         }
 
         var activeAgeFilter = 'all'
@@ -626,31 +642,14 @@
                 return 0
             })
 
-            prFiltered = filtered
-
             if (!filtered.length) {
                 patientsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No patients found.</td></tr>'
-                renderPrPagination()
+                renderPagination()
                 return
             }
 
-            var totalPages = Math.ceil(filtered.length / prPerPage)
-            if (prCurrentPage > totalPages) prCurrentPage = totalPages
-            renderPatientsTableRows()
-            renderPrPagination()
-        }
-
-        function renderPatientsTableRows() {
-            if (!patientsTableBody) return
-            var filtered = prFiltered || []
-            if (!filtered.length) return
-
-            var start = (prCurrentPage - 1) * prPerPage
-            var end = Math.min(start + prPerPage, filtered.length)
-            var pageSlice = filtered.slice(start, end)
-
             var html = ''
-            pageSlice.forEach(function (p) {
+            filtered.forEach(function (p) {
                 var pid = p && p.user_id != null ? String(p.user_id) : ''
                 var name = fullName(p, 'Patient')
                 var address = p && p.address ? String(p.address) : ''
@@ -658,7 +657,7 @@
                 var sex = p && p.sex ? String(p.sex) : ''
                 var verificationType = p && p.verification_type ? String(p.verification_type) : ''
                 var profileImg = p && p.prof_path_url ? String(p.prof_path_url) : ''
-                html += '<tr class="border-b border-slate-50 last:border-0">' +
+                html += '<tr class="admin-pr-patient-row border-b border-slate-50 last:border-0">' +
                     '<td class="py-2 pr-4">' +
                         (profileImg
                             ? '<img src="' + profileImg.replace(/"/g,'&quot;') + '" alt="" class="w-10 h-10 rounded-lg object-cover border border-slate-200">'
@@ -678,6 +677,10 @@
                 '</tr>'
             })
             patientsTableBody.innerHTML = html
+
+            var totalPages = Math.ceil(filtered.length / perPage)
+            if (currentPage > totalPages) currentPage = totalPages
+            showPage(currentPage || 1)
         }
 
         function findPatientById(patientId) {
@@ -1022,7 +1025,7 @@
         }
 
         function searchAndRender() {
-            prCurrentPage = 1
+            currentPage = 1
             renderPatients()
         }
 
@@ -1035,7 +1038,7 @@
                     var next = this.getAttribute('data-age-filter') || 'all'
                     activeAgeFilter = next
                     setAgeFilterActiveStyles()
-                    prCurrentPage = 1
+                    currentPage = 1
                     renderPatients()
                 })
             })

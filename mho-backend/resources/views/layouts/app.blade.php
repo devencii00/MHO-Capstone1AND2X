@@ -7,7 +7,7 @@
     @vite('resources/css/app.css')
     @vite('resources/js/app.js')
       <link rel="stylesheet" href="{{ asset('assets/fonts/css/stylefont.css') }}">
-    <link rel="icon" type="image/x-icon" href="/images/logoMHO.ico">
+    <link rel="icon" type="image/x-icon" href="/images/logoMHOV2.ico">
     <style>
         .scrollbar-hidden {
             scrollbar-width: none;
