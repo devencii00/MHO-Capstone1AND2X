@@ -21,7 +21,7 @@ return new class extends Migration
             $table->decimal('discount_amount', 10, 2)->default(0);
             $table->enum('discount_type', ['none', 'senior', 'pwd'])->default('none');
 
-            $table->enum('payment_mode', ['cash', 'gcash'])->nullable();
+            $table->enum('payment_mode', ['cash'])->nullable();
             $table->enum('payment_status', ['pending', 'paid', 'failed'])->default('pending');
 
             $table->string('reference_number')->nullable();

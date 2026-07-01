@@ -74,7 +74,7 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
         var expectedRole = "{{ strtolower($role ?? 'admin') }}"
         if (expectedRole && expectedRole !== 'patient') {
             var applyNoAutocomplete = function (root) {
@@ -187,6 +187,6 @@
                 window.location.href = target
             })
             .catch(function () {})
-    })
+    })()
 </script>
 @endsection

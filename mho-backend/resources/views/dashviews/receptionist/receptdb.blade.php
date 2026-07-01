@@ -85,16 +85,16 @@
                     </div>
                     <div class="flex-1 overflow-y-auto scrollbar-hidden">
                         <table class="w-full text-left text-[0.75rem] text-slate-600 whitespace-nowrap">
-                            <thead class="bg-white text-slate-500  top-0 border-b  border-slate-100 shadow-sm z-10">
+                            <thead class="text-slate-500 border-b border-slate-100">
                                 <tr>
-                                    <th class="px-4 py-2.5 font-medium">Date</th>
-                                    <th class="px-4 py-2.5 font-medium">Reference</th>
-                                    <th class="px-4 py-2.5 font-medium">Patient</th>
-                                    <th class="px-4 py-2.5 font-medium">Service Type</th>
-                                    <th class="px-4 py-2.5 font-medium">Gross</th>
-                                    <th class="px-4 py-2.5 font-medium">Discount</th>
-                                    <th class="px-4 py-2.5 font-medium">Net</th>
-                                    <th class="px-4 py-2.5 font-medium">Mode</th>
+                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Date</th>
+                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Reference</th>
+                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Patient</th>
+                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Service Type</th>
+                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Gross</th>
+                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Discount</th>
+                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Net</th>
+                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Mode</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100" id="receptionTodaysTransactionsTableBody">

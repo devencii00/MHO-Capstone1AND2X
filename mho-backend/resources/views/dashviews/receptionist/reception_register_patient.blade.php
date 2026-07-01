@@ -67,7 +67,7 @@
         </div>
         <div>
             <label id="reception_patient_contact_label" for="reception_patient_contact" class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>
-            <input id="reception_patient_contact" type="text" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 9xx xxx xxxx">
+            <input id="reception_patient_contact" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
         </div>
         <div class="md:col-span-3">
             <label for="reception_patient_address" class="block text-[0.7rem] text-slate-600 mb-1">Address</label>
@@ -460,20 +460,26 @@
         })
 
         var contactInput = document.getElementById('reception_patient_contact')
-        if (contactInput) {
-            if (!String(contactInput.value || '').trim()) {
-                contactInput.value = '+63'
-            }
-            contactInput.addEventListener('focus', function () {
-                var v = String(contactInput.value || '').trim()
-                if (!v) contactInput.value = '+63'
-            })
-            contactInput.addEventListener('blur', function () {
-                var normalized = normalizePHContact(contactInput.value)
-                if (normalized) contactInput.value = normalized
-                if (!normalized && String(contactInput.value || '').trim() === '+63') contactInput.value = '+63'
+        // Auto-format phone input (same as staff_management.blade.php)
+        function setupPhoneFormat(input) {
+            if (!input) return
+            input.addEventListener('input', function () {
+                var cursor = this.selectionStart
+                var oldLen = this.value.length
+                var raw = this.value.replace(/[^\d]/g, '')
+                if (raw.startsWith('63')) raw = raw.slice(2)
+                if (raw.startsWith('0')) raw = raw.slice(1)
+                if (raw.length > 10) raw = raw.slice(0, 10)
+                var formatted = raw ? '+63 ' : ''
+                if (raw.length > 0) formatted += raw.slice(0,3)
+                if (raw.length > 3) formatted += ' ' + raw.slice(3,6)
+                if (raw.length > 6) formatted += ' ' + raw.slice(6)
+                this.value = formatted
+                var newLen = this.value.length
+                this.setSelectionRange(cursor + (newLen - oldLen), cursor + (newLen - oldLen))
             })
         }
+        setupPhoneFormat(contactInput)
 
         function fetchPossibleDuplicates(payload) {
             if (typeof apiFetch !== 'function') return Promise.resolve([])

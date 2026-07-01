@@ -605,7 +605,7 @@ class AppointmentController extends Controller
             }
         }
 
-        return $appointment->load(['patient', 'doctor', 'queue', 'transaction', 'services']);
+        return $appointment->load(['patient', 'doctor', 'queue', 'transaction', 'transaction.prescriptions.items.medicine', 'services']);
     }
 
     public function update(Request $request, Appointment $appointment)
@@ -775,7 +775,7 @@ class AppointmentController extends Controller
             ]
         );
 
-        return $appointment->load(['patient', 'doctor', 'queue', 'transaction', 'services']);
+        return $appointment->load(['patient', 'doctor', 'queue', 'transaction', 'transaction.prescriptions.items.medicine', 'services']);
     }
 
     private function isDoctorUnavailable(int $doctorId): bool
