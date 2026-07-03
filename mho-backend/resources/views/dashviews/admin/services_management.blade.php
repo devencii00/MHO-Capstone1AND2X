@@ -65,7 +65,6 @@
         <table class="min-w-full text-left text-xs text-slate-600">
             <thead>
                 <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
-                    <th class="py-2 pr-4 font-semibold">ID</th>
                     <th class="py-2 pr-4 font-semibold">Service</th>
                     <th class="py-2 pr-4 font-semibold">Description</th>
                     <th class="py-2 pr-4 font-semibold">Duration</th>
@@ -76,7 +75,7 @@
             </thead>
             <tbody id="admin_service_table_body">
                 <tr>
-                    <td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">
+                    <td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">
                         Loading services…
                     </td>
                 </tr>
@@ -191,6 +190,7 @@
         var serviceCurrentPage = 1
         var serviceFiltered = []
 
+        var serviceVisibleCount = 6;
         function renderServicePagination() {
             var pagination = document.getElementById('adminServicePagination')
             if (!pagination) return
@@ -200,28 +200,32 @@
                 return
             }
             var totalPages = Math.ceil(total / servicePerPage)
-            if (totalPages <= 1) {
-                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-400">' + total + ' entries</span>'
-                return
-            }
+            var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border ';
+            var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer';
+            var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default';
+            var btnActive = btnBase + 'bg-green-600 text-white border-green-600';
             var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
-            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
-                (serviceCurrentPage === 1 ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
-                '" data-page="prev"' + (serviceCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
-            for (var i = 1; i <= totalPages; i++) {
-                html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border ' +
-                    (i === serviceCurrentPage ? 'bg-green-600 text-white border-green-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer') +
-                    '" data-page="' + i + '">' + i + '</button>'
+            html += '<button type="button" class="' + (serviceCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (serviceCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            var windowStart = serviceCurrentPage;
+            var windowEnd = Math.min(windowStart + serviceVisibleCount - 1, totalPages);
+            for (var i = windowStart; i <= windowEnd; i++) {
+                html += '<button type="button" class="' + (i === serviceCurrentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
             }
-            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
-                (serviceCurrentPage === totalPages ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
-                '" data-page="next"' + (serviceCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            if (windowEnd < totalPages) {
+                html += '<button type="button" class="' + btnInactive + '" data-page="next-window" title="Next set">…</button>'
+            }
+            html += '<button type="button" class="' + (serviceCurrentPage === totalPages ? btnDisabled : btnInactive) + '" data-page="next"' + (serviceCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
             pagination.innerHTML = html
             pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var p = btn.getAttribute('data-page')
                     if (p === 'prev' && serviceCurrentPage > 1) { serviceCurrentPage--; renderServices() }
                     else if (p === 'next' && serviceCurrentPage < totalPages) { serviceCurrentPage++; renderServices() }
+                    else if (p === 'next-window') {
+                        var nextStart = Math.min(windowEnd + 1, totalPages);
+                        serviceCurrentPage = nextStart;
+                        renderServices();
+                    }
                     else if (p !== 'prev' && p !== 'next') { serviceCurrentPage = parseInt(p, 10); renderServices() }
                 })
             })
@@ -449,7 +453,7 @@
 
         function loadServices() {
             if (!tableBody) return
-            tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading services…</td></tr>'
+            tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading services…</td></tr>'
 
             apiFetch("{{ url('/api/services') }}?per_page=100", {
                 method: 'GET'
@@ -461,7 +465,7 @@
                 })
                 .then(function (result) {
                     if (!result.ok) {
-                        tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-red-500">Failed to load services.</td></tr>'
+                        tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-red-500">Failed to load services.</td></tr>'
                         return
                     }
                     var payload = result.data
@@ -469,7 +473,7 @@
                     renderServices()
                 })
                 .catch(function () {
-                    tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-red-500">Network error while loading services.</td></tr>'
+                    tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-red-500">Network error while loading services.</td></tr>'
                 })
         }
 
@@ -523,7 +527,7 @@
             serviceFiltered = filtered
 
             if (!filtered.length) {
-                tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No services found.</td></tr>'
+                tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No services found.</td></tr>'
                 renderServicePagination()
                 return
             }
@@ -547,7 +551,6 @@
                 var statusClass = isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-600 border-slate-100'
 
                 tr.innerHTML =
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">#' + service.service_id + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + (service.service_name || '') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (service.description || '') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + duration + '</td>' +

@@ -79,139 +79,89 @@
     <div id="adminPrPagination" class="flex items-center justify-center gap-3 pt-3 pb-1 flex-wrap"></div>
 </div>
 
-<div id="adminPrSlideoverOverlay" class="fixed inset-0 z-50 bg-black/30 opacity-0 pointer-events-none transition-opacity"></div>
+<div id="adminPrSlideoverOverlay" class="fixed inset-0 z-40 bg-black/30 opacity-0 pointer-events-none transition-opacity duration-300 ease-out"></div>
 
-<!-- Vitals side panel (slides from left inside the main slideover) -->
-<div id="adminPrVitalsSidePanel" class="fixed top-0 left-0 z-[51] h-full w-full max-w-[300px] bg-white border-r border-slate-200 shadow-2xl -translate-x-full transition-transform">
+<div id="adminPrSlideoverPanel" class="fixed top-0 right-0 z-50 h-full w-full max-w-[560px] bg-white border-l border-slate-200 shadow-2xl translate-x-full transition-transform duration-300 ease-out">
     <div class="h-full flex flex-col">
-        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 shrink-0">
-            <div class="text-[0.78rem] font-semibold text-slate-900">Vitals</div>
-            <button type="button" id="adminPrVitalsSideClose" class="text-slate-400 hover:text-slate-600">
-                <x-lucide-x class="w-[18px] h-[18px]" />
+        <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 shrink-0">
+            <div class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Patient Details</div>
+            <button type="button" id="adminPrPanelClose" class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 flex-shrink-0">
+                <x-lucide-x class="w-[16px] h-[16px]" />
             </button>
         </div>
-        <div id="adminPrVitalsSideBody" class="flex-1 overflow-y-auto p-3 space-y-2">
-            <div class="text-center text-[0.78rem] text-slate-400 py-8">Loading vitals…</div>
+
+        <div class="flex-1 overflow-y-auto scrollbar-hidden">
+            <div class="px-5 py-4 border-b border-slate-100">
+                <div class="flex gap-4">
+                    <div id="adminPrPanelProfilePic" class="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0 self-start">
+                        <div class="w-full h-full flex items-center justify-center text-slate-400">
+                            <x-lucide-user class="w-9 h-9" />
+                        </div>
+                    </div>
+                    <div class="flex-1 flex gap-x-5 gap-y-[3px] text-[0.78rem]">
+                        <div class="flex-1 space-y-[3px]">
+                            <div><span class="text-slate-500">First name:</span> <span id="prDetailFirstname" class="text-slate-800 ml-1">—</span></div>
+                            <div><span class="text-slate-500">Middle Name:</span> <span id="prDetailMiddlename" class="text-slate-800 ml-1">—</span></div>
+                            <div><span class="text-slate-500">Last Name:</span> <span id="prDetailLastname" class="text-slate-800 ml-1">—</span></div>
+                            <div><span class="text-slate-500">Date Of Birth:</span> <span id="prDetailBirthdate" class="text-slate-800 ml-1">—</span></div>
+                            <div><span class="text-slate-500">Address:</span> <span id="prDetailAddress" class="text-slate-800 ml-1">—</span></div>
+                            <div><span class="text-slate-500">Sex:</span> <span id="prDetailSex" class="text-slate-800 ml-1">—</span></div>
+                            <div><span class="text-slate-500">Civil status:</span> <span id="prDetailCivilStatus" class="text-slate-800 ml-1">—</span></div>
+                        </div>
+                        <div class="flex-1 space-y-[3px]">
+                            <div><span class="text-slate-500">Nationality:</span> <span id="prDetailNationality" class="text-slate-800 ml-1">—</span></div>
+                            <div><span class="text-slate-500">Contact Number:</span> <span id="prDetailContact" class="text-slate-800 ml-1">—</span></div>
+                            <div><span class="text-slate-500">PHIC #:</span> <span id="prDetailPhic" class="text-slate-800 ml-1">—</span></div>
+                            <div><span class="text-slate-500">Occupation:</span> <span id="prDetailOccupation" class="text-slate-800 ml-1">—</span></div>
+                            <div><span class="text-slate-500">Emergency contact:</span> <span id="prDetailEmergContact" class="text-slate-800 ml-1">—</span></div>
+                            <div><span class="text-slate-500">Emergency Contact Number:</span> <span id="prDetailEmergNumber" class="text-slate-800 ml-1">—</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-5 pt-4 pb-3 border-b border-slate-100">
+                <div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Patient records</div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" id="adminPrPanelTabBackground" class="px-3 py-2 rounded-xl text-[0.78rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">Medical background</button>
+                    <button type="button" id="adminPrPanelTabVisits" class="px-3 py-2 rounded-xl text-[0.78rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">Visit history</button>
+                    <button type="button" id="adminPrPanelTabVitals" class="px-3 py-2 rounded-xl text-[0.78rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">Vitals history</button>
+                    <button type="button" id="adminPrPanelTabDependents" class="px-3 py-2 rounded-xl text-[0.78rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">Dependents</button>
+                </div>
+                <p class="mt-2 text-[0.74rem] text-slate-500">Select a tab to open the matching records panel beside this profile.</p>
+            </div>
+
+            <div class="px-5 py-4 space-y-3">
+                <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                    <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification status</div>
+                    <div id="adminPrPanelVerificationStatus" class="text-[0.8rem] font-semibold text-slate-700 mt-1">—</div>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                    <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient type</div>
+                    <div id="adminPrPanelPatientType" class="text-[0.8rem] font-semibold text-slate-700 mt-1">—</div>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                    <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification ID</div>
+                    <div id="adminPrPanelVerificationId" class="text-[0.8rem] font-semibold text-slate-700 mt-1">—</div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div id="adminPrSlideoverPanel" class="fixed top-0 right-0 z-50 h-full w-full max-w-[560px] bg-white border-l border-slate-200 shadow-2xl translate-x-full transition-transform">
+<div id="adminPrTabDrawer" class="fixed top-0 right-0 md:right-[560px] z-[49] h-full w-full max-w-[480px] bg-white border-l border-slate-200 shadow-xl hidden">
     <div class="h-full flex flex-col">
-        <div class="flex items-start justify-between gap-3 p-5 border-b border-slate-100">
-            <div class="flex items-center gap-4 min-w-0">
-                <div id="adminPrPanelProfilePic" class="w-14 h-14 rounded-xl bg-slate-100 border border-slate-200 flex-shrink-0 overflow-hidden">
-                    <div class="w-full h-full flex items-center justify-center text-slate-400">
-                        <x-lucide-user class="w-8 h-8" />
-                    </div>
-                </div>
-                <div class="min-w-0">
-                    <div id="adminPrPanelPatientName" class="text-sm font-semibold text-slate-900 truncate">Patient</div>
-                    <div id="adminPrPanelPatientContact" class="text-xs text-slate-500 truncate"></div>
-                    <div id="adminPrPanelPatientMeta" class="text-xs text-slate-400 truncate"></div>
-                </div>
+        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 shrink-0">
+            <div>
+                <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient records</div>
+                <div id="adminPrTabDrawerTitle" class="text-[0.82rem] font-semibold text-slate-900 mt-1">Medical background</div>
             </div>
-            <button type="button" id="adminPrPanelClose" class="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800">
-                <x-lucide-x class="w-[18px] h-[18px]" />
+            <button type="button" id="adminPrTabDrawerClose" class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800">
+                <x-lucide-x class="w-[16px] h-[16px]" />
             </button>
         </div>
-
-        <div class="p-5 border-b border-slate-100 grid grid-cols-3 gap-3">
-            <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification status</div>
-                <div id="adminPrPanelVerificationStatus" class="text-[0.8rem] font-semibold text-slate-700 mt-1">—</div>
-            </div>
-            <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient type</div>
-                <div id="adminPrPanelPatientType" class="text-[0.8rem] font-semibold text-slate-700 mt-1">—</div>
-            </div>
-            <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification ID</div>
-                <div id="adminPrPanelVerificationId" class="text-[0.8rem] font-semibold text-slate-700 mt-1">—</div>
-            </div>
-        </div>
-
-        <div class="px-5 pt-4">
-            <div class="flex items-center gap-2">
-                <button type="button" id="adminPrPanelTabBackground" class="px-3 py-2 rounded-xl text-[0.78rem] font-semibold border border-slate-200 bg-green-600 text-white">Medical background</button>
-                <button type="button" id="adminPrPanelTabVisits" class="px-3 py-2 rounded-xl text-[0.78rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">Visit history</button>
-                <button type="button" id="adminPrPanelTabVitals" class="px-3 py-2 rounded-xl text-[0.78rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">Vitals history</button>
-            </div>
-        </div>
-
-        <div class="flex-1 overflow-y-auto scrollbar-hidden">
-            <div id="adminPrPanelPanelBackground" class="p-5">
-                <div id="adminPrPanelMedBgError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
-                <div class="overflow-x-auto scrollbar-hidden">
-                    <table class="min-w-full text-left text-xs text-slate-600">
-                        <thead>
-                            <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
-                                <th class="py-2 pr-4 font-semibold">Category</th>
-                                <th class="py-2 pr-4 font-semibold">Name</th>
-                                <th class="py-2 pr-4 font-semibold">Diagnosis Date</th>
-                                <th class="py-2 pr-4 font-semibold">Procedure Date</th>
-                                <th class="py-2 pr-4 font-semibold">Notes</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminPrPanelMedBgTableBody">
-                            <tr>
-                                <td colspan="5" class="py-4 text-center text-[0.78rem] text-slate-400">
-                                    Select a patient to view entries.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="adminPrPanelPanelVisits" class="p-5 hidden">
-                <div id="adminPrPanelVisitsError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
-                <div class="overflow-x-auto scrollbar-hidden">
-                    <table class="min-w-full text-left text-xs text-slate-600">
-                        <thead>
-                            <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
-                                <th class="py-2 pr-4 font-semibold">Doctor</th>
-                                <th class="py-2 pr-4 font-semibold">Visit date</th>
-                                <th class="py-2 pr-4 font-semibold">Fees</th>
-                                <th class="py-2 pr-4 font-semibold">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminPrPanelVisitsTableBody">
-                            <tr>
-                                <td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">
-                                    Select a patient to view visits.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="adminPrPanelPanelVitals" class="p-5 hidden">
-                <div id="adminPrPanelVitalsError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
-                <div class="overflow-x-auto scrollbar-hidden">
-                    <table class="min-w-full text-left text-xs text-slate-600">
-                        <thead>
-                            <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
-                                <th class="py-2 pr-4 font-semibold">Recorded</th>
-                                <th class="py-2 pr-4 font-semibold">Height (cm)</th>
-                                <th class="py-2 pr-4 font-semibold">Weight (kg)</th>
-                                <th class="py-2 pr-4 font-semibold">BP</th>
-                                <th class="py-2 pr-4 font-semibold">Temp</th>
-                                <th class="py-2 pr-4 font-semibold">Pulse</th>
-                                <th class="py-2 pr-4 font-semibold">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminPrPanelVitalsTableBody">
-                            <tr>
-                                <td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">
-                                    Select a patient to view vitals.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div id="adminPrTabDrawerBody" class="flex-1 overflow-y-auto p-4 scrollbar-hidden">
+            <div class="text-center text-[0.78rem] text-slate-400 py-8">Select a tab to view records.</div>
         </div>
     </div>
 </div>
@@ -228,63 +178,7 @@
         var patientsRows = []
         var perPage = 10
         var currentPage = 1
-
-        function getPatientTableRows() {
-            return document.querySelectorAll('#admin_pr_patients_table_body .admin-pr-patient-row')
-        }
-
-        function showPage(page) {
-            var rows = getPatientTableRows()
-            var total = rows.length
-            if (!total || !pagination) return
-
-            var totalPages = Math.ceil(total / perPage)
-            if (page < 1 || page > totalPages) return
-            currentPage = page
-            var start = (page - 1) * perPage
-            var end = Math.min(start + perPage, total)
-            rows.forEach(function (row, i) {
-                row.style.display = (i >= start && i < end) ? '' : 'none'
-            })
-            renderPagination()
-        }
-
-        function renderPagination() {
-            if (!pagination) return
-            var rows = getPatientTableRows()
-            var total = rows.length
-            if (total === 0) {
-                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
-                return
-            }
-            var totalPages = Math.ceil(total / perPage)
-            if (totalPages <= 1) {
-                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-400">' + total + ' entries</span>'
-                return
-            }
-            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
-            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
-                (currentPage === 1 ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
-                '" data-page="prev"' + (currentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
-            for (var i = 1; i <= totalPages; i++) {
-                html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border ' +
-                    (i === currentPage ? 'bg-green-600 text-white border-green-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer') +
-                    '" data-page="' + i + '">' + i + '</button>'
-            }
-            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
-                (currentPage === totalPages ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
-                '" data-page="next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
-            pagination.innerHTML = html
-
-            pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    var p = btn.getAttribute('data-page')
-                    if (p === 'prev' && currentPage > 1) showPage(currentPage - 1)
-                    else if (p === 'next' && currentPage < totalPages) showPage(currentPage + 1)
-                    else if (p !== 'prev' && p !== 'next') showPage(parseInt(p, 10))
-                })
-            })
-        }
+        var visibleCount = 6
 
         var activeAgeFilter = 'all'
         var ageFilterButtons = Array.prototype.slice.call(document.querySelectorAll('.admin-pr-age-filter'))
@@ -298,10 +192,20 @@
         var overlay = document.getElementById('adminPrSlideoverOverlay')
         var panel = document.getElementById('adminPrSlideoverPanel')
         var panelClose = document.getElementById('adminPrPanelClose')
-        var panelPatientName = document.getElementById('adminPrPanelPatientName')
-        var panelPatientContact = document.getElementById('adminPrPanelPatientContact')
-        var panelPatientMeta = document.getElementById('adminPrPanelPatientMeta')
         var panelProfilePic = document.getElementById('adminPrPanelProfilePic')
+        var prDetailFirstname = document.getElementById('prDetailFirstname')
+        var prDetailMiddlename = document.getElementById('prDetailMiddlename')
+        var prDetailLastname = document.getElementById('prDetailLastname')
+        var prDetailBirthdate = document.getElementById('prDetailBirthdate')
+        var prDetailAddress = document.getElementById('prDetailAddress')
+        var prDetailSex = document.getElementById('prDetailSex')
+        var prDetailCivilStatus = document.getElementById('prDetailCivilStatus')
+        var prDetailNationality = document.getElementById('prDetailNationality')
+        var prDetailContact = document.getElementById('prDetailContact')
+        var prDetailPhic = document.getElementById('prDetailPhic')
+        var prDetailOccupation = document.getElementById('prDetailOccupation')
+        var prDetailEmergContact = document.getElementById('prDetailEmergContact')
+        var prDetailEmergNumber = document.getElementById('prDetailEmergNumber')
         var panelVerificationStatus = document.getElementById('adminPrPanelVerificationStatus')
         var panelPatientType = document.getElementById('adminPrPanelPatientType')
         var panelVerificationId = document.getElementById('adminPrPanelVerificationId')
@@ -309,92 +213,28 @@
         var panelTabBackground = document.getElementById('adminPrPanelTabBackground')
         var panelTabVisits = document.getElementById('adminPrPanelTabVisits')
         var panelTabVitals = document.getElementById('adminPrPanelTabVitals')
-        var panelBackground = document.getElementById('adminPrPanelPanelBackground')
-        var panelVisits = document.getElementById('adminPrPanelPanelVisits')
-        var panelVitals = document.getElementById('adminPrPanelPanelVitals')
+        var panelTabDependents = document.getElementById('adminPrPanelTabDependents')
 
-        var panelMedBgError = document.getElementById('adminPrPanelMedBgError')
-        var panelMedBgTableBody = document.getElementById('adminPrPanelMedBgTableBody')
+        var tabDrawer = document.getElementById('adminPrTabDrawer')
+        var tabDrawerTitle = document.getElementById('adminPrTabDrawerTitle')
+        var tabDrawerBody = document.getElementById('adminPrTabDrawerBody')
+        var tabDrawerClose = document.getElementById('adminPrTabDrawerClose')
 
-        var panelVisitsError = document.getElementById('adminPrPanelVisitsError')
-        var panelVisitsTableBody = document.getElementById('adminPrPanelVisitsTableBody')
-
-        var panelVitalsError = document.getElementById('adminPrPanelVitalsError')
-        var panelVitalsTableBody = document.getElementById('adminPrPanelVitalsTableBody')
-
+        var cachedMedBgRows = null
+        var cachedVisitRows = null
+        var cachedVitalRows = null
+        var cachedDependentRows = null
         var currentPatientId = null
-        var expandedVitalId = null
+        var currentPanelTab = null
+        var activeDependentRecord = null
+        var activeDependentTab = 'background'
+        var activeDependentMedBgRows = null
+        var activeDependentVisitRows = null
+        var activeDependentVitalRows = null
+        var activeDependentVerification = null
 
-        var vitalsSidePanel = document.getElementById('adminPrVitalsSidePanel')
-        var vitalsSideClose = document.getElementById('adminPrVitalsSideClose')
-        var vitalsSideBody = document.getElementById('adminPrVitalsSideBody')
-
-        function closeVitalsSidePanel() {
-            if (vitalsSidePanel) {
-                vitalsSidePanel.classList.add('-translate-x-full')
-                vitalsSidePanel.classList.remove('translate-x-0')
-            }
-        }
-
-        function openVitalsSidePanel() {
-            if (vitalsSidePanel) {
-                vitalsSidePanel.classList.remove('-translate-x-full')
-                vitalsSidePanel.classList.add('translate-x-0')
-            }
-        }
-
-        function loadVitalsForAppointment(appointmentId) {
-            if (!vitalsSideBody || !currentPatientId) return
-            vitalsSideBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading vitals…</div>'
-            openVitalsSidePanel()
-            apiFetch(apiBaseUrl + "/vitals?per_page=5&patient_id=" + encodeURIComponent(currentPatientId) + "&appointment_id=" + encodeURIComponent(appointmentId), { method: 'GET' })
-                .then(function (response) {
-                    return response.json().then(function (data) {
-                        return { ok: response.ok, data: data }
-                    }).catch(function () { return { ok: false, data: null } })
-                })
-                .then(function (result) {
-                    if (!result.ok || !result.data) {
-                        vitalsSideBody.innerHTML = '<div class="text-center text-[0.78rem] text-red-500 py-8">Failed to load vitals.</div>'
-                        return
-                    }
-                    var vitals = Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
-                    if (!vitals.length) {
-                        vitalsSideBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No vitals recorded for this visit.</div>'
-                        return
-                    }
-                    var html = ''
-                    vitals.forEach(function (v) {
-                        var recorded = v && v.recorded_at ? formatRecordedAt(v.recorded_at) : '—'
-                        var height = v && v.height_cm != null ? formatNumeric(v.height_cm, 1) : '—'
-                        var weight = v && v.weight_kg != null ? formatNumeric(v.weight_kg, 1) : '—'
-                        var bp = v && v.blood_pressure ? String(v.blood_pressure) : '—'
-                        var temp = v && v.temperature != null ? formatNumeric(v.temperature, 1) : '—'
-                        var pulse = v && v.pulse_rate != null ? String(v.pulse_rate) : '—'
-                        var bmi = '—'
-                        if (v && v.height_cm && v.weight_kg && parseFloat(v.height_cm) > 0) {
-                            var hm = parseFloat(v.height_cm) / 100
-                            var wk = parseFloat(v.weight_kg)
-                            var bmiVal = wk / (hm * hm)
-                            if (isFinite(bmiVal)) bmi = bmiVal.toFixed(1)
-                        }
-                        html += '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
-                            '<div class="text-[0.72rem] text-slate-500 mb-2">' + escapeHtml(recorded) + '</div>' +
-                            '<div class="text-[0.72rem] space-y-1.5">' +
-                                '<div class="flex items-center justify-between"><span class="text-slate-500">Height</span><span class="text-slate-800 font-medium">' + escapeHtml(height) + ' cm</span></div>' +
-                                '<div class="flex items-center justify-between"><span class="text-slate-500">Weight</span><span class="text-slate-800 font-medium">' + escapeHtml(weight) + ' kg</span></div>' +
-                                '<div class="flex items-center justify-between"><span class="text-slate-500">BMI</span><span class="text-slate-800 font-medium">' + escapeHtml(bmi) + '</span></div>' +
-                                '<div class="flex items-center justify-between"><span class="text-slate-500">BP</span><span class="text-slate-800 font-medium">' + escapeHtml(bp) + '</span></div>' +
-                                '<div class="flex items-center justify-between"><span class="text-slate-500">Temp</span><span class="text-slate-800 font-medium">' + escapeHtml(temp) + ' °C</span></div>' +
-                                '<div class="flex items-center justify-between"><span class="text-slate-500">Pulse</span><span class="text-slate-800 font-medium">' + escapeHtml(pulse) + ' bpm</span></div>' +
-                            '</div>' +
-                        '</div>'
-                    })
-                    vitalsSideBody.innerHTML = html
-                })
-                .catch(function () {
-                    vitalsSideBody.innerHTML = '<div class="text-center text-[0.78rem] text-red-500 py-8">Network error loading vitals.</div>'
-                })
+        function getPatientTableRows() {
+            return document.querySelectorAll('#admin_pr_patients_table_body .admin-pr-patient-row')
         }
 
         function escapeHtml(text) {
@@ -448,9 +288,7 @@
             var today = new Date()
             var age = today.getFullYear() - d.getFullYear()
             var m = today.getMonth() - d.getMonth()
-            if (m < 0 || (m === 0 && today.getDate() < d.getDate())) {
-                age--
-            }
+            if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--
             if (age < 0) return null
             return age
         }
@@ -466,19 +304,21 @@
             return true
         }
 
+        function displayValue(value) {
+            return (value != null && value !== '') ? String(value) : '—'
+        }
+
+        function sexLabel(value) {
+            var text = displayValue(value)
+            if (text === '—') return text
+            return text.charAt(0).toUpperCase() + text.slice(1)
+        }
+
         function setAgeFilterActiveStyles() {
             ageFilterButtons.forEach(function (btn) {
                 var key = btn.getAttribute('data-age-filter') || ''
                 var isActive = key === activeAgeFilter
-                btn.classList.remove(
-                    'bg-green-600',
-                    'text-white',
-                    'bg-green-600',
-                    'bg-white',
-                    'text-slate-700',
-                    'border-slate-200',
-                    'hover:bg-slate-50'
-                )
+                btn.classList.remove('bg-green-600', 'text-white', 'border-green-600', 'bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50')
                 if (isActive) {
                     btn.classList.add('bg-green-600', 'text-white', 'border-green-600')
                 } else {
@@ -492,6 +332,43 @@
             el.textContent = text == null ? '' : String(text)
         }
 
+        function setTabButtonActive(btn, isActive) {
+            if (!btn) return
+            btn.classList.remove('bg-green-600', 'text-white', 'border-green-600', 'bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50')
+            if (isActive) {
+                btn.classList.add('bg-green-600', 'text-white', 'border-green-600')
+            } else {
+                btn.classList.add('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50')
+            }
+        }
+
+        function syncTabButtonState() {
+            setTabButtonActive(panelTabBackground, currentPanelTab === 'background')
+            setTabButtonActive(panelTabVisits, currentPanelTab === 'visits')
+            setTabButtonActive(panelTabVitals, currentPanelTab === 'vitals')
+            setTabButtonActive(panelTabDependents, currentPanelTab === 'dependents')
+        }
+
+        function formatRecordedAt(value) {
+            var raw = value ? String(value) : ''
+            if (!raw) return '—'
+            return raw.replace('T', ' ').slice(0, 16)
+        }
+
+        function formatNumeric(value, decimals) {
+            if (value == null || value === '') return '—'
+            var num = typeof value === 'number' ? value : parseFloat(value)
+            if (isNaN(num)) return '—'
+            return num.toFixed(decimals == null ? 1 : decimals)
+        }
+
+        function formatCurrency(value) {
+            if (value == null || value === '') return '—'
+            var num = typeof value === 'number' ? value : parseFloat(value)
+            if (isNaN(num)) return '—'
+            return 'PHP ' + num.toFixed(2)
+        }
+
         function openPanel() {
             if (overlay) {
                 overlay.classList.remove('opacity-0', 'pointer-events-none')
@@ -503,8 +380,33 @@
             }
         }
 
+        function closeTabDrawer() {
+            if (tabDrawer) {
+                tabDrawer.classList.add('hidden')
+            }
+            currentPanelTab = null
+            activeDependentRecord = null
+            activeDependentTab = 'background'
+            activeDependentMedBgRows = null
+            activeDependentVisitRows = null
+            activeDependentVitalRows = null
+            activeDependentVerification = null
+            syncTabButtonState()
+        }
+
+        function openTabDrawer() {
+            if (tabDrawer) {
+                tabDrawer.classList.remove('hidden')
+            }
+        }
+
         function closePanel() {
             currentPatientId = null
+            cachedMedBgRows = null
+            cachedVisitRows = null
+            cachedVitalRows = null
+            cachedDependentRows = null
+            closeTabDrawer()
             if (overlay) {
                 overlay.classList.add('opacity-0', 'pointer-events-none')
                 overlay.classList.remove('opacity-100', 'pointer-events-auto')
@@ -515,34 +417,500 @@
             }
         }
 
-        function setTabButtonActive(btn, isActive) {
-            if (!btn) return
-            btn.classList.remove(
-                'bg-green-600',
-                'text-white',
-                'border-green-600',
-                'bg-white',
-                'text-slate-700',
-                'border-slate-200',
-                'hover:bg-slate-50'
-            )
-            if (isActive) {
-                btn.classList.add('bg-green-600', 'text-white', 'border-green-600')
+        function buildTableHtml(headers, rowsHtml, emptyMessage, loadingMessage) {
+            var headerHtml = headers.map(function (header) {
+                return '<th class="py-2 pr-4 font-semibold">' + escapeHtml(header) + '</th>'
+            }).join('')
+            var bodyHtml = rowsHtml
+            if (!bodyHtml) {
+                var message = loadingMessage || emptyMessage
+                bodyHtml = '<tr><td colspan="' + headers.length + '" class="py-4 text-center text-[0.78rem] text-slate-400">' + escapeHtml(message) + '</td></tr>'
+            }
+            return '<div class="overflow-x-auto"><table class="min-w-full text-left text-xs text-slate-600"><thead><tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">' + headerHtml + '</tr></thead><tbody>' + bodyHtml + '</tbody></table></div>'
+        }
+
+        function renderDrawerTable(headers, rowsHtml, emptyMessage, loadingMessage) {
+            tabDrawerBody.innerHTML = buildTableHtml(headers, rowsHtml, emptyMessage, loadingMessage)
+        }
+
+        function renderDrawerMedicalBackground(entries) {
+            var headers = ['Category', 'Name', 'Diagnosis Date', 'Procedure Date', 'Notes']
+            if (entries == null) {
+                renderDrawerTable(headers, '', 'No medical background entries found.', 'Loading medical background entries...')
+                return
+            }
+            var rowsHtml = ''
+            entries.forEach(function (row) {
+                var diagnosisDate = row && row.diagnosis_date ? String(row.diagnosis_date) : ''
+                var diagnosisTime = row && row.diagnosis_time ? String(row.diagnosis_time) : ''
+                if (diagnosisDate || diagnosisTime) diagnosisDate = (diagnosisDate || '') + (diagnosisTime ? ' ' + diagnosisTime.slice(0, 5) : '')
+                var procedureDate = row && row.procedure_date ? String(row.procedure_date) : ''
+                rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(categoryLabel(row.category)) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(row && row.name ? String(row.name) : '—') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosisDate ? escapeHtml(diagnosisDate) : '<span class="text-slate-400">—</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (procedureDate ? escapeHtml(procedureDate) : '<span class="text-slate-400">—</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (row && row.notes ? escapeHtml(String(row.notes)) : '<span class="text-slate-400">—</span>') + '</td>' +
+                '</tr>'
+            })
+            renderDrawerTable(headers, rowsHtml, 'No medical background entries found.')
+        }
+
+        function renderDrawerVisits(rows) {
+            var headers = ['Doctor', 'Visit date', 'Fees', 'Action']
+            if (rows == null) {
+                renderDrawerTable(headers, '', 'No visits found.', 'Loading visit history...')
+                return
+            }
+            var rowsHtml = ''
+            rows.forEach(function (visit) {
+                var appointment = visit && visit.appointment ? visit.appointment : null
+                var doctor = appointment && appointment.doctor ? appointment.doctor : null
+                var dateRaw = visit && (visit.visit_datetime || visit.transaction_datetime) ? String(visit.visit_datetime || visit.transaction_datetime) : ''
+                var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '—'
+                rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(fullName(doctor, 'Doctor')) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(dateText) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(formatCurrency(visit && visit.amount != null ? visit.amount : '')) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem]">' +
+                        '<button type="button" class="admin-pr-open-vitals-tab inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.72rem] font-semibold hover:bg-slate-50">Open Vitals</button>' +
+                    '</td>' +
+                '</tr>'
+            })
+            renderDrawerTable(headers, rowsHtml, 'No visits found.')
+
+            tabDrawerBody.querySelectorAll('.admin-pr-open-vitals-tab').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    setPanelTab('vitals')
+                })
+            })
+        }
+
+        function renderDrawerVitals(rows) {
+            var headers = ['Recorded', 'Height (cm)', 'Weight (kg)', 'BP', 'Temp', 'Pulse']
+            if (rows == null) {
+                renderDrawerTable(headers, '', 'No vitals found.', 'Loading vitals history...')
+                return
+            }
+            var rowsHtml = ''
+            rows.forEach(function (vital) {
+                var recorded = formatRecordedAt(vital && vital.recorded_at ? vital.recorded_at : (vital && vital.appointment_datetime ? vital.appointment_datetime : ''))
+                var height = vital && vital.height_cm != null ? formatNumeric(vital.height_cm, 1) : '—'
+                var weight = vital && vital.weight_kg != null ? formatNumeric(vital.weight_kg, 1) : '—'
+                var bp = vital && vital.blood_pressure ? String(vital.blood_pressure) : '—'
+                var temp = vital && vital.temperature != null ? formatNumeric(vital.temperature, 1) : '—'
+                var pulse = vital && vital.pulse_rate != null ? String(vital.pulse_rate) : '—'
+                rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(recorded) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(height) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(weight) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(bp) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(temp) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(pulse) + '</td>' +
+                '</tr>'
+            })
+            renderDrawerTable(headers, rowsHtml, 'No vitals found.')
+        }
+
+        function renderDependentsList(rows) {
+            if (rows == null) {
+                tabDrawerBody.innerHTML = '<div class="space-y-3">' +
+                    '<div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-[0.78rem] text-slate-600">Loading dependents...</div>' +
+                '</div>'
+                return
+            }
+
+            if (!rows.length) {
+                tabDrawerBody.innerHTML = '<div class="space-y-3">' +
+                    '<div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-[0.78rem] text-slate-600">No dependents found for this patient.</div>' +
+                '</div>'
+                return
+            }
+
+            var html = '<div class="space-y-3">'
+            rows.forEach(function (dependent) {
+                var dependentId = dependent && dependent.user_id != null ? String(dependent.user_id) : ''
+                var age = ageFromBirthdate(dependent && dependent.birthdate ? String(dependent.birthdate) : null)
+                var profileImg = dependent && dependent.prof_path_url ? String(dependent.prof_path_url) : ''
+                html += '<button type="button" class="admin-pr-dependent-card w-full text-left rounded-2xl border border-slate-200 bg-white p-4 hover:bg-slate-50 transition-colors" data-dependent-id="' + escapeHtml(dependentId) + '">' +
+                    '<div class="flex items-center gap-4">' +
+                        '<div class="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">' +
+                            (profileImg
+                                ? '<img src="' + profileImg.replace(/"/g, '&quot;') + '" alt="" class="w-full h-full object-cover">'
+                                : '<div class="w-full h-full flex items-center justify-center text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>') +
+                        '</div>' +
+                        '<div class="flex-1 min-w-0 space-y-1">' +
+                            '<div class="text-[0.82rem] font-semibold text-slate-900 truncate">' + escapeHtml(fullName(dependent, 'Dependent')) + '</div>' +
+                            '<div class="text-[0.76rem] text-slate-500">Age: <span class="text-slate-700">' + escapeHtml(age == null ? '—' : String(age)) + '</span></div>' +
+                            '<div class="text-[0.76rem] text-slate-500">Sex: <span class="text-slate-700">' + escapeHtml(sexLabel(dependent && dependent.sex)) + '</span></div>' +
+                        '</div>' +
+                    '</div>' +
+                '</button>'
+            })
+            html += '</div>'
+            tabDrawerBody.innerHTML = html
+
+            tabDrawerBody.querySelectorAll('.admin-pr-dependent-card').forEach(function (card) {
+                card.addEventListener('click', function () {
+                    var dependentId = this.getAttribute('data-dependent-id')
+                    if (!dependentId) return
+                    openDependentRecord(dependentId)
+                })
+            })
+        }
+
+        function renderDependentRecordView() {
+            if (!tabDrawerBody || !activeDependentRecord) return
+
+            var record = activeDependentRecord
+            if (tabDrawerTitle) tabDrawerTitle.textContent = fullName(record, 'Dependent')
+            var profileImg = record && record.prof_path_url ? String(record.prof_path_url) : ''
+            var birthdate = record && record.birthdate ? String(record.birthdate) : ''
+            var age = ageFromBirthdate(birthdate)
+            var verificationStatus = activeDependentVerification && activeDependentVerification.status ? String(activeDependentVerification.status) : 'Not submitted'
+            var patientType = activeDependentVerification && activeDependentVerification.type ? String(activeDependentVerification.type) : '—'
+            var verificationHtml = '—'
+            if (activeDependentVerification && activeDependentVerification.document_url) {
+                verificationHtml = '<a href="' + String(activeDependentVerification.document_url).replace(/"/g, '&quot;') + '" target="_blank" class="text-green-700 underline hover:text-green-800">View ID</a>'
+            }
+
+            var contentHtml = ''
+            if (activeDependentTab === 'background') {
+                contentHtml = buildTableHtml(
+                    ['Category', 'Name', 'Diagnosis Date', 'Procedure Date', 'Notes'],
+                    buildDependentMedicalRows(activeDependentMedBgRows),
+                    'No medical background entries found.',
+                    'Loading medical background entries...'
+                )
+            } else if (activeDependentTab === 'visits') {
+                contentHtml = buildTableHtml(
+                    ['Doctor', 'Visit date', 'Fees', 'Action'],
+                    buildDependentVisitRows(activeDependentVisitRows),
+                    'No visits found.',
+                    'Loading visit history...'
+                )
             } else {
-                btn.classList.add('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50')
+                contentHtml = buildTableHtml(
+                    ['Recorded', 'Height (cm)', 'Weight (kg)', 'BP', 'Temp', 'Pulse'],
+                    buildDependentVitalRows(activeDependentVitalRows),
+                    'No vitals found.',
+                    'Loading vitals history...'
+                )
+            }
+
+            var html = ''
+            html += '<div class="space-y-4">'
+            html += '<div class="flex items-center justify-between gap-3">' +
+                '<button type="button" class="admin-pr-dependent-back inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.76rem] font-semibold hover:bg-slate-50">' +
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>' +
+                    'Back' +
+                '</button>' +
+                '<div class="text-right min-w-0">' +
+                    '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Dependent record</div>' +
+                    '<div class="text-[0.82rem] font-semibold text-slate-900 truncate">' + escapeHtml(fullName(record, 'Dependent')) + '</div>' +
+                '</div>' +
+            '</div>'
+
+            html += '<div class="rounded-2xl border border-slate-200 bg-white overflow-hidden">' +
+                '<div class="px-4 py-4 border-b border-slate-100">' +
+                    '<div class="flex gap-4">' +
+                        '<div class="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0 self-start">' +
+                            (profileImg
+                                ? '<img src="' + profileImg.replace(/"/g, '&quot;') + '" alt="" class="w-full h-full object-cover">'
+                                : '<div class="w-full h-full flex items-center justify-center text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>') +
+                        '</div>' +
+                        '<div class="flex-1 flex gap-x-5 gap-y-[3px] text-[0.78rem]">' +
+                            '<div class="flex-1 space-y-[3px]">' +
+                                '<div><span class="text-slate-500">First name:</span> <span class="text-slate-800 ml-1">' + escapeHtml(displayValue(record && record.firstname)) + '</span></div>' +
+                                '<div><span class="text-slate-500">Middle Name:</span> <span class="text-slate-800 ml-1">' + escapeHtml(displayValue(record && record.middlename)) + '</span></div>' +
+                                '<div><span class="text-slate-500">Last Name:</span> <span class="text-slate-800 ml-1">' + escapeHtml(displayValue(record && record.lastname)) + '</span></div>' +
+                                '<div><span class="text-slate-500">Date Of Birth:</span> <span class="text-slate-800 ml-1">' + escapeHtml(birthdate ? birthdate.substring(0, 10) + (age != null ? ' (Age: ' + age + ')' : '') : '—') + '</span></div>' +
+                                '<div><span class="text-slate-500">Address:</span> <span class="text-slate-800 ml-1">' + escapeHtml(displayValue(record && record.address)) + '</span></div>' +
+                                '<div><span class="text-slate-500">Sex:</span> <span class="text-slate-800 ml-1">' + escapeHtml(sexLabel(record && record.sex)) + '</span></div>' +
+                                '<div><span class="text-slate-500">Civil status:</span> <span class="text-slate-800 ml-1">' + escapeHtml(displayValue(record && record.civil_status)) + '</span></div>' +
+                            '</div>' +
+                            '<div class="flex-1 space-y-[3px]">' +
+                                '<div><span class="text-slate-500">Nationality:</span> <span class="text-slate-800 ml-1">' + escapeHtml(displayValue(record && record.nationality)) + '</span></div>' +
+                                '<div><span class="text-slate-500">Contact Number:</span> <span class="text-slate-800 ml-1">' + escapeHtml(displayValue(record && record.contact_number)) + '</span></div>' +
+                                '<div><span class="text-slate-500">PHIC #:</span> <span class="text-slate-800 ml-1">' + escapeHtml(displayValue(record && record.philhealth_number)) + '</span></div>' +
+                                '<div><span class="text-slate-500">Occupation:</span> <span class="text-slate-800 ml-1">' + escapeHtml(displayValue(record && record.occupation)) + '</span></div>' +
+                                '<div><span class="text-slate-500">Emergency contact:</span> <span class="text-slate-800 ml-1">' + escapeHtml(displayValue(record && record.emergency_contact)) + '</span></div>' +
+                                '<div><span class="text-slate-500">Emergency Contact Number:</span> <span class="text-slate-800 ml-1">' + escapeHtml(displayValue(record && record.emergency_contact_number)) + '</span></div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="px-4 pt-4 pb-3 border-b border-slate-100">' +
+                    '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Patient records</div>' +
+                    '<div class="flex flex-wrap items-center gap-2">' +
+                        '<button type="button" class="admin-pr-dependent-tab px-3 py-2 rounded-xl text-[0.78rem] font-semibold border ' + (activeDependentTab === 'background' ? 'border-green-600 bg-green-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50') + '" data-dependent-tab="background">Medical background</button>' +
+                        '<button type="button" class="admin-pr-dependent-tab px-3 py-2 rounded-xl text-[0.78rem] font-semibold border ' + (activeDependentTab === 'visits' ? 'border-green-600 bg-green-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50') + '" data-dependent-tab="visits">Visit history</button>' +
+                        '<button type="button" class="admin-pr-dependent-tab px-3 py-2 rounded-xl text-[0.78rem] font-semibold border ' + (activeDependentTab === 'vitals' ? 'border-green-600 bg-green-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50') + '" data-dependent-tab="vitals">Vitals history</button>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="px-4 py-4 space-y-3 border-b border-slate-100">' +
+                    '<div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"><div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification status</div><div class="text-[0.8rem] font-semibold text-slate-700 mt-1">' + escapeHtml(verificationStatus) + '</div></div>' +
+                    '<div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"><div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient type</div><div class="text-[0.8rem] font-semibold text-slate-700 mt-1">' + escapeHtml(patientType) + '</div></div>' +
+                    '<div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"><div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification ID</div><div class="text-[0.8rem] font-semibold text-slate-700 mt-1">' + verificationHtml + '</div></div>' +
+                '</div>' +
+                '<div class="px-4 py-4">' + contentHtml + '</div>' +
+            '</div>'
+            html += '</div>'
+
+            tabDrawerBody.innerHTML = html
+
+            var backBtn = tabDrawerBody.querySelector('.admin-pr-dependent-back')
+            if (backBtn) {
+                backBtn.addEventListener('click', function () {
+                    activeDependentRecord = null
+                    activeDependentTab = 'background'
+                    activeDependentMedBgRows = null
+                    activeDependentVisitRows = null
+                    activeDependentVitalRows = null
+                    activeDependentVerification = null
+                    renderTabDrawerContent('dependents')
+                })
+            }
+
+            tabDrawerBody.querySelectorAll('.admin-pr-dependent-tab').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    activeDependentTab = this.getAttribute('data-dependent-tab') || 'background'
+                    renderDependentRecordView()
+                })
+            })
+
+            tabDrawerBody.querySelectorAll('.admin-pr-dependent-open-vitals-tab').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    activeDependentTab = 'vitals'
+                    renderDependentRecordView()
+                })
+            })
+        }
+
+        function buildDependentMedicalRows(entries) {
+            if (entries == null || !entries.length) return ''
+            var rowsHtml = ''
+            entries.forEach(function (row) {
+                var diagnosisDate = row && row.diagnosis_date ? String(row.diagnosis_date) : ''
+                var diagnosisTime = row && row.diagnosis_time ? String(row.diagnosis_time) : ''
+                if (diagnosisDate || diagnosisTime) diagnosisDate = (diagnosisDate || '') + (diagnosisTime ? ' ' + diagnosisTime.slice(0, 5) : '')
+                var procedureDate = row && row.procedure_date ? String(row.procedure_date) : ''
+                rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(categoryLabel(row.category)) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(displayValue(row && row.name)) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosisDate ? escapeHtml(diagnosisDate) : '<span class="text-slate-400">—</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (procedureDate ? escapeHtml(procedureDate) : '<span class="text-slate-400">—</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (row && row.notes ? escapeHtml(String(row.notes)) : '<span class="text-slate-400">—</span>') + '</td>' +
+                '</tr>'
+            })
+            return rowsHtml
+        }
+
+        function buildDependentVisitRows(rows) {
+            if (rows == null || !rows.length) return ''
+            var rowsHtml = ''
+            rows.forEach(function (visit) {
+                var appointment = visit && visit.appointment ? visit.appointment : null
+                var doctor = appointment && appointment.doctor ? appointment.doctor : null
+                var dateRaw = visit && (visit.visit_datetime || visit.transaction_datetime) ? String(visit.visit_datetime || visit.transaction_datetime) : ''
+                var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '—'
+                rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(fullName(doctor, 'Doctor')) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(dateText) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(formatCurrency(visit && visit.amount != null ? visit.amount : '')) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem]"><button type="button" class="admin-pr-dependent-open-vitals-tab inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.72rem] font-semibold hover:bg-slate-50">Open Vitals</button></td>' +
+                '</tr>'
+            })
+            return rowsHtml
+        }
+
+        function buildDependentVitalRows(rows) {
+            if (rows == null || !rows.length) return ''
+            var rowsHtml = ''
+            rows.forEach(function (vital) {
+                var recorded = formatRecordedAt(vital && vital.recorded_at ? vital.recorded_at : (vital && vital.appointment_datetime ? vital.appointment_datetime : ''))
+                var height = vital && vital.height_cm != null ? formatNumeric(vital.height_cm, 1) : '—'
+                var weight = vital && vital.weight_kg != null ? formatNumeric(vital.weight_kg, 1) : '—'
+                var bp = vital && vital.blood_pressure ? String(vital.blood_pressure) : '—'
+                var temp = vital && vital.temperature != null ? formatNumeric(vital.temperature, 1) : '—'
+                var pulse = vital && vital.pulse_rate != null ? String(vital.pulse_rate) : '—'
+                rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(recorded) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(height) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(weight) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(bp) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(temp) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(pulse) + '</td>' +
+                '</tr>'
+            })
+            return rowsHtml
+        }
+
+        function openDependentRecord(dependentId) {
+            if (!dependentId || !Array.isArray(cachedDependentRows)) return
+            var found = null
+            for (var i = 0; i < cachedDependentRows.length; i++) {
+                if (cachedDependentRows[i] && String(cachedDependentRows[i].user_id) === String(dependentId)) {
+                    found = cachedDependentRows[i]
+                    break
+                }
+            }
+            if (!found) return
+
+            activeDependentRecord = found
+            activeDependentTab = 'background'
+            activeDependentMedBgRows = null
+            activeDependentVisitRows = null
+            activeDependentVitalRows = null
+            activeDependentVerification = null
+            renderDependentRecordView()
+
+            var depId = String(dependentId)
+            var medBgReq = apiFetch(apiBaseUrl + "/medical-backgrounds?per_page=100&patient_id=" + encodeURIComponent(depId), { method: 'GET' })
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        return { ok: response.ok, data: data }
+                    }).catch(function () {
+                        return { ok: response.ok, data: null }
+                    })
+                })
+
+            var visitsReq = apiFetch(apiBaseUrl + "/visits?per_page=100&patient_id=" + encodeURIComponent(depId), { method: 'GET' })
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        return { ok: response.ok, data: data }
+                    }).catch(function () {
+                        return { ok: response.ok, data: null }
+                    })
+                })
+
+            var vitalsReq = apiFetch(apiBaseUrl + "/vitals?per_page=100&patient_id=" + encodeURIComponent(depId), { method: 'GET' })
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        return { ok: response.ok, data: data }
+                    }).catch(function () {
+                        return { ok: response.ok, data: null }
+                    })
+                })
+
+            var verificationReq = apiFetch(apiBaseUrl + "/patient-verifications?per_page=1&patient_id=" + encodeURIComponent(depId), { method: 'GET' })
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        return { ok: response.ok, data: data }
+                    }).catch(function () {
+                        return { ok: response.ok, data: null }
+                    })
+                })
+
+            Promise.all([medBgReq, visitsReq, vitalsReq, verificationReq])
+                .then(function (results) {
+                    if (!activeDependentRecord || String(activeDependentRecord.user_id) !== depId) return
+                    activeDependentMedBgRows = (!results[0] || !results[0].ok || !results[0].data) ? [] : (Array.isArray(results[0].data.data) ? results[0].data.data : (Array.isArray(results[0].data) ? results[0].data : []))
+                    activeDependentVisitRows = (!results[1] || !results[1].ok || !results[1].data) ? [] : (Array.isArray(results[1].data.data) ? results[1].data.data : (Array.isArray(results[1].data) ? results[1].data : []))
+                    activeDependentVitalRows = (!results[2] || !results[2].ok || !results[2].data) ? [] : (Array.isArray(results[2].data.data) ? results[2].data.data : (Array.isArray(results[2].data) ? results[2].data : []))
+
+                    var verificationRows = (!results[3] || !results[3].ok || !results[3].data) ? [] : (Array.isArray(results[3].data.data) ? results[3].data.data : (Array.isArray(results[3].data) ? results[3].data : []))
+                    activeDependentVerification = verificationRows.length ? verificationRows[0] : null
+                    renderDependentRecordView()
+                })
+                .catch(function () {
+                    if (!activeDependentRecord || String(activeDependentRecord.user_id) !== depId) return
+                    activeDependentMedBgRows = []
+                    activeDependentVisitRows = []
+                    activeDependentVitalRows = []
+                    activeDependentVerification = null
+                    renderDependentRecordView()
+                })
+        }
+
+        function renderTabDrawerContent(key) {
+            if (!tabDrawerTitle || !tabDrawerBody) return
+            if (key === 'background') {
+                tabDrawerTitle.textContent = 'Medical background'
+                renderDrawerMedicalBackground(cachedMedBgRows)
+            } else if (key === 'visits') {
+                tabDrawerTitle.textContent = 'Visit history'
+                renderDrawerVisits(cachedVisitRows)
+            } else if (key === 'vitals') {
+                tabDrawerTitle.textContent = 'Vitals history'
+                renderDrawerVitals(cachedVitalRows)
+            } else if (key === 'dependents') {
+                if (activeDependentRecord) {
+                    tabDrawerTitle.textContent = fullName(activeDependentRecord, 'Dependent')
+                    renderDependentRecordView()
+                } else {
+                    tabDrawerTitle.textContent = 'Dependents'
+                    renderDependentsList(cachedDependentRows)
+                }
             }
         }
 
         function setPanelTab(key) {
-            var isBackground = key === 'background'
-            var isVisits = key === 'visits'
-            var isVitals = key === 'vitals'
-            if (panelBackground) panelBackground.classList.toggle('hidden', !isBackground)
-            if (panelVisits) panelVisits.classList.toggle('hidden', !isVisits)
-            if (panelVitals) panelVitals.classList.toggle('hidden', !isVitals)
-            setTabButtonActive(panelTabBackground, isBackground)
-            setTabButtonActive(panelTabVisits, isVisits)
-            setTabButtonActive(panelTabVitals, isVitals)
+            if (!currentPatientId) return
+            if (key === 'dependents') {
+                activeDependentRecord = null
+                activeDependentTab = 'background'
+                activeDependentMedBgRows = null
+                activeDependentVisitRows = null
+                activeDependentVitalRows = null
+                activeDependentVerification = null
+            }
+            currentPanelTab = key
+            syncTabButtonState()
+            openTabDrawer()
+            renderTabDrawerContent(key)
+        }
+
+        function showPage(page) {
+            var rows = getPatientTableRows()
+            var total = rows.length
+            if (!total || !pagination) return
+            var totalPages = Math.ceil(total / perPage)
+            if (page < 1 || page > totalPages) return
+            currentPage = page
+            var start = (page - 1) * perPage
+            var end = Math.min(start + perPage, total)
+            rows.forEach(function (row, index) {
+                row.style.display = (index >= start && index < end) ? '' : 'none'
+            })
+            renderPagination()
+        }
+
+        function renderPagination() {
+            if (!pagination) return
+            var rows = getPatientTableRows()
+            var total = rows.length
+            if (total === 0) {
+                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
+                return
+            }
+            var totalPages = Math.ceil(total / perPage)
+            var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border '
+            var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer'
+            var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default'
+            var btnActive = btnBase + 'bg-green-600 text-white border-green-600'
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+            html += '<button type="button" class="' + (currentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (currentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            var windowStart = currentPage
+            var windowEnd = Math.min(windowStart + visibleCount - 1, totalPages)
+            for (var i = windowStart; i <= windowEnd; i++) {
+                html += '<button type="button" class="' + (i === currentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
+            }
+            if (windowEnd < totalPages) {
+                html += '<button type="button" class="' + btnInactive + '" data-page="next-window" title="Next set">…</button>'
+            }
+            html += '<button type="button" class="' + (currentPage === totalPages ? btnDisabled : btnInactive) + '" data-page="next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            pagination.innerHTML = html
+
+            pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var page = btn.getAttribute('data-page')
+                    if (page === 'prev' && currentPage > 1) showPage(currentPage - 1)
+                    else if (page === 'next' && currentPage < totalPages) showPage(currentPage + 1)
+                    else if (page === 'next-window') showPage(Math.min(windowEnd + 1, totalPages))
+                    else if (page !== 'prev' && page !== 'next') showPage(parseInt(page, 10))
+                })
+            })
         }
 
         function loadPatients() {
@@ -565,8 +933,7 @@
                         renderPatients()
                         return
                     }
-                    var rows = Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
-                    patientsRows = rows
+                    patientsRows = Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
                     renderPatients()
                 })
                 .catch(function () {
@@ -583,23 +950,15 @@
             var base = (patientsRows || []).slice()
 
             if (query) {
-                base = base.filter(function (p) {
-                    var name = nameOnly(p).toLowerCase()
+                base = base.filter(function (patient) {
+                    var name = nameOnly(patient).toLowerCase()
                     return name !== '' && name.indexOf(query) === 0
                 })
             }
 
-            var counts = {
-                all: 0,
-                '1_5': 0,
-                '6_12': 0,
-                '13_18': 0,
-                '19_30': 0,
-                '31_up': 0
-            }
-
-            base.forEach(function (p) {
-                var age = ageFromBirthdate(p && p.birthdate ? String(p.birthdate) : null)
+            var counts = { all: 0, '1_5': 0, '6_12': 0, '13_18': 0, '19_30': 0, '31_up': 0 }
+            base.forEach(function (patient) {
+                var age = ageFromBirthdate(patient && patient.birthdate ? String(patient.birthdate) : null)
                 counts.all++
                 if (matchesAgeFilter(age, '1_5')) counts['1_5']++
                 if (matchesAgeFilter(age, '6_12')) counts['6_12']++
@@ -615,8 +974,8 @@
             setText(ageCount19_30, counts['19_30'])
             setText(ageCount31Up, counts['31_up'])
 
-            var filtered = base.filter(function (p) {
-                var age = ageFromBirthdate(p && p.birthdate ? String(p.birthdate) : null)
+            var filtered = base.filter(function (patient) {
+                var age = ageFromBirthdate(patient && patient.birthdate ? String(patient.birthdate) : null)
                 return matchesAgeFilter(age, activeAgeFilter)
             })
 
@@ -649,18 +1008,18 @@
             }
 
             var html = ''
-            filtered.forEach(function (p) {
-                var pid = p && p.user_id != null ? String(p.user_id) : ''
-                var name = fullName(p, 'Patient')
-                var address = p && p.address ? String(p.address) : ''
-                var age = ageFromBirthdate(p && p.birthdate ? String(p.birthdate) : null)
-                var sex = p && p.sex ? String(p.sex) : ''
-                var verificationType = p && p.verification_type ? String(p.verification_type) : ''
-                var profileImg = p && p.prof_path_url ? String(p.prof_path_url) : ''
+            filtered.forEach(function (patient) {
+                var patientId = patient && patient.user_id != null ? String(patient.user_id) : ''
+                var name = fullName(patient, 'Patient')
+                var address = patient && patient.address ? String(patient.address) : ''
+                var age = ageFromBirthdate(patient && patient.birthdate ? String(patient.birthdate) : null)
+                var sex = patient && patient.sex ? String(patient.sex) : ''
+                var verificationType = patient && patient.verification_type ? String(patient.verification_type) : ''
+                var profileImg = patient && patient.prof_path_url ? String(patient.prof_path_url) : ''
                 html += '<tr class="admin-pr-patient-row border-b border-slate-50 last:border-0">' +
                     '<td class="py-2 pr-4">' +
                         (profileImg
-                            ? '<img src="' + profileImg.replace(/"/g,'&quot;') + '" alt="" class="w-10 h-10 rounded-lg object-cover border border-slate-200">'
+                            ? '<img src="' + profileImg.replace(/"/g, '&quot;') + '" alt="" class="w-10 h-10 rounded-lg object-cover border border-slate-200">'
                             : '<div class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>'
                         ) +
                     '</td>' +
@@ -670,9 +1029,7 @@
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (sex ? escapeHtml(sex.charAt(0).toUpperCase() + sex.slice(1)) : '<span class="text-slate-400">—</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (verificationType ? escapeHtml(verificationType.charAt(0).toUpperCase() + verificationType.slice(1)) : '<span class="text-slate-400">—</span>') + '</td>' +
                     '<td class="py-2 pr-4">' +
-                        '<button type="button" class="admin-pr-open-panel inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.78rem] font-semibold hover:bg-slate-50" data-patient-id="' + escapeHtml(pid) + '">' +
-                            'View Details and History' +
-                        '</button>' +
+                        '<button type="button" class="admin-pr-open-panel inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.78rem] font-semibold hover:bg-slate-50" data-patient-id="' + escapeHtml(patientId) + '">View Details and History</button>' +
                     '</td>' +
                 '</tr>'
             })
@@ -684,239 +1041,33 @@
         }
 
         function findPatientById(patientId) {
-            var pid = String(patientId || '')
+            var value = String(patientId || '')
             for (var i = 0; i < (patientsRows || []).length; i++) {
-                var p = patientsRows[i]
-                if (p && String(p.user_id) === pid) {
-                    return p
-                }
+                if (patientsRows[i] && String(patientsRows[i].user_id) === value) return patientsRows[i]
             }
             return null
         }
 
-        function renderPanelMedicalBackground(entries) {
-            if (!panelMedBgTableBody) return
-            if (!entries || !entries.length) {
-                panelMedBgTableBody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-[0.78rem] text-slate-400">No medical background entries found.</td></tr>'
-                return
-            }
-            var html = ''
-            entries.forEach(function (r) {
-                var diagnosisDate = r && r.diagnosis_date ? String(r.diagnosis_date) : ''
-                var diagnosisTime = r && r.diagnosis_time ? String(r.diagnosis_time) : ''
-                if (diagnosisDate || diagnosisTime) {
-                    diagnosisDate = (diagnosisDate || '') + (diagnosisTime ? ' ' + diagnosisTime.slice(0, 5) : '')
-                }
-                var procedureDate = r && r.procedure_date ? String(r.procedure_date) : ''
-                html += '<tr class="border-b border-slate-50 last:border-0">' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(categoryLabel(r.category)) + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(r && r.name ? String(r.name) : '—') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosisDate ? escapeHtml(diagnosisDate) : '<span class="text-slate-400">—</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (procedureDate ? escapeHtml(procedureDate) : '<span class="text-slate-400">—</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (r && r.notes ? escapeHtml(String(r.notes)) : '<span class="text-slate-400">—</span>') + '</td>' +
-                '</tr>'
-            })
-            panelMedBgTableBody.innerHTML = html
-        }
-
-        function renderPanelVisits(rows) {
-            if (!panelVisitsTableBody) return
-            if (!rows || !rows.length) {
-                panelVisitsTableBody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">No visits found.</td></tr>'
-                return
-            }
-            var html = ''
-            rows.forEach(function (v) {
-                var appt = v && v.appointment ? v.appointment : null
-                var apptId = appt && appt.appointment_id != null ? String(appt.appointment_id) : ''
-                var doctor = appt && appt.doctor ? appt.doctor : null
-                var dateRaw = v && (v.visit_datetime || v.transaction_datetime) ? String(v.visit_datetime || v.transaction_datetime) : ''
-                var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '—'
-                var fees = v && v.amount != null ? ('₱' + parseFloat(v.amount || 0).toFixed(2)) : '—'
-
-                html += '<tr class="border-b border-slate-50 last:border-0">' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(fullName(doctor, 'Doctor')) + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(dateText) + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(fees) + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem]">' +
-                        '<button type="button" class="admin-pr-view-vitals inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.72rem] font-semibold hover:bg-slate-50" data-appointment-id="' + escapeHtml(apptId) + '">View Vitals</button>' +
-                    '</td>' +
-                '</tr>'
-            })
-            panelVisitsTableBody.innerHTML = html
-
-            panelVisitsTableBody.querySelectorAll('.admin-pr-view-vitals').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    var apptId = this.getAttribute('data-appointment-id')
-                    if (!apptId || !currentPatientId) return
-                    loadVitalsForAppointment(apptId)
-                })
-            })
-        }
-
-        function doctorLabelFromVitals(v) {
-            if (!v) return '—'
-            var parts = []
-            if (v.doctor_firstname) parts.push(String(v.doctor_firstname))
-            if (v.doctor_middlename) parts.push(String(v.doctor_middlename))
-            if (v.doctor_lastname) parts.push(String(v.doctor_lastname))
-            var name = parts.join(' ').trim()
-            if (name) return name
-            if (v.doctor_id != null) return 'Doctor #' + String(v.doctor_id)
-            return '—'
-        }
-
-        function formatRecordedAt(value) {
-            var raw = value ? String(value) : ''
-            if (!raw) return '—'
-            return raw.replace('T', ' ').slice(0, 16)
-        }
-
-        function formatNumeric(value, decimals) {
-            if (value == null || value === '') return '—'
-            var num = typeof value === 'number' ? value : parseFloat(value)
-            if (isNaN(num)) return '—'
-            var d = decimals == null ? 1 : decimals
-            return num.toFixed(d)
-        }
-
-        function bmiCategoryText(bmi) {
-            if (bmi < 18.5) return 'Underweight (Below 18.5)'
-            if (bmi < 25) return 'Healthy Weight (18.5 – 24.9)'
-            if (bmi < 30) return 'Overweight (25.0 – 29.9)'
-            if (bmi < 35) return 'Class 1 Obesity (30.0 – 34.9)'
-            if (bmi < 40) return 'Class 2 Obesity (35.0 – 39.9)'
-            return 'Class 3 Obesity (Severe) (40.0 or higher)'
-        }
-
-        function setBmiForVital(vitalId) {
-            if (!panelVitalsTableBody) return
-            var id = String(vitalId || '')
-            if (!id) return
-            var row = panelVitalsTableBody.querySelector('tr[data-vital-id="' + id.replace(/"/g, '') + '"]')
-            var out = panelVitalsTableBody.querySelector('[data-vital-bmi-result="' + id.replace(/"/g, '') + '"]')
-            if (!row || !out) return
-
-            var heightCm = parseFloat(row.getAttribute('data-height-cm') || '')
-            var weightKg = parseFloat(row.getAttribute('data-weight-kg') || '')
-            if (!heightCm || isNaN(heightCm) || !weightKg || isNaN(weightKg) || heightCm <= 0 || weightKg <= 0) {
-                out.textContent = 'BMI: —  BMI Category: —'
-                return
-            }
-
-            var h = heightCm / 100
-            var bmi = weightKg / (h * h)
-            if (!isFinite(bmi) || isNaN(bmi)) {
-                out.textContent = 'BMI: —  BMI Category: —'
-                return
-            }
-
-            var bmiText = bmi.toFixed(1)
-            out.textContent = 'BMI: ' + bmiText + '  BMI Category: ' + bmiCategoryText(bmi)
-        }
-
-        function toggleVitalDetails(vitalId) {
-            if (!panelVitalsTableBody) return
-            var id = String(vitalId || '')
-            if (!id) return
-
-            var currentDetail = panelVitalsTableBody.querySelector('tr[data-vital-detail-row="' + id.replace(/"/g, '') + '"]')
-            if (!currentDetail) return
-
-            if (expandedVitalId && expandedVitalId !== id) {
-                var prev = panelVitalsTableBody.querySelector('tr[data-vital-detail-row="' + String(expandedVitalId).replace(/"/g, '') + '"]')
-                if (prev) prev.classList.add('hidden')
-            }
-
-            var isHidden = currentDetail.classList.contains('hidden')
-            if (isHidden) {
-                currentDetail.classList.remove('hidden')
-                expandedVitalId = id
-            } else {
-                currentDetail.classList.add('hidden')
-                expandedVitalId = null
-            }
-        }
-
-        function renderPanelVitals(rows) {
-            if (!panelVitalsTableBody) return
-            expandedVitalId = null
-            if (!rows || !rows.length) {
-                panelVitalsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No vitals found.</td></tr>'
-                return
-            }
-
-            var html = ''
-            rows.forEach(function (v) {
-                var id = v && v.vital_id != null ? String(v.vital_id) : ''
-                var recorded = formatRecordedAt(v && v.recorded_at ? v.recorded_at : (v && v.appointment_datetime ? v.appointment_datetime : ''))
-                var height = v && v.height_cm != null ? formatNumeric(v.height_cm, 1) : '—'
-                var weight = v && v.weight_kg != null ? formatNumeric(v.weight_kg, 1) : '—'
-                var bp = v && v.blood_pressure ? String(v.blood_pressure) : '—'
-                var temp = v && v.temperature != null ? formatNumeric(v.temperature, 1) : '—'
-                var pulse = v && v.pulse_rate != null ? String(v.pulse_rate) : '—'
-                var doctor = doctorLabelFromVitals(v)
-                var appt = v && v.appointment_id != null ? ('#' + String(v.appointment_id)) : '—'
-                var apptWhen = v && v.appointment_datetime ? formatRecordedAt(v.appointment_datetime) : '—'
-
-                html += '<tr class="border-b border-slate-50 last:border-0 cursor-pointer hover:bg-slate-50" data-vital-id="' + escapeHtml(id) + '" data-height-cm="' + escapeHtml(v && v.height_cm != null ? String(v.height_cm) : '') + '" data-weight-kg="' + escapeHtml(v && v.weight_kg != null ? String(v.weight_kg) : '') + '">' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(recorded) + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(height) + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(weight) + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(bp) + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(temp) + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(pulse) + '</td>' +
-                    '<td class="py-2 pr-4">' +
-                        '<button type="button" class="admin-vital-bmi inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.75rem] font-semibold hover:bg-slate-50" data-vital-id="' + escapeHtml(id) + '">Get BMI</button>' +
-                    '</td>' +
-                '</tr>' +
-                '<tr class="hidden" data-vital-detail-row="' + escapeHtml(id) + '">' +
-                    '<td colspan="7" class="pb-3">' +
-                        '<div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-[0.78rem] text-slate-700">' +
-                            '<div class="grid grid-cols-2 gap-2">' +
-                                '<div><span class="text-slate-500">Appointment:</span> ' + escapeHtml(appt) + '</div>' +
-                                '<div><span class="text-slate-500">Appointment date:</span> ' + escapeHtml(apptWhen) + '</div>' +
-                                '<div><span class="text-slate-500">Doctor:</span> ' + escapeHtml(doctor) + '</div>' +
-                                '<div><span class="text-slate-500">Recorded at:</span> ' + escapeHtml(recorded) + '</div>' +
-                                '<div><span class="text-slate-500">Height:</span> ' + escapeHtml(height) + ' cm</div>' +
-                                '<div><span class="text-slate-500">Weight:</span> ' + escapeHtml(weight) + ' kg</div>' +
-                                '<div><span class="text-slate-500">Blood pressure:</span> ' + escapeHtml(bp) + '</div>' +
-                                '<div><span class="text-slate-500">Temperature:</span> ' + escapeHtml(temp) + '</div>' +
-                                '<div><span class="text-slate-500">Pulse rate:</span> ' + escapeHtml(pulse) + '</div>' +
-                            '</div>' +
-                            '<div class="mt-2 text-[0.78rem] text-slate-800 font-semibold" data-vital-bmi-result="' + escapeHtml(id) + '">BMI: —  BMI Category: —</div>' +
-                        '</div>' +
-                    '</td>' +
-                '</tr>'
-            })
-
-            panelVitalsTableBody.innerHTML = html
+        function resetPanelMetaFields() {
+            if (panelVerificationStatus) panelVerificationStatus.textContent = '—'
+            if (panelPatientType) panelPatientType.textContent = '—'
+            if (panelVerificationId) panelVerificationId.textContent = '—'
         }
 
         function loadPatientPanelData(patientId) {
             currentPatientId = String(patientId || '')
-            showInlineBox(panelMedBgError, '')
-            showInlineBox(panelVisitsError, '')
-            showInlineBox(panelVitalsError, '')
-            expandedVitalId = null
-
-            if (panelVerificationStatus) panelVerificationStatus.textContent = '—'
-            if (panelPatientType) panelPatientType.textContent = '—'
-            if (panelVerificationId) panelVerificationId.textContent = '—'
-            if (panelPatientContact) panelPatientContact.textContent = ''
-            if (panelProfilePic) {
-                panelProfilePic.innerHTML = defaultProfilePicHtml
-            }
-
-            if (panelMedBgTableBody) {
-                panelMedBgTableBody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-[0.78rem] text-slate-400">Loading entries…</td></tr>'
-            }
-            if (panelVisitsTableBody) {
-                panelVisitsTableBody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">Loading visits…</td></tr>'
-            }
-            if (panelVitalsTableBody) {
-                panelVitalsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading vitals…</td></tr>'
-            }
+            cachedMedBgRows = null
+            cachedVisitRows = null
+            cachedVitalRows = null
+            cachedDependentRows = null
+            activeDependentRecord = null
+            activeDependentTab = 'background'
+            activeDependentMedBgRows = null
+            activeDependentVisitRows = null
+            activeDependentVitalRows = null
+            activeDependentVerification = null
+            resetPanelMetaFields()
+            if (currentPanelTab) renderTabDrawerContent(currentPanelTab)
 
             var medBgReq = apiFetch(apiBaseUrl + "/medical-backgrounds?per_page=100&patient_id=" + encodeURIComponent(currentPatientId), { method: 'GET' })
                 .then(function (response) {
@@ -954,38 +1105,33 @@
                     })
                 })
 
-            Promise.all([medBgReq, visitsReq, vitalsReq, verificationReq])
+            var dependentsReq = apiFetch(apiBaseUrl + "/users/" + encodeURIComponent(currentPatientId) + "/dependents", { method: 'GET' })
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        return { ok: response.ok, data: data }
+                    }).catch(function () {
+                        return { ok: response.ok, data: null }
+                    })
+                })
+
+            Promise.all([medBgReq, visitsReq, vitalsReq, verificationReq, dependentsReq])
                 .then(function (results) {
-                    if (String(patientId || '') !== currentPatientId) {
-                        return
-                    }
+                    if (String(patientId || '') !== currentPatientId) return
 
                     var medBgRes = results[0]
-                    if (!medBgRes || !medBgRes.ok || !medBgRes.data) {
-                        showInlineBox(panelMedBgError, 'Failed to load medical background entries.')
-                        renderPanelMedicalBackground([])
-                    } else {
-                        var medBgRows = Array.isArray(medBgRes.data.data) ? medBgRes.data.data : (Array.isArray(medBgRes.data) ? medBgRes.data : [])
-                        renderPanelMedicalBackground(medBgRows)
-                    }
+                    cachedMedBgRows = (!medBgRes || !medBgRes.ok || !medBgRes.data)
+                        ? []
+                        : (Array.isArray(medBgRes.data.data) ? medBgRes.data.data : (Array.isArray(medBgRes.data) ? medBgRes.data : []))
 
                     var visitsRes = results[1]
-                    if (!visitsRes || !visitsRes.ok || !visitsRes.data) {
-                        showInlineBox(panelVisitsError, 'Failed to load visits.')
-                        renderPanelVisits([])
-                    } else {
-                        var visitRows = Array.isArray(visitsRes.data.data) ? visitsRes.data.data : (Array.isArray(visitsRes.data) ? visitsRes.data : [])
-                        renderPanelVisits(visitRows)
-                    }
+                    cachedVisitRows = (!visitsRes || !visitsRes.ok || !visitsRes.data)
+                        ? []
+                        : (Array.isArray(visitsRes.data.data) ? visitsRes.data.data : (Array.isArray(visitsRes.data) ? visitsRes.data : []))
 
                     var vitalsRes = results[2]
-                    if (!vitalsRes || !vitalsRes.ok || !vitalsRes.data) {
-                        showInlineBox(panelVitalsError, 'Failed to load vitals.')
-                        renderPanelVitals([])
-                    } else {
-                        var vitalRows = Array.isArray(vitalsRes.data.data) ? vitalsRes.data.data : (Array.isArray(vitalsRes.data) ? vitalsRes.data : [])
-                        renderPanelVitals(vitalRows)
-                    }
+                    cachedVitalRows = (!vitalsRes || !vitalsRes.ok || !vitalsRes.data)
+                        ? []
+                        : (Array.isArray(vitalsRes.data.data) ? vitalsRes.data.data : (Array.isArray(vitalsRes.data) ? vitalsRes.data : []))
 
                     var verRes = results[3]
                     if (!verRes || !verRes.ok || !verRes.data) {
@@ -995,33 +1141,64 @@
                     } else {
                         var verRows = Array.isArray(verRes.data.data) ? verRes.data.data : (Array.isArray(verRes.data) ? verRes.data : [])
                         var latest = verRows && verRows.length ? verRows[0] : null
-                        if (panelVerificationStatus) {
-                            panelVerificationStatus.textContent = latest && latest.status ? String(latest.status) : 'Not submitted'
-                        }
-                        if (panelPatientType) {
-                            panelPatientType.textContent = latest && latest.type ? String(latest.type) : '—'
-                        }
+                        if (panelVerificationStatus) panelVerificationStatus.textContent = latest && latest.status ? String(latest.status) : 'Not submitted'
+                        if (panelPatientType) panelPatientType.textContent = latest && latest.type ? String(latest.type) : '—'
                         if (panelVerificationId) {
                             var docUrl = latest && latest.document_url ? String(latest.document_url) : ''
                             if (docUrl) {
-                                panelVerificationId.innerHTML = '<a href="' + docUrl.replace(/"/g,'&quot;') + '" target="_blank" class="text-green-700 underline hover:text-green-800">View ID</a>'
+                                panelVerificationId.innerHTML = '<a href="' + docUrl.replace(/"/g, '&quot;') + '" target="_blank" class="text-green-700 underline hover:text-green-800">View ID</a>'
                             } else {
                                 panelVerificationId.textContent = '—'
                             }
                         }
                     }
+
+                    var dependentsRes = results[4]
+                    cachedDependentRows = (!dependentsRes || !dependentsRes.ok || !dependentsRes.data)
+                        ? []
+                        : (Array.isArray(dependentsRes.data) ? dependentsRes.data : (Array.isArray(dependentsRes.data.data) ? dependentsRes.data.data : []))
+
+                    if (currentPanelTab) renderTabDrawerContent(currentPanelTab)
                 })
                 .catch(function () {
-                    if (String(patientId || '') !== currentPatientId) {
-                        return
-                    }
-                    showInlineBox(panelMedBgError, 'Network error while loading medical background entries.')
-                    showInlineBox(panelVisitsError, 'Network error while loading visits.')
-                    showInlineBox(panelVitalsError, 'Network error while loading vitals.')
-                    renderPanelMedicalBackground([])
-                    renderPanelVisits([])
-                    renderPanelVitals([])
+                    if (String(patientId || '') !== currentPatientId) return
+                    cachedMedBgRows = []
+                    cachedVisitRows = []
+                    cachedVitalRows = []
+                    cachedDependentRows = []
+                    if (currentPanelTab) renderTabDrawerContent(currentPanelTab)
                 })
+        }
+
+        function populatePatientDetails(patient) {
+            var address = patient && patient.address ? String(patient.address) : ''
+            var age = ageFromBirthdate(patient && patient.birthdate ? String(patient.birthdate) : null)
+            var contact = patient && patient.contact_number ? String(patient.contact_number) : ''
+            var profileImg = patient && patient.prof_path_url ? String(patient.prof_path_url) : ''
+            var value = function (input) { return (input != null && input !== '') ? String(input) : '—' }
+
+            if (panelProfilePic) {
+                panelProfilePic.innerHTML = profileImg
+                    ? '<img src="' + profileImg.replace(/"/g, '&quot;') + '" alt="" class="w-full h-full object-cover">'
+                    : defaultProfilePicHtml
+            }
+
+            if (prDetailFirstname) prDetailFirstname.textContent = value(patient && patient.firstname)
+            if (prDetailMiddlename) prDetailMiddlename.textContent = value(patient && patient.middlename)
+            if (prDetailLastname) prDetailLastname.textContent = value(patient && patient.lastname)
+            if (prDetailBirthdate) {
+                var birthdate = patient && patient.birthdate ? String(patient.birthdate) : ''
+                prDetailBirthdate.textContent = birthdate ? birthdate.substring(0, 10) + (age != null ? ' (Age: ' + age + ')' : '') : '—'
+            }
+            if (prDetailAddress) prDetailAddress.textContent = value(address)
+            if (prDetailSex) prDetailSex.textContent = value(patient && patient.sex)
+            if (prDetailCivilStatus) prDetailCivilStatus.textContent = value(patient && patient.civil_status)
+            if (prDetailNationality) prDetailNationality.textContent = value(patient && patient.nationality)
+            if (prDetailContact) prDetailContact.textContent = value(contact)
+            if (prDetailPhic) prDetailPhic.textContent = value(patient && patient.philhealth_number)
+            if (prDetailOccupation) prDetailOccupation.textContent = value(patient && patient.occupation)
+            if (prDetailEmergContact) prDetailEmergContact.textContent = value(patient && patient.emergency_contact)
+            if (prDetailEmergNumber) prDetailEmergNumber.textContent = value(patient && patient.emergency_contact_number)
         }
 
         function searchAndRender() {
@@ -1032,11 +1209,10 @@
         if (patientsSearch) patientsSearch.addEventListener('input', searchAndRender)
         if (sortSelect) sortSelect.addEventListener('change', searchAndRender)
 
-        if (ageFilterButtons && ageFilterButtons.length) {
+        if (ageFilterButtons.length) {
             ageFilterButtons.forEach(function (btn) {
                 btn.addEventListener('click', function () {
-                    var next = this.getAttribute('data-age-filter') || 'all'
-                    activeAgeFilter = next
+                    activeAgeFilter = this.getAttribute('data-age-filter') || 'all'
                     setAgeFilterActiveStyles()
                     currentPage = 1
                     renderPatients()
@@ -1045,8 +1221,8 @@
         }
 
         if (patientsTableBody) {
-            patientsTableBody.addEventListener('click', function (e) {
-                var target = e && e.target ? e.target : null
+            patientsTableBody.addEventListener('click', function (event) {
+                var target = event && event.target ? event.target : null
                 var btn = target && target.closest ? target.closest('.admin-pr-open-panel') : null
                 if (!btn) return
 
@@ -1054,72 +1230,25 @@
                 if (!patientId) return
 
                 var patient = findPatientById(patientId)
-                var name = fullName(patient, 'Patient')
-                var address = patient && patient.address ? String(patient.address) : ''
-                var age = ageFromBirthdate(patient && patient.birthdate ? String(patient.birthdate) : null)
-                var contact = patient && patient.contact_number ? String(patient.contact_number) : ''
-                var profileImg = patient && patient.prof_path_url ? String(patient.prof_path_url) : ''
-
-                if (panelPatientName) panelPatientName.textContent = name
-                if (panelPatientContact) panelPatientContact.textContent = contact ? 'Contact: ' + contact : ''
-                var metaParts = []
-                if (address) metaParts.push(address)
-                if (age != null) metaParts.push('Age ' + String(age))
-                if (panelPatientMeta) panelPatientMeta.textContent = metaParts.join(' • ')
-
-                if (panelProfilePic) {
-                    if (profileImg) {
-                        panelProfilePic.innerHTML = '<img src="' + profileImg.replace(/"/g,'&quot;') + '" alt="" class="w-full h-full object-cover">'
-                    } else {
-                        panelProfilePic.innerHTML = defaultProfilePicHtml
-                    }
-                }
-
-                setPanelTab('background')
+                closeTabDrawer()
+                populatePatientDetails(patient)
                 openPanel()
                 loadPatientPanelData(patientId)
             })
         }
 
-        closePanel()
-
-        if (vitalsSideClose) vitalsSideClose.addEventListener('click', closeVitalsSidePanel)
-
         if (panelClose) panelClose.addEventListener('click', closePanel)
-        if (overlay) overlay.addEventListener('click', function () {
-            closeVitalsSidePanel()
-            closePanel()
-        })
+        if (tabDrawerClose) tabDrawerClose.addEventListener('click', closeTabDrawer)
+        if (overlay) overlay.addEventListener('click', closePanel)
 
         if (panelTabBackground) panelTabBackground.addEventListener('click', function () { setPanelTab('background') })
         if (panelTabVisits) panelTabVisits.addEventListener('click', function () { setPanelTab('visits') })
         if (panelTabVitals) panelTabVitals.addEventListener('click', function () { setPanelTab('vitals') })
-
-        if (panelVitalsTableBody) {
-            panelVitalsTableBody.addEventListener('click', function (e) {
-                var target = e && e.target ? e.target : null
-                if (!target) return
-
-                var bmiBtn = target.closest ? target.closest('.admin-vital-bmi') : null
-                if (bmiBtn) {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    var vid = bmiBtn.getAttribute('data-vital-id')
-                    if (!vid) return
-                    toggleVitalDetails(vid)
-                    setBmiForVital(vid)
-                    return
-                }
-
-                var row = target.closest ? target.closest('tr[data-vital-id]') : null
-                if (!row) return
-                var vitalId = row.getAttribute('data-vital-id')
-                if (!vitalId) return
-                toggleVitalDetails(vitalId)
-            })
-        }
+        if (panelTabDependents) panelTabDependents.addEventListener('click', function () { setPanelTab('dependents') })
 
         setAgeFilterActiveStyles()
+        syncTabButtonState()
+        closePanel()
         loadPatients()
     })
 </script>

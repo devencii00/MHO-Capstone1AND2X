@@ -147,6 +147,7 @@
         var apptCurrentPage = 1
         var apptFiltered = []
 
+        var apptVisibleCount = 6;
         function renderApptPagination() {
             var pagination = document.getElementById('adminApptPagination')
             if (!pagination) return
@@ -156,28 +157,32 @@
                 return
             }
             var totalPages = Math.ceil(total / apptPerPage)
-            if (totalPages <= 1) {
-                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-400">' + total + ' entries</span>'
-                return
-            }
+            var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border ';
+            var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer';
+            var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default';
+            var btnActive = btnBase + 'bg-green-600 text-white border-green-600';
             var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
-            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
-                (apptCurrentPage === 1 ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
-                '" data-page="prev"' + (apptCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
-            for (var i = 1; i <= totalPages; i++) {
-                html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border ' +
-                    (i === apptCurrentPage ? 'bg-green-600 text-white border-green-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer') +
-                    '" data-page="' + i + '">' + i + '</button>'
+            html += '<button type="button" class="' + (apptCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (apptCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            var windowStart = apptCurrentPage;
+            var windowEnd = Math.min(windowStart + apptVisibleCount - 1, totalPages);
+            for (var i = windowStart; i <= windowEnd; i++) {
+                html += '<button type="button" class="' + (i === apptCurrentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
             }
-            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
-                (apptCurrentPage === totalPages ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
-                '" data-page="next"' + (apptCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            if (windowEnd < totalPages) {
+                html += '<button type="button" class="' + btnInactive + '" data-page="next-window" title="Next set">…</button>'
+            }
+            html += '<button type="button" class="' + (apptCurrentPage === totalPages ? btnDisabled : btnInactive) + '" data-page="next"' + (apptCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
             pagination.innerHTML = html
             pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var p = btn.getAttribute('data-page')
                     if (p === 'prev' && apptCurrentPage > 1) { apptCurrentPage--; renderAppointments() }
                     else if (p === 'next' && apptCurrentPage < totalPages) { apptCurrentPage++; renderAppointments() }
+                    else if (p === 'next-window') {
+                        var nextStart = Math.min(windowEnd + 1, totalPages);
+                        apptCurrentPage = nextStart;
+                        renderAppointments();
+                    }
                     else if (p !== 'prev' && p !== 'next') { apptCurrentPage = parseInt(p, 10); renderAppointments() }
                 })
             })

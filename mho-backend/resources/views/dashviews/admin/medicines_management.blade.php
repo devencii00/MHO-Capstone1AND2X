@@ -202,6 +202,7 @@
         var medCurrentPage = 1
         var medFiltered = []
 
+        var medVisibleCount = 6;
         function renderMedPagination() {
             var pagination = document.getElementById('adminMedPagination')
             if (!pagination) return
@@ -211,28 +212,32 @@
                 return
             }
             var totalPages = Math.ceil(total / medPerPage)
-            if (totalPages <= 1) {
-                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-400">' + total + ' entries</span>'
-                return
-            }
+            var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border ';
+            var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer';
+            var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default';
+            var btnActive = btnBase + 'bg-green-600 text-white border-green-600';
             var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
-            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
-                (medCurrentPage === 1 ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
-                '" data-page="prev"' + (medCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
-            for (var i = 1; i <= totalPages; i++) {
-                html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border ' +
-                    (i === medCurrentPage ? 'bg-green-600 text-white border-green-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer') +
-                    '" data-page="' + i + '">' + i + '</button>'
+            html += '<button type="button" class="' + (medCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (medCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            var windowStart = medCurrentPage;
+            var windowEnd = Math.min(windowStart + medVisibleCount - 1, totalPages);
+            for (var i = windowStart; i <= windowEnd; i++) {
+                html += '<button type="button" class="' + (i === medCurrentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
             }
-            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
-                (medCurrentPage === totalPages ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
-                '" data-page="next"' + (medCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            if (windowEnd < totalPages) {
+                html += '<button type="button" class="' + btnInactive + '" data-page="next-window" title="Next set">…</button>'
+            }
+            html += '<button type="button" class="' + (medCurrentPage === totalPages ? btnDisabled : btnInactive) + '" data-page="next"' + (medCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
             pagination.innerHTML = html
             pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var p = btn.getAttribute('data-page')
                     if (p === 'prev' && medCurrentPage > 1) { medCurrentPage--; renderMedicines() }
                     else if (p === 'next' && medCurrentPage < totalPages) { medCurrentPage++; renderMedicines() }
+                    else if (p === 'next-window') {
+                        var nextStart = Math.min(windowEnd + 1, totalPages);
+                        medCurrentPage = nextStart;
+                        renderMedicines();
+                    }
                     else if (p !== 'prev' && p !== 'next') { medCurrentPage = parseInt(p, 10); renderMedicines() }
                 })
             })

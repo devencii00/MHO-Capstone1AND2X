@@ -79,6 +79,7 @@
             </tbody>
         </table>
     </div>
+    <div id="adminVerifPagination" class="flex items-center justify-center gap-3 pt-2 pb-1"></div>
 
 </div>
 
@@ -340,7 +341,7 @@
 
         function buildQuery(page) {
             var params = []
-            params.push('per_page=25')
+            params.push('per_page=500')
             params.push('page=' + encodeURIComponent(page || 1))
 
             var status = statusFilter ? statusFilter.value : ''
@@ -358,6 +359,8 @@
             if (tableBody) {
                 tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading verifications…</td></tr>'
             }
+            var pag = document.getElementById('adminVerifPagination')
+            if (pag) pag.innerHTML = ''
 
             apiFetch("{{ url('/api/patient-verifications') }}?" + buildQuery(currentPage), { method: 'GET' })
                 .then(function (response) {
@@ -369,6 +372,8 @@
                     if (!result.ok) {
                         showError('Failed to load verifications.')
                         if (tableBody) tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No data.</td></tr>'
+                        var pag = document.getElementById('adminVerifPagination')
+                        if (pag) pag.innerHTML = ''
                         return
                     }
                     lastPayload = result.data
@@ -377,6 +382,8 @@
                 .catch(function () {
                     showError('Network error while loading verifications.')
                     if (tableBody) tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No data.</td></tr>'
+                    var pag = document.getElementById('adminVerifPagination')
+                    if (pag) pag.innerHTML = ''
                 })
         }
 
@@ -406,6 +413,8 @@
 
             if (!items.length) {
                 tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No verifications found.</td></tr>'
+                var pag = document.getElementById('adminVerifPagination')
+                if (pag) pag.innerHTML = ''
                 return
             }
 
@@ -440,6 +449,76 @@
 
             tableBody.innerHTML = html
             bindRowActions()
+            initVerifPagination()
+        }
+
+        // ── Verification pagination ──
+        var verifPerPage = 10
+        var verifCurrentPage = 1
+        var verifVisibleCount = 6
+
+        function initVerifPagination() {
+            var rows = Array.prototype.slice.call(tableBody.querySelectorAll('tr'))
+            // Exclude the "No verifications" row
+            if (rows.length === 1 && rows[0].querySelectorAll('td').length === 7 && rows[0].textContent.indexOf('verification') !== -1) {
+                renderVerifPagination([])
+                return
+            }
+            renderVerifPagination(rows)
+        }
+
+        function showVerifPage(page, rows) {
+            var total = rows.length
+            var totalPages = Math.ceil(total / verifPerPage) || 1
+            if (page < 1) page = 1
+            if (page > totalPages) page = totalPages
+            verifCurrentPage = page
+            var start = (page - 1) * verifPerPage
+            var end = Math.min(start + verifPerPage, total)
+            rows.forEach(function (row, i) {
+                row.style.display = (i >= start && i < end) ? '' : 'none'
+            })
+            renderVerifPagination(rows)
+        }
+
+        function renderVerifPagination(rows) {
+            var pagination = document.getElementById('adminVerifPagination')
+            if (!pagination) return
+            var total = rows.length
+            if (total === 0) {
+                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
+                return
+            }
+            var totalPages = Math.ceil(total / verifPerPage)
+            var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border ';
+            var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer';
+            var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default';
+            var btnActive = btnBase + 'bg-green-600 text-white border-green-600';
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+            html += '<button type="button" class="' + (verifCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (verifCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            var windowStart = verifCurrentPage;
+            var windowEnd = Math.min(windowStart + verifVisibleCount - 1, totalPages);
+            for (var i = windowStart; i <= windowEnd; i++) {
+                html += '<button type="button" class="' + (i === verifCurrentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
+            }
+            if (windowEnd < totalPages) {
+                html += '<button type="button" class="' + btnInactive + '" data-page="next-window" title="Next set">…</button>'
+            }
+            html += '<button type="button" class="' + (verifCurrentPage === totalPages ? btnDisabled : btnInactive) + '" data-page="next"' + (verifCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            pagination.innerHTML = html
+
+            pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var p = btn.getAttribute('data-page')
+                    if (p === 'prev' && verifCurrentPage > 1) showVerifPage(verifCurrentPage - 1, rows)
+                    else if (p === 'next' && verifCurrentPage < totalPages) showVerifPage(verifCurrentPage + 1, rows)
+                    else if (p === 'next-window') {
+                        var nextStart = Math.min(windowEnd + 1, totalPages);
+                        showVerifPage(nextStart, rows)
+                    }
+                    else if (p !== 'prev' && p !== 'next') showVerifPage(parseInt(p, 10), rows)
+                })
+            })
         }
 
         function statusText(value) {

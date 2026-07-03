@@ -6,7 +6,7 @@
     <title>Opol Primary Healthcare - Login</title>
     @vite('resources/css/app.css')
     @vite('resources/js/app.js')
-     <link rel="icon" type="image/x-icon" href="/images/logoMHOV2.ico">
+     <link rel="icon" type="image/x-icon" href="/images/logoMHO.ico">
        <link rel="stylesheet" href="{{ asset('assets/fonts/css/stylefont.css') }}">
     <style>
         .font-playfair { font-family: 'Playfair Display', serif; }
@@ -20,14 +20,13 @@
 
     <div class="flex flex-col md:flex-row w-full max-w-4xl rounded-3xl overflow-hidden shadow-xl bg-white animate-fadeIn">
 
-        <!-- Left Panel -->
+     
         <div class="md:flex-[0_0_42%] flex flex-col items-center justify-center relative p-8 bg-gradient-to-br from-green-500 to-green-700 overflow-hidden">
             
-            <!-- Decorative circles -->
+         
             <div class="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-white/10 pointer-events-none"></div>
             <div class="absolute -bottom-12 -left-12 w-44 h-44 rounded-full bg-white/10 pointer-events-none"></div>
 
-            <!-- Logo ring -->
             <div class="relative w-44 h-44 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center shadow-lg animate-pulseRing">
                 <img src="{{ asset('images/MHOLogoV2.png') }}" alt="OPOL - MHO" class="w-40 h-40 object-contain drop-shadow-lg">
             </div>
@@ -41,7 +40,7 @@
             </div>
         </div>
 
-        <!-- Right Panel -->
+       
         <div class="flex-1 flex flex-col justify-center p-10 md:p-12 bg-white">
 
             <div class="mb-6">
@@ -53,7 +52,7 @@
 
             <form onsubmit="handleSubmit(event)" class="space-y-5">
 
-                <!-- Email -->
+              
                 <div class="relative">
                     <input type="email" id="email" name="email" placeholder=" " required
                            class="peer w-full px-4 pt-5 pb-2 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition">
@@ -74,7 +73,7 @@
                 <!-- Options -->
                 <div class="flex items-center justify-between text-sm">
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" name="remember" class="w-4 h-4 rounded border border-slate-300 accent-green-500">
+                        <input type="checkbox" id="rememberCheckbox" name="remember" class="w-4 h-4 rounded border border-slate-300 accent-green-500">
                         <span class="text-slate-600">Remember me</span>
                     </label>
                     <a href="{{ route('password.forgot') }}" class="text-green-500 hover:text-green-600 font-semibold transition-colors">
@@ -200,6 +199,13 @@
 
                 const user = data.user || {};
 
+                var rememberCheckbox = document.getElementById('rememberCheckbox');
+                if (rememberCheckbox && rememberCheckbox.checked) {
+                    try { window.localStorage.setItem('remembered_email', emailInput.value); } catch (_) {}
+                } else {
+                    try { window.localStorage.removeItem('remembered_email'); } catch (_) {}
+                }
+
                 if (user.uuid) {
                     try {
                         window.localStorage.setItem('current_user_uuid', user.uuid);
@@ -287,6 +293,19 @@
                 togglePassword.addEventListener('click', function () {
                     togglePasswordVisibility('password', 'togglePasswordEye', 'togglePasswordEyeOff');
                 });
+            }
+
+            var rememberedEmail = null;
+            try { rememberedEmail = window.localStorage ? window.localStorage.getItem('remembered_email') : null; } catch (_) {}
+            if (rememberedEmail) {
+                var emailInput = document.getElementById('email');
+                var rememberCheckbox = document.getElementById('rememberCheckbox');
+                if (emailInput) {
+                    emailInput.value = rememberedEmail;
+                }
+                if (rememberCheckbox) {
+                    rememberCheckbox.checked = true;
+                }
             }
         });
     </script>

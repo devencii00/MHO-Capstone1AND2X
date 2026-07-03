@@ -2002,6 +2002,7 @@ if (!currentScheduleId && !toDay) {
             renderStaffPagination()
         }
 
+        var staffVisibleCount = 6;
         function renderStaffPagination() {
             var pagination = document.getElementById('adminStaffPagination')
             if (!pagination) return
@@ -2015,25 +2016,20 @@ if (!currentScheduleId && !toDay) {
 
             var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
 
-            if (totalPages <= 1) {
-                pagination.innerHTML = html
-                return
+            var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border ';
+            var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer';
+            var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default';
+            var btnActive = btnBase + 'bg-green-600 text-white border-green-600';
+            html += '<button type="button" class="' + (staffPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (staffPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            var windowStart = staffPage;
+            var windowEnd = Math.min(windowStart + staffVisibleCount - 1, totalPages);
+            for (var i = windowStart; i <= windowEnd; i++) {
+                html += '<button type="button" class="' + (i === staffPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
             }
-
-            // Prev
-            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
-                (staffPage === 1 ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
-                '" data-page="prev"' + (staffPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
-            // Page numbers
-            for (var i = 1; i <= totalPages; i++) {
-                html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border ' +
-                    (i === staffPage ? 'bg-green-600 text-white border-green-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer') +
-                    '" data-page="' + i + '">' + i + '</button>'
+            if (windowEnd < totalPages) {
+                html += '<button type="button" class="' + btnInactive + '" data-page="next-window" title="Next set">…</button>'
             }
-            // Next
-            html += '<button type="button" class="px-2 py-1 text-[0.72rem] font-semibold rounded-md border border-slate-200 ' +
-                (staffPage === totalPages ? 'text-slate-300 cursor-default' : 'text-slate-600 hover:bg-slate-50 cursor-pointer') +
-                '" data-page="next"' + (staffPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            html += '<button type="button" class="' + (staffPage === totalPages ? btnDisabled : btnInactive) + '" data-page="next"' + (staffPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
             pagination.innerHTML = html
 
             pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
@@ -2041,6 +2037,10 @@ if (!currentScheduleId && !toDay) {
                     var p = btn.getAttribute('data-page')
                     if (p === 'prev' && staffPage > 1) { staffPage--; showStaffPage(staffPage) }
                     else if (p === 'next' && staffPage < totalPages) { staffPage++; showStaffPage(staffPage) }
+                    else if (p === 'next-window') {
+                        var nextStart = Math.min(windowEnd + 1, totalPages);
+                        showStaffPage(nextStart);
+                    }
                     else if (p !== 'prev' && p !== 'next') showStaffPage(parseInt(p, 10))
                 })
             })

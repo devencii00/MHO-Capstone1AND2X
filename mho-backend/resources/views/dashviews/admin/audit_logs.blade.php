@@ -73,6 +73,7 @@
                 </tbody>
             </table>
         </div>
+        <div id="adminAuditPagination" class="flex items-center justify-center gap-3 pt-2 pb-1"></div>
     </div>
 
     <div id="adminLogsPanelAccess" class="hidden p-5 pt-0">
@@ -130,6 +131,7 @@
                 </tbody>
             </table>
         </div>
+        <div id="adminAccessPagination" class="flex items-center justify-center gap-3 pt-2 pb-1"></div>
     </div>
 </div>
 
@@ -198,6 +200,7 @@
                         action.indexOf(query) !== -1
                 }
 
+                row.setAttribute('data-search-filter', matches ? '1' : '0')
                 row.style.display = matches ? '' : 'none'
             })
 
@@ -233,14 +236,100 @@
         }
 
         if (auditSearch) {
-            auditSearch.addEventListener('input', applyAuditFilters)
+            auditSearch.addEventListener('input', function () { auditCurrentPage = 1; applyAuditFilters() })
         }
         if (auditSort) {
-            auditSort.addEventListener('change', applyAuditSort)
+            auditSort.addEventListener('change', function () { auditCurrentPage = 1; applyAuditSort() })
         }
 
-        applyAuditFilters()
+        // ── Audit pagination ──
+        var auditPerPage = 10
+        var auditCurrentPage = 1
+        var auditVisibleCount = 6
 
+        function getAuditFilteredTotal() {
+            return auditRows.filter(function (r) {
+                return r.getAttribute('data-search-filter') !== '0'
+            }).length
+        }
+
+        function getAuditFilteredRows() {
+            return auditRows.filter(function (r) {
+                return r.getAttribute('data-search-filter') !== '0'
+            })
+        }
+
+        function showAuditPage(page) {
+            var total = getAuditFilteredTotal()
+            var totalPages = Math.ceil(total / auditPerPage) || 1
+            if (page < 1) page = 1
+            if (page > totalPages) page = totalPages
+            auditCurrentPage = page
+            var start = (page - 1) * auditPerPage
+            var end = Math.min(start + auditPerPage, total)
+            var filtered = getAuditFilteredRows()
+            auditRows.forEach(function (r) { r.style.display = 'none' })
+            for (var i = start; i < end; i++) {
+                if (filtered[i]) filtered[i].style.display = ''
+            }
+            renderAuditPagination(total)
+        }
+
+        function renderAuditPagination(totalVisible) {
+            var pagination = document.getElementById('adminAuditPagination')
+            if (!pagination) return
+            var total = totalVisible || 0
+            if (total === 0) {
+                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
+                return
+            }
+            var totalPages = Math.ceil(total / auditPerPage)
+            var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border ';
+            var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer';
+            var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default';
+            var btnActive = btnBase + 'bg-green-600 text-white border-green-600';
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+            html += '<button type="button" class="' + (auditCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (auditCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            var windowStart = auditCurrentPage;
+            var windowEnd = Math.min(windowStart + auditVisibleCount - 1, totalPages);
+            for (var i = windowStart; i <= windowEnd; i++) {
+                html += '<button type="button" class="' + (i === auditCurrentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
+            }
+            if (windowEnd < totalPages) {
+                html += '<button type="button" class="' + btnInactive + '" data-page="next-window" title="Next set">…</button>'
+            }
+            html += '<button type="button" class="' + (auditCurrentPage === totalPages ? btnDisabled : btnInactive) + '" data-page="next"' + (auditCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            pagination.innerHTML = html
+
+            pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var p = btn.getAttribute('data-page')
+                    if (p === 'prev' && auditCurrentPage > 1) showAuditPage(auditCurrentPage - 1)
+                    else if (p === 'next' && auditCurrentPage < totalPages) showAuditPage(auditCurrentPage + 1)
+                    else if (p === 'next-window') {
+                        var nextStart = Math.min(windowEnd + 1, totalPages);
+                        showAuditPage(nextStart);
+                    }
+                    else if (p !== 'prev' && p !== 'next') showAuditPage(parseInt(p, 10))
+                })
+            })
+        }
+
+        // Patch applyAuditFilters and applyAuditSort to re-apply pagination
+        var _origAuditFilters = applyAuditFilters
+        applyAuditFilters = function () {
+            _origAuditFilters()
+            showAuditPage(1)
+        }
+        var _origAuditSort = applyAuditSort
+        applyAuditSort = function () {
+            _origAuditSort()
+            showAuditPage(auditCurrentPage)
+        }
+        // Initial render
+        showAuditPage(1)
+
+        // ── Access pagination ──
         var accessSearch = document.getElementById('admin_access_search')
         var accessSort = document.getElementById('admin_access_sort')
         var accessRows = Array.prototype.slice.call(document.querySelectorAll('.admin-access-row'))
@@ -261,6 +350,7 @@
                         ('#' + record).indexOf(query) !== -1
                 }
 
+                row.setAttribute('data-search-filter', matches ? '1' : '0')
                 row.style.display = matches ? '' : 'none'
             })
 
@@ -296,13 +386,97 @@
         }
 
         if (accessSearch) {
-            accessSearch.addEventListener('input', applyAccessFilters)
+            accessSearch.addEventListener('input', function () { accessCurrentPage = 1; applyAccessFilters() })
         }
         if (accessSort) {
-            accessSort.addEventListener('change', applyAccessSort)
+            accessSort.addEventListener('change', function () { accessCurrentPage = 1; applyAccessSort() })
         }
 
-        applyAccessFilters()
+        // ── Access pagination ──
+        var accessPerPage = 10
+        var accessCurrentPage = 1
+        var accessVisibleCount = 6
+
+        function getAccessFilteredTotal() {
+            return accessRows.filter(function (r) {
+                return r.getAttribute('data-search-filter') !== '0'
+            }).length
+        }
+
+        function getAccessFilteredRows() {
+            return accessRows.filter(function (r) {
+                return r.getAttribute('data-search-filter') !== '0'
+            })
+        }
+
+        function showAccessPage(page) {
+            var total = getAccessFilteredTotal()
+            var totalPages = Math.ceil(total / accessPerPage) || 1
+            if (page < 1) page = 1
+            if (page > totalPages) page = totalPages
+            accessCurrentPage = page
+            var start = (page - 1) * accessPerPage
+            var end = Math.min(start + accessPerPage, total)
+            var filtered = getAccessFilteredRows()
+            accessRows.forEach(function (r) { r.style.display = 'none' })
+            for (var i = start; i < end; i++) {
+                if (filtered[i]) filtered[i].style.display = ''
+            }
+            renderAccessPagination(total)
+        }
+
+        function renderAccessPagination(totalVisible) {
+            var pagination = document.getElementById('adminAccessPagination')
+            if (!pagination) return
+            var total = totalVisible || 0
+            if (total === 0) {
+                pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
+                return
+            }
+            var totalPages = Math.ceil(total / accessPerPage)
+            var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border ';
+            var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer';
+            var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default';
+            var btnActive = btnBase + 'bg-green-600 text-white border-green-600';
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+            html += '<button type="button" class="' + (accessCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (accessCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            var windowStart = accessCurrentPage;
+            var windowEnd = Math.min(windowStart + accessVisibleCount - 1, totalPages);
+            for (var i = windowStart; i <= windowEnd; i++) {
+                html += '<button type="button" class="' + (i === accessCurrentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
+            }
+            if (windowEnd < totalPages) {
+                html += '<button type="button" class="' + btnInactive + '" data-page="next-window" title="Next set">…</button>'
+            }
+            html += '<button type="button" class="' + (accessCurrentPage === totalPages ? btnDisabled : btnInactive) + '" data-page="next"' + (accessCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            pagination.innerHTML = html
+
+            pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var p = btn.getAttribute('data-page')
+                    if (p === 'prev' && accessCurrentPage > 1) showAccessPage(accessCurrentPage - 1)
+                    else if (p === 'next' && accessCurrentPage < totalPages) showAccessPage(accessCurrentPage + 1)
+                    else if (p === 'next-window') {
+                        var nextStart = Math.min(windowEnd + 1, totalPages);
+                        showAccessPage(nextStart);
+                    }
+                    else if (p !== 'prev' && p !== 'next') showAccessPage(parseInt(p, 10))
+                })
+            })
+        }
+
+        // Patch applyAccessFilters and applyAccessSort
+        var _origAccessFilters = applyAccessFilters
+        applyAccessFilters = function () {
+            _origAccessFilters()
+            showAccessPage(1)
+        }
+        var _origAccessSort = applyAccessSort
+        applyAccessSort = function () {
+            _origAccessSort()
+            showAccessPage(accessCurrentPage)
+        }
+        showAccessPage(1)
 
         var initial = 'audit'
         try {

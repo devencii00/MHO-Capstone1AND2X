@@ -750,7 +750,6 @@
                     if (!anchor || !anchor.href) return
                     var u = new URL(anchor.href, window.location.origin)
                     var path = String(u.pathname || '').toLowerCase()
-                    if (path.indexOf('/dashboard/admin') === 0) return
                     u.searchParams.delete('user_id')
                     if (!u.searchParams.get('user_uuid')) {
                         u.searchParams.set('user_uuid', String(userRef))
