@@ -201,13 +201,28 @@
                         </div>
                         <div>
                             <label for="adminPrEditCivilStatus" class="block text-[0.7rem] text-slate-600 mb-1">Civil status</label>
-                            <input id="adminPrEditCivilStatus" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            <select id="adminPrEditCivilStatus" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                <option value="">Select</option>
+                                <option value="Single">Single</option>
+                                <option value="Married">Married</option>
+                                <option value="Annulled">Annulled</option>
+                                <option value="Legally Separated">Legally Separated</option>
+                                <option value="Widowed">Widowed</option>
+                                <option value="Divorced">Divorced</option>
+                            </select>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label for="adminPrEditNationality" class="block text-[0.7rem] text-slate-600 mb-1">Nationality</label>
-                            <input id="adminPrEditNationality" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            <label for="adminPrEditNationalitySelect" class="block text-[0.7rem] text-slate-600 mb-1">Nationality</label>
+                            <div id="adminPrEditNationalityField" class="flex gap-2">
+                                <select id="adminPrEditNationalitySelect" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                    <option value="">None</option>
+                                    <option value="Filipino">Filipino</option>
+                                    <option value="__others__">Other/s specify</option>
+                                </select>
+                                <input id="adminPrEditNationality" type="text" class="w-0 hidden rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Please specify">
+                            </div>
                         </div>
                         <div>
                             <label for="adminPrEditOccupation" class="block text-[0.7rem] text-slate-600 mb-1">Occupation</label>
@@ -363,7 +378,9 @@
         var patientEditSexFemale = document.querySelector('input[name="adminPrEditSex"][value="Female"]')
         var patientEditBirthdate = document.getElementById('adminPrEditBirthdate')
         var patientEditCivilStatus = document.getElementById('adminPrEditCivilStatus')
+        var patientEditNationalitySelect = document.getElementById('adminPrEditNationalitySelect')
         var patientEditNationality = document.getElementById('adminPrEditNationality')
+        var patientEditNationalityField = document.getElementById('adminPrEditNationalityField')
         var patientEditAddress = document.getElementById('adminPrEditAddress')
         var patientEditContact = document.getElementById('adminPrEditContact')
         var patientEditPhilhealth = document.getElementById('adminPrEditPhilhealth')
@@ -691,7 +708,21 @@
                 patientEditBirthdate.value = birthdate ? String(birthdate).slice(0, 10) : ''
             }
             if (patientEditCivilStatus) patientEditCivilStatus.value = patient.civil_status || ''
-            if (patientEditNationality) patientEditNationality.value = patient.nationality || ''
+            if (patientEditNationalitySelect && patientEditNationality && patientEditNationalityField) {
+                var nat = (patient.nationality || '').trim()
+                if (!nat || nat === 'None' || nat === 'Filipino') {
+                    patientEditNationalitySelect.value = nat === 'Filipino' ? 'Filipino' : ''
+                    patientEditNationalitySelect.className = 'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none'
+                    patientEditNationality.classList.add('hidden')
+                    patientEditNationality.value = ''
+                } else {
+                    patientEditNationalitySelect.value = '__others__'
+                    patientEditNationalitySelect.className = 'w-[30%] rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none'
+                    patientEditNationality.classList.remove('hidden')
+                    patientEditNationality.className = 'w-[70%] rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none'
+                    patientEditNationality.value = nat
+                }
+            }
             if (patientEditAddress) patientEditAddress.value = patient.address || ''
             if (patientEditContact) patientEditContact.value = patient.contact_number ? formatPhone(patient.contact_number) : ''
             if (patientEditPhilhealth) {
@@ -1569,6 +1600,21 @@
         setupPhoneFormat(patientEditContact)
         setupPhoneFormat(patientEditEmergencyContactNumber)
 
+        if (patientEditNationalitySelect && patientEditNationality) {
+            patientEditNationalitySelect.addEventListener('change', function () {
+                if (this.value === '__others__') {
+                    this.className = 'w-[30%] rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none'
+                    patientEditNationality.className = 'w-[70%] rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none'
+                    patientEditNationality.classList.remove('hidden')
+                    patientEditNationality.focus()
+                } else {
+                    this.className = 'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none'
+                    patientEditNationality.classList.add('hidden')
+                    patientEditNationality.value = ''
+                }
+            })
+        }
+
         if (patientEditPhilhealth) {
             patientEditPhilhealth.addEventListener('input', function () {
                 var raw = this.value.replace(/[^\d]/g, '')
@@ -1661,7 +1707,15 @@
                         appendIf('sex', sexVal)
                         appendIf('birthdate', val(patientEditBirthdate))
                         appendIf('civil_status', val(patientEditCivilStatus))
-                        appendIf('nationality', val(patientEditNationality))
+                        var nationalityVal = ''
+                        if (patientEditNationalitySelect) {
+                            if (patientEditNationalitySelect.value === '__others__') {
+                                nationalityVal = patientEditNationality ? String(patientEditNationality.value || '').trim() : ''
+                            } else {
+                                nationalityVal = patientEditNationalitySelect.value
+                            }
+                        }
+                        appendIf('nationality', nationalityVal)
                         appendIf('address', val(patientEditAddress))
                         appendIf('occupation', val(patientEditOccupation))
                         appendIf('emergency_contact', val(patientEditEmergencyContact))

@@ -300,15 +300,21 @@
                                 <input id="adminDoctorEditEmergencyContactNumber" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-[0.7rem] text-slate-600 mb-1">Active in service?</label>
-                            <div class="flex items-center gap-4">
-                                <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
-                                    <input type="radio" name="adminDoctorEditActiveInService" value="1" class="rounded-full text-green-600 focus:ring-green-500"> Yes
-                                </label>
-                                <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
-                                    <input type="radio" name="adminDoctorEditActiveInService" value="0" class="rounded-full text-green-600 focus:ring-green-500"> No
-                                </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[0.7rem] text-slate-600 mb-1">Active in service?</label>
+                                <div class="flex items-center gap-4">
+                                    <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                                        <input type="radio" name="adminDoctorEditActiveInService" value="1" class="rounded-full text-green-600 focus:ring-green-500"> Yes
+                                    </label>
+                                    <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                                        <input type="radio" name="adminDoctorEditActiveInService" value="0" class="rounded-full text-green-600 focus:ring-green-500"> No
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="adminDoctorEditHireDate" class="block text-[0.7rem] text-slate-600 mb-1">Hire date</label>
+                                <input id="adminDoctorEditHireDate" type="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                             </div>
                         </div>
                     </div>
@@ -450,6 +456,7 @@
         var doctorEditProfilePreview = document.getElementById('adminDoctorEditProfilePreview')
         var doctorEditSave = document.getElementById('adminDoctorEditSave')
         var doctorEditSpinner = document.getElementById('adminDoctorEditSpinner')
+        var doctorEditHireDate = document.getElementById('adminDoctorEditHireDate')
 
         var editingDoctorId = null
 
@@ -611,6 +618,11 @@
                 doctorEditContact.value = c ? formatPhone(c) : ''
             }
             if (doctorEditEmail) doctorEditEmail.value = doctor.email || ''
+
+            if (doctorEditHireDate) {
+                var hd = doctor.hire_date || ''
+                doctorEditHireDate.value = hd ? hd.slice(0, 10) : ''
+            }
 
             // Profile photo preview
             updateProfilePreview(doctor.prof_path || null)
@@ -887,6 +899,9 @@
                         var cRaw = val(doctorEditContact)
                         appendIf('contact_number', cRaw ? parsePhoneRaw(cRaw) : null)
                         appendIf('email', val(doctorEditEmail))
+
+                        var hireDateVal = doctorEditHireDate ? String(doctorEditHireDate.value || '').trim() : ''
+                        appendIf('hire_date', hireDateVal || null)
 
                         // Attach profile file if selected
                         if (doctorEditProfileUpload && doctorEditProfileUpload.files && doctorEditProfileUpload.files[0]) {

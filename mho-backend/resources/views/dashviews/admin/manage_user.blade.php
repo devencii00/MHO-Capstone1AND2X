@@ -66,32 +66,12 @@
             </div>
             <div class="p-5">
                 <div id="adminUserEditError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
-                <form id="adminUserEditForm" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <form id="adminUserEditForm" class="space-y-3">
                     <div>
-                        <label for="adminUserEditFirstname" class="block text-[0.7rem] text-slate-600 mb-1">First name</label>
-                        <input id="adminUserEditFirstname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                    </div>
-                    <div>
-                        <label for="adminUserEditMiddlename" class="block text-[0.7rem] text-slate-600 mb-1">Middle name</label>
-                        <input id="adminUserEditMiddlename" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="N/A">
-                    </div>
-                    <div>
-                        <label for="adminUserEditLastname" class="block text-[0.7rem] text-slate-600 mb-1">Last name</label>
-                        <input id="adminUserEditLastname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                    </div>
-                    <div>
-                        <label for="adminUserEditContact" class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>
-                        <input id="adminUserEditContact" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63XXXXXXXXXX">
-                    </div>
-                    <div>
-                        <label for="adminUserEditHireDate" class="block text-[0.7rem] text-slate-600 mb-1">Hire date</label>
-                        <input id="adminUserEditHireDate" type="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                    </div>
-                    <div class="md:col-span-2">
                         <label for="adminUserEditEmail" class="block text-[0.7rem] text-slate-600 mb-1">Email</label>
                         <input id="adminUserEditEmail" type="email" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                     </div>
-                    <div class="md:col-span-2 flex items-center justify-end gap-2 pt-1">
+                    <div class="flex items-center justify-end gap-2 pt-1">
                         <button type="button" id="adminUserEditCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
                         <button type="submit" id="adminUserEditSave" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 disabled:hover:bg-green-600">
                             <span id="adminUserEditSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
@@ -194,8 +174,6 @@
         <table id="adminUserTable" class="min-w-full text-left text-xs text-slate-600">
             <thead>
                 <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
-                    <th class="py-2 pr-4 font-semibold">Employee no.</th>
-                    <th class="py-2 pr-4 font-semibold">Hire date</th>
                     <th class="py-2 pr-4 font-semibold">Name</th>
                     <th class="py-2 pr-4 font-semibold">Contact</th>
                     <th class="py-2 pr-4 font-semibold">Email</th>
@@ -236,20 +214,6 @@
                         data-status="{{ $status }}"
                         data-children-count="{{ $childrenCount }}">
                         <td class="py-2 pr-4 text-[0.78rem] text-slate-700">
-                            @if ($user->employee_number)
-                                {{ $user->employee_number }}
-                            @else
-                                <span class="text-slate-400">—</span>
-                            @endif
-                        </td>
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                            @if ($user->role !== 'patient' && $user->hire_date)
-                                {{ optional($user->hire_date)->format('Y-m-d') }}
-                            @else
-                                <span class="text-slate-400">—</span>
-                            @endif
-                        </td>
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-700">
                             @if ($fullName)
                                 {{ $fullName }}
                             @else
@@ -280,7 +244,7 @@
                         <td class="py-2 pr-4 text-[0.78rem]">
                             <div class="flex items-center gap-2">
                                 <button type="button" class="px-2 py-1 rounded-md border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 text-[0.72rem] font-semibold admin-user-edit" data-user-id="{{ $user->user_id }}">
-                                    Edit
+                                    Edit Email
                                 </button>
                                 <button type="button" class="px-2 py-1 rounded-md border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-[0.72rem] font-semibold admin-user-dependents" data-user-id="{{ $user->user_id }}">
                                     View dependents
@@ -299,7 +263,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="py-4 text-center text-[0.78rem] text-slate-400">
+                        <td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">
                             No users found yet.
                         </td>
                     </tr>
@@ -514,11 +478,6 @@
         var userEditForm = document.getElementById('adminUserEditForm')
         var userEditError = document.getElementById('adminUserEditError')
         var userEditSubtitle = document.getElementById('adminUserEditSubtitle')
-        var userEditFirstname = document.getElementById('adminUserEditFirstname')
-        var userEditMiddlename = document.getElementById('adminUserEditMiddlename')
-        var userEditLastname = document.getElementById('adminUserEditLastname')
-        var userEditContact = document.getElementById('adminUserEditContact')
-        var userEditHireDate = document.getElementById('adminUserEditHireDate')
         var userEditEmail = document.getElementById('adminUserEditEmail')
         var userEditSave = document.getElementById('adminUserEditSave')
         var userEditSpinner = document.getElementById('adminUserEditSpinner')
@@ -580,52 +539,6 @@
             return parts.join(' ').trim()
         }
 
-        function normalizePhilippinesNumber(value) {
-            var raw = String(value || '').trim()
-            if (!raw) {
-                return ''
-            }
-            raw = raw.replace(/\s+/g, '').replace(/-/g, '')
-            if (raw.startsWith('+63')) {
-                return raw
-            }
-            if (raw.startsWith('63')) {
-                return '+' + raw
-            }
-            if (raw.startsWith('0') && raw.length >= 2) {
-                return '+63' + raw.slice(1)
-            }
-            if (/^\d+$/.test(raw)) {
-                return '+63' + raw
-            }
-            return raw
-        }
-
-        function isValidPhilippinesNumber(value) {
-            var normalized = normalizePhilippinesNumber(value)
-            return /^\+63\d{10}$/.test(normalized)
-        }
-
-        function isValidName(value) {
-            var v = String(value || '').trim()
-            if (v === '') {
-                return true
-            }
-            try {
-                return /^[\p{L}\p{M}][\p{L}\p{M}\s.'\-\u00B7]*$/u.test(v)
-            } catch (_) {
-                return /^[A-Za-z][A-Za-z\s.'-]*$/.test(v)
-            }
-        }
-
-        function normalizePersonName(value) {
-            var s = String(value || '').trim()
-            if (!s) return ''
-            s = s.replace(/\s+/g, ' ')
-            s = s.replace(/\s*([.'\-\u00B7])\s*/g, '$1')
-            return s
-        }
-
         function openUserEditModal(user) {
             if (!userEditOverlay) return
             editingUserId = user && user.user_id ? String(user.user_id) : null
@@ -638,17 +551,6 @@
             }
             if (userEditSubtitle) {
                 userEditSubtitle.textContent = 'Editing — ' + name
-            }
-            if (userEditFirstname) userEditFirstname.value = user.firstname || ''
-            if (userEditMiddlename) userEditMiddlename.value = user.middlename || ''
-            if (userEditLastname) userEditLastname.value = user.lastname || ''
-            if (userEditContact) {
-                var normalizedContact = normalizePhilippinesNumber(user.contact_number || '')
-                userEditContact.value = normalizedContact || '+63'
-            }
-            if (userEditHireDate) {
-                var hireDateRaw = user && user.hire_date ? String(user.hire_date) : ''
-                userEditHireDate.value = hireDateRaw ? hireDateRaw.slice(0, 10) : ''
             }
             if (userEditEmail) userEditEmail.value = user.email || ''
 
@@ -723,17 +625,9 @@
                 if (!userId) return
                 showUserError('')
                 showUserSuccess('')
-                fetchUser(userId)
-                    .then(function (result) {
-                        if (!result.ok || !result.data) {
-                            showUserError('Failed to load user details.')
-                            return
-                        }
-                        openUserEditModal(result.data)
-                    })
-                    .catch(function () {
-                        showUserError('Network error while loading user.')
-                    })
+                var row = document.querySelector('.admin-user-row[data-user-id="' + userId + '"]')
+                var email = row ? row.getAttribute('data-email') : ''
+                openUserEditModal({ user_id: userId, email: email })
             })
         })
 
@@ -765,28 +659,6 @@
 
                 showInlineBox(userEditError, '')
 
-                var f = userEditFirstname ? normalizePersonName(userEditFirstname.value) : ''
-                var m = userEditMiddlename ? normalizePersonName(userEditMiddlename.value) : ''
-                var l = userEditLastname ? normalizePersonName(userEditLastname.value) : ''
-                var c = userEditContact ? String(userEditContact.value || '').trim() : ''
-                var hireDate = userEditHireDate ? String(userEditHireDate.value || '').trim() : ''
-
-                if (!isValidName(f) || !isValidName(m) || !isValidName(l)) {
-                    showInlineBox(userEditError, 'Name fields must contain letters only (accents allowed), plus hyphens, apostrophes, periods, and middle dots.')
-                    return
-                }
-
-                if (c && c !== '+63') {
-                    if (!isValidPhilippinesNumber(c)) {
-                        showInlineBox(userEditError, 'Contact number must be a valid PH number starting with +63 and 10 digits.')
-                        return
-                    }
-                }
-
-                if (userEditFirstname) userEditFirstname.value = f
-                if (userEditMiddlename) userEditMiddlename.value = m
-                if (userEditLastname) userEditLastname.value = l
-
                 confirmAction('Are you sure you want to save these changes?')
                     .then(function (confirmed) {
                         if (!confirmed) return
@@ -794,18 +666,8 @@
                         setUserEditSubmitting(true)
 
                         var payload = {
-                            firstname: f,
-                            middlename: m,
-                            lastname: l,
-                            email: userEditEmail ? String(userEditEmail.value || '').trim() : '',
-                            contact_number: c ? normalizePhilippinesNumber(c) : '',
-                            hire_date: hireDate || null
+                            email: userEditEmail ? String(userEditEmail.value || '').trim() : ''
                         }
-
-                        if (payload.firstname === '') payload.firstname = null
-                        if (payload.middlename === '') payload.middlename = null
-                        if (payload.lastname === '') payload.lastname = null
-                        if (payload.contact_number === '' || payload.contact_number === '+63') payload.contact_number = null
 
                         apiFetch("{{ url('/api/users') }}/" + editingUserId, {
                             method: 'PUT',
@@ -1050,7 +912,7 @@
             if (!fullName) fullName = user.email ? user.email : ('User #' + user.user_id)
 
             var rows = [
-                ['User ID', user.user_id ? ('#' + user.user_id) : '—'],
+                
                 ['Name', fullName || '—'],
                 ['Email', user.email || '—'],
                 ['Contact', user.contact_number || '—'],
