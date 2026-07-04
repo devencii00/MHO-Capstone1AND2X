@@ -61,7 +61,6 @@
         <table class="min-w-full text-left text-xs text-slate-600">
             <thead>
                 <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
-                    <th class="py-2 pr-4 font-semibold">ID</th>
                     <th class="py-2 pr-4 font-semibold">Patient</th>
                     <th class="py-2 pr-4 font-semibold">Type</th>
                     <th class="py-2 pr-4 font-semibold">Status</th>
@@ -72,7 +71,7 @@
             </thead>
             <tbody id="admin_verif_table_body">
                 <tr>
-                    <td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">
+                    <td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">
                         Loading verifications…
                     </td>
                 </tr>
@@ -84,7 +83,42 @@
 </div>
 
 <div id="adminVerifDocPanelOverlay" class="hidden fixed inset-0 z-[80] bg-slate-900/40">
-    <div id="adminVerifDocPanel" class="absolute top-0 right-0 h-full w-full max-w-[46rem] bg-white border-l border-slate-200 shadow-[-16px_0_40px_rgba(15,23,42,0.2)] transform translate-x-full transition-transform duration-300 ease-out flex flex-col">
+    <div id="adminVerifHistoryDrawer" class="hidden fixed top-0 right-0 md:right-[35rem] h-full w-full max-w-[30rem] bg-white border-l border-slate-200 shadow-xl">
+        <div class="h-full flex flex-col">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 shrink-0">
+                <div class="min-w-0">
+                    <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification history</div>
+                    <div id="adminVerifHistoryDrawerTitle" class="text-[0.82rem] font-semibold text-slate-900 mt-1">History</div>
+                </div>
+                <button type="button" id="adminVerifHistoryDrawerClose" class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800">
+                    <x-lucide-x class="w-[16px] h-[16px]" />
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 scrollbar-hidden">
+                <div class="rounded-xl border border-slate-200 overflow-hidden">
+                    <div class="overflow-auto h-[calc(100vh-8rem)]">
+                        <table class="w-full table-fixed text-xs">
+                            <thead class="bg-slate-50 text-slate-500 sticky top-0">
+                                <tr>
+                                    <th class="w-[4.75rem] text-left px-3 py-2 font-semibold whitespace-nowrap">ID</th>
+                                    <th class="w-[5.75rem] text-left px-3 py-2 font-semibold whitespace-nowrap">Type</th>
+                                    <th class="w-[5.75rem] text-left px-3 py-2 font-semibold whitespace-nowrap">Status</th>
+                                    <th class="text-left px-3 py-2 font-semibold">Remarks</th>
+                                    <th class="w-[6.5rem] text-left px-3 py-2 font-semibold whitespace-nowrap">Document</th>
+                                    <th class="w-[6rem] text-left px-3 py-2 font-semibold whitespace-nowrap">Uploaded</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminVerifHistoryBody" class="divide-y divide-slate-100 bg-white">
+                                <tr><td colspan="6" class="px-3 py-4 text-center text-slate-400">No history loaded.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="adminVerifDocPanel" class="absolute top-0 right-0 h-full w-full max-w-[35rem] bg-white border-l border-slate-200 shadow-[-16px_0_40px_rgba(15,23,42,0.2)] transform translate-x-full transition-transform duration-300 ease-out flex flex-col">
         <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
             <div class="min-w-0">
                 <div class="text-sm font-semibold text-slate-900" id="adminVerifDocPanelTitle">Patient Verification</div>
@@ -101,31 +135,43 @@
                 <div class="text-[0.78rem] text-slate-500">Select a verification record.</div>
             </div>
             <div class="text-[0.72rem] font-semibold text-slate-600 mb-2 uppercase tracking-wide">Latest Uploaded Document</div>
-            <div id="adminVerifDocMainWrap" class="rounded-xl border border-slate-200 bg-slate-50 overflow-hidden h-[16rem] flex items-center justify-center text-[0.78rem] text-slate-500">
+            <div id="adminVerifDocMainWrap" class="rounded-xl border border-slate-200 bg-slate-50 overflow-hidden h-[16rem] flex items-center justify-center text-[0.78rem] text-slate-500 transition cursor-default">
                 Select a verification record.
             </div>
+            <div class="mt-3 flex items-center justify-between gap-3">
+                <div id="adminVerifDocHint" class="text-[0.72rem] text-slate-500">Image previews can be opened fullscreen for closer inspection.</div>
+                <button id="adminVerifHistoryTrigger" type="button" disabled class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-[0.78rem] font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400">
+                    See History
+                </button>
+            </div>
         </div>
+        </div>
+    </div>
 
-        <div class="p-4">
-            <div class="text-[0.72rem] font-semibold text-slate-600 mb-2 uppercase tracking-wide">Verification History</div>
-            <div class="rounded-xl border border-slate-200 overflow-hidden">
-                <div class="overflow-auto h-[200px]">
-                    <table class="w-full text-xs">
-                        <thead class="bg-slate-50 text-slate-500 sticky top-0">
-                            <tr>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">ID</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Type</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Status</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Remarks</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Document</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Uploaded</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminVerifHistoryBody" class="divide-y divide-slate-100 bg-white">
-                            <tr><td colspan="6" class="px-3 py-4 text-center text-slate-400">No history loaded.</td></tr>
-                        </tbody>
-                    </table>
+    <div id="adminVerifImageViewer" class="hidden fixed inset-0 z-[95] bg-slate-950/90 p-4 md:p-6">
+        <div class="flex h-full flex-col">
+            <div class="mb-4 flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                    <div class="text-[0.7rem] uppercase tracking-widest text-slate-400">Document viewer</div>
+                    <div id="adminVerifImageViewerTitle" class="truncate text-sm font-semibold text-white">Verification document</div>
                 </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="adminVerifZoomOut" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-white hover:bg-white/20">
+                        <x-lucide-minus class="w-[16px] h-[16px]" />
+                    </button>
+                    <button type="button" id="adminVerifZoomReset" class="rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-[0.78rem] font-semibold text-white hover:bg-white/20">
+                        100%
+                    </button>
+                    <button type="button" id="adminVerifZoomIn" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-white hover:bg-white/20">
+                        <x-lucide-plus class="w-[16px] h-[16px]" />
+                    </button>
+                    <button type="button" id="adminVerifImageViewerClose" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-white hover:bg-white/20">
+                        <x-lucide-x class="w-[16px] h-[16px]" />
+                    </button>
+                </div>
+            </div>
+            <div id="adminVerifImageViewerStage" class="relative flex-1 overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80">
+                <img id="adminVerifImageViewerImg" src="" alt="Verification document" class="absolute left-1/2 top-1/2 max-h-none max-w-none select-none" style="transform: translate(-50%, -50%) translate(0px, 0px) scale(1); transform-origin: center center;" draggable="false">
             </div>
         </div>
         </div>
@@ -184,6 +230,11 @@
         var docPanelSubtitle = document.getElementById('adminVerifDocPanelSubtitle')
         var patientCard = document.getElementById('adminVerifPatientCard')
         var docMainWrap = document.getElementById('adminVerifDocMainWrap')
+        var docHint = document.getElementById('adminVerifDocHint')
+        var historyTrigger = document.getElementById('adminVerifHistoryTrigger')
+        var historyDrawer = document.getElementById('adminVerifHistoryDrawer')
+        var historyDrawerTitle = document.getElementById('adminVerifHistoryDrawerTitle')
+        var historyDrawerClose = document.getElementById('adminVerifHistoryDrawerClose')
         var historyBody = document.getElementById('adminVerifHistoryBody')
 
         var actionOverlay = document.getElementById('adminVerifActionOverlay')
@@ -199,10 +250,27 @@
         var currentPage = 1
         var lastPayload = null
         var currentHistoryRows = []
+        var currentHistoryLabel = 'History'
         var actionResolver = null
         var actionDelayTimer = null
         var actionCountdownTimer = null
         var actionConfirmDefaultHtml = actionConfirm ? actionConfirm.innerHTML : ''
+        var imageViewer = document.getElementById('adminVerifImageViewer')
+        var imageViewerTitle = document.getElementById('adminVerifImageViewerTitle')
+        var imageViewerStage = document.getElementById('adminVerifImageViewerStage')
+        var imageViewerImg = document.getElementById('adminVerifImageViewerImg')
+        var imageViewerClose = document.getElementById('adminVerifImageViewerClose')
+        var zoomInButton = document.getElementById('adminVerifZoomIn')
+        var zoomOutButton = document.getElementById('adminVerifZoomOut')
+        var zoomResetButton = document.getElementById('adminVerifZoomReset')
+        var imageViewerState = {
+            scale: 1,
+            offsetX: 0,
+            offsetY: 0,
+            dragging: false,
+            startX: 0,
+            startY: 0
+        }
 
         function showError(message) {
             if (message && typeof showToast === 'function') showToast(message, 'error')
@@ -357,7 +425,7 @@
             currentPage = page || 1
             showError('')
             if (tableBody) {
-                tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading verifications…</td></tr>'
+                tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading verifications…</td></tr>'
             }
             var pag = document.getElementById('adminVerifPagination')
             if (pag) pag.innerHTML = ''
@@ -371,7 +439,7 @@
                 .then(function (result) {
                     if (!result.ok) {
                         showError('Failed to load verifications.')
-                        if (tableBody) tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No data.</td></tr>'
+                        if (tableBody) tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No data.</td></tr>'
                         var pag = document.getElementById('adminVerifPagination')
                         if (pag) pag.innerHTML = ''
                         return
@@ -381,7 +449,7 @@
                 })
                 .catch(function () {
                     showError('Network error while loading verifications.')
-                    if (tableBody) tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No data.</td></tr>'
+                    if (tableBody) tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No data.</td></tr>'
                     var pag = document.getElementById('adminVerifPagination')
                     if (pag) pag.innerHTML = ''
                 })
@@ -412,7 +480,7 @@
             })
 
             if (!items.length) {
-                tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No verifications found.</td></tr>'
+                tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No verifications found.</td></tr>'
                 var pag = document.getElementById('adminVerifPagination')
                 if (pag) pag.innerHTML = ''
                 return
@@ -429,7 +497,6 @@
                 var hasDoc = !!v.document_path
 
                 html += '<tr class="border-b border-slate-50 last:border-0">' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">#' + id + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + patientLabel + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + type + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem]">' + statusBadge(status) + '</td>' +
@@ -460,7 +527,7 @@
         function initVerifPagination() {
             var rows = Array.prototype.slice.call(tableBody.querySelectorAll('tr'))
             // Exclude the "No verifications" row
-            if (rows.length === 1 && rows[0].querySelectorAll('td').length === 7 && rows[0].textContent.indexOf('verification') !== -1) {
+            if (rows.length === 1 && rows[0].querySelectorAll('td').length === 6 && rows[0].textContent.indexOf('verification') !== -1) {
                 renderVerifPagination([])
                 return
             }
@@ -531,6 +598,13 @@
             return "{{ url('/api/patient-verifications') }}/" + encodeURIComponent(String(verificationId)) + "/document"
         }
 
+        function directDocumentUrl(verification) {
+            if (!verification) return ''
+            if (verification.document_url) return String(verification.document_url)
+            if (verification.verification_id) return documentUrl(verification.verification_id)
+            return ''
+        }
+
         function revokePreviewUrl(target) {
             if (!target) return
             var previousUrl = target.getAttribute('data-object-url')
@@ -556,9 +630,24 @@
             return String(contentType || '').indexOf('pdf') !== -1 || String(extension || '').toLowerCase() === 'pdf'
         }
 
+        function guessedContentType(extension) {
+            var ext = String(extension || '').toLowerCase()
+            if (['jpg', 'jpeg'].indexOf(ext) !== -1) return 'image/jpeg'
+            if (ext === 'png') return 'image/png'
+            if (ext === 'gif') return 'image/gif'
+            if (ext === 'webp') return 'image/webp'
+            if (ext === 'bmp') return 'image/bmp'
+            if (ext === 'pdf') return 'application/pdf'
+            return ''
+        }
+
         function setPreviewHtml(target, html) {
             if (!target) return
             revokePreviewUrl(target)
+            target.removeAttribute('data-preview-image-url')
+            target.removeAttribute('data-preview-title')
+            target.classList.remove('cursor-zoom-in', 'hover:border-green-300')
+            target.classList.add('cursor-default')
             target.innerHTML = html
         }
 
@@ -567,35 +656,87 @@
                 return Promise.reject(new Error('No document available.'))
             }
 
+            var extension = documentExtension(verification.document_path)
+            var fallbackUrl = directDocumentUrl(verification)
+            var fallbackAsset = fallbackUrl
+                ? {
+                    url: fallbackUrl,
+                    contentType: guessedContentType(extension),
+                    extension: extension
+                }
+                : null
+
             return apiFetch(documentUrl(verification.verification_id), { method: 'GET' })
                 .then(function (response) {
                     if (!response.ok) {
+                        if (fallbackAsset) return fallbackAsset
                         throw new Error('Failed to load document.')
                     }
                     var contentType = response.headers.get('Content-Type') || ''
                     return response.blob().then(function (blob) {
-                        if (!window.URL || typeof window.URL.createObjectURL !== 'function') {
+                        if (!window.URL || typeof window.URL.createObjectURL !== 'function' || !blob || !blob.size) {
+                            if (fallbackAsset) return fallbackAsset
                             throw new Error('Preview is not supported in this browser.')
                         }
                         return {
                             url: window.URL.createObjectURL(blob),
                             contentType: contentType || blob.type || '',
-                            extension: documentExtension(verification.document_path)
+                            extension: extension
                         }
                     })
                 })
+                .catch(function () {
+                    if (fallbackAsset) return fallbackAsset
+                    throw new Error('Failed to load document.')
+                })
         }
 
-        function renderDocumentAsset(target, asset, title) {
-            if (!target || !asset) return
-            revokePreviewUrl(target)
-            target.setAttribute('data-object-url', asset.url)
+        function setZoomablePreview(target, asset, title, enabled) {
+            if (!target) return
+            target.removeAttribute('data-preview-image-url')
+            target.removeAttribute('data-preview-title')
+            target.classList.remove('cursor-zoom-in', 'hover:border-green-300')
+            target.classList.add('cursor-default')
 
-            if (isImageDocument(asset.contentType, asset.extension)) {
-                target.innerHTML = '<img src="' + escapeHtml(asset.url) + '" alt="' + escapeHtml(title || 'Verification document') + '" class="max-w-full max-h-full object-contain bg-white">'
+            if (!enabled || !asset || !asset.url) {
+                if (target === docMainWrap) {
+                    if (docHint) docHint.textContent = 'Image previews can be opened fullscreen for closer inspection.'
+                }
                 return
             }
 
+            target.setAttribute('data-preview-image-url', asset.url)
+            target.setAttribute('data-preview-title', title || 'Verification document')
+            target.classList.remove('cursor-default')
+            target.classList.add('cursor-zoom-in', 'hover:border-green-300')
+            if (target === docMainWrap) {
+                if (docHint) docHint.textContent = 'Click the image preview to inspect it fullscreen and zoom in.'
+            }
+        }
+
+        function renderDocumentAsset(target, asset, title, options) {
+            if (!target || !asset) return
+            options = options || {}
+            revokePreviewUrl(target)
+            if (String(asset.url || '').indexOf('blob:') === 0) {
+                target.setAttribute('data-object-url', asset.url)
+            } else {
+                target.removeAttribute('data-object-url')
+            }
+
+            if (isImageDocument(asset.contentType, asset.extension)) {
+                setZoomablePreview(target, asset, title, !!options.zoomable)
+                target.innerHTML =
+                    '<div class="relative h-full w-full bg-white">' +
+                        '<img src="' + escapeHtml(asset.url) + '" alt="' + escapeHtml(title || 'Verification document') + '" class="h-full w-full object-contain bg-white">' +
+                        (options.zoomable
+                            ? '<div class="pointer-events-none absolute bottom-3 right-3 rounded-full bg-slate-900/75 px-3 py-1 text-[0.68rem] font-semibold text-white shadow-lg">Click to inspect</div>'
+                            : '') +
+                    '</div>'
+                return
+            }
+
+            setZoomablePreview(target, null, '', false)
             if (isPdfDocument(asset.contentType, asset.extension)) {
                 target.innerHTML = '<iframe src="' + escapeHtml(asset.url) + '" class="w-full h-full bg-white" title="' + escapeHtml(title || 'Verification document preview') + '"></iframe>'
                 return
@@ -608,8 +749,9 @@
                 '</div>'
         }
 
-        function loadDocumentPreview(target, verification, emptyMessage, loadingMessage, title) {
+        function loadDocumentPreview(target, verification, emptyMessage, loadingMessage, title, options) {
             if (!target) return Promise.resolve()
+            options = options || {}
             if (!verification || !verification.document_path) {
                 setPreviewHtml(target, '<div class="text-[0.78rem] text-slate-500">' + escapeHtml(emptyMessage || 'No document uploaded.') + '</div>')
                 return Promise.resolve()
@@ -625,11 +767,64 @@
 
             return fetchDocumentAsset(verification)
                 .then(function (asset) {
-                    renderDocumentAsset(target, asset, title)
+                    renderDocumentAsset(target, asset, title, options)
                 })
                 .catch(function () {
                     setPreviewHtml(target, '<div class="px-4 text-center text-[0.78rem] text-slate-500">Unable to load the document preview.</div>')
                 })
+        }
+
+        function closeHistoryDrawer() {
+            if (historyDrawer) historyDrawer.classList.add('hidden')
+        }
+
+        function openHistoryDrawer() {
+            if (!historyDrawer) return
+            historyDrawer.classList.remove('hidden')
+        }
+
+        function resetImageViewerTransform() {
+            imageViewerState.scale = 1
+            imageViewerState.offsetX = 0
+            imageViewerState.offsetY = 0
+            if (zoomResetButton) zoomResetButton.textContent = '100%'
+            if (imageViewerImg) {
+                imageViewerImg.style.transform =
+                    'translate(-50%, -50%) translate(' + imageViewerState.offsetX + 'px, ' + imageViewerState.offsetY + 'px) scale(' + imageViewerState.scale + ')'
+            }
+        }
+
+        function setImageViewerScale(nextScale) {
+            var clamped = Math.max(1, Math.min(6, nextScale))
+            imageViewerState.scale = clamped
+            if (clamped === 1) {
+                imageViewerState.offsetX = 0
+                imageViewerState.offsetY = 0
+            }
+            if (zoomResetButton) zoomResetButton.textContent = Math.round(clamped * 100) + '%'
+            if (imageViewerImg) {
+                imageViewerImg.style.transform =
+                    'translate(-50%, -50%) translate(' + imageViewerState.offsetX + 'px, ' + imageViewerState.offsetY + 'px) scale(' + clamped + ')'
+            }
+        }
+
+        function closeImageViewer() {
+            imageViewerState.dragging = false
+            if (imageViewer) imageViewer.classList.add('hidden')
+            if (imageViewerImg) {
+                imageViewerImg.removeAttribute('src')
+                imageViewerImg.style.transform = 'translate(-50%, -50%) translate(0px, 0px) scale(1)'
+            }
+            if (imageViewerTitle) imageViewerTitle.textContent = 'Verification document'
+            resetImageViewerTransform()
+        }
+
+        function openImageViewer(url, title) {
+            if (!imageViewer || !imageViewerImg || !url) return
+            if (imageViewerTitle) imageViewerTitle.textContent = title || 'Verification document'
+            imageViewer.classList.remove('hidden')
+            imageViewerImg.setAttribute('src', url)
+            resetImageViewerTransform()
         }
 
         function openDocPanel() {
@@ -642,6 +837,8 @@
 
         function closeDocPanel() {
             if (!docPanelOverlay || !docPanel) return
+            closeHistoryDrawer()
+            closeImageViewer()
             docPanel.classList.add('translate-x-full')
             setTimeout(function () {
                 docPanelOverlay.classList.add('hidden')
@@ -649,6 +846,14 @@
                     patientCard.innerHTML = '<div class="text-[0.78rem] text-slate-500">Select a verification record.</div>'
                 }
                 setPreviewHtml(docMainWrap, 'Select a verification record.')
+                if (historyBody) {
+                    historyBody.innerHTML = '<tr><td colspan="6" class="px-3 py-4 text-center text-slate-400">No history loaded.</td></tr>'
+                }
+                if (historyDrawerTitle) historyDrawerTitle.textContent = 'History'
+                currentHistoryRows = []
+                currentHistoryLabel = 'History'
+                if (historyTrigger) historyTrigger.disabled = true
+                if (docHint) docHint.textContent = 'Image previews can be opened fullscreen for closer inspection.'
             }, 220)
         }
 
@@ -658,7 +863,8 @@
                 v,
                 'No document uploaded for this verification.',
                 'Loading document...',
-                'Verification document preview'
+                'Verification document preview',
+                { zoomable: true }
             )
         }
 
@@ -678,12 +884,12 @@
                     ? '<button type="button" class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.72rem] font-semibold text-slate-700 hover:bg-slate-50 admin-verif-history-doc" data-id="' + escapeHtml(entry.verification_id) + '">Open</button>'
                     : '<span class="text-slate-400">No doc</span>'
                 return '<tr>' +
-                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">#' + escapeHtml(entry.verification_id) + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(entry.type || '—') + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(statusText(entry.status)) + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 min-w-[14rem]">' + escapeHtml(remarks) + '</td>' +
-                    '<td class="px-3 py-2">' + thumb + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(uploaded) + '</td>' +
+                    '<td class="px-3 py-2 align-top text-slate-700 whitespace-nowrap">#' + escapeHtml(entry.verification_id) + '</td>' +
+                    '<td class="px-3 py-2 align-top text-slate-700 whitespace-nowrap">' + escapeHtml(entry.type || '—') + '</td>' +
+                    '<td class="px-3 py-2 align-top text-slate-700 whitespace-nowrap">' + escapeHtml(statusText(entry.status)) + '</td>' +
+                    '<td class="px-3 py-2 align-top text-slate-700 break-words leading-5">' + escapeHtml(remarks) + '</td>' +
+                    '<td class="px-3 py-2 align-top whitespace-nowrap">' + thumb + '</td>' +
+                    '<td class="px-3 py-2 align-top text-slate-700 whitespace-nowrap">' + escapeHtml(uploaded) + '</td>' +
                 '</tr>'
             }).join('')
             bindHistoryActions()
@@ -693,9 +899,14 @@
             if (!verification) return
             // if (docPanelTitle) docPanelTitle.textContent = 'Verification #' + verification.verification_id
             if (docPanelSubtitle) docPanelSubtitle.textContent = getPatientLabel(verification) + ' | ' + statusText(verification.status) + ' | ' + (verification.type || '—')
+            if (historyDrawerTitle) historyDrawerTitle.textContent = getPatientLabel(verification)
+            currentHistoryLabel = getPatientLabel(verification)
             renderPatientSummary(verification)
+            closeHistoryDrawer()
+            closeImageViewer()
             setMainDocumentPreview(verification)
             openDocPanel()
+            if (historyTrigger) historyTrigger.disabled = true
 
             if (historyBody) {
                 historyBody.innerHTML = '<tr><td colspan="6" class="px-3 py-4 text-center text-slate-400">Loading verification history...</td></tr>'
@@ -703,6 +914,7 @@
             var patientId = verification && verification.patient_id ? verification.patient_id : 0
             if (!patientId) {
                 renderHistory([])
+                if (historyTrigger) historyTrigger.disabled = false
                 return
             }
 
@@ -717,6 +929,7 @@
                 .then(function (result) {
                     if (!result.ok || !result.data) {
                         renderHistory([])
+                        if (historyTrigger) historyTrigger.disabled = false
                         return
                     }
                     var rows = Array.isArray(result.data.data) ? result.data.data : []
@@ -728,9 +941,11 @@
                         return 0
                     })
                     renderHistory(rows)
+                    if (historyTrigger) historyTrigger.disabled = false
                 })
                 .catch(function () {
                     renderHistory([])
+                    if (historyTrigger) historyTrigger.disabled = false
                 })
         }
 
@@ -780,7 +995,8 @@
                     verification,
                     'No document preview.',
                     'Loading preview...',
-                    'Verification action preview'
+                    'Verification action preview',
+                    { zoomable: false }
                 )
 
                 if (isReject) {
@@ -908,18 +1124,70 @@
                     }
                     // if (docPanelTitle) docPanelTitle.textContent = 'Verification #' + selected.verification_id
                     if (docPanelSubtitle) docPanelSubtitle.textContent = getPatientLabel(selected) + ' | ' + statusText(selected.status) + ' | ' + (selected.type || '—')
+                    if (historyDrawerTitle) historyDrawerTitle.textContent = currentHistoryLabel
                     renderPatientSummary(selected)
+                    closeImageViewer()
                     void setMainDocumentPreview(selected)
                 })
             })
         }
 
-        if (docPanelClose) docPanelClose.addEventListener('click', closeDocPanel)
-        if (docPanelOverlay) {
-            docPanelOverlay.addEventListener('click', function (e) {
-                if (e.target === docPanelOverlay) closeDocPanel()
+        if (historyTrigger) {
+            historyTrigger.addEventListener('click', function () {
+                if (historyTrigger.disabled) return
+                openHistoryDrawer()
             })
         }
+        if (historyDrawerClose) historyDrawerClose.addEventListener('click', closeHistoryDrawer)
+        if (docPanelClose) docPanelClose.addEventListener('click', closeDocPanel)
+        if (docMainWrap) {
+            docMainWrap.addEventListener('click', function () {
+                var imageUrl = docMainWrap.getAttribute('data-preview-image-url')
+                if (!imageUrl) return
+                openImageViewer(imageUrl, docMainWrap.getAttribute('data-preview-title') || 'Verification document')
+            })
+        }
+        if (docPanelOverlay) {
+            docPanelOverlay.addEventListener('click', function (e) {
+                if (e.target === docPanelOverlay) {
+                    if (imageViewer && !imageViewer.classList.contains('hidden')) {
+                        closeImageViewer()
+                        return
+                    }
+                    closeDocPanel()
+                }
+            })
+        }
+        if (imageViewerClose) imageViewerClose.addEventListener('click', closeImageViewer)
+        if (imageViewer) {
+            imageViewer.addEventListener('click', function (e) {
+                if (e.target === imageViewer) closeImageViewer()
+            })
+        }
+        if (zoomInButton) zoomInButton.addEventListener('click', function () { setImageViewerScale(imageViewerState.scale + 0.25) })
+        if (zoomOutButton) zoomOutButton.addEventListener('click', function () { setImageViewerScale(imageViewerState.scale - 0.25) })
+        if (zoomResetButton) zoomResetButton.addEventListener('click', resetImageViewerTransform)
+        if (imageViewerStage) {
+            imageViewerStage.addEventListener('wheel', function (e) {
+                e.preventDefault()
+                setImageViewerScale(imageViewerState.scale + (e.deltaY < 0 ? 0.2 : -0.2))
+            }, { passive: false })
+            imageViewerStage.addEventListener('mousedown', function (e) {
+                if (imageViewerState.scale <= 1) return
+                imageViewerState.dragging = true
+                imageViewerState.startX = e.clientX - imageViewerState.offsetX
+                imageViewerState.startY = e.clientY - imageViewerState.offsetY
+            })
+        }
+        document.addEventListener('mousemove', function (e) {
+            if (!imageViewerState.dragging) return
+            imageViewerState.offsetX = e.clientX - imageViewerState.startX
+            imageViewerState.offsetY = e.clientY - imageViewerState.startY
+            setImageViewerScale(imageViewerState.scale)
+        })
+        document.addEventListener('mouseup', function () {
+            imageViewerState.dragging = false
+        })
         if (actionCancel) actionCancel.addEventListener('click', function () { closeActionModal(null) })
         if (actionConfirm) {
             actionConfirm.addEventListener('click', function () {
@@ -933,6 +1201,8 @@
         }
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
+                closeImageViewer()
+                closeHistoryDrawer()
                 closeDocPanel()
                 closeActionModal(null)
             }
