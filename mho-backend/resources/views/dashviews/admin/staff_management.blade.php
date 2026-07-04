@@ -4,7 +4,21 @@
         <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Staff</span>
     </div>
     <p class="text-xs text-slate-500 mb-4">
-      
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+        <div class="rounded-2xl border border-slate-200 bg-white p-4">
+            <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Doctor</div>
+            <div id="admin_staff_stat_doctor" class="mt-1 text-xl font-semibold text-slate-900">—</div>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-4">
+            <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Receptionist</div>
+            <div id="admin_staff_stat_receptionist" class="mt-1 text-xl font-semibold text-slate-900">—</div>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-4">
+            <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Total Staff</div>
+            <div id="admin_staff_stat_total" class="mt-1 text-xl font-semibold text-slate-900">—</div>
+        </div>
+    </div>
 
     <div id="adminDoctorError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
     <div id="adminDoctorSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
@@ -942,6 +956,22 @@
             })
         }
 
+        function updateStaffStats() {
+            var docEl = document.getElementById('admin_staff_stat_doctor')
+            var recEl = document.getElementById('admin_staff_stat_receptionist')
+            var totalEl = document.getElementById('admin_staff_stat_total')
+            if (!docEl && !recEl && !totalEl) return
+            var doctorsCount = 0
+            var receptionistsCount = 0
+            doctors.forEach(function (staff) {
+                if (staff.role === 'doctor') doctorsCount++
+                else if (staff.role === 'receptionist') receptionistsCount++
+            })
+            if (docEl) docEl.textContent = String(doctorsCount)
+            if (recEl) recEl.textContent = String(receptionistsCount)
+            if (totalEl) totalEl.textContent = String(doctorsCount + receptionistsCount)
+        }
+
         function setScheduleSubmitting(isSubmitting) {
             if (scheduleSubmit) scheduleSubmit.disabled = !!isSubmitting
             if (scheduleSpinner) scheduleSpinner.classList.toggle('hidden', !isSubmitting)
@@ -1188,6 +1218,7 @@
                     }
                     doctors = Array.isArray(result.data) ? result.data : []
                     renderDoctors()
+                    updateStaffStats()
                 })
                 .catch(function () {
                     tableBody.innerHTML = '<tr><td colspan="9" class="py-4 text-center text-[0.78rem] text-red-500">Network error while loading staff.</td></tr>'

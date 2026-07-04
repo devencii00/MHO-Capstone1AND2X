@@ -7,6 +7,13 @@
         Create users by email invitation, edit accounts, suspend or activate, search or filter, and view dependents.
     </p>
 
+    <div class="grid grid-cols-1 gap-3 mb-4">
+        <div class="rounded-2xl border border-slate-200 bg-white p-4">
+            <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Total Users</div>
+            <div id="admin_user_stat_total" class="mt-1 text-xl font-semibold text-slate-900">—</div>
+        </div>
+    </div>
+
     <div id="adminUserError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
     <div id="adminUserSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
 
@@ -508,11 +515,19 @@
                         // Re-bind data attributes and re-initialize
                         rows = Array.prototype.slice.call(document.querySelectorAll('.admin-user-row'))
                         applyUserFilters()
+                        updateUserTotalCount()
                     } else {
                         window.location.reload()
                     }
                 })
                 .catch(function () { window.location.reload() })
+        }
+
+        function updateUserTotalCount() {
+            var el = document.getElementById('admin_user_stat_total')
+            if (!el) return
+            var count = document.querySelectorAll('.admin-user-row').length
+            el.textContent = String(count)
         }
         function showInlineBox(el, message) {
             if (!el) return
@@ -1215,6 +1230,7 @@
         }
 
         applyUserFilters()
+        updateUserTotalCount()
 
         if (searchInput) {
             searchInput.addEventListener('input', applyUserFilters)
