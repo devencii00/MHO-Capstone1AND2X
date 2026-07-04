@@ -21,8 +21,8 @@ import { persistCurrentUser } from '@/lib/auth-storage';
 // ─── Design Tokens ───────────────────────────────────────────────────────────
 const T = {
   green500: '#06b6d4',
-  green600: '#0891b2',
-  green700: '#0e7490',
+  green600: '#16A34A',
+  green700: '#15803D',
   green400: '#22d3ee',
   green100: '#cffafe',
   slate50:  '#f8fafc',

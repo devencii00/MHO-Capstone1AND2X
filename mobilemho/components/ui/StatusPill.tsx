@@ -52,8 +52,8 @@ function getColors(variant: StatusVariant) {
     return {
       bg: 'rgba(8,145,178,0.08)',
       border: 'rgba(8,145,178,0.25)',
-      dot: '#0891b2',
-      text: '#0e7490',
+      dot: '#16A34A',
+      text: '#15803D',
     };
   }
 

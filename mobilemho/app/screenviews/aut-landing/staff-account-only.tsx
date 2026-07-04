@@ -45,7 +45,7 @@ export default function StaffAccountOnlyScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-      <LinearGradient colors={['#0891b2', '#0e7490', '#155e75']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#16A34A', '#15803D', '#166534']} style={StyleSheet.absoluteFill} />
 
       <View style={styles.circleTopRight} />
       <View style={styles.circleBottomLeft} />

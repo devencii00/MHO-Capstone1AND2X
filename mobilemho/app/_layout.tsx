@@ -35,7 +35,7 @@ export default function RootLayout() {
     return (
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <View style={styles.bootScreen}>
-          <ActivityIndicator size="large" color="#0891b2" />
+          <ActivityIndicator size="large" color="#16A34A" />
         </View>
         <StatusBar style="auto" />
       </ThemeProvider>

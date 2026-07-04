@@ -119,7 +119,7 @@ export default function HomeLanding() {
   }
 
   useEffect(() => {
-    // Entrance sequence
+   
     Animated.sequence([
       Animated.parallel([
         Animated.timing(fadeAnim, {
@@ -153,7 +153,7 @@ export default function HomeLanding() {
       ]),
     ]).start();
 
-    // Pulse loop for logo ring
+
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -187,7 +187,7 @@ export default function HomeLanding() {
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       <LinearGradient
-        colors={['#0891b2', '#0e7490', '#155e75']}
+        colors={['#16A34A', '#15803D', '#166534']}
         start={{ x: 0.1, y: 0 }}
         end={{ x: 0.9, y: 1 }}
         style={StyleSheet.absoluteFill}
@@ -229,7 +229,7 @@ export default function HomeLanding() {
               </View>
               {
               <Image
-               source={require('../../../assets/images/docfiles/opoldoc.png')}
+               source={require('../../../assets/images/docfiles/MHOLogoV2.png')}
                 style={styles.logoImage}
                 resizeMode="contain"
               /> }
@@ -298,7 +298,7 @@ export default function HomeLanding() {
             <View style={styles.sheet}>
               <View style={styles.sheetHeader}>
                 <View style={styles.sheetTitleRow}>
-                  <Ionicons name="sparkles-outline" size={18} color="#0e7490" />
+                  <Ionicons name="sparkles-outline" size={18} color="#15803D" />
                   <Text style={styles.sheetTitle}>Clinic Assistant</Text>
                 </View>
                 <View style={styles.sheetHeaderActions}>
@@ -375,7 +375,7 @@ export default function HomeLanding() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#0891b2',
+    backgroundColor: '#16A34A',
   },
 
   // Decorative circles
@@ -573,7 +573,7 @@ const styles = StyleSheet.create({
     }),
   },
   createBtnText: {
-    color: '#0e7490',
+    color: '#15803D',
     fontSize: 15,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -599,7 +599,7 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 18,
-    backgroundColor: '#0e7490',
+    backgroundColor: '#15803D',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -669,7 +669,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   bubbleBot: { backgroundColor: '#f8fafc', borderColor: '#e2e8f0' },
-  bubbleUser: { backgroundColor: '#0e7490', borderColor: '#0e7490' },
+  bubbleUser: { backgroundColor: '#15803D', borderColor: '#15803D' },
   bubbleText: { fontSize: 13, lineHeight: 18 },
   bubbleTextBot: { color: '#0f172a' },
   bubbleTextUser: { color: '#ffffff' },
@@ -683,7 +683,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(8,145,178,0.25)',
   },
-  optionChipText: { fontSize: 12, fontWeight: '600', color: '#0e7490' },
+  optionChipText: { fontSize: 12, fontWeight: '600', color: '#15803D' },
   freeTextRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   freeTextInput: {
     flex: 1,
@@ -700,7 +700,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: '#0e7490',
+    backgroundColor: '#15803D',
     alignItems: 'center',
     justifyContent: 'center',
   },

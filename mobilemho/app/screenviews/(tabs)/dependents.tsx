@@ -15,8 +15,8 @@ import { useIsFocused } from '@react-navigation/native';
 
 const T = {
   green500: '#06b6d4',
-  green600: '#0891b2',
-  green700: '#0e7490',
+  green600: '#16A34A',
+  green700: '#15803D',
   amber100: 'rgba(245,158,11,0.12)',
   amber700: '#b45309',
   slate50: '#f8fafc',

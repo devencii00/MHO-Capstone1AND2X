@@ -250,7 +250,7 @@ export default function LoginScreen() {
 
       {/* Background */}
       <LinearGradient
-        colors={['#0891b2', '#0e7490', '#155e75']}
+        colors={['#16A34A', '#15803D', '#166534']}
         style={StyleSheet.absoluteFill}
       />
 
@@ -299,7 +299,7 @@ export default function LoginScreen() {
           <View style={styles.logoPulseRing}>
             <View style={styles.logoRing}>
               <Image
-                source={require('../../../assets/images/docfiles/opoldoc.png')}
+                source={require('../../../assets/images/docfiles/MHOLogoV2.png')}
                 style={styles.logoImage}
                 resizeMode="contain"
               />
@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // background circles (same system as landing)
+
   circleTopRight: {
     position: 'absolute',
     top: -80,
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.05)',
   },
 
-  // header
+
   tagline: {
     color: 'rgba(255,255,255,0.6)',
     fontSize: 10,
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // logo
+
   logoWrapper: {
     marginVertical: 28,
   },
@@ -614,11 +614,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logoImage: {
-    width: 100,
-    height: 100,
+    width: 250,
+    height: 250,
   },
 
-  // form
+
   form: {
     width: '100%',
     gap: 14,

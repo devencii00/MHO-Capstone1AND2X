@@ -93,10 +93,15 @@
         <div class="flex-1 overflow-y-auto scrollbar-hidden">
             <div class="px-5 py-4 border-b border-slate-100">
                 <div class="flex gap-4">
-                    <div id="adminPrPanelProfilePic" class="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0 self-start">
-                        <div class="w-full h-full flex items-center justify-center text-slate-400">
-                            <x-lucide-user class="w-9 h-9" />
+                    <div class="flex w-20 flex-shrink-0 self-start flex-col items-center gap-2">
+                        <div id="adminPrPanelProfilePic" class="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden">
+                            <div class="w-full h-full flex items-center justify-center text-slate-400">
+                                <x-lucide-user class="w-9 h-9" />
+                            </div>
                         </div>
+                        <button type="button" id="adminPrPanelEditInfoBtn" class="inline-flex items-center justify-center rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 transition-colors">
+                            Edit Info
+                        </button>
                     </div>
                     <div class="flex-1 flex gap-x-5 gap-y-[3px] text-[0.78rem]">
                         <div class="flex-1 space-y-[3px]">
@@ -149,6 +154,135 @@
     </div>
 </div>
 
+<div id="adminPrEditOverlay" class="hidden fixed inset-0 z-[60] bg-slate-900/40 items-center justify-center p-4">
+    <div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)]">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div>
+                <div class="text-sm font-semibold text-slate-900">Edit Patient Info</div>
+                <div id="adminPrEditSubtitle" class="text-[0.72rem] text-slate-500">Update patient profile information.</div>
+            </div>
+            <button type="button" id="adminPrEditClose" class="text-slate-400 hover:text-slate-600">
+                <x-lucide-x class="w-[20px] h-[20px]" />
+            </button>
+        </div>
+        <div class="p-5">
+            <div id="adminPrEditError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
+            <form id="adminPrEditForm" class="grid grid-cols-1 md:grid-cols-5 gap-5">
+                <div class="md:col-span-3 space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label for="adminPrEditLastname" class="block text-[0.7rem] text-slate-600 mb-1">Last name</label>
+                            <input id="adminPrEditLastname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        </div>
+                        <div>
+                            <label for="adminPrEditFirstname" class="block text-[0.7rem] text-slate-600 mb-1">First name</label>
+                            <input id="adminPrEditFirstname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        </div>
+                        <div>
+                            <label for="adminPrEditMiddlename" class="block text-[0.7rem] text-slate-600 mb-1">Middle name <span class="text-slate-400">(optional)</span></label>
+                            <input id="adminPrEditMiddlename" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="N/A">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-[0.7rem] text-slate-600 mb-1">Sex</label>
+                            <div class="flex items-center gap-4 pt-1">
+                                <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                                    <input type="radio" name="adminPrEditSex" value="Male" class="rounded-full text-green-600 focus:ring-green-500"> Male
+                                </label>
+                                <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                                    <input type="radio" name="adminPrEditSex" value="Female" class="rounded-full text-green-600 focus:ring-green-500"> Female
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="adminPrEditBirthdate" class="block text-[0.7rem] text-slate-600 mb-1">Birthdate</label>
+                            <input id="adminPrEditBirthdate" type="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        </div>
+                        <div>
+                            <label for="adminPrEditCivilStatus" class="block text-[0.7rem] text-slate-600 mb-1">Civil status</label>
+                            <input id="adminPrEditCivilStatus" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label for="adminPrEditNationality" class="block text-[0.7rem] text-slate-600 mb-1">Nationality</label>
+                            <input id="adminPrEditNationality" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        </div>
+                        <div>
+                            <label for="adminPrEditOccupation" class="block text-[0.7rem] text-slate-600 mb-1">Occupation</label>
+                            <input id="adminPrEditOccupation" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="adminPrEditAddress" class="block text-[0.7rem] text-slate-600 mb-1">Address</label>
+                        <textarea id="adminPrEditAddress" rows="3" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none resize-y" placeholder="Street, barangay, municipality"></textarea>
+                    </div>
+                    <hr class="border-slate-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label for="adminPrEditPhilhealth" class="block text-[0.7rem] text-slate-600 mb-1">PHIC Number</label>
+                            <input id="adminPrEditPhilhealth" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="01-234567890-1" maxlength="14">
+                        </div>
+                        <div>
+                            <label for="adminPrEditEmergencyContact" class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact</label>
+                            <input id="adminPrEditEmergencyContact" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="adminPrEditEmergencyContactNumber" class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact number</label>
+                        <input id="adminPrEditEmergencyContactNumber" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
+                    </div>
+                </div>
+                <div class="md:col-span-2">
+                    <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-5 text-center">
+                        <div class="text-[0.72rem] font-semibold text-slate-700 mb-3">Profile Photo</div>
+                        <div id="adminPrEditProfilePreview" class="w-32 h-32 mx-auto rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 overflow-hidden">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                        <div class="mt-3">
+                            <label for="adminPrEditProfileUpload" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-green-200 bg-green-50 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                Upload photo
+                            </label>
+                            <input id="adminPrEditProfileUpload" type="file" accept="image/*" class="hidden">
+                        </div>
+                        <div class="mt-4 text-left">
+                            <label for="adminPrEditContact" class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>
+                            <input id="adminPrEditContact" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
+                        </div>
+                    </div>
+                </div>
+                <div class="md:col-span-5 flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" id="adminPrEditCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+                    <button type="submit" id="adminPrEditSave" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 disabled:hover:bg-green-600">
+                        <span id="adminPrEditSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                        <span id="adminPrEditSaveLabel">Save changes</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="adminPrEditConfirmOverlay" class="hidden fixed inset-0 z-[70] bg-slate-900/40 items-center justify-center p-4">
+    <div class="w-full max-w-sm rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] p-4">
+        <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-700">
+                <x-lucide-info class="w-[18px] h-[18px]" />
+            </div>
+            <div class="flex-1">
+                <div class="text-sm font-semibold text-slate-900">Confirm</div>
+                <div id="adminPrEditConfirmMessage" class="text-[0.78rem] text-slate-600 mt-0.5">Are you sure?</div>
+            </div>
+        </div>
+        <div class="mt-4 flex items-center justify-end gap-2">
+            <button type="button" id="adminPrEditConfirmCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button type="button" id="adminPrEditConfirmOk" class="px-3 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700">Confirm</button>
+        </div>
+    </div>
+</div>
+
 <div id="adminPrTabDrawer" class="fixed top-0 right-0 md:right-[560px] z-[49] h-full w-full max-w-[480px] bg-white border-l border-slate-200 shadow-xl hidden">
     <div class="h-full flex flex-col">
         <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 shrink-0">
@@ -193,6 +327,7 @@
         var panel = document.getElementById('adminPrSlideoverPanel')
         var panelClose = document.getElementById('adminPrPanelClose')
         var panelProfilePic = document.getElementById('adminPrPanelProfilePic')
+        var panelEditInfoBtn = document.getElementById('adminPrPanelEditInfoBtn')
         var prDetailFirstname = document.getElementById('prDetailFirstname')
         var prDetailMiddlename = document.getElementById('prDetailMiddlename')
         var prDetailLastname = document.getElementById('prDetailLastname')
@@ -214,6 +349,39 @@
         var panelTabVisits = document.getElementById('adminPrPanelTabVisits')
         var panelTabVitals = document.getElementById('adminPrPanelTabVitals')
         var panelTabDependents = document.getElementById('adminPrPanelTabDependents')
+
+        var patientEditOverlay = document.getElementById('adminPrEditOverlay')
+        var patientEditClose = document.getElementById('adminPrEditClose')
+        var patientEditCancel = document.getElementById('adminPrEditCancel')
+        var patientEditForm = document.getElementById('adminPrEditForm')
+        var patientEditError = document.getElementById('adminPrEditError')
+        var patientEditSubtitle = document.getElementById('adminPrEditSubtitle')
+        var patientEditFirstname = document.getElementById('adminPrEditFirstname')
+        var patientEditMiddlename = document.getElementById('adminPrEditMiddlename')
+        var patientEditLastname = document.getElementById('adminPrEditLastname')
+        var patientEditSexMale = document.querySelector('input[name="adminPrEditSex"][value="Male"]')
+        var patientEditSexFemale = document.querySelector('input[name="adminPrEditSex"][value="Female"]')
+        var patientEditBirthdate = document.getElementById('adminPrEditBirthdate')
+        var patientEditCivilStatus = document.getElementById('adminPrEditCivilStatus')
+        var patientEditNationality = document.getElementById('adminPrEditNationality')
+        var patientEditAddress = document.getElementById('adminPrEditAddress')
+        var patientEditContact = document.getElementById('adminPrEditContact')
+        var patientEditPhilhealth = document.getElementById('adminPrEditPhilhealth')
+        var patientEditOccupation = document.getElementById('adminPrEditOccupation')
+        var patientEditEmergencyContact = document.getElementById('adminPrEditEmergencyContact')
+        var patientEditEmergencyContactNumber = document.getElementById('adminPrEditEmergencyContactNumber')
+        var patientEditProfileUpload = document.getElementById('adminPrEditProfileUpload')
+        var patientEditProfilePreview = document.getElementById('adminPrEditProfilePreview')
+        var patientEditSave = document.getElementById('adminPrEditSave')
+        var patientEditSpinner = document.getElementById('adminPrEditSpinner')
+        var patientEditSaveLabel = document.getElementById('adminPrEditSaveLabel')
+
+        var patientEditConfirmOverlay = document.getElementById('adminPrEditConfirmOverlay')
+        var patientEditConfirmMessage = document.getElementById('adminPrEditConfirmMessage')
+        var patientEditConfirmOk = document.getElementById('adminPrEditConfirmOk')
+        var patientEditConfirmCancel = document.getElementById('adminPrEditConfirmCancel')
+        var patientEditConfirmResolver = null
+        var editingPatientId = null
 
         var tabDrawer = document.getElementById('adminPrTabDrawer')
         var tabDrawerTitle = document.getElementById('adminPrTabDrawerTitle')
@@ -250,6 +418,15 @@
             if (!el) return
             el.textContent = message || ''
             el.classList.toggle('hidden', !message)
+        }
+
+        function showPatientEditError(message) {
+            showInlineBox(patientEditError, message)
+            if (message && typeof showToast === 'function') showToast(message, 'error')
+        }
+
+        function showPatientEditSuccess(message) {
+            if (message && typeof showToast === 'function') showToast(message, 'success')
         }
 
         function categoryLabel(key) {
@@ -415,6 +592,186 @@
                 panel.classList.add('translate-x-full')
                 panel.classList.remove('translate-x-0')
             }
+        }
+
+        function setPatientEditSubmitting(isSubmitting) {
+            if (patientEditSave) patientEditSave.disabled = !!isSubmitting
+            if (patientEditSpinner) patientEditSpinner.classList.toggle('hidden', !isSubmitting)
+            if (patientEditSaveLabel) patientEditSaveLabel.textContent = isSubmitting ? 'Saving...' : 'Save changes'
+        }
+
+        function updatePatientProfilePreview(path) {
+            if (!patientEditProfilePreview) return
+            if (path) {
+                patientEditProfilePreview.innerHTML = '<img src="' + String(path).replace(/"/g, '&quot;') + '" alt="" class="w-full h-full object-cover">'
+            } else {
+                patientEditProfilePreview.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+            }
+        }
+
+        function formatPhone(val) {
+            var s = String(val || '').replace(/[^\d]/g, '')
+            if (s.startsWith('63')) s = s.slice(2)
+            if (s.startsWith('0')) s = s.slice(1)
+            if (s.length === 10) return '+63 ' + s.slice(0, 3) + ' ' + s.slice(3, 6) + ' ' + s.slice(6)
+            return val || ''
+        }
+
+        function parsePhoneRaw(val) {
+            var s = String(val || '').replace(/[^\d]/g, '')
+            if (s.startsWith('63')) return '+' + s
+            if (s.startsWith('0')) return '+63' + s.slice(1)
+            return s ? '+63' + s : ''
+        }
+
+        function formatPhilhealth(val) {
+            var s = String(val || '').replace(/[^\d]/g, '')
+            if (s.length >= 2 && s.length <= 4) return s.slice(0, 2) + '-' + s.slice(2)
+            if (s.length > 4 && s.length <= 11) return s.slice(0, 2) + '-' + s.slice(2, 11) + '-' + s.slice(11)
+            if (s.length > 11) return s.slice(0, 2) + '-' + s.slice(2, 11) + '-' + s.slice(11, 12)
+            return s
+        }
+
+        function setupPhoneFormat(input) {
+            if (!input) return
+            input.addEventListener('input', function () {
+                var cursor = this.selectionStart
+                var oldLen = this.value.length
+                var raw = this.value.replace(/[^\d]/g, '')
+                if (raw.startsWith('63')) raw = raw.slice(2)
+                if (raw.startsWith('0')) raw = raw.slice(1)
+                if (raw.length > 10) raw = raw.slice(0, 10)
+                var formatted = raw ? '+63 ' : ''
+                if (raw.length > 0) formatted += raw.slice(0, 3)
+                if (raw.length > 3) formatted += ' ' + raw.slice(3, 6)
+                if (raw.length > 6) formatted += ' ' + raw.slice(6)
+                this.value = formatted
+                var newLen = this.value.length
+                this.setSelectionRange(cursor + (newLen - oldLen), cursor + (newLen - oldLen))
+            })
+        }
+
+        function normalizePhilippinesNumber(value) {
+            var raw = String(value || '').trim()
+            if (!raw) return ''
+            raw = raw.replace(/\s+/g, '').replace(/-/g, '')
+            if (raw.startsWith('+63')) return raw
+            if (raw.startsWith('63')) return '+' + raw
+            if (raw.startsWith('0') && raw.length >= 2) return '+63' + raw.slice(1)
+            if (/^\d+$/.test(raw)) return '+63' + raw
+            return raw
+        }
+
+        function isValidPhilippinesNumber(value) {
+            var normalized = normalizePhilippinesNumber(value)
+            return /^\+63\d{10}$/.test(normalized)
+        }
+
+        function isValidName(value) {
+            var v = String(value || '').trim()
+            if (v === '') return true
+            return /^[A-Za-z][A-Za-z\s.'-]*$/.test(v)
+        }
+
+        function openPatientEditModal(patient) {
+            if (!patientEditOverlay || !patient) return
+            editingPatientId = patient && patient.user_id ? String(patient.user_id) : null
+            showPatientEditError('')
+            setPatientEditSubmitting(false)
+
+            var fullName = fullNameForEdit(patient)
+            if (patientEditSubtitle) patientEditSubtitle.textContent = 'Editing — ' + fullName
+            if (patientEditFirstname) patientEditFirstname.value = patient.firstname || ''
+            if (patientEditMiddlename) patientEditMiddlename.value = patient.middlename || ''
+            if (patientEditLastname) patientEditLastname.value = patient.lastname || ''
+            if (patientEditSexMale) patientEditSexMale.checked = patient.sex === 'Male'
+            if (patientEditSexFemale) patientEditSexFemale.checked = patient.sex === 'Female'
+            if (patientEditBirthdate) {
+                var birthdate = patient.birthdate || ''
+                patientEditBirthdate.value = birthdate ? String(birthdate).slice(0, 10) : ''
+            }
+            if (patientEditCivilStatus) patientEditCivilStatus.value = patient.civil_status || ''
+            if (patientEditNationality) patientEditNationality.value = patient.nationality || ''
+            if (patientEditAddress) patientEditAddress.value = patient.address || ''
+            if (patientEditContact) patientEditContact.value = patient.contact_number ? formatPhone(patient.contact_number) : ''
+            if (patientEditPhilhealth) {
+                var phicRaw = patient.philhealth_number || ''
+                patientEditPhilhealth.value = phicRaw ? formatPhilhealth(phicRaw) : ''
+            }
+            if (patientEditOccupation) patientEditOccupation.value = patient.occupation || ''
+            if (patientEditEmergencyContact) patientEditEmergencyContact.value = patient.emergency_contact || ''
+            if (patientEditEmergencyContactNumber) {
+                var emergencyRaw = patient.emergency_contact_number || ''
+                patientEditEmergencyContactNumber.value = emergencyRaw ? formatPhone(emergencyRaw) : ''
+            }
+
+            updatePatientProfilePreview(patient.prof_path_url || patient.prof_path || null)
+
+            if (patientEditProfileUpload) patientEditProfileUpload.value = ''
+            patientEditOverlay.classList.remove('hidden')
+            patientEditOverlay.classList.add('flex')
+        }
+
+        function fullNameForEdit(patient) {
+            if (!patient) return 'Patient'
+            var full = ((patient.firstname || '') + ' ' + (patient.lastname || '')).trim()
+            if (full) return full
+            return patient.email || ('Patient #' + (patient.user_id || ''))
+        }
+
+        function closePatientEditModal() {
+            if (!patientEditOverlay) return
+            patientEditOverlay.classList.add('hidden')
+            patientEditOverlay.classList.remove('flex')
+            editingPatientId = null
+            showInlineBox(patientEditError, '')
+        }
+
+        function confirmPatientEditAction(message) {
+            return new Promise(function (resolve) {
+                if (!patientEditConfirmOverlay || !patientEditConfirmMessage || !patientEditConfirmOk || !patientEditConfirmCancel) {
+                    resolve(window.confirm(message || 'Are you sure?'))
+                    return
+                }
+                patientEditConfirmMessage.textContent = message || 'Are you sure?'
+                patientEditConfirmResolver = resolve
+                patientEditConfirmOverlay.classList.remove('hidden')
+                patientEditConfirmOverlay.classList.add('flex')
+            })
+        }
+
+        function closePatientEditConfirm(result) {
+            if (patientEditConfirmOverlay) {
+                patientEditConfirmOverlay.classList.add('hidden')
+                patientEditConfirmOverlay.classList.remove('flex')
+            }
+            var resolver = patientEditConfirmResolver
+            patientEditConfirmResolver = null
+            if (typeof resolver === 'function') resolver(!!result)
+        }
+
+        function mergePatientRecord(updatedPatient) {
+            if (!updatedPatient || updatedPatient.user_id == null) return
+            var updatedId = String(updatedPatient.user_id)
+            var merged = updatedPatient
+            var found = false
+            for (var i = 0; i < patientsRows.length; i++) {
+                if (patientsRows[i] && String(patientsRows[i].user_id) === updatedId) {
+                    merged = Object.assign({}, patientsRows[i], updatedPatient)
+                    patientsRows[i] = merged
+                    found = true
+                    break
+                }
+            }
+            if (!found) {
+                patientsRows.push(updatedPatient)
+                merged = updatedPatient
+            }
+
+            if (currentPatientId && currentPatientId === updatedId) {
+                populatePatientDetails(merged)
+            }
+            renderPatients()
         }
 
         function buildTableHtml(headers, rowsHtml, emptyMessage, loadingMessage) {
@@ -1208,6 +1565,157 @@
 
         if (patientsSearch) patientsSearch.addEventListener('input', searchAndRender)
         if (sortSelect) sortSelect.addEventListener('change', searchAndRender)
+
+        setupPhoneFormat(patientEditContact)
+        setupPhoneFormat(patientEditEmergencyContactNumber)
+
+        if (patientEditPhilhealth) {
+            patientEditPhilhealth.addEventListener('input', function () {
+                var raw = this.value.replace(/[^\d]/g, '')
+                if (raw.length > 12) raw = raw.slice(0, 12)
+                this.value = formatPhilhealth(raw)
+            })
+        }
+
+        if (patientEditProfileUpload) {
+            patientEditProfileUpload.addEventListener('change', function () {
+                var file = this.files && this.files[0]
+                if (!file) return
+                var reader = new FileReader()
+                reader.onload = function (e) {
+                    updatePatientProfilePreview(e.target.result)
+                }
+                reader.readAsDataURL(file)
+            })
+        }
+
+        if (patientEditConfirmOk) {
+            patientEditConfirmOk.addEventListener('click', function () { closePatientEditConfirm(true) })
+        }
+        if (patientEditConfirmCancel) {
+            patientEditConfirmCancel.addEventListener('click', function () { closePatientEditConfirm(false) })
+        }
+        if (patientEditConfirmOverlay) {
+            patientEditConfirmOverlay.addEventListener('click', function (e) {
+                if (e.target === patientEditConfirmOverlay) closePatientEditConfirm(false)
+            })
+        }
+
+        if (patientEditClose) patientEditClose.addEventListener('click', closePatientEditModal)
+        if (patientEditCancel) patientEditCancel.addEventListener('click', closePatientEditModal)
+        if (patientEditOverlay) {
+            patientEditOverlay.addEventListener('click', function (e) {
+                if (e.target === patientEditOverlay) closePatientEditModal()
+            })
+        }
+
+        if (panelEditInfoBtn) {
+            panelEditInfoBtn.addEventListener('click', function () {
+                if (!currentPatientId) return
+                var patient = findPatientById(currentPatientId)
+                if (!patient) return
+                openPatientEditModal(patient)
+            })
+        }
+
+        if (patientEditForm) {
+            patientEditForm.addEventListener('submit', function (e) {
+                e.preventDefault()
+                if (!editingPatientId) return
+                if (patientEditSave && patientEditSave.disabled) return
+
+                showPatientEditError('')
+
+                var firstname = patientEditFirstname ? String(patientEditFirstname.value || '').trim() : ''
+                var middlename = patientEditMiddlename ? String(patientEditMiddlename.value || '').trim() : ''
+                var lastname = patientEditLastname ? String(patientEditLastname.value || '').trim() : ''
+                var contact = patientEditContact ? String(patientEditContact.value || '').trim() : ''
+
+                if (!isValidName(firstname) || !isValidName(middlename) || !isValidName(lastname)) {
+                    showPatientEditError('Name fields must contain letters only.')
+                    return
+                }
+                if (contact && contact !== '+63' && !isValidPhilippinesNumber(contact)) {
+                    showPatientEditError('Contact number must be a valid PH number starting with +63 and 10 digits.')
+                    return
+                }
+
+                confirmPatientEditAction('Are you sure you want to save these changes?')
+                    .then(function (confirmed) {
+                        if (!confirmed) return
+
+                        setPatientEditSubmitting(true)
+
+                        var formData = new FormData()
+                        formData.append('_method', 'PUT')
+
+                        function val(el) { return el ? String(el.value || '').trim() : '' }
+                        function appendIf(key, value) {
+                            if (value !== null && value !== undefined && value !== '') formData.append(key, value)
+                        }
+
+                        appendIf('firstname', val(patientEditFirstname))
+                        formData.append('middlename', val(patientEditMiddlename) || '')
+                        appendIf('lastname', val(patientEditLastname))
+                        var sexVal = patientEditSexMale && patientEditSexMale.checked ? 'Male' : (patientEditSexFemale && patientEditSexFemale.checked ? 'Female' : null)
+                        appendIf('sex', sexVal)
+                        appendIf('birthdate', val(patientEditBirthdate))
+                        appendIf('civil_status', val(patientEditCivilStatus))
+                        appendIf('nationality', val(patientEditNationality))
+                        appendIf('address', val(patientEditAddress))
+                        appendIf('occupation', val(patientEditOccupation))
+                        appendIf('emergency_contact', val(patientEditEmergencyContact))
+                        var emergencyContactNumber = val(patientEditEmergencyContactNumber)
+                        appendIf('emergency_contact_number', emergencyContactNumber ? parsePhoneRaw(emergencyContactNumber) : null)
+                        var philhealthRaw = val(patientEditPhilhealth).replace(/[^\d]/g, '')
+                        appendIf('philhealth_number', philhealthRaw)
+                        var contactRaw = val(patientEditContact)
+                        appendIf('contact_number', contactRaw ? parsePhoneRaw(contactRaw) : null)
+
+                        if (patientEditProfileUpload && patientEditProfileUpload.files && patientEditProfileUpload.files[0]) {
+                            formData.append('prof_path', patientEditProfileUpload.files[0])
+                        }
+
+                        apiFetch(apiBaseUrl + '/patients/' + encodeURIComponent(editingPatientId), {
+                            method: 'POST',
+                            body: formData
+                        })
+                            .then(function (response) {
+                                return response.json().then(function (data) {
+                                    return { ok: response.ok, status: response.status, data: data }
+                                }).catch(function () {
+                                    return { ok: response.ok, status: response.status, data: null }
+                                })
+                            })
+                            .then(function (result) {
+                                if (!result.ok) {
+                                    if (result.status === 422 && result.data && result.data.errors) {
+                                        var firstKey = Object.keys(result.data.errors)[0]
+                                        var message = firstKey && result.data.errors[firstKey] && result.data.errors[firstKey][0]
+                                            ? result.data.errors[firstKey][0]
+                                            : 'Validation error.'
+                                        showPatientEditError(String(message))
+                                    } else {
+                                        var fallback = result.data && result.data.message ? result.data.message : 'Failed to update patient.'
+                                        showPatientEditError(String(fallback))
+                                    }
+                                    return
+                                }
+
+                                mergePatientRecord(result.data || {})
+                                closePatientEditModal()
+                                showPatientEditSuccess('Changes saved.')
+                            })
+                            .catch(function () {
+                                showPatientEditError('Network error while updating patient.')
+                            })
+                            .finally(function () {
+                                setPatientEditSubmitting(false)
+                            })
+                    })
+                    .catch(function () {})
+            })
+        }
 
         if (ageFilterButtons.length) {
             ageFilterButtons.forEach(function (btn) {

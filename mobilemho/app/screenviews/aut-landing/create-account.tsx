@@ -211,7 +211,7 @@ export default function CreateAccountScreen() {
 
       {/* background */}
       <LinearGradient
-        colors={['#0891b2', '#0e7490', '#155e75']}
+        colors={['#16A34A', '#15803D', '#166534']}
         style={StyleSheet.absoluteFill}
       />
 
@@ -241,7 +241,7 @@ export default function CreateAccountScreen() {
           <View style={styles.logoPulseRing}>
             <View style={styles.logoRing}>
               <Image
-                source={require('../../../assets/images/docfiles/opoldoc.png')}
+                source={require('../../../assets/images/docfiles/MHOLogoV2.png')}
                 style={styles.logoImage}
                 resizeMode="contain"
               />

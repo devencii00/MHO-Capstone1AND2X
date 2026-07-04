@@ -132,7 +132,7 @@ export default function FirstLoginScreen() {
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       <LinearGradient
-        colors={['#0891b2', '#0e7490', '#155e75']}
+        colors={['#16A34A', '#15803D', '#166534']}
         style={StyleSheet.absoluteFill}
       />
 

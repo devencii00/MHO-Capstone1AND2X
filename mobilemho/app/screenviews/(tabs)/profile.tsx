@@ -20,8 +20,8 @@ import * as DocumentPicker from 'expo-document-picker';
 import { clearPersistedAuthSession, persistCurrentUser } from '@/lib/auth-storage';
 const T = {
   green500: '#06b6d4',
-  green600: '#0891b2',
-  green700: '#0e7490',
+  green600: '#16A34A',
+  green700: '#15803D',
   slate50: '#f8fafc',
   slate100: '#f1f5f9',
   slate200: '#e2e8f0',

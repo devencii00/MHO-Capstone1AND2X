@@ -194,7 +194,7 @@ export default function ChatbotOverlay() {
         <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 10) }]}>
           <View style={styles.sheetHeader}>
             <View style={styles.sheetTitleRow}>
-              <Ionicons name="sparkles-outline" size={18} color="#0e7490" />
+              <Ionicons name="sparkles-outline" size={18} color="#15803D" />
               <Text style={styles.sheetTitle}>Clinic Assistant</Text>
             </View>
             <View style={styles.sheetHeaderActions}>
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: '#0e7490',
+    backgroundColor: '#15803D',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   bubbleBot: { backgroundColor: '#f8fafc', borderColor: '#e2e8f0' },
-  bubbleUser: { backgroundColor: '#0e7490', borderColor: '#0e7490' },
+  bubbleUser: { backgroundColor: '#15803D', borderColor: '#15803D' },
   bubbleText: { fontSize: 13, lineHeight: 18 },
   bubbleTextBot: { color: '#0f172a' },
   bubbleTextUser: { color: '#ffffff' },
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(8,145,178,0.25)',
   },
-  optionChipText: { fontSize: 12, fontWeight: '600', color: '#0e7490' },
+  optionChipText: { fontSize: 12, fontWeight: '600', color: '#15803D' },
   freeTextRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   freeTextInput: {
     flex: 1,
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: '#0e7490',
+    backgroundColor: '#15803D',
     alignItems: 'center',
     justifyContent: 'center',
   },
