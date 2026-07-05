@@ -1,6 +1,6 @@
 <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
     <div class="flex items-center justify-between mb-3">
-        <h2 class="text-sm font-semibold text-slate-900">Staff Management</h2>
+<h2 class="text-sm font-semibold text-slate-900"></h2>
         <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Staff</span>
     </div>
     <p class="text-xs text-slate-500 mb-4">
@@ -47,7 +47,7 @@
         </div>
     </div>
 
-<div class="overflow-x-auto scrollbar-hidden">
+<div class="overflow-x-auto overflow-y-auto scrollbar-hidden" style="height: 610px;">
         <table class="min-w-full text-left text-xs text-slate-600">
             <thead>
                 <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
@@ -72,11 +72,10 @@
         </table>
     </div>
 
-    <!-- Pagination -->
+ 
     <div id="adminStaffPagination" class="flex items-center justify-center gap-3 pt-3 pb-1"></div>
 
-    
-    <!-- Schedule Modal -->
+
     <div id="adminDoctorScheduleModal" class="hidden fixed inset-0 z-50 bg-slate-900/40 items-center justify-center p-4">
         <div class="w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)]">
             <div class="sticky top-0 bg-white px-5 py-4 border-b border-slate-100 flex items-start justify-between gap-3 z-10">

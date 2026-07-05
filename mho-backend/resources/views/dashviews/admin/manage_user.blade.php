@@ -1,10 +1,10 @@
 <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
     <div class="flex items-center justify-between mb-3">
-        <h2 class="text-sm font-semibold text-slate-900">User Management</h2>
+        <h2 class="text-sm font-semibold text-slate-900"></h2>
         <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Accounts</span>
     </div>
     <p class="text-xs text-slate-500 mb-3">
-        Create users by email invitation, edit accounts, suspend or activate, search or filter, and view dependents.
+
     </p>
 
     <div class="grid grid-cols-1 gap-3 mb-4">
@@ -77,6 +77,23 @@
                     <div>
                         <label for="adminUserEditEmail" class="block text-[0.7rem] text-slate-600 mb-1">Email</label>
                         <input id="adminUserEditEmail" type="email" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    </div>
+                    <div>
+                        <label for="adminUserEditRole" class="block text-[0.7rem] text-slate-600 mb-1">Role</label>
+                        <select id="adminUserEditRole" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            <option value="admin">Admin</option>
+                            <option value="doctor">Doctor</option>
+                            <option value="receptionist">Receptionist</option>
+                            <option value="patient">Patient</option>
+                        </select>
+                    </div>
+                    <div id="adminUserEditPasswordGroup" class="hidden rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5">
+                        <div class="flex items-center gap-2 mb-1">
+                            <x-lucide-shield-alert class="w-[15px] h-[15px] text-amber-700 flex-shrink-0" />
+                            <span class="text-[0.72rem] font-semibold text-amber-800">Role change requires verification</span>
+                        </div>
+                        <label for="adminUserEditPassword" class="block text-[0.7rem] text-amber-700 mb-1 mt-1">Enter your current password to confirm</label>
+                        <input id="adminUserEditPassword" type="password" class="w-full rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none" placeholder="Your current password">
                     </div>
                     <div class="flex items-center justify-end gap-2 pt-1">
                         <button type="button" id="adminUserEditCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
@@ -175,9 +192,15 @@
                 <option value="email_desc">Email Z–A</option>
             </select>
         </div>
+        <div class="w-full md:w-28 pt-1">
+            <button type="button" id="adminUserRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+                <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+                Refresh
+            </button>
+        </div>
     </div>
 
-   <div class="overflow-x-auto scrollbar-hidden mb-4">
+   <div class="overflow-x-auto scrollbar-hidden mb-4 h-[460px]">
         <table id="adminUserTable" class="min-w-full text-left text-xs text-slate-600">
             <thead>
                 <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
@@ -251,7 +274,7 @@
                         <td class="py-2 pr-4 text-[0.78rem]">
                             <div class="flex items-center gap-2">
                                 <button type="button" class="px-2 py-1 rounded-md border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 text-[0.72rem] font-semibold admin-user-edit" data-user-id="{{ $user->user_id }}">
-                                    Edit Email
+                                    Edit
                                 </button>
                                 <button type="button" class="px-2 py-1 rounded-md border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-[0.72rem] font-semibold admin-user-dependents" data-user-id="{{ $user->user_id }}">
                                     View dependents
@@ -486,8 +509,12 @@
         var userEditError = document.getElementById('adminUserEditError')
         var userEditSubtitle = document.getElementById('adminUserEditSubtitle')
         var userEditEmail = document.getElementById('adminUserEditEmail')
+        var userEditRole = document.getElementById('adminUserEditRole')
+        var userEditPasswordGroup = document.getElementById('adminUserEditPasswordGroup')
+        var userEditPassword = document.getElementById('adminUserEditPassword')
         var userEditSave = document.getElementById('adminUserEditSave')
         var userEditSpinner = document.getElementById('adminUserEditSpinner')
+        var editingOriginalRole = null
 
         var userStatusOverlay = document.getElementById('adminUserStatusOverlay')
         var userStatusClose = document.getElementById('adminUserStatusClose')
@@ -568,6 +595,12 @@
                 userEditSubtitle.textContent = 'Editing — ' + name
             }
             if (userEditEmail) userEditEmail.value = user.email || ''
+
+            // Set role and track original
+            editingOriginalRole = user && user.role ? String(user.role).toLowerCase() : 'patient'
+            if (userEditRole) userEditRole.value = editingOriginalRole
+            if (userEditPasswordGroup) userEditPasswordGroup.classList.add('hidden')
+            if (userEditPassword) userEditPassword.value = ''
 
             userEditOverlay.classList.remove('hidden')
             userEditOverlay.classList.add('flex')
@@ -666,6 +699,19 @@
             })
         })
 
+        if (userEditRole) {
+            userEditRole.addEventListener('change', function () {
+                if (!userEditPasswordGroup || !editingOriginalRole) return
+                var newRole = userEditRole.value
+                if (newRole !== editingOriginalRole) {
+                    userEditPasswordGroup.classList.remove('hidden')
+                } else {
+                    userEditPasswordGroup.classList.add('hidden')
+                    if (userEditPassword) userEditPassword.value = ''
+                }
+            })
+        }
+
         if (userEditForm) {
             userEditForm.addEventListener('submit', function (e) {
                 e.preventDefault()
@@ -674,52 +720,95 @@
 
                 showInlineBox(userEditError, '')
 
-                confirmAction('Are you sure you want to save these changes?')
-                    .then(function (confirmed) {
-                        if (!confirmed) return
+                var newRole = userEditRole ? userEditRole.value : ''
+                var roleChanged = newRole && editingOriginalRole && newRole !== editingOriginalRole
 
-                        setUserEditSubmitting(true)
+                // If role changed, verify admin password first
+                if (roleChanged) {
+                    var adminPassword = userEditPassword ? String(userEditPassword.value || '').trim() : ''
+                    if (!adminPassword) {
+                        showInlineBox(userEditError, 'Enter your current password to confirm the role change.')
+                        if (userEditPassword) userEditPassword.focus()
+                        return
+                    }
 
-                        var payload = {
-                            email: userEditEmail ? String(userEditEmail.value || '').trim() : ''
-                        }
-
-                        apiFetch("{{ url('/api/users') }}/" + editingUserId, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        })
-                            .then(function (response) {
-                                return response.json().then(function (data) {
-                                    return { ok: response.ok, status: response.status, data: data }
-                                }).catch(function () {
-                                    return { ok: response.ok, status: response.status, data: null }
-                                })
-                            })
-                            .then(function (result) {
-                                if (!result.ok) {
-                                    if (result.status === 422 && result.data && result.data.errors) {
-                                        var firstKey = Object.keys(result.data.errors)[0]
-                                        var msg = firstKey && result.data.errors[firstKey] && result.data.errors[firstKey][0] ? result.data.errors[firstKey][0] : 'Validation error.'
-                                        showInlineBox(userEditError, String(msg))
-                                    } else {
-                                        var msg2 = (result.data && result.data.message) ? result.data.message : 'Failed to update user.'
-                                        showInlineBox(userEditError, String(msg2))
-                                    }
-                                    return
-                                }
-
-                                closeUserEditModal()
-                                showUserSuccess('User changes saved successfully.')
-                                setTimeout(function () { reloadTable() }, 1200)
-                            })
-                            .catch(function () {
-                                showInlineBox(userEditError, 'Network error while updating user.')
-                            })
-                            .finally(function () {
-                                setUserEditSubmitting(false)
-                            })
+                    setUserEditSubmitting(true)
+                    apiFetch("{{ url('/api/users/me/password/verify') }}", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ current_password: adminPassword })
                     })
+                    .then(function (response) {
+                        return response.json().then(function (data) {
+                            return { ok: response.ok, status: response.status, data: data }
+                        }).catch(function () {
+                            return { ok: response.ok, status: response.status, data: null }
+                        })
+                    })
+                    .then(function (result) {
+                        if (!result.ok) {
+                            var msg = (result.data && result.data.message) ? result.data.message : 'Password verification failed.'
+                            showInlineBox(userEditError, msg)
+                            setUserEditSubmitting(false)
+                            return
+                        }
+                        // Password verified, proceed with save
+                        doSaveUserEdit(newRole)
+                    })
+                    .catch(function () {
+                        showInlineBox(userEditError, 'Network error while verifying password.')
+                        setUserEditSubmitting(false)
+                    })
+                    return
+                }
+
+                // No role change, save directly
+                doSaveUserEdit(newRole)
+            })
+        }
+
+        function doSaveUserEdit(role) {
+            var payload = {
+                email: userEditEmail ? String(userEditEmail.value || '').trim() : ''
+            }
+            if (role && editingOriginalRole && role !== editingOriginalRole) {
+                payload.role = role
+            }
+
+            apiFetch("{{ url('/api/users') }}/" + editingUserId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(function (response) {
+                return response.json().then(function (data) {
+                    return { ok: response.ok, status: response.status, data: data }
+                }).catch(function () {
+                    return { ok: response.ok, status: response.status, data: null }
+                })
+            })
+            .then(function (result) {
+                if (!result.ok) {
+                    if (result.status === 422 && result.data && result.data.errors) {
+                        var firstKey = Object.keys(result.data.errors)[0]
+                        var msg = firstKey && result.data.errors[firstKey] && result.data.errors[firstKey][0] ? result.data.errors[firstKey][0] : 'Validation error.'
+                        showInlineBox(userEditError, String(msg))
+                    } else {
+                        var msg2 = (result.data && result.data.message) ? result.data.message : 'Failed to update user.'
+                        showInlineBox(userEditError, String(msg2))
+                    }
+                    return
+                }
+
+                closeUserEditModal()
+                showUserSuccess('User changes saved successfully.')
+                setTimeout(function () { reloadTable() }, 1200)
+            })
+            .catch(function () {
+                showInlineBox(userEditError, 'Network error while updating user.')
+            })
+            .finally(function () {
+                setUserEditSubmitting(false)
             })
         }
 
@@ -1227,6 +1316,11 @@
                     else if (p !== 'prev' && p !== 'next') showUserPage(parseInt(p, 10))
                 })
             })
+        }
+
+        var refreshBtn = document.getElementById('adminUserRefreshBtn')
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function () { reloadTable() })
         }
 
         applyUserFilters()

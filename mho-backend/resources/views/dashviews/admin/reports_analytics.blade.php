@@ -1,10 +1,10 @@
 <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
     <div class="flex items-center justify-between mb-3">
-        <h2 class="text-sm font-semibold text-slate-900">Reports & analytics</h2>
+        <h2 class="text-sm font-semibold text-slate-900"></h2>
         <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Summary</span>
     </div>
     <p class="text-xs text-slate-500 mb-3">
-        Key metrics and revenue summary for the clinic.
+        
     </p>
 
     @php
@@ -15,7 +15,7 @@
 
     <div class="mb-4 flex items-center justify-end">
         <div class="text-[0.72rem] text-slate-500">
-            Updated based on live system records.
+       
         </div>
     </div>
 
@@ -93,6 +93,10 @@
             <h3 class="text-xs font-semibold text-slate-900">Today's Transactions</h3>
             <div class="flex items-center gap-2">
                 <span id="adminTxnTodayCount" class="text-[0.68rem] text-slate-400 uppercase tracking-widest">— entries</span>
+                <button type="button" id="adminTxnTodayRefreshBtn" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.68rem] font-semibold text-slate-600 hover:bg-slate-50">
+                    <x-lucide-refresh-cw class="w-[12px] h-[12px]" />
+                    Refresh
+                </button>
                 <button type="button" id="adminGenReportBtn" class="px-3 py-1.5 rounded-lg bg-green-600 text-white text-[0.7rem] font-semibold hover:bg-green-700">Generate Report</button>
             </div>
         </div>
@@ -108,7 +112,7 @@
                 </select>
             </div>
         </div>
-        <div class="overflow-x-auto scrollbar-hidden">
+        <div class="overflow-x-auto scrollbar-hidden h-[460px]">
             <table class="min-w-full text-left text-xs text-slate-600">
                 <thead>
                     <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
@@ -232,6 +236,7 @@
         var txPerPage = 10
         var txCurrentPage = 1
         var txVisibleCount = 6
+        var txLastPayload = null
         var reportPreviewLoaded = false
 
         function pad2(v) { return String(v).padStart(2, '0') }
@@ -391,23 +396,20 @@
 
         function renderTodaysTransactions() {
             if (!txnBody) return
-            var list = filteredTransactions
+            var payload = txLastPayload || {}
+            var list = Array.isArray(payload.data) ? payload.data : []
+
             if (!list.length) {
                 txnBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No transactions recorded today.</td></tr>'
                 if (txnPagination) txnPagination.innerHTML = ''
                 if (txnCount) txnCount.textContent = '0 entries'
                 return
             }
-            var totalPages = Math.ceil(list.length / txPerPage)
-            if (txCurrentPage > totalPages) txCurrentPage = totalPages
-            var start = (txCurrentPage - 1) * txPerPage
-            var end = Math.min(start + txPerPage, list.length)
-            var page = list.slice(start, end)
 
-            if (txnCount) txnCount.textContent = list.length + ' entries'
+            if (txnCount) txnCount.textContent = (payload.total || 0) + ' entries'
 
             var html = ''
-            page.forEach(function (tx) {
+            list.forEach(function (tx) {
                 html += '<tr class="border-b border-slate-50 last:border-0">'
                 html += '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + formatDate(tx.transaction_datetime) + '</td>'
                 html += '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + patientName(tx) + '</td>'
@@ -418,77 +420,67 @@
                 html += '</tr>'
             })
             txnBody.innerHTML = html
-            renderTxnPagination()
+            renderTxnPagination(payload)
         }
 
-        function renderTxnPagination() {
+        function renderTxnPagination(payload) {
             if (!txnPagination) return
-            var total = filteredTransactions.length
+            var total = payload.total || 0
+            var lastPage = payload.last_page || 1
+            var current = payload.current_page || 1
+
             if (total === 0) {
                 txnPagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
                 return
             }
-            var totalPages = Math.ceil(total / txPerPage)
             var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border '
             var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer'
             var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default'
             var btnActive = btnBase + 'bg-green-600 text-white border-green-600'
             var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
-            html += '<button type="button" class="' + (txCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-txpage="prev"' + (txCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
-            var windowStart = txCurrentPage
-            var windowEnd = Math.min(windowStart + txVisibleCount - 1, totalPages)
+            html += '<button type="button" class="' + (current === 1 ? btnDisabled : btnInactive) + '" data-txpage="prev"' + (current === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            var windowStart = current
+            var windowEnd = Math.min(windowStart + txVisibleCount - 1, lastPage)
             for (var i = windowStart; i <= windowEnd; i++) {
-                html += '<button type="button" class="' + (i === txCurrentPage ? btnActive : btnInactive) + '" data-txpage="' + i + '">' + i + '</button>'
+                html += '<button type="button" class="' + (i === current ? btnActive : btnInactive) + '" data-txpage="' + i + '">' + i + '</button>'
             }
-            if (windowEnd < totalPages) {
+            if (windowEnd < lastPage) {
                 html += '<button type="button" class="' + btnInactive + '" data-txpage="next-window" title="Next set">…</button>'
             }
-            html += '<button type="button" class="' + (txCurrentPage === totalPages ? btnDisabled : btnInactive) + '" data-txpage="next"' + (txCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            html += '<button type="button" class="' + (current === lastPage ? btnDisabled : btnInactive) + '" data-txpage="next"' + (current === lastPage ? ' disabled' : '') + '>Next ›</button>'
             txnPagination.innerHTML = html
             txnPagination.querySelectorAll('button[data-txpage]').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var p = btn.getAttribute('data-txpage')
-                    if (p === 'prev' && txCurrentPage > 1) { txCurrentPage--; renderTodaysTransactions() }
-                    else if (p === 'next' && txCurrentPage < totalPages) { txCurrentPage++; renderTodaysTransactions() }
-                    else if (p === 'next-window') {
-                        txCurrentPage = Math.min(windowEnd + 1, totalPages)
-                        renderTodaysTransactions()
-                    }
-                    else if (p !== 'prev' && p !== 'next') { txCurrentPage = parseInt(p, 10); renderTodaysTransactions() }
+                    var goTo
+                    if (p === 'prev' && current > 1) goTo = current - 1
+                    else if (p === 'next' && current < lastPage) goTo = current + 1
+                    else if (p === 'next-window') goTo = Math.min(windowEnd + 1, lastPage)
+                    else if (p !== 'prev' && p !== 'next') goTo = parseInt(p, 10)
+                    if (goTo) loadTodaysTransactions(goTo)
                 })
             })
         }
 
         function filterTransactions() {
-            var q = trim(txnSearch ? txnSearch.value : '').toLowerCase()
-            var svc = txnServiceFilter ? txnServiceFilter.value : ''
-            filteredTransactions = allTransactions.filter(function (tx) {
-                if (q) {
-                    var pt = patientName(tx).toLowerCase()
-                    var dr = doctorName(tx).toLowerCase()
-                    if (pt.indexOf(q) === -1 && dr.indexOf(q) === -1) return false
-                }
-                if (svc) {
-                    var svcs = tx && tx.appointment && Array.isArray(tx.appointment.services) ? tx.appointment.services : []
-                    var hasSvc = svcs.some(function (s) { return String(s.service_id) === svc })
-                    if (!hasSvc) return false
-                }
-                return true
-            })
-            txCurrentPage = 1
-            renderTodaysTransactions()
+            loadTodaysTransactions(1)
         }
 
-        function loadTodaysTransactions() {
+        function loadTodaysTransactions(page) {
             var ds = todayIsoDate()
-            fetchWithAuth('/api/transactions?per_page=500&start_date=' + ds + '&end_date=' + ds + '&order=latest', {
+            var q = trim(txnSearch ? txnSearch.value : '').toLowerCase()
+            var svc = txnServiceFilter ? txnServiceFilter.value : ''
+            var url = '/api/transactions?per_page=10&start_date=' + ds + '&end_date=' + ds + '&order=latest'
+            url += '&page=' + (page || 1)
+            if (q) url += '&search=' + encodeURIComponent(q)
+            if (svc) url += '&service_id=' + encodeURIComponent(svc)
+            fetchWithAuth(url, {
                 headers: { 'Accept': 'application/json' }
             })
             .then(function (r) { return r.json() })
             .then(function (result) {
-                var data = result && result.data ? result.data : []
-                allTransactions = Array.isArray(data) ? data : []
-                filterTransactions()
+                txLastPayload = result || {}
+                renderTodaysTransactions()
             })
             .catch(function () {
                 if (txnBody) txnBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Failed to load transactions.</td></tr>'
@@ -629,5 +621,10 @@
 
         loadServices()
         loadTodaysTransactions()
+
+        var txnRefreshBtn = document.getElementById('adminTxnTodayRefreshBtn')
+        if (txnRefreshBtn) {
+            txnRefreshBtn.addEventListener('click', function () { loadTodaysTransactions() })
+        }
     })
 </script>

@@ -20,6 +20,14 @@
                 <label for="admin_audit_search" class="block text-[0.7rem] text-slate-600 mb-1">Filter by user / action</label>
                 <input id="admin_audit_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Type a user email or action">
             </div>
+            <div class="w-full md:w-36">
+                <label for="admin_audit_date_from" class="block text-[0.7rem] text-slate-600 mb-1">From</label>
+                <input id="admin_audit_date_from" type="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+            </div>
+            <div class="w-full md:w-36">
+                <label for="admin_audit_date_to" class="block text-[0.7rem] text-slate-600 mb-1">To</label>
+                <input id="admin_audit_date_to" type="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+            </div>
             <div class="w-full md:w-40">
                 <label for="admin_audit_sort" class="block text-[0.7rem] text-slate-600 mb-1">Sort</label>
                 <select id="admin_audit_sort" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
@@ -27,9 +35,15 @@
                     <option value="date_asc">Oldest first</option>
                 </select>
             </div>
+            <div class="w-full md:w-24 pt-1">
+                <button type="button" id="adminAuditRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.68rem] font-semibold text-slate-600 hover:bg-slate-50">
+                    <x-lucide-refresh-cw class="w-[12px] h-[12px]" />
+                    Refresh
+                </button>
+            </div>
         </div>
 
-       <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[300px]">
+       <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[400px]">
             <table class="min-w-full text-left text-xs text-slate-600">
                 <thead>
                     <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
@@ -82,6 +96,14 @@
                 <label for="admin_access_search" class="block text-[0.7rem] text-slate-600 mb-1">Search record access</label>
                 <input id="admin_access_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="User, table or record ID">
             </div>
+            <div class="w-full md:w-36">
+                <label for="admin_access_date_from" class="block text-[0.7rem] text-slate-600 mb-1">From</label>
+                <input id="admin_access_date_from" type="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+            </div>
+            <div class="w-full md:w-36">
+                <label for="admin_access_date_to" class="block text-[0.7rem] text-slate-600 mb-1">To</label>
+                <input id="admin_access_date_to" type="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+            </div>
             <div class="w-full md:w-40">
                 <label for="admin_access_sort" class="block text-[0.7rem] text-slate-600 mb-1">Sort</label>
                 <select id="admin_access_sort" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
@@ -89,9 +111,15 @@
                     <option value="date_asc">Oldest first</option>
                 </select>
             </div>
+            <div class="w-full md:w-24 pt-1">
+                <button type="button" id="adminAccessRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.68rem] font-semibold text-slate-600 hover:bg-slate-50">
+                    <x-lucide-refresh-cw class="w-[12px] h-[12px]" />
+                    Refresh
+                </button>
+            </div>
         </div>
 
-        <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[300px]">
+        <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[400px]">
             <table class="min-w-full text-left text-xs text-slate-600">
                 <thead>
                     <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
@@ -164,11 +192,11 @@
 
             if (headerTitle && headerDesc) {
                 if (isAudit) {
-                    headerTitle.textContent = 'Logs'
-                    headerDesc.textContent = 'View recent system activities and filter by user or action.'
+                    headerTitle.textContent = ''
+                    headerDesc.textContent = ''
                 } else {
-                    headerTitle.textContent = 'Record access logs'
-                    headerDesc.textContent = 'Track when specific records and tables were viewed by users.'
+                    headerTitle.textContent = ''
+                    headerDesc.textContent = ''
                 }
             }
 
@@ -186,18 +214,31 @@
 
         function applyAuditFilters() {
             var query = auditSearch ? auditSearch.value.toLowerCase().trim() : ''
+            var dateFrom = document.getElementById('admin_audit_date_from')
+            var dateTo = document.getElementById('admin_audit_date_to')
+            var fromVal = dateFrom ? dateFrom.value : ''
+            var toVal = dateTo ? dateTo.value : ''
 
             auditRows.forEach(function (row) {
                 var user = row.getAttribute('data-user') || ''
                 var table = row.getAttribute('data-table') || ''
                 var action = row.getAttribute('data-action') || ''
+                var dateStr = row.getAttribute('data-date') || ''
 
+                // Text search
                 var matches = true
                 if (query) {
                     matches =
                         user.indexOf(query) !== -1 ||
                         table.indexOf(query) !== -1 ||
                         action.indexOf(query) !== -1
+                }
+
+                // Date range filter
+                if (matches && (fromVal || toVal)) {
+                    var rowDate = dateStr.substring(0, 10) // YYYY-MM-DD
+                    if (fromVal && rowDate < fromVal) matches = false
+                    if (toVal && rowDate > toVal) matches = false
                 }
 
                 row.setAttribute('data-search-filter', matches ? '1' : '0')
@@ -238,6 +279,10 @@
         if (auditSearch) {
             auditSearch.addEventListener('input', function () { auditCurrentPage = 1; applyAuditFilters() })
         }
+        var auditDateFrom = document.getElementById('admin_audit_date_from')
+        var auditDateTo = document.getElementById('admin_audit_date_to')
+        if (auditDateFrom) auditDateFrom.addEventListener('change', function () { auditCurrentPage = 1; applyAuditFilters() })
+        if (auditDateTo) auditDateTo.addEventListener('change', function () { auditCurrentPage = 1; applyAuditFilters() })
         if (auditSort) {
             auditSort.addEventListener('change', function () { auditCurrentPage = 1; applyAuditSort() })
         }
@@ -336,11 +381,16 @@
 
         function applyAccessFilters() {
             var query = accessSearch ? accessSearch.value.toLowerCase().trim() : ''
+            var dateFrom = document.getElementById('admin_access_date_from')
+            var dateTo = document.getElementById('admin_access_date_to')
+            var fromVal = dateFrom ? dateFrom.value : ''
+            var toVal = dateTo ? dateTo.value : ''
 
             accessRows.forEach(function (row) {
                 var user = row.getAttribute('data-user') || ''
                 var table = row.getAttribute('data-table') || ''
                 var record = row.getAttribute('data-record') || ''
+                var dateStr = row.getAttribute('data-date') || ''
 
                 var matches = true
                 if (query) {
@@ -348,6 +398,13 @@
                         user.indexOf(query) !== -1 ||
                         table.indexOf(query) !== -1 ||
                         ('#' + record).indexOf(query) !== -1
+                }
+
+                // Date range filter
+                if (matches && (fromVal || toVal)) {
+                    var rowDate = dateStr.substring(0, 10) // YYYY-MM-DD
+                    if (fromVal && rowDate < fromVal) matches = false
+                    if (toVal && rowDate > toVal) matches = false
                 }
 
                 row.setAttribute('data-search-filter', matches ? '1' : '0')
@@ -388,6 +445,10 @@
         if (accessSearch) {
             accessSearch.addEventListener('input', function () { accessCurrentPage = 1; applyAccessFilters() })
         }
+        var accessDateFrom = document.getElementById('admin_access_date_from')
+        var accessDateTo = document.getElementById('admin_access_date_to')
+        if (accessDateFrom) accessDateFrom.addEventListener('change', function () { accessCurrentPage = 1; applyAccessFilters() })
+        if (accessDateTo) accessDateTo.addEventListener('change', function () { accessCurrentPage = 1; applyAccessFilters() })
         if (accessSort) {
             accessSort.addEventListener('change', function () { accessCurrentPage = 1; applyAccessSort() })
         }
@@ -484,5 +545,37 @@
             if (stored === 'access') initial = 'access'
         } catch (e) {}
         setActiveTab(initial)
+
+        var auditRefreshBtn = document.getElementById('adminAuditRefreshBtn')
+        var accessRefreshBtn = document.getElementById('adminAccessRefreshBtn')
+        if (auditRefreshBtn) auditRefreshBtn.addEventListener('click', function () { reloadAuditData() })
+        if (accessRefreshBtn) accessRefreshBtn.addEventListener('click', function () { reloadAuditData() })
     })
+
+    function reloadAuditData() {
+        fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.text() })
+            .then(function (html) {
+                var parser = new DOMParser()
+                var doc = parser.parseFromString(html, 'text/html')
+
+                var oldAuditTbody = document.querySelector('#adminLogsPanelAudit tbody')
+                var newAuditTbody = doc.querySelector('#adminLogsPanelAudit tbody')
+                if (oldAuditTbody && newAuditTbody) {
+                    oldAuditTbody.innerHTML = newAuditTbody.innerHTML
+                }
+
+                var oldAccessTbody = document.querySelector('#adminLogsPanelAccess tbody')
+                var newAccessTbody = doc.querySelector('#adminLogsPanelAccess tbody')
+                if (oldAccessTbody && newAccessTbody) {
+                    oldAccessTbody.innerHTML = newAccessTbody.innerHTML
+                }
+
+                auditRows = Array.prototype.slice.call(document.querySelectorAll('.admin-audit-row'))
+                accessRows = Array.prototype.slice.call(document.querySelectorAll('.admin-access-row'))
+                applyAuditFilters()
+                applyAccessFilters()
+            })
+            .catch(function () {})
+    }
 </script>

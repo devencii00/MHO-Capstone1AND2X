@@ -23,7 +23,10 @@ class PatientVerificationController extends Controller
         $currentUser = $request->user();
         $isPatient = $currentUser && $currentUser->role === 'patient';
 
-        return PatientVerification::query()
+        $search = trim((string) $request->query('search', ''));
+        $sort = $request->query('sort', 'date_desc');
+
+        $query = PatientVerification::query()
             ->with(['patient', 'verifier'])
             ->when($isPatient, function ($q) use ($currentUser) {
                 $q->where('patient_id', $currentUser->user_id);
@@ -37,8 +40,26 @@ class PatientVerificationController extends Controller
             ->when($request->query('patient_id'), function ($q) use ($request) {
                 $q->where('patient_id', $request->query('patient_id'));
             })
-            ->latest('verification_id')
-            ->paginate($perPage);
+            ->when($search !== '', function ($q) use ($search) {
+                $contains = '%'.$search.'%';
+                $q->where(function ($w) use ($search, $contains) {
+                    $w->where('verification_id', (int) $search)
+                        ->orWhereHas('patient', function ($p) use ($contains) {
+                            $p->where('email', 'like', $contains)
+                                ->orWhere('firstname', 'like', $contains)
+                                ->orWhere('lastname', 'like', $contains)
+                                ->orWhereRaw("TRIM(CONCAT_WS(' ', firstname, middlename, lastname)) like ?", [$contains]);
+                        });
+                });
+            });
+
+        if ($sort === 'date_asc') {
+            $query->oldest('verification_id');
+        } else {
+            $query->latest('verification_id');
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function store(Request $request)

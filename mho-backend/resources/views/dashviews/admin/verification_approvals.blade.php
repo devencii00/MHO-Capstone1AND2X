@@ -1,11 +1,10 @@
 <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
     <div class="flex items-center justify-between mb-2">
-        <h2 class="text-sm font-semibold text-slate-900">Verification Oversight</h2>
+        <h2 class="text-sm font-semibold text-slate-900"></h2>
         <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Patients</span>
     </div>
     <p class="text-xs text-slate-500 mb-4">
-        Review verification requests, inspect uploaded documents, and decide approval status.
-    </p>
+       
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
@@ -48,7 +47,13 @@
                 <option value="pregnant">Pregnant</option>
             </select>
         </div>
-        <div class="w-full md:w-40">
+        <div class="w-full md:w-28 pt-1">
+            <button type="button" id="adminVerifRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+                <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+                Refresh
+            </button>
+        </div>
+        <div class="w-full md:w-44">
             <label for="admin_verif_sort" class="block text-[0.7rem] text-slate-600 mb-1">Sort</label>
             <select id="admin_verif_sort" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                 <option value="date_desc">Newest first</option>
@@ -57,7 +62,7 @@
         </div>
     </div>
 
-<div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[300px]">
+<div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[460px]">
         <table class="min-w-full text-left text-xs text-slate-600">
             <thead>
                 <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
@@ -409,7 +414,7 @@
 
         function buildQuery(page) {
             var params = []
-            params.push('per_page=500')
+            params.push('per_page=10')
             params.push('page=' + encodeURIComponent(page || 1))
 
             var status = statusFilter ? statusFilter.value : ''
@@ -417,6 +422,12 @@
 
             var type = typeFilter ? typeFilter.value : ''
             if (type) params.push('type=' + encodeURIComponent(type))
+
+            var query = searchInput ? searchInput.value.trim() : ''
+            if (query) params.push('search=' + encodeURIComponent(query))
+
+            var sort = sortSelect ? sortSelect.value : 'date_desc'
+            params.push('sort=' + encodeURIComponent(sort))
 
             return params.join('&')
         }
@@ -460,25 +471,6 @@
             var payload = lastPayload || {}
             var items = Array.isArray(payload.data) ? payload.data : []
 
-            var query = searchInput ? searchInput.value.toLowerCase().trim() : ''
-            if (query) {
-                items = items.filter(function (v) {
-                    var id = String(v.verification_id || '')
-                    var patientLabel = getPatientLabel(v).toLowerCase()
-                    var patientEmail = v && v.patient && v.patient.email ? String(v.patient.email).toLowerCase() : ''
-                    return ('#' + id).indexOf(query) !== -1 || patientLabel.indexOf(query) !== -1 || patientEmail.indexOf(query) !== -1
-                })
-            }
-
-            var sort = sortSelect ? sortSelect.value : 'date_desc'
-            items.sort(function (a, b) {
-                var da = (a.created_at || '')
-                var db = (b.created_at || '')
-                if (da < db) return sort === 'date_asc' ? -1 : 1
-                if (da > db) return sort === 'date_asc' ? 1 : -1
-                return 0
-            })
-
             if (!items.length) {
                 tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No verifications found.</td></tr>'
                 var pag = document.getElementById('adminVerifPagination')
@@ -516,74 +508,50 @@
 
             tableBody.innerHTML = html
             bindRowActions()
-            initVerifPagination()
+            renderServerPagination(payload)
         }
 
-        // ── Verification pagination ──
-        var verifPerPage = 10
-        var verifCurrentPage = 1
-        var verifVisibleCount = 6
-
-        function initVerifPagination() {
-            var rows = Array.prototype.slice.call(tableBody.querySelectorAll('tr'))
-            // Exclude the "No verifications" row
-            if (rows.length === 1 && rows[0].querySelectorAll('td').length === 6 && rows[0].textContent.indexOf('verification') !== -1) {
-                renderVerifPagination([])
-                return
-            }
-            renderVerifPagination(rows)
-        }
-
-        function showVerifPage(page, rows) {
-            var total = rows.length
-            var totalPages = Math.ceil(total / verifPerPage) || 1
-            if (page < 1) page = 1
-            if (page > totalPages) page = totalPages
-            verifCurrentPage = page
-            var start = (page - 1) * verifPerPage
-            var end = Math.min(start + verifPerPage, total)
-            rows.forEach(function (row, i) {
-                row.style.display = (i >= start && i < end) ? '' : 'none'
-            })
-            renderVerifPagination(rows)
-        }
-
-        function renderVerifPagination(rows) {
+        // ── Server-side pagination ──
+        function renderServerPagination(payload) {
             var pagination = document.getElementById('adminVerifPagination')
             if (!pagination) return
-            var total = rows.length
+            var total = payload.total || 0
+            var lastPage = payload.last_page || 1
+            var current = payload.current_page || 1
+
             if (total === 0) {
                 pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
                 return
             }
-            var totalPages = Math.ceil(total / verifPerPage)
+
             var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border ';
             var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer';
             var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default';
             var btnActive = btnBase + 'bg-green-600 text-white border-green-600';
             var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
-            html += '<button type="button" class="' + (verifCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (verifCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
-            var windowStart = verifCurrentPage;
-            var windowEnd = Math.min(windowStart + verifVisibleCount - 1, totalPages);
+            html += '<button type="button" class="' + (current === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (current === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+
+            var windowStart = current
+            var windowEnd = Math.min(windowStart + 5, lastPage)
             for (var i = windowStart; i <= windowEnd; i++) {
-                html += '<button type="button" class="' + (i === verifCurrentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
+                html += '<button type="button" class="' + (i === current ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
             }
-            if (windowEnd < totalPages) {
+            if (windowEnd < lastPage) {
                 html += '<button type="button" class="' + btnInactive + '" data-page="next-window" title="Next set">…</button>'
             }
-            html += '<button type="button" class="' + (verifCurrentPage === totalPages ? btnDisabled : btnInactive) + '" data-page="next"' + (verifCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            html += '<button type="button" class="' + (current === lastPage ? btnDisabled : btnInactive) + '" data-page="next"' + (current === lastPage ? ' disabled' : '') + '>Next ›</button>'
+
             pagination.innerHTML = html
 
             pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var p = btn.getAttribute('data-page')
-                    if (p === 'prev' && verifCurrentPage > 1) showVerifPage(verifCurrentPage - 1, rows)
-                    else if (p === 'next' && verifCurrentPage < totalPages) showVerifPage(verifCurrentPage + 1, rows)
-                    else if (p === 'next-window') {
-                        var nextStart = Math.min(windowEnd + 1, totalPages);
-                        showVerifPage(nextStart, rows)
-                    }
-                    else if (p !== 'prev' && p !== 'next') showVerifPage(parseInt(p, 10), rows)
+                    var goTo
+                    if (p === 'prev' && current > 1) goTo = current - 1
+                    else if (p === 'next' && current < lastPage) goTo = current + 1
+                    else if (p === 'next-window') goTo = Math.min(windowEnd + 1, lastPage)
+                    else if (p !== 'prev' && p !== 'next') goTo = parseInt(p, 10)
+                    if (goTo) loadVerifications(goTo)
                 })
             })
         }
@@ -1210,7 +1178,7 @@
 
         if (searchInput) {
             searchInput.addEventListener('input', function () {
-                renderVerifications()
+                loadVerifications(1)
             })
         }
         if (statusFilter) {
@@ -1227,8 +1195,13 @@
         }
         if (sortSelect) {
             sortSelect.addEventListener('change', function () {
-                renderVerifications()
+                loadVerifications(1)
             })
+        }
+
+        var verifRefreshBtn = document.getElementById('adminVerifRefreshBtn')
+        if (verifRefreshBtn) {
+            verifRefreshBtn.addEventListener('click', function () { loadVerifications(currentPage) })
         }
 
         loadStats()

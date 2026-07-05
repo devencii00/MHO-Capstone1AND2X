@@ -291,25 +291,25 @@ document.addEventListener('DOMContentLoaded', function () {
         var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default';
         var btnActive = btnBase + 'bg-green-600 text-white border-green-600';
 
-        // Prev
+       
         html += '<button type="button" class="' + (currentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (currentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>';
 
-        // Calculate window: currentPage becomes first in the visible set
+     
         var windowStart = currentPage;
         var windowEnd = Math.min(windowStart + visibleCount - 1, totalPages);
 
-        // Page number buttons
+    
         for (var i = windowStart; i <= windowEnd; i++) {
             html += '<button type="button" class="' + (i === currentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>';
         }
 
-        // Ellipsis if there are more pages beyond the window
+     
         if (windowEnd < totalPages) {
             var nextWindowStart = windowEnd + 1;
             html += '<button type="button" class="' + btnInactive + '" data-page="next-window" title="Next set">…</button>';
         }
 
-        // Next
+   
         html += '<button type="button" class="' + (currentPage === totalPages ? btnDisabled : btnInactive) + '" data-page="next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next ›</button>';
 
         pagination.innerHTML = html;

@@ -1,10 +1,10 @@
 <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
     <div class="flex items-center justify-between mb-3">
-        <h2 class="text-sm font-semibold text-slate-900">Patient Records</h2>
+        <h2 class="text-sm font-semibold text-slate-900"></h2>
         <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Clinical</span>
     </div>
     <p class="text-xs text-slate-500 mb-4">
-        Review patient medical backgrounds and visit history.
+       
     </p>
 
     <div id="adminPrPatientsError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
@@ -21,6 +21,12 @@
                 <option value="created_desc">Newest first</option>
                 <option value="created_asc">Oldest first</option>
             </select>
+        </div>
+        <div class="w-full md:w-28 pt-1">
+            <button type="button" id="adminPrRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+                <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+                Refresh
+            </button>
         </div>
     </div>
 
@@ -54,7 +60,7 @@
         </div>
     </div>
 
-    <div class="overflow-x-auto overflow-y-auto scrollbar-hidden h-[310px]">
+    <div class="overflow-x-auto overflow-y-auto scrollbar-hidden h-[610px]">
         <table class="min-w-full text-left text-xs text-slate-600">
             <thead>
                 <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
@@ -1306,7 +1312,7 @@
             patientsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading patients…</td></tr>'
             showInlineBox(patientsError, '')
 
-            apiFetch(apiBaseUrl + "/patients?per_page=100", { method: 'GET' })
+            apiFetch(apiBaseUrl + "/patients?per_page=50", { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -1812,5 +1818,10 @@
         syncTabButtonState()
         closePanel()
         loadPatients()
+
+        var prRefreshBtn = document.getElementById('adminPrRefreshBtn')
+        if (prRefreshBtn) {
+            prRefreshBtn.addEventListener('click', function () { loadPatients() })
+        }
     })
 </script>

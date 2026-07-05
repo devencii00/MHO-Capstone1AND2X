@@ -1,10 +1,10 @@
 <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
     <div class="flex items-center justify-between mb-3">
-        <h2 class="text-sm font-semibold text-slate-900">Chatbot Management</h2>
+        <h2 class="text-sm font-semibold text-slate-900"></h2>
         <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Chatbot</span>
     </div>
     <p class="text-xs text-slate-500 mb-4">
-        Greeting is static: “How can I help you today?” Configure the menu options below.
+       
     </p>
 
     <div id="adminChatbotError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
@@ -37,7 +37,7 @@
                 <span class="text-[0.68rem] text-slate-400 uppercase tracking-widest">List</span>
             </div>
 
-            <div id="admin_chatbot_options_container" class="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+            <div id="admin_chatbot_options_container" class="space-y-4">
                 <p class="text-[0.78rem] text-slate-400">Loading options…</p>
             </div>
         </div>
@@ -503,18 +503,24 @@
                 var toggleButton = hasChildren
                     ? '<button type="button" class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-[0.68rem] font-semibold text-slate-600 hover:bg-slate-100 admin-chatbot-toggle-children" data-option-id="' + String(node.id) + '" aria-expanded="' + String(!isCollapsed) + '">' + (isCollapsed ? 'Show children' : 'Hide children') + '</button>'
                     : ''
+                var hasActions = depth === 0
+                    ? 'gap-2'
+                    : 'gap-1'
                 var html = ''
-                html += '<div class="rounded-2xl border border-slate-200 bg-white px-3 py-2.5" data-option-id="' + String(node.id) + '" style="margin-left:' + String(Math.max(0, depth) * 10) + 'px">'
+                var nodeClasses = depth === 0
+                    ? 'px-0 py-0 border-0 bg-transparent'
+                    : 'rounded-xl border border-slate-200 bg-white px-3 py-2.5'
+                html += '<div class="' + nodeClasses + '" data-option-id="' + String(node.id) + '" style="margin-left:' + String(Math.max(0, depth) * 10) + 'px">'
                 html += '<div class="flex items-start justify-between gap-2">'
-                html += '<div class="flex-1">'
-                html += '<p class="text-[0.78rem] font-semibold text-slate-900 mb-0.5">' + escapeHtml(node.button_text || '') + '</p>'
-                html += '<div class="flex items-center gap-2">'
+                html += '<div class="flex-1 min-w-0">'
+                html += '<p class="text-[0.78rem] font-semibold text-slate-900 mb-0.5 truncate">' + escapeHtml(node.button_text || '') + '</p>'
+                html += '<div class="flex items-center gap-2 flex-wrap">'
                 html += '<p class="text-[0.68rem] text-slate-400">#' + String(node.id) + ' • Order ' + String(node.sort_order != null ? node.sort_order : 0) + '</p>'
                 html += startingBadge
                 html += childCountBadge
                 html += '</div>'
                 html += '</div>'
-                html += '<div class="flex items-center gap-2">'
+                html += '<div class="flex items-center ' + hasActions + ' flex-shrink-0">'
                 html += toggleButton
                 html += '<button type="button" class="inline-flex items-center gap-1 text-[0.7rem] text-green-700 hover:text-green-800 font-semibold admin-chatbot-add-child" data-option-id="' + String(node.id) + '"><span class="hidden w-3 h-3 border-2 border-green-700/30 border-t-green-700 rounded-full animate-spin admin-chatbot-btn-spinner"></span><span class="admin-chatbot-btn-label">Add child</span></button>'
                 html += '<button type="button" class="inline-flex items-center gap-1 text-[0.7rem] text-amber-700 hover:text-amber-800 font-semibold admin-chatbot-edit" data-option-id="' + String(node.id) + '"><span class="hidden w-3 h-3 border-2 border-current/30 border-t-current rounded-full animate-spin admin-chatbot-btn-spinner"></span><span class="admin-chatbot-btn-label">Edit</span></button>'
@@ -532,9 +538,17 @@
             }
 
             var html = ''
-            sortChildren(optionsTree).forEach(function (n) {
-                html += renderNode(n, 0)
-            })
+            var roots = sortChildren(optionsTree)
+            if (!roots.length) {
+                html += '<p class="text-[0.78rem] text-slate-400 col-span-full">No starting yet.</p>'
+            } else {
+                roots.forEach(function (root) {
+                    var subtree = renderNode(root, 0)
+                    if (subtree) {
+                        html += '<div class="border border-slate-200 rounded-2xl bg-white p-3 space-y-2 shadow-sm">' + subtree + '</div>'
+                    }
+                })
+            }
 
             optionsContainer.innerHTML = html || '<p class="text-[0.78rem] text-slate-400">No options matched your search.</p>'
 

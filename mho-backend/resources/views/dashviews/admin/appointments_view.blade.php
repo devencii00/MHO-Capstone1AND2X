@@ -1,10 +1,10 @@
 <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
     <div class="flex items-center justify-between mb-3">
-        <h2 class="text-sm font-semibold text-slate-900">Appointments</h2>
+        <h2 class="text-sm font-semibold text-slate-900"></h2>
         <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Monitoring</span>
     </div>
     <p class="text-xs text-slate-500 mb-4">
-        Global appointment monitoring with filters by date, doctor, type, and status. Only the newest appointment per patient is shown.
+        
     </p>
 
     <div id="adminAppointmentsError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
@@ -52,7 +52,7 @@
         </div>
     </div>
 
-   <div class="overflow-auto scrollbar-hidden h-[300px]">
+   <div class="overflow-auto scrollbar-hidden h-[575px]">
         <table class="min-w-full text-left text-xs text-slate-600">
             <thead>
                 <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
