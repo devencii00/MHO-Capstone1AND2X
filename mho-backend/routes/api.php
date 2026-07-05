@@ -73,6 +73,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/queues/active-exists', [QueueController::class, 'activeExists']);
     Route::get('/queues/guest-requests', [QueueController::class, 'guestRequests']);
     Route::post('/queues/guest-requests/{appointment}', [QueueController::class, 'processGuestRequest']);
+    Route::get('/transactions/report/print', [TransactionController::class, 'printReport']);
     Route::apiResource('transactions', TransactionController::class);
     Route::apiResource('walk-ins', WalkInController::class)->only(['index', 'show', 'store']);
     Route::post('/walk-ins/guest', [WalkInController::class, 'storeGuest']);

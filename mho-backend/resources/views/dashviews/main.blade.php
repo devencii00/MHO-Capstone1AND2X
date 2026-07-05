@@ -18,7 +18,7 @@
     </div>
 </div>
 <script>
-    // ── Auth guard: hide content if no valid session ──
+
     (function () {
         var token = null;
         try { token = window.localStorage ? window.localStorage.getItem('api_token') : null } catch (_) {}

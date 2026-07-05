@@ -273,6 +273,166 @@ class TransactionController extends Controller
         ]);
     }
 
+    public function printReport(Request $request)
+    {
+        $currentUser = $request->user();
+        if (! $currentUser || strtolower((string) $currentUser->role) !== 'admin') {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date'],
+        ]);
+
+        $start = ! empty($data['start_date'])
+            ? Carbon::parse($data['start_date'])->startOfDay()
+            : now()->startOfDay();
+        $end = ! empty($data['end_date'])
+            ? Carbon::parse($data['end_date'])->endOfDay()
+            : $start->copy()->endOfDay();
+
+        if ($start->gt($end)) {
+            [$start, $end] = [$end->copy()->startOfDay(), $start->copy()->endOfDay()];
+        }
+
+        $transactions = Transaction::query()
+            ->with([
+                'appointment.patient',
+                'appointment.doctor',
+                'appointment.services',
+            ])
+            ->where(function ($query) use ($start, $end) {
+                $query->whereBetween('transaction_datetime', [$start, $end])
+                    ->orWhere(function ($inner) use ($start, $end) {
+                        $inner->whereNull('transaction_datetime')
+                            ->whereBetween('created_at', [$start, $end]);
+                    });
+            })
+            ->orderByRaw('COALESCE(transaction_datetime, created_at) asc')
+            ->orderBy('transaction_id')
+            ->get();
+
+        $paidTransactions = $transactions->filter(function (Transaction $transaction) {
+            return strtolower(trim((string) $transaction->payment_status)) === 'paid';
+        })->values();
+
+        $summary = [
+            'total_transactions' => $transactions->count(),
+            'paid_transactions' => $transactions->filter(fn (Transaction $transaction) => strtolower(trim((string) $transaction->payment_status)) === 'paid')->count(),
+            'pending_payments' => $transactions->filter(fn (Transaction $transaction) => strtolower(trim((string) $transaction->payment_status)) === 'pending')->count(),
+            'failed_payments' => $transactions->filter(fn (Transaction $transaction) => strtolower(trim((string) $transaction->payment_status)) === 'failed')->count(),
+            'gross_revenue' => round((float) $paidTransactions->sum(fn (Transaction $transaction) => (float) ($transaction->amount ?? 0)), 2),
+            'total_discounts' => round((float) $paidTransactions->sum(fn (Transaction $transaction) => (float) ($transaction->discount_amount ?? 0)), 2),
+        ];
+        $summary['net_revenue'] = round($summary['gross_revenue'] - $summary['total_discounts'], 2);
+
+        $discountSummary = collect([
+            'none' => ['label' => 'None', 'count' => 0, 'total' => 0.0],
+            'senior' => ['label' => 'Senior', 'count' => 0, 'total' => 0.0],
+            'pwd' => ['label' => 'PWD', 'count' => 0, 'total' => 0.0],
+            'pregnant' => ['label' => 'Pregnant', 'count' => 0, 'total' => 0.0],
+        ]);
+
+        $paidTransactions->groupBy(function (Transaction $transaction) {
+            $type = strtolower(trim((string) ($transaction->discount_type ?? 'none')));
+
+            return $type !== '' ? $type : 'none';
+        })->each(function ($group, $type) use ($discountSummary) {
+            $discountSummary->put($type, [
+                'label' => $this->discountTypeLabel($type),
+                'count' => $group->count(),
+                'total' => round((float) $group->sum(fn (Transaction $transaction) => (float) ($transaction->discount_amount ?? 0)), 2),
+            ]);
+        });
+
+        $paymentStatusSummary = collect(['paid', 'pending', 'failed'])->map(function (string $status) use ($transactions) {
+            return [
+                'label' => ucfirst($status),
+                'count' => $transactions->filter(function (Transaction $transaction) use ($status) {
+                    return strtolower(trim((string) $transaction->payment_status)) === $status;
+                })->count(),
+            ];
+        });
+
+        $paymentModeSummary = $paidTransactions
+            ->groupBy(function (Transaction $transaction) {
+                $mode = strtolower(trim((string) ($transaction->payment_mode ?? '')));
+
+                return $mode !== '' ? $mode : 'unspecified';
+            })
+            ->map(function ($group, $mode) {
+                $gross = round((float) $group->sum(fn (Transaction $transaction) => (float) ($transaction->amount ?? 0)), 2);
+                $discounts = round((float) $group->sum(fn (Transaction $transaction) => (float) ($transaction->discount_amount ?? 0)), 2);
+
+                return [
+                    'label' => $this->paymentModeLabel($mode),
+                    'transactions' => $group->count(),
+                    'revenue' => round($gross - $discounts, 2),
+                ];
+            })
+            ->values();
+
+        $dailyRevenue = $paidTransactions
+            ->groupBy(function (Transaction $transaction) {
+                return $this->resolveTransactionDate($transaction)->format('Y-m-d');
+            })
+            ->map(function ($group, $dateKey) {
+                $gross = round((float) $group->sum(fn (Transaction $transaction) => (float) ($transaction->amount ?? 0)), 2);
+                $discounts = round((float) $group->sum(fn (Transaction $transaction) => (float) ($transaction->discount_amount ?? 0)), 2);
+
+                return [
+                    'date_key' => $dateKey,
+                    'date_label' => Carbon::parse($dateKey)->format('M j, Y'),
+                    'transactions' => $group->count(),
+                    'revenue' => round($gross - $discounts, 2),
+                ];
+            })
+            ->sortBy('date_key')
+            ->values();
+
+        $transactionRows = $transactions->map(function (Transaction $transaction) {
+            $appointment = $transaction->appointment;
+            $services = $appointment && $appointment->relationLoaded('services')
+                ? $appointment->services->map(function ($service) {
+                    return trim((string) ($service->service_name ?? ''));
+                })->filter()->values()->all()
+                : [];
+            $amount = round((float) ($transaction->amount ?? 0), 2);
+            $discountAmount = round((float) ($transaction->discount_amount ?? 0), 2);
+
+            return [
+                'transaction_id' => (int) $transaction->transaction_id,
+                'date_label' => $this->resolveTransactionDate($transaction)->format('M j, Y g:i A'),
+                'patient_name' => $this->userDisplayName(optional($appointment)->patient, 'Patient'),
+                'doctor_name' => $this->userDisplayName(optional($appointment)->doctor, 'Doctor'),
+                'services' => $services,
+                'amount' => $amount,
+                'discount_type' => $this->discountTypeLabel((string) ($transaction->discount_type ?? 'none')),
+                'discount_amount' => $discountAmount,
+                'net_amount' => round($amount - $discountAmount, 2),
+                'status' => ucfirst(strtolower(trim((string) ($transaction->payment_status ?? 'unknown')))),
+                'payment_mode' => $this->paymentModeLabel((string) ($transaction->payment_mode ?? '')),
+            ];
+        });
+
+        return response()->view('print.transaction_report', [
+            'clinicName' => 'OPOL PRIMARY HEALTHCARE CLINIC',
+            'embedded' => $request->boolean('embed'),
+            'reportPeriodLabel' => $start->isSameDay($end)
+                ? $start->format('F j, Y')
+                : $start->format('F j, Y').' - '.$end->format('F j, Y'),
+            'generatedOn' => now(),
+            'generatedBy' => $this->userDisplayName($currentUser, 'Administrator'),
+            'summary' => $summary,
+            'discountSummary' => $discountSummary->values(),
+            'paymentStatusSummary' => $paymentStatusSummary,
+            'paymentModeSummary' => $paymentModeSummary,
+            'dailyRevenue' => $dailyRevenue,
+            'transactionRows' => $transactionRows,
+        ]);
+    }
+
     public function update(Request $request, Transaction $transaction)
     {
         $currentUser = $request->user();
@@ -484,5 +644,64 @@ class TransactionController extends Controller
         }
 
         return false;
+    }
+
+    private function resolveTransactionDate(Transaction $transaction): Carbon
+    {
+        if ($transaction->transaction_datetime instanceof Carbon) {
+            return $transaction->transaction_datetime->copy();
+        }
+
+        if ($transaction->created_at instanceof Carbon) {
+            return $transaction->created_at->copy();
+        }
+
+        return now();
+    }
+
+    private function userDisplayName($user, string $fallback = 'User'): string
+    {
+        if (! $user) {
+            return $fallback;
+        }
+
+        $name = trim(implode(' ', array_filter([
+            $user->firstname ?? null,
+            $user->middlename ?? null,
+            $user->lastname ?? null,
+        ], function ($value) {
+            return trim((string) $value) !== '';
+        })));
+
+        if ($name !== '') {
+            return $name;
+        }
+
+        $email = trim((string) ($user->email ?? ''));
+        if ($email !== '') {
+            return $email;
+        }
+
+        return $fallback;
+    }
+
+    private function discountTypeLabel(?string $type): string
+    {
+        return match (strtolower(trim((string) $type))) {
+            'senior' => 'Senior',
+            'pwd' => 'PWD',
+            'pregnant' => 'Pregnant',
+            default => 'None',
+        };
+    }
+
+    private function paymentModeLabel(?string $mode): string
+    {
+        return match (strtolower(trim((string) $mode))) {
+            'cash' => 'Cash',
+            'gcash' => 'GCash',
+            'card' => 'Card',
+            default => 'Unspecified',
+        };
     }
 }

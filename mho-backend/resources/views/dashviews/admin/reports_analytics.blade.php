@@ -4,7 +4,7 @@
         <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Summary</span>
     </div>
     <p class="text-xs text-slate-500 mb-3">
-        Transactions, revenue, appointment analytics, and basic no-show tracking for the clinic.
+        Key metrics and revenue summary for the clinic.
     </p>
 
     @php
@@ -13,17 +13,8 @@
         $recentTransactions = $adminRecentTransactions ?? collect();
     @endphp
 
-    <div class="mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div>
-            <label for="admin_analytics_focus" class="block text-[0.7rem] text-slate-600 mb-1">Focus</label>
-            <select id="admin_analytics_focus" class="w-full md:w-56 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                <option value="all">All</option>
-                <option value="patients">Patients</option>
-                <option value="staff">Staff</option>
-                <option value="compliance">Compliance</option>
-            </select>
-        </div>
-        <div class="text-[0.72rem] text-slate-500 md:text-right">
+    <div class="mb-4 flex items-center justify-end">
+        <div class="text-[0.72rem] text-slate-500">
             Updated based on live system records.
         </div>
     </div>
@@ -70,293 +61,135 @@
         </div>
     </div>
 
-    <div class="grid gap-4 grid-cols-1 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <div class="border border-slate-100 rounded-2xl overflow-hidden bg-white shadow-sm h-[660px]">
-            <div class="flex w-full bg-white border-b border-slate-100">
-                <button id="adminReportsTabTransactions" type="button" class="flex-1 px-4 py-3 text-xs font-semibold border-r border-slate-100 bg-slate-900 text-white transition-colors">
-                    Transactions
-                </button>
-                <button id="adminReportsTabAppointments" type="button" class="flex-1 px-4 py-3 text-xs font-semibold bg-white text-slate-700 hover:bg-slate-50 transition-colors">
-                    Appointments
-                </button>
+    <div class="border border-slate-100 rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-semibold text-slate-900">Revenue Reports</h3>
+            <span class="text-[0.68rem] text-slate-400 uppercase tracking-widest">Summary</span>
+        </div>
+        <div class="flex flex-wrap items-stretch gap-3">
+            <div class="flex-1 min-w-[180px] flex items-center justify-between rounded-2xl bg-white border border-slate-100 px-4 py-3">
+                <div>
+                    <p class="text-[0.7rem] text-slate-500 mb-0.5">Today</p>
+                    <p class="font-serif font-bold text-lg text-slate-900">
+                        ₱{{ number_format((float) ($metrics['revenueToday'] ?? 0), 2) }}
+                    </p>
+                </div>
+                <x-lucide-calendar class="w-[22px] h-[22px] text-green-600 shrink-0 ml-2" />
             </div>
-
-            <div id="adminReportsPanelTransactions" class="p-4">
-                <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between mb-3">
-                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center flex-wrap">
-                        <div>
-                            <label for="admin_txn_search" class="block text-[0.7rem] text-slate-600 mb-1">Search</label>
-                            <input id="admin_txn_search" type="text" class="w-full sm:w-40 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Date, mode, status…" />
-                        </div>
-                        <div>
-                            <label for="admin_txn_date_from" class="block text-[0.7rem] text-slate-600 mb-1">From</label>
-                            <input id="admin_txn_date_from" type="date" class="w-full sm:w-36 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" />
-                        </div>
-                        <div>
-                            <label for="admin_txn_date_to" class="block text-[0.7rem] text-slate-600 mb-1">To</label>
-                            <input id="admin_txn_date_to" type="date" class="w-full sm:w-36 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" />
-                        </div>
-                        <div>
-                            <label for="admin_txn_mode" class="block text-[0.7rem] text-slate-600 mb-1">Mode</label>
-                            <select id="admin_txn_mode" class="w-full sm:w-32 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                                <option value="all">All</option>
-                                <option value="cash">Cash</option>
-                                <option value="hmo">HMO</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="admin_txn_status" class="block text-[0.7rem] text-slate-600 mb-1">Status</label>
-                            <select id="admin_txn_status" class="w-full sm:w-32 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                                <option value="all">All</option>
-                                <option value="paid">Paid</option>
-                                <option value="pending">Pending</option>
-                                <option value="failed">Failed</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="md:text-right shrink-0">
-                        <label for="admin_txn_sort" class="block text-[0.7rem] text-slate-600 mb-1">Sort</label>
-                        <select id="admin_txn_sort" class="w-full md:w-48 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                            <option value="when_desc">Newest</option>
-                            <option value="when_asc">Oldest</option>
-                            <option value="amount_desc">Amount (high)</option>
-                            <option value="amount_asc">Amount (low)</option>
-                        </select>
-                    </div>
+            <div class="flex-1 min-w-[180px] flex items-center justify-between rounded-2xl bg-white border border-slate-100 px-4 py-3">
+                <div>
+                    <p class="text-[0.7rem] text-slate-500 mb-0.5">This month</p>
+                    <p class="font-serif font-bold text-lg text-slate-900">
+                        ₱{{ number_format((float) ($metrics['revenueThisMonth'] ?? 0), 2) }}
+                    </p>
                 </div>
-
-                <div class="overflow-x-auto scrollbar-hidden">
-                    <table class="min-w-full text-left text-xs text-slate-600">
-                        <thead>
-                            <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
-                                <th class="py-2 pr-4 font-semibold">When</th>
-                                <th class="py-2 pr-4 font-semibold">Amount</th>
-                                <th class="py-2 pr-4 font-semibold">Mode</th>
-                                <th class="py-2 pr-4 font-semibold">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="admin_txn_tbody">
-                            @forelse ($recentTransactions as $txn)
-                                @php
-                                    $txnTimestamp = optional($txn->transaction_datetime)->getTimestamp() ?? 0;
-                                    $txnStatusLower = strtolower($txn->payment_status ?? '');
-                                @endphp
-                                <tr class="border-b border-slate-50 last:border-0 admin-txn-row" data-when="{{ $txnTimestamp }}" data-amount="{{ (float) ($txn->amount ?? 0) }}" data-mode="{{ strtolower((string) ($txn->payment_mode ?? '')) }}" data-status="{{ $txnStatusLower }}">
-                                    <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                                        {{ optional($txn->transaction_datetime)->format('Y-m-d H:i') ?? '—' }}
-                                    </td>
-                                    <td class="py-2 pr-4 text-[0.78rem] text-slate-700">
-                                        ₱{{ number_format((float) ($txn->amount ?? 0), 2) }}
-                                    </td>
-                                    <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                                        {{ $txn->payment_mode ?? '—' }}
-                                    </td>
-                                    <td class="py-2 pr-4 text-[0.78rem]">
-                                        @php
-                                            $status = strtolower($txn->payment_status ?? '');
-                                            $statusLabel = $txn->payment_status ?? '—';
-                                            $statusClasses = 'inline-flex items-center rounded-full px-2.5 py-0.5 text-[0.68rem] font-semibold ';
-                                            if ($status === 'paid') {
-                                                $statusClasses .= 'bg-emerald-50 text-emerald-700 border border-emerald-100';
-                                            } elseif ($status === 'pending') {
-                                                $statusClasses .= 'bg-amber-50 text-amber-700 border border-amber-100';
-                                            } elseif ($status === 'failed') {
-                                                $statusClasses .= 'bg-rose-50 text-rose-700 border border-rose-100';
-                                            } else {
-                                                $statusClasses .= 'bg-slate-50 text-slate-600 border border-slate-100';
-                                            }
-                                        @endphp
-                                        <span class="{{ $statusClasses }}">
-                                            {{ $statusLabel }}
-                                        </span>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr class="admin-txn-empty">
-                                    <td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">
-                                        No transactions recorded yet.
-                                    </td>
-                                </tr>
-                            @endforelse
-                            <tr id="admin_txn_empty_filtered" class="hidden">
-                                <td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">
-                                    No results.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="adminReportsPanelAppointments" class="p-4 hidden">
-                <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between mb-3">
-                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center flex-wrap">
-                        <div>
-                            <label for="admin_appt_search" class="block text-[0.7rem] text-slate-600 mb-1">Search</label>
-                            <input id="admin_appt_search" type="text" class="w-full sm:w-40 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search…" />
-                        </div>
-                        <div>
-                            <label for="admin_appt_type_filter" class="block text-[0.7rem] text-slate-600 mb-1">Type</label>
-                            <select id="admin_appt_type_filter" class="w-full sm:w-32 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                                <option value="all">All</option>
-                                <option value="scheduled">Scheduled</option>
-                                <option value="walk-in">Walk-in</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="admin_appt_status_filter" class="block text-[0.7rem] text-slate-600 mb-1">Status</label>
-                            <select id="admin_appt_status_filter" class="w-full sm:w-32 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                                <option value="all">All</option>
-                                <option value="pending">Pending</option>
-                                <option value="confirmed">Confirmed</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
-                                <option value="no_show">No-show</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="admin_appt_filter" class="block text-[0.7rem] text-slate-600 mb-1">Count Filter</label>
-                            <select id="admin_appt_filter" class="w-full sm:w-32 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                                <option value="all">All</option>
-                                <option value="nonzero">Non-zero only</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="md:text-right shrink-0">
-                        <label for="admin_appt_sort" class="block text-[0.7rem] text-slate-600 mb-1">Sort</label>
-                        <select id="admin_appt_sort" class="w-full md:w-48 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                            <option value="count_desc">Count (high)</option>
-                            <option value="count_asc">Count (low)</option>
-                            <option value="type_asc">Type (A–Z)</option>
-                            <option value="type_desc">Type (Z–A)</option>
-                            <option value="status_asc">Status (A–Z)</option>
-                            <option value="status_desc">Status (Z–A)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto scrollbar-hidden">
-                    <table class="min-w-full text-left text-xs text-slate-600">
-                        <thead>
-                            <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
-                                <th class="py-2 pr-4 font-semibold">Type</th>
-                                <th class="py-2 pr-4 font-semibold">Status</th>
-                                <th class="py-2 pr-4 font-semibold">Count</th>
-                            </tr>
-                        </thead>
-                        <tbody id="admin_appt_tbody">
-                            @php
-                                $statusRows = $reports['appointmentsByStatusToday'] ?? collect();
-                            @endphp
-                            @forelse ($statusRows as $row)
-                                @php
-                                    $status = $row->status ?? 'unknown';
-                                    $statusLabel = ucfirst(str_replace('_', ' ', $status));
-                                    $type = $row->appointment_type ?? 'unknown';
-                                    $typeLabel = ucfirst(str_replace('_', '-', $type));
-                                    $countValue = (int) ($row->total_count ?? 0);
-                                @endphp
-                                <tr class="border-b border-slate-50 last:border-0 admin-appt-row" data-status="{{ strtolower((string) $statusLabel) }}" data-type="{{ strtolower((string) $typeLabel) }}" data-count="{{ $countValue }}">
-                                    <td class="py-2 pr-4 text-[0.78rem] text-slate-700">
-                                        {{ $typeLabel }}
-                                    </td>
-                                    <td class="py-2 pr-4 text-[0.78rem] text-slate-700">
-                                        {{ $statusLabel }}
-                                    </td>
-                                    <td class="py-2 pr-4 text-[0.78rem] text-slate-900">
-                                        {{ $countValue }}
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr class="admin-appt-empty">
-                                    <td colspan="3" class="py-4 text-center text-[0.78rem] text-slate-400">
-                                        No appointments recorded for today.
-                                    </td>
-                                </tr>
-                            @endforelse
-                            <tr id="admin_appt_empty_filtered" class="hidden">
-                                <td colspan="3" class="py-4 text-center text-[0.78rem] text-slate-400">
-                                    No results.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <x-lucide-chart-column class="w-[22px] h-[22px] text-emerald-600 shrink-0 ml-2" />
             </div>
         </div>
+    </div>
 
-        <div class="grid gap-4 grid-cols-1">
-            <div class="border border-slate-100 rounded-2xl p-4 flex flex-col h-full">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-xs font-semibold text-slate-900">Revenue</h3>
-                    <span class="text-[0.68rem] text-slate-400 uppercase tracking-widest">Summary</span>
-                </div>
-                <div class="space-y-3 flex-1 flex flex-col justify-center">
-                    <div class="flex items-center justify-between rounded-2xl bg-white border border-slate-100 px-4 py-3">
-                        <div>
-                            <p class="text-[0.7rem] text-slate-500 mb-0.5">Today</p>
-                            <p class="font-serif font-bold text-lg text-slate-900">
-                                ₱{{ number_format((float) ($metrics['revenueToday'] ?? 0), 2) }}
-                            </p>
-                        </div>
-                        <x-lucide-calendar class="w-[22px] h-[22px] text-green-600" />
-                    </div>
-                    <div class="flex items-center justify-between rounded-2xl bg-white border border-slate-100 px-4 py-3">
-                        <div>
-                            <p class="text-[0.7rem] text-slate-500 mb-0.5">This month</p>
-                            <p class="font-serif font-bold text-lg text-slate-900">
-                                ₱{{ number_format((float) ($metrics['revenueThisMonth'] ?? 0), 2) }}
-                            </p>
-                        </div>
-                        <x-lucide-chart-column class="w-[22px] h-[22px] text-emerald-600" />
-                    </div>
-                    <div class="rounded-2xl bg-white border border-slate-100 px-4 py-3">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-[0.7rem] text-slate-500 mb-0.5">Monthly billing records</p>
-                                <p class="font-serif font-bold text-lg text-slate-900">
-                                    {{ number_format((int) ($reports['monthlyBillingRecords'] ?? 0)) }}
-                                </p>
-                            </div>
-                            <x-lucide-receipt class="w-[22px] h-[22px] text-green-600" />
-                        </div>
-                        <p class="mt-1.5 text-[0.72rem] text-slate-500">
-                            Amount: ₱{{ number_format((float) ($reports['monthlyBillingAmount'] ?? 0), 2) }}
-                        </p>
-                    </div>
-                    <div class="rounded-2xl bg-white border border-slate-100 px-4 py-3">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-[0.7rem] text-slate-500 mb-0.5">Yearly billing records</p>
-                                <p class="font-serif font-bold text-lg text-slate-900">
-                                    {{ number_format((int) ($reports['yearlyBillingRecords'] ?? 0)) }}
-                                </p>
-                            </div>
-                            <x-lucide-calendar-range class="w-[22px] h-[22px] text-violet-600" />
-                        </div>
-                        <p class="mt-1.5 text-[0.72rem] text-slate-500">
-                            Amount: ₱{{ number_format((float) ($reports['yearlyBillingAmount'] ?? 0), 2) }}
-                        </p>
-                    </div>
-                </div>
+    <div class="border border-slate-100 rounded-2xl p-4 mt-4">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-semibold text-slate-900">Today's Transactions</h3>
+            <div class="flex items-center gap-2">
+                <span id="adminTxnTodayCount" class="text-[0.68rem] text-slate-400 uppercase tracking-widest">— entries</span>
+                <button type="button" id="adminGenReportBtn" class="px-3 py-1.5 rounded-lg bg-green-600 text-white text-[0.7rem] font-semibold hover:bg-green-700">Generate Report</button>
             </div>
+        </div>
+        <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end">
+            <div class="flex-1">
+                <label for="admin_txn_today_search" class="block text-[0.7rem] text-slate-600 mb-1">Search by patient / doctor</label>
+                <input id="admin_txn_today_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Type patient or doctor name…">
+            </div>
+            <div class="w-full sm:w-48">
+                <label for="admin_txn_today_service" class="block text-[0.7rem] text-slate-600 mb-1">Filter by service</label>
+                <select id="admin_txn_today_service" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    <option value="">All services</option>
+                </select>
+            </div>
+        </div>
+        <div class="overflow-x-auto scrollbar-hidden">
+            <table class="min-w-full text-left text-xs text-slate-600">
+                <thead>
+                    <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
+                        <th class="py-2 pr-4 font-semibold">Date / Time</th>
+                        <th class="py-2 pr-4 font-semibold">Patient</th>
+                        <th class="py-2 pr-4 font-semibold">Doctor</th>
+                        <th class="py-2 pr-4 font-semibold">Service</th>
+                        <th class="py-2 pr-4 font-semibold">Amount</th>
+                        <th class="py-2 pr-4 font-semibold">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="adminTxnTodayBody">
+                    <tr>
+                        <td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">
+                            Loading today's transactions…
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="adminTxnTodayPagination" class="flex items-center justify-center gap-1 mt-3 flex-wrap"></div>
+    </div>
 
-            <div class="border border-slate-100 rounded-2xl p-4 flex flex-col h-full">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-xs font-semibold text-slate-900">No-show tracking</h3>
-                    <span class="text-[0.68rem] text-slate-400 uppercase tracking-widest">Today</span>
-                </div>
-                @php
-                    $noShowToday = (int) ($reports['noShowToday'] ?? 0);
-                @endphp
-                <div class="flex items-center justify-between rounded-2xl bg-white border border-slate-100 px-4 py-3 flex-1">
+    <div id="adminReportModal" class="hidden fixed inset-0 z-[90] bg-slate-950/45 backdrop-blur-sm p-4 sm:p-6">
+        <div class="min-h-full flex items-center justify-center">
+            <div id="adminReportModalCard" class="w-full max-w-lg rounded-3xl border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.22)] transition-all duration-200">
+                <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
                     <div>
-                        <p class="text-[0.7rem] text-slate-500 mb-0.5">No-shows today</p>
-                        <p class="font-serif font-bold text-2xl text-slate-900">
-                            {{ $noShowToday }}
-                        </p>
+                        <h3 id="adminReportModalTitle" class="text-sm font-semibold text-slate-900">Generate transaction report</h3>
+                        <p id="adminReportModalSubtitle" class="mt-1 text-[0.78rem] text-slate-500">Choose a single date or a custom date range, then generate a report preview inside this window.</p>
                     </div>
-                    <x-lucide-calendar-x class="w-[28px] h-[28px] text-amber-500" />
+                    <button type="button" id="adminReportModalCloseBtn" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700">
+                        <x-lucide-x class="w-4 h-4" />
+                    </button>
+                </div>
+
+                <div id="adminReportModalForm" class="px-5 py-4 space-y-4">
+                    <div id="adminReportFormFields">
+                        <label for="adminReportType" class="block text-[0.72rem] text-slate-600 mb-1">Report type</label>
+                        <select id="adminReportType" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            <option value="date">Single date</option>
+                            <option value="range">Date range</option>
+                        </select>
+                    </div>
+
+                    <div id="adminReportSingleDateWrap">
+                        <label for="adminReportDate" class="block text-[0.72rem] text-slate-600 mb-1">Date</label>
+                        <input id="adminReportDate" type="date" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    </div>
+
+                    <div id="adminReportRangeWrap" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label for="adminReportStartDate" class="block text-[0.72rem] text-slate-600 mb-1">Starting date</label>
+                            <input id="adminReportStartDate" type="date" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        </div>
+                        <div>
+                            <label for="adminReportEndDate" class="block text-[0.72rem] text-slate-600 mb-1">End date</label>
+                            <input id="adminReportEndDate" type="date" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        </div>
+                    </div>
+
+                    <div id="adminReportFeedback" class="hidden rounded-2xl border px-3 py-2 text-[0.78rem]"></div>
+                </div>
+
+                <div id="adminReportPreviewWrap" class="hidden px-5 py-4">
+                    <div class="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
+                        <iframe id="adminReportPreviewFrame" title="Transaction report preview" class="block w-full h-[68vh] bg-white"></iframe>
+                    </div>
+                </div>
+
+                <div id="adminReportInitialActions" class="flex items-center justify-end gap-2 border-t border-slate-100 px-5 py-4">
+                    <button type="button" id="adminReportCancelBtn" class="px-3 py-2 rounded-xl border border-slate-200 text-[0.78rem] font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+                    <button type="button" id="adminReportSubmitBtn" class="px-3 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700">Generate Report</button>
+                </div>
+
+                <div id="adminReportPreviewActions" class="hidden items-center justify-between gap-2 border-t border-slate-100 px-5 py-4">
+                    <button type="button" id="adminReportResetBtn" class="px-3 py-2 rounded-xl border border-slate-200 text-[0.78rem] font-semibold text-slate-600 hover:bg-slate-50">Generate Another Report</button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="adminReportPreviewCloseBtn" class="px-3 py-2 rounded-xl border border-slate-200 text-[0.78rem] font-semibold text-slate-600 hover:bg-slate-50">Close</button>
+                        <button type="button" id="adminReportPrintBtn" class="px-3 py-2 rounded-xl bg-green-700 text-white text-[0.78rem] font-semibold hover:bg-green-800">Download / Print</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -365,233 +198,436 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var focusSelect = document.getElementById('admin_analytics_focus')
-        var cards = Array.prototype.slice.call(document.querySelectorAll('.admin-analytics-card'))
+        var txnBody = document.getElementById('adminTxnTodayBody')
+        var txnPagination = document.getElementById('adminTxnTodayPagination')
+        var txnCount = document.getElementById('adminTxnTodayCount')
+        var txnSearch = document.getElementById('admin_txn_today_search')
+        var txnServiceFilter = document.getElementById('admin_txn_today_service')
+        var genReportBtn = document.getElementById('adminGenReportBtn')
+        var reportModal = document.getElementById('adminReportModal')
+        var reportModalCard = document.getElementById('adminReportModalCard')
+        var reportModalCloseBtn = document.getElementById('adminReportModalCloseBtn')
+        var reportModalTitle = document.getElementById('adminReportModalTitle')
+        var reportModalSubtitle = document.getElementById('adminReportModalSubtitle')
+        var reportModalForm = document.getElementById('adminReportModalForm')
+        var reportPreviewWrap = document.getElementById('adminReportPreviewWrap')
+        var reportPreviewFrame = document.getElementById('adminReportPreviewFrame')
+        var reportInitialActions = document.getElementById('adminReportInitialActions')
+        var reportPreviewActions = document.getElementById('adminReportPreviewActions')
+        var reportCancelBtn = document.getElementById('adminReportCancelBtn')
+        var reportSubmitBtn = document.getElementById('adminReportSubmitBtn')
+        var reportResetBtn = document.getElementById('adminReportResetBtn')
+        var reportPreviewCloseBtn = document.getElementById('adminReportPreviewCloseBtn')
+        var reportPrintBtn = document.getElementById('adminReportPrintBtn')
+        var reportType = document.getElementById('adminReportType')
+        var reportDate = document.getElementById('adminReportDate')
+        var reportStartDate = document.getElementById('adminReportStartDate')
+        var reportEndDate = document.getElementById('adminReportEndDate')
+        var reportSingleDateWrap = document.getElementById('adminReportSingleDateWrap')
+        var reportRangeWrap = document.getElementById('adminReportRangeWrap')
+        var reportFeedback = document.getElementById('adminReportFeedback')
 
-        var tabTransactions = document.getElementById('adminReportsTabTransactions')
-        var tabAppointments = document.getElementById('adminReportsTabAppointments')
-        var panelTransactions = document.getElementById('adminReportsPanelTransactions')
-        var panelAppointments = document.getElementById('adminReportsPanelAppointments')
+        var allTransactions = []
+        var filteredTransactions = []
+        var txPerPage = 10
+        var txCurrentPage = 1
+        var txVisibleCount = 6
+        var reportPreviewLoaded = false
 
-        var txnSearch = document.getElementById('admin_txn_search')
-        var txnDateFrom = document.getElementById('admin_txn_date_from')
-        var txnDateTo = document.getElementById('admin_txn_date_to')
-        var txnMode = document.getElementById('admin_txn_mode')
-        var txnStatus = document.getElementById('admin_txn_status')
-        var txnSort = document.getElementById('admin_txn_sort')
-        var txnBody = document.getElementById('admin_txn_tbody')
-        var txnEmptyFiltered = document.getElementById('admin_txn_empty_filtered')
+        function pad2(v) { return String(v).padStart(2, '0') }
+        function trim(s) { return String(s || '').trim() }
 
-        var apptSearch = document.getElementById('admin_appt_search')
-        var apptTypeFilter = document.getElementById('admin_appt_type_filter')
-        var apptStatusFilter = document.getElementById('admin_appt_status_filter')
-        var apptFilter = document.getElementById('admin_appt_filter')
-        var apptSort = document.getElementById('admin_appt_sort')
-        var apptBody = document.getElementById('admin_appt_tbody')
-        var apptEmptyFiltered = document.getElementById('admin_appt_empty_filtered')
-
-        function setTabButtonActive(btn, isActive, isLeft) {
-            if (!btn) return
-            btn.classList.remove('bg-slate-900', 'text-white', 'bg-white', 'text-slate-700', 'hover:bg-slate-50', 'bg-green-600')
-            if (isLeft) {
-                btn.classList.toggle('border-r', true)
-                btn.classList.toggle('border-slate-100', true)
-            }
-            if (isActive) {
-                btn.classList.add('bg-green-600', 'text-white')
-            } else {
-                btn.classList.add('bg-white', 'text-slate-700', 'hover:bg-slate-50')
-            }
+        function todayIsoDate() {
+            var d = new Date()
+            return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate())
         }
 
-        function setActiveReportTab(key) {
-            var isTransactions = key !== 'appointments'
-            if (panelTransactions) panelTransactions.classList.toggle('hidden', !isTransactions)
-            if (panelAppointments) panelAppointments.classList.toggle('hidden', isTransactions)
-            setTabButtonActive(tabTransactions, isTransactions, true)
-            setTabButtonActive(tabAppointments, !isTransactions, false)
+        function getApiToken() {
             try {
-                localStorage.setItem('admin_reports_tab', isTransactions ? 'transactions' : 'appointments')
-            } catch (e) {}
-        }
-
-        function normalizeText(value) {
-            return (value || '').toString().toLowerCase().trim()
-        }
-
-        function applyTransactionFilters() {
-            if (!txnBody) return
-            var q = normalizeText(txnSearch ? txnSearch.value : '')
-            var dateFrom = txnDateFrom && txnDateFrom.value ? new Date(txnDateFrom.value).getTime() / 1000 : null
-            var dateTo = txnDateTo && txnDateTo.value ? new Date(txnDateTo.value).getTime() / 1000 : null
-            var mode = normalizeText(txnMode ? txnMode.value : 'all')
-            var status = normalizeText(txnStatus ? txnStatus.value : 'all')
-            var rows = Array.prototype.slice.call(txnBody.querySelectorAll('tr.admin-txn-row'))
-            var visibleCount = 0
-
-            rows.forEach(function (row) {
-                var rowTimestamp = parseInt(row.getAttribute('data-when') || '0', 10)
-                var rowMode = normalizeText(row.getAttribute('data-mode'))
-                var rowStatus = normalizeText(row.getAttribute('data-status'))
-                var rowText = normalizeText(row.textContent)
-
-                var matchesQuery = !q || rowText.indexOf(q) !== -1
-                var matchesMode = mode === 'all' || rowMode === mode
-                var matchesStatus = status === 'all' || rowStatus === status
-
-                var matchesDate = true
-                if (dateFrom && rowTimestamp < dateFrom) matchesDate = false
-                if (dateTo && rowTimestamp > dateTo + 86400) matchesDate = false
-
-                var show = matchesQuery && matchesMode && matchesStatus && matchesDate
-                row.classList.toggle('hidden', !show)
-                if (show) visibleCount++
-            })
-
-            if (txnEmptyFiltered) {
-                var hasRows = rows.length > 0
-                txnEmptyFiltered.classList.toggle('hidden', !hasRows || visibleCount > 0)
+                return window.localStorage ? window.localStorage.getItem('api_token') : null
+            } catch (e) {
+                return null
             }
         }
 
-        function sortTransactionRows() {
-            if (!txnBody) return
-            var rows = Array.prototype.slice.call(txnBody.querySelectorAll('tr.admin-txn-row'))
-            if (!rows.length) return
-
-            var sortKey = (txnSort ? txnSort.value : 'when_desc') || 'when_desc'
-            var factor = sortKey.endsWith('_asc') ? 1 : -1
-            var type = sortKey.replace(/_(asc|desc)$/, '')
-
-            rows.sort(function (a, b) {
-                var av = 0
-                var bv = 0
-                if (type === 'amount') {
-                    av = parseFloat(a.getAttribute('data-amount') || '0') || 0
-                    bv = parseFloat(b.getAttribute('data-amount') || '0') || 0
-                } else {
-                    av = parseInt(a.getAttribute('data-when') || '0', 10) || 0
-                    bv = parseInt(b.getAttribute('data-when') || '0', 10) || 0
-                }
-                if (av === bv) return 0
-                return av > bv ? factor : -factor
-            })
-
-            rows.forEach(function (row) {
-                txnBody.appendChild(row)
-            })
+        function fetchWithAuth(url, options) {
+            var token = getApiToken()
+            var opts = options || {}
+            var headers = Object.assign({}, opts.headers || {})
+            headers['X-Requested-With'] = 'XMLHttpRequest'
+            if (token) headers['Authorization'] = 'Bearer ' + token
+            return fetch(url, Object.assign({}, opts, { headers: headers }))
         }
 
-        function applyAppointmentFilters() {
-            if (!apptBody) return
-            var q = normalizeText(apptSearch ? apptSearch.value : '')
-            var typeFilter = normalizeText(apptTypeFilter ? apptTypeFilter.value : 'all')
-            var statusFilter = normalizeText(apptStatusFilter ? apptStatusFilter.value : 'all')
-            var filter = normalizeText(apptFilter ? apptFilter.value : 'all')
-            var rows = Array.prototype.slice.call(apptBody.querySelectorAll('tr.admin-appt-row'))
-            var visibleCount = 0
+        function setReportFeedback(message, tone) {
+            if (!reportFeedback) return
+            if (!message) {
+                reportFeedback.className = 'hidden rounded-2xl border px-3 py-2 text-[0.78rem]'
+                reportFeedback.textContent = ''
+                return
+            }
 
-            rows.forEach(function (row) {
-                var statusText = normalizeText(row.getAttribute('data-status'))
-                var typeText = normalizeText(row.getAttribute('data-type'))
-                var countVal = parseInt(row.getAttribute('data-count') || '0', 10) || 0
+            var cls = 'rounded-2xl border px-3 py-2 text-[0.78rem] '
+            if (tone === 'error') cls += 'border-rose-200 bg-rose-50 text-rose-700'
+            else if (tone === 'success') cls += 'border-emerald-200 bg-emerald-50 text-emerald-700'
+            else cls += 'border-slate-200 bg-slate-50 text-slate-600'
 
-                var matchesQuery = !q || statusText.indexOf(q) !== -1 || typeText.indexOf(q) !== -1
-                var matchesType = typeFilter === 'all' || typeText === typeFilter
-                var matchesStatus = statusFilter === 'all' || statusText === statusFilter
-                var matchesFilter = filter === 'all' || countVal > 0
+            reportFeedback.className = cls
+            reportFeedback.textContent = message
+        }
 
-                var show = matchesQuery && matchesType && matchesStatus && matchesFilter
-                row.classList.toggle('hidden', !show)
-                if (show) visibleCount++
-            })
+        function syncReportInputs() {
+            var isRange = reportType && reportType.value === 'range'
+            if (reportSingleDateWrap) reportSingleDateWrap.classList.toggle('hidden', isRange)
+            if (reportRangeWrap) reportRangeWrap.classList.toggle('hidden', !isRange)
+            setReportFeedback('', '')
+        }
 
-            if (apptEmptyFiltered) {
-                var hasRows = rows.length > 0
-                apptEmptyFiltered.classList.toggle('hidden', !hasRows || visibleCount > 0)
+        function setReportModalMode(mode) {
+            var previewMode = mode === 'preview'
+
+            if (reportModalCard) {
+                reportModalCard.classList.toggle('max-w-lg', !previewMode)
+                reportModalCard.classList.toggle('max-w-7xl', previewMode)
+            }
+            if (reportModalForm) reportModalForm.classList.toggle('hidden', previewMode)
+            if (reportPreviewWrap) reportPreviewWrap.classList.toggle('hidden', !previewMode)
+            if (reportInitialActions) {
+                reportInitialActions.classList.toggle('hidden', previewMode)
+                reportInitialActions.classList.toggle('flex', !previewMode)
+            }
+            if (reportPreviewActions) {
+                reportPreviewActions.classList.toggle('hidden', !previewMode)
+                reportPreviewActions.classList.toggle('flex', previewMode)
+            }
+            if (reportModalTitle) reportModalTitle.textContent = previewMode ? 'Transaction report preview' : 'Generate transaction report'
+            if (reportModalSubtitle) {
+                reportModalSubtitle.textContent = previewMode
+                    ? 'Review the generated report here, then print it or save it as PDF when ready.'
+                    : 'Choose a single date or a custom date range, then generate a report preview inside this window.'
             }
         }
 
-        function sortAppointmentRows() {
-            if (!apptBody) return
-            var rows = Array.prototype.slice.call(apptBody.querySelectorAll('tr.admin-appt-row'))
-            if (!rows.length) return
-            var sortKey = (apptSort ? apptSort.value : 'count_desc') || 'count_desc'
-            var factor = sortKey.endsWith('_asc') ? 1 : -1
-            var type = sortKey.replace(/_(asc|desc)$/, '')
+        function resetReportModal(clearDates) {
+            reportPreviewLoaded = false
+            if (reportPreviewFrame) reportPreviewFrame.srcdoc = ''
+            setReportModalMode('form')
+            setReportFeedback('', '')
+            if (clearDates) {
+                var defaultDate = todayIsoDate()
+                if (reportType) reportType.value = 'date'
+                if (reportDate) reportDate.value = defaultDate
+                if (reportStartDate) reportStartDate.value = defaultDate
+                if (reportEndDate) reportEndDate.value = defaultDate
+            }
+            syncReportInputs()
+        }
 
-            rows.sort(function (a, b) {
-                if (type === 'status') {
-                    var as = normalizeText(a.getAttribute('data-status'))
-                    var bs = normalizeText(b.getAttribute('data-status'))
-                    if (as === bs) return 0
-                    return as > bs ? factor : -factor
+        function openReportModal() {
+            if (!reportModal) return
+            reportModal.classList.remove('hidden')
+            resetReportModal(false)
+        }
+
+        function closeReportModal() {
+            if (!reportModal) return
+            reportModal.classList.add('hidden')
+            resetReportModal(false)
+        }
+
+        function buildReportQuery() {
+            var mode = reportType ? reportType.value : 'date'
+            if (mode === 'range') {
+                var start = trim(reportStartDate ? reportStartDate.value : '')
+                var end = trim(reportEndDate ? reportEndDate.value : '')
+                if (!start || !end) {
+                    throw new Error('Starting date and end date are required.')
                 }
-                if (type === 'type') {
-                    var at = normalizeText(a.getAttribute('data-type'))
-                    var bt = normalizeText(b.getAttribute('data-type'))
-                    if (at === bt) return 0
-                    return at > bt ? factor : -factor
+                return '?start_date=' + encodeURIComponent(start) + '&end_date=' + encodeURIComponent(end)
+            }
+
+            var singleDate = trim(reportDate ? reportDate.value : '')
+            if (!singleDate) {
+                throw new Error('Date is required.')
+            }
+            return '?start_date=' + encodeURIComponent(singleDate) + '&end_date=' + encodeURIComponent(singleDate)
+        }
+
+        function formatDate(iso) {
+            if (!iso) return '—'
+            var d = new Date(iso)
+            if (isNaN(d.getTime())) return iso
+            return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes())
+        }
+
+        function patientName(tx) {
+            var p = tx && tx.appointment && tx.appointment.patient ? tx.appointment.patient : null
+            if (!p) return '—'
+            return trim((p.firstname || '') + ' ' + (p.lastname || ''))
+        }
+
+        function doctorName(tx) {
+            var d = tx && tx.appointment && tx.appointment.doctor ? tx.appointment.doctor : null
+            if (!d) return '—'
+            return trim((d.firstname || '') + ' ' + (d.lastname || ''))
+        }
+
+        function serviceNames(tx) {
+            var svcs = tx && tx.appointment && Array.isArray(tx.appointment.services) ? tx.appointment.services : []
+            var names = svcs.map(function (s) { return String(s.service_name || '').trim() }).filter(function (v) { return v !== '' })
+            return names.length ? names.join(', ') : '—'
+        }
+
+        function statusHtml(status) {
+            var s = trim(String(status || '')).toLowerCase()
+            var label = s || 'unknown'
+            var cls = 'inline-flex items-center rounded-full px-2.5 py-0.5 text-[0.68rem] font-semibold '
+            if (s === 'paid') cls += 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+            else if (s === 'pending') cls += 'bg-amber-50 text-amber-700 border border-amber-100'
+            else if (s === 'failed') cls += 'bg-rose-50 text-rose-700 border border-rose-100'
+            else cls += 'bg-slate-50 text-slate-600 border border-slate-100'
+            return '<span class="' + cls + '">' + label + '</span>'
+        }
+
+        function renderTodaysTransactions() {
+            if (!txnBody) return
+            var list = filteredTransactions
+            if (!list.length) {
+                txnBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No transactions recorded today.</td></tr>'
+                if (txnPagination) txnPagination.innerHTML = ''
+                if (txnCount) txnCount.textContent = '0 entries'
+                return
+            }
+            var totalPages = Math.ceil(list.length / txPerPage)
+            if (txCurrentPage > totalPages) txCurrentPage = totalPages
+            var start = (txCurrentPage - 1) * txPerPage
+            var end = Math.min(start + txPerPage, list.length)
+            var page = list.slice(start, end)
+
+            if (txnCount) txnCount.textContent = list.length + ' entries'
+
+            var html = ''
+            page.forEach(function (tx) {
+                html += '<tr class="border-b border-slate-50 last:border-0">'
+                html += '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + formatDate(tx.transaction_datetime) + '</td>'
+                html += '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + patientName(tx) + '</td>'
+                html += '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + doctorName(tx) + '</td>'
+                html += '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + serviceNames(tx) + '</td>'
+                html += '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">₱' + Number(tx.amount || 0).toFixed(2) + '</td>'
+                html += '<td class="py-2 pr-4 text-[0.78rem]">' + statusHtml(tx.payment_status) + '</td>'
+                html += '</tr>'
+            })
+            txnBody.innerHTML = html
+            renderTxnPagination()
+        }
+
+        function renderTxnPagination() {
+            if (!txnPagination) return
+            var total = filteredTransactions.length
+            if (total === 0) {
+                txnPagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
+                return
+            }
+            var totalPages = Math.ceil(total / txPerPage)
+            var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border '
+            var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer'
+            var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default'
+            var btnActive = btnBase + 'bg-green-600 text-white border-green-600'
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+            html += '<button type="button" class="' + (txCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-txpage="prev"' + (txCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            var windowStart = txCurrentPage
+            var windowEnd = Math.min(windowStart + txVisibleCount - 1, totalPages)
+            for (var i = windowStart; i <= windowEnd; i++) {
+                html += '<button type="button" class="' + (i === txCurrentPage ? btnActive : btnInactive) + '" data-txpage="' + i + '">' + i + '</button>'
+            }
+            if (windowEnd < totalPages) {
+                html += '<button type="button" class="' + btnInactive + '" data-txpage="next-window" title="Next set">…</button>'
+            }
+            html += '<button type="button" class="' + (txCurrentPage === totalPages ? btnDisabled : btnInactive) + '" data-txpage="next"' + (txCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            txnPagination.innerHTML = html
+            txnPagination.querySelectorAll('button[data-txpage]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var p = btn.getAttribute('data-txpage')
+                    if (p === 'prev' && txCurrentPage > 1) { txCurrentPage--; renderTodaysTransactions() }
+                    else if (p === 'next' && txCurrentPage < totalPages) { txCurrentPage++; renderTodaysTransactions() }
+                    else if (p === 'next-window') {
+                        txCurrentPage = Math.min(windowEnd + 1, totalPages)
+                        renderTodaysTransactions()
+                    }
+                    else if (p !== 'prev' && p !== 'next') { txCurrentPage = parseInt(p, 10); renderTodaysTransactions() }
+                })
+            })
+        }
+
+        function filterTransactions() {
+            var q = trim(txnSearch ? txnSearch.value : '').toLowerCase()
+            var svc = txnServiceFilter ? txnServiceFilter.value : ''
+            filteredTransactions = allTransactions.filter(function (tx) {
+                if (q) {
+                    var pt = patientName(tx).toLowerCase()
+                    var dr = doctorName(tx).toLowerCase()
+                    if (pt.indexOf(q) === -1 && dr.indexOf(q) === -1) return false
                 }
-                var av = parseInt(a.getAttribute('data-count') || '0', 10) || 0
-                var bv = parseInt(b.getAttribute('data-count') || '0', 10) || 0
-                if (av === bv) return 0
-                return av > bv ? factor : -factor
-            })
-
-            rows.forEach(function (row) {
-                apptBody.appendChild(row)
-            })
-        }
-
-        function applyAnalyticsFilter() {
-            var value = focusSelect ? focusSelect.value : 'all'
-            cards.forEach(function (card) {
-                var group = card.getAttribute('data-group') || ''
-                if (value === 'all') {
-                    card.style.display = ''
-                } else {
-                    card.style.display = group === value ? '' : 'none'
+                if (svc) {
+                    var svcs = tx && tx.appointment && Array.isArray(tx.appointment.services) ? tx.appointment.services : []
+                    var hasSvc = svcs.some(function (s) { return String(s.service_id) === svc })
+                    if (!hasSvc) return false
                 }
+                return true
+            })
+            txCurrentPage = 1
+            renderTodaysTransactions()
+        }
+
+        function loadTodaysTransactions() {
+            var ds = todayIsoDate()
+            fetchWithAuth('/api/transactions?per_page=500&start_date=' + ds + '&end_date=' + ds + '&order=latest', {
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(function (r) { return r.json() })
+            .then(function (result) {
+                var data = result && result.data ? result.data : []
+                allTransactions = Array.isArray(data) ? data : []
+                filterTransactions()
+            })
+            .catch(function () {
+                if (txnBody) txnBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Failed to load transactions.</td></tr>'
             })
         }
 
-        if (focusSelect) {
-            focusSelect.addEventListener('change', applyAnalyticsFilter)
+        function loadServices() {
+            fetchWithAuth('/api/services', {
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(function (r) { return r.json() })
+            .then(function (result) {
+                var data = result && result.data ? result.data : []
+                var services = Array.isArray(data) ? data : []
+                if (!txnServiceFilter) return
+                txnServiceFilter.innerHTML = '<option value="">All services</option>'
+                services.forEach(function (s) {
+                    var opt = document.createElement('option')
+                    opt.value = s.service_id
+                    opt.textContent = s.service_name || 'Unnamed'
+                    txnServiceFilter.appendChild(opt)
+                })
+            })
+            .catch(function () {})
         }
 
-        if (tabTransactions) {
-            tabTransactions.addEventListener('click', function () { setActiveReportTab('transactions') })
+        function openPrintableReport() {
+            try {
+                var query = buildReportQuery()
+                if (!reportSubmitBtn) return
+
+                reportSubmitBtn.disabled = true
+                reportSubmitBtn.textContent = 'Preparing report...'
+                setReportFeedback('Generating report preview...', 'info')
+
+                fetchWithAuth('/api/transactions/report/print' + query + '&embed=1', {
+                    headers: { 'Accept': 'text/html' }
+                })
+                .then(function (response) {
+                    return response.text().then(function (html) {
+                        return { ok: response.ok, status: response.status, html: html }
+                    })
+                })
+                .then(function (result) {
+                    if (!result.ok) {
+                        if (result.status === 403) throw new Error('You are not allowed to generate this report.')
+                        throw new Error('Failed to generate transaction report.')
+                    }
+
+                    if (!reportPreviewFrame) throw new Error('Report preview is unavailable.')
+
+                    reportPreviewLoaded = false
+                    reportPreviewFrame.srcdoc = result.html
+                    setReportModalMode('preview')
+                    setReportFeedback('', '')
+                })
+                .catch(function (error) {
+                    setReportFeedback(error && error.message ? error.message : 'Failed to generate transaction report.', 'error')
+                })
+                .finally(function () {
+                    if (reportSubmitBtn) {
+                        reportSubmitBtn.disabled = false
+                        reportSubmitBtn.textContent = 'Generate Report'
+                    }
+                })
+            } catch (error) {
+                setReportFeedback(error && error.message ? error.message : 'Please review the report dates.', 'error')
+                if (reportSubmitBtn) {
+                    reportSubmitBtn.disabled = false
+                    reportSubmitBtn.textContent = 'Generate Report'
+                }
+            }
         }
-        if (tabAppointments) {
-            tabAppointments.addEventListener('click', function () { setActiveReportTab('appointments') })
+
+        function printPreviewReport() {
+            if (!reportPreviewFrame || !reportPreviewFrame.contentWindow || !reportPreviewLoaded) {
+                return
+            }
+
+            // Temporarily set the page title so the browser suggests the right PDF filename
+            var origTitle = document.title
+            var mode = reportType ? reportType.value : 'date'
+            var dateLabel
+            if (mode === 'range') {
+                var start = reportStartDate ? reportStartDate.value : ''
+                var end = reportEndDate ? reportEndDate.value : ''
+                dateLabel = start === end ? start : start + ' - ' + end
+            } else {
+                dateLabel = reportDate ? reportDate.value : ''
+            }
+            document.title = 'OPOL MHO - Report ' + (dateLabel || '')
+
+            reportPreviewFrame.contentWindow.focus()
+            reportPreviewFrame.contentWindow.print()
+
+            // Restore original title after print dialog closes
+            setTimeout(function () {
+                document.title = origTitle
+            }, 100)
         }
 
-        if (txnSort) txnSort.addEventListener('change', function () { sortTransactionRows(); applyTransactionFilters() })
-        if (txnSearch) txnSearch.addEventListener('input', applyTransactionFilters)
-        if (txnDateFrom) txnDateFrom.addEventListener('change', applyTransactionFilters)
-        if (txnDateTo) txnDateTo.addEventListener('change', applyTransactionFilters)
-        if (txnMode) txnMode.addEventListener('change', applyTransactionFilters)
-        if (txnStatus) txnStatus.addEventListener('change', applyTransactionFilters)
+        var defaultDate = todayIsoDate()
+        if (reportDate) reportDate.value = defaultDate
+        if (reportStartDate) reportStartDate.value = defaultDate
+        if (reportEndDate) reportEndDate.value = defaultDate
+        if (reportPreviewFrame) {
+            reportPreviewFrame.addEventListener('load', function () {
+                reportPreviewLoaded = true
+            })
+        }
 
-        if (apptSort) apptSort.addEventListener('change', function () { sortAppointmentRows(); applyAppointmentFilters() })
-        if (apptSearch) apptSearch.addEventListener('input', applyAppointmentFilters)
-        if (apptTypeFilter) apptTypeFilter.addEventListener('change', applyAppointmentFilters)
-        if (apptStatusFilter) apptStatusFilter.addEventListener('change', applyAppointmentFilters)
-        if (apptFilter) apptFilter.addEventListener('change', applyAppointmentFilters)
+        if (txnSearch) txnSearch.addEventListener('input', filterTransactions)
+        if (txnServiceFilter) txnServiceFilter.addEventListener('change', filterTransactions)
+        if (reportType) reportType.addEventListener('change', syncReportInputs)
 
-        applyAnalyticsFilter()
+        if (genReportBtn) {
+            genReportBtn.addEventListener('click', function () {
+                openReportModal()
+            })
+        }
 
-        sortTransactionRows()
-        applyTransactionFilters()
+        if (reportModalCloseBtn) reportModalCloseBtn.addEventListener('click', closeReportModal)
+        if (reportCancelBtn) reportCancelBtn.addEventListener('click', closeReportModal)
+        if (reportSubmitBtn) reportSubmitBtn.addEventListener('click', openPrintableReport)
+        if (reportResetBtn) reportResetBtn.addEventListener('click', function () { resetReportModal(true) })
+        if (reportPreviewCloseBtn) reportPreviewCloseBtn.addEventListener('click', closeReportModal)
+        if (reportPrintBtn) reportPrintBtn.addEventListener('click', printPreviewReport)
+        if (reportModal) {
+            reportModal.addEventListener('click', function (event) {
+                if (event.target === reportModal) closeReportModal()
+            })
+        }
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && reportModal && !reportModal.classList.contains('hidden')) {
+                closeReportModal()
+            }
+        })
 
-        sortAppointmentRows()
-        applyAppointmentFilters()
-
-        var savedTab = null
-        try {
-            savedTab = localStorage.getItem('admin_reports_tab')
-        } catch (e) {}
-        setActiveReportTab(savedTab === 'appointments' ? 'appointments' : 'transactions')
+        loadServices()
+        loadTodaysTransactions()
     })
 </script>
