@@ -62,8 +62,8 @@
                                     if ($patientName === '') {
                                         $patientName = 'Patient #' . ($appointment->patient_id ?? '');
                                     }
-                                    $dateKey = optional($appointment->appointment_datetime)->format('Y-m-d') ?? '—';
-                                    $timeKey = optional($appointment->appointment_datetime)->format('H:i') ?? '—';
+                                    $dateKey = optional($appointment->appointment_datetime)->format('Y-m-d') ?? '-';
+                                    $timeKey = optional($appointment->appointment_datetime)->format('H:i') ?? '-';
                                 @endphp
                                 <li class="flex items-start justify-between gap-2">
                                     <div>
@@ -105,7 +105,7 @@
                                     if ($patientName === '') {
                                         $patientName = 'Patient #' . (optional($visit->appointment)->patient_id ?? '');
                                     }
-                                    $dateKey = optional($visit->visit_datetime)->format('Y-m-d') ?? (optional($visit->transaction_datetime)->format('Y-m-d') ?? '—');
+                                    $dateKey = optional($visit->visit_datetime)->format('Y-m-d') ?? (optional($visit->transaction_datetime)->format('Y-m-d') ?? '-');
                                 @endphp
                                 <li class="flex items-start justify-between gap-2">
                                     <div>

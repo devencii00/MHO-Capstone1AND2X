@@ -147,9 +147,9 @@
                 <div id="receptionWalkInPatientSummaryCard" class="rounded-xl border border-slate-200 bg-white px-3 py-3 min-h-[96px]">
                     <div id="receptionWalkInPatientSummaryEmpty" class="text-[0.75rem] text-slate-500">No patient selected.</div>
                     <div id="receptionWalkInPatientSummaryDetails" class="hidden space-y-1.5 text-[0.75rem] text-slate-700">
-                        <div><span class="font-semibold text-slate-800">Last visit:</span> <span id="receptionWalkInPatientSummaryVisit">—</span></div>
-                        <div><span class="font-semibold text-slate-800">Service inquired:</span> <span id="receptionWalkInPatientSummaryService">—</span></div>
-                        <div><span class="font-semibold text-slate-800">Doctor:</span> <span id="receptionWalkInPatientSummaryDoctor">—</span></div>
+                        <div><span class="font-semibold text-slate-800">Last visit:</span> <span id="receptionWalkInPatientSummaryVisit">-</span></div>
+                        <div><span class="font-semibold text-slate-800">Service inquired:</span> <span id="receptionWalkInPatientSummaryService">-</span></div>
+                        <div><span class="font-semibold text-slate-800">Doctor:</span> <span id="receptionWalkInPatientSummaryDoctor">-</span></div>
                     </div>
                 </div>
             </div>
@@ -383,35 +383,35 @@
                     <x-lucide-user class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
                     <div class="flex flex-wrap items-baseline gap-1">
                         <span class="font-medium text-slate-800">Patient:</span>
-                        <span class="text-slate-600">—</span>
+                        <span class="text-slate-600">-</span>
                     </div>
                 </div>
                 <div class="flex items-start gap-2.5">
                     <x-lucide-calendar-days class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
                     <div class="flex flex-wrap items-baseline gap-1">
                         <span class="font-medium text-slate-800">Date:</span>
-                        <span class="text-slate-600">—</span>
+                        <span class="text-slate-600">-</span>
                     </div>
                 </div>
                 <div class="flex items-start gap-2.5">
                     <x-lucide-clock class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
                     <div class="flex flex-wrap items-baseline gap-1">
                         <span class="font-medium text-slate-800">Time:</span>
-                        <span class="text-slate-600">—</span>
+                        <span class="text-slate-600">-</span>
                     </div>
                 </div>
                 <div class="flex items-start gap-2.5">
                     <x-lucide-stethoscope class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
                     <div class="flex flex-wrap items-baseline gap-1">
                         <span class="font-medium text-slate-800">Doctor / Department:</span>
-                        <span class="text-slate-600">—</span>
+                        <span class="text-slate-600">-</span>
                     </div>
                 </div>
                 <div class="flex items-start gap-2.5">
                     <x-lucide-file-text class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
                     <div class="flex flex-wrap items-baseline gap-1">
                         <span class="font-medium text-slate-800">Reason / Notes:</span>
-                        <span class="text-slate-600">—</span>
+                        <span class="text-slate-600">-</span>
                     </div>
                 </div>
                 <div class="mt-3 pt-2 border-t border-slate-200 text-xs text-amber-600 bg-amber-50/50 -mx-2 px-2 py-1.5 rounded-md flex items-center gap-2">
@@ -554,7 +554,7 @@ function setWalkInTab(tab) {
 
         function formatTime12h(hhmm) {
             var value = String(hhmm || '').slice(0, 5)
-            if (!/^\d{2}:\d{2}$/.test(value)) return value || '—'
+            if (!/^\d{2}:\d{2}$/.test(value)) return value || '-'
             var parts = value.split(':')
             var hour = parseInt(parts[0], 10)
             var minute = parts[1]
@@ -567,7 +567,7 @@ function setWalkInTab(tab) {
         function personName(person, fallback) {
             var parts = person ? [person.firstname, person.middlename, person.lastname] : []
             var name = parts.filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
-            return name || fallback || '—'
+            return name || fallback || '-'
         }
 
         function ageFromBirthdate(value) {
@@ -587,12 +587,12 @@ function setWalkInTab(tab) {
             var names = list.map(function (item) {
                 return String(item && item.service_name ? item.service_name : '').trim()
             }).filter(Boolean)
-            return names.length ? names.join(', ') : '—'
+            return names.length ? names.join(', ') : '-'
         }
 
         function statusText(appt) {
             var status = appt && appt.status ? String(appt.status) : ''
-            if (!status) return '—'
+            if (!status) return '-'
             if (status === 'confirmed' && appt && appt.check_in_time) return 'checked-in'
             return status.replace(/_/g, ' ')
         }
@@ -645,15 +645,15 @@ function setWalkInTab(tab) {
                 var patientName = personName(patient, 'Patient #' + String(patient && patient.user_id != null ? patient.user_id : ''))
                 var doctorName = personName(doctor, 'Doctor #' + String(doctor && doctor.user_id != null ? doctor.user_id : ''))
                 var age = ageFromBirthdate(patient && patient.birthdate ? patient.birthdate : '')
-                var contact = patient && patient.contact_number ? String(patient.contact_number) : '—'
+                var contact = patient && patient.contact_number ? String(patient.contact_number) : '-'
                 var status = statusText(appt)
 
                 return '' +
                     '<tr>' +
-                        '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.date || '—') + '</td>' +
+                        '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.date || '-') + '</td>' +
                         '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(formatTime12h(when.time)) + '</td>' +
                         '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(patientName) + '</td>' +
-                        '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(age || '—') + '</td>' +
+                        '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(age || '-') + '</td>' +
                         '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(contact) + '</td>' +
                         '<td class="px-3 py-2 text-slate-700 min-w-[14rem] whitespace-nowrap">' + escapeHtml(serviceSummary(appt)) + '</td>' +
                         '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(doctorName) + '</td>' +
@@ -1293,7 +1293,7 @@ function setWalkInTab(tab) {
                     '<div class="flex items-center justify-between gap-2 py-1.5 border-b border-slate-200 last:border-0">' +
                         '<div class="min-w-0">' +
                             '<div class="text-[0.78rem] text-slate-800 font-semibold truncate">' + escapeHtml(name) + '</div>' +
-                            '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || '—') + '</div>' +
+                            '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || '-') + '</div>' +
                         '</div>' +
                         '<button type="button" class="reception-guest-remove-service inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50" data-service-id="' + escapeHtml(id) + '">' +
                             window.receptionWalkInsIconX +
@@ -1386,7 +1386,7 @@ function setWalkInTab(tab) {
                         '<span class="min-w-0 truncate">' + escapeHtml(name) + '</span>' +
                         tag +
                     '</div>' +
-                    '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || '—') + '</div>' +
+                    '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || '-') + '</div>' +
                     (desc ? '<div class="mt-0.5 text-[0.72rem] text-slate-500">' + escapeHtml(desc) + '</div>' : '') +
                 '</button>'
             }).join('')
@@ -1486,7 +1486,7 @@ function setWalkInTab(tab) {
                 return '<button type="button" class="w-full text-left px-3 py-2 border-b border-slate-100 last:border-0 flex items-start justify-between gap-3 ' + (x.isSelectable ? 'hover:bg-slate-50' : 'bg-slate-50/60 cursor-not-allowed') + '" ' + (x.isSelectable ? '' : 'disabled') + ' data-doctor-id="' + escapeHtml(x.d.user_id) + '">' +
                     '<div class="min-w-0">' +
                         '<div class="text-[0.78rem] text-slate-800 font-semibold">' + escapeHtml('Dr. ' + x.name) + '</div>' +
-                        '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(x.spec || '—') + '</div>' +
+                        '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(x.spec || '-') + '</div>' +
                     '</div>' +
                     (x.tag ? '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] font-semibold ' + (x.tag === 'Last provider' ? 'bg-green-500/10 text-green-700 border border-green-200' : 'bg-slate-100 text-slate-500 border border-slate-200') + '">' + escapeHtml(x.tag) + '</span>' : '') +
                 '</button>'
@@ -1803,7 +1803,7 @@ function setWalkInTab(tab) {
         function setLink(el, url) {
             if (!el) return
             var u = String(url || '').trim()
-            el.textContent = u || '—'
+            el.textContent = u || '-'
             el.href = u || '#'
             el.classList.toggle('pointer-events-none', !u)
             el.classList.toggle('text-slate-400', !u)
@@ -2067,7 +2067,7 @@ function setWalkInTab(tab) {
         }
 
         function appointmentDoctorDisplayName(appointment) {
-            if (!appointment) return '—'
+            if (!appointment) return '-'
             var doctor = appointment.doctor || null
             if (doctor) {
                 var name = [doctor.firstname, doctor.middlename, doctor.lastname]
@@ -2078,7 +2078,7 @@ function setWalkInTab(tab) {
                 if (doctor.user_id != null) return 'Doctor #' + doctor.user_id
             }
             if (appointment.doctor_id != null) return 'Doctor #' + appointment.doctor_id
-            return '—'
+            return '-'
         }
 
         function formatAppointmentVisitLabel(value) {
@@ -2102,16 +2102,16 @@ function setWalkInTab(tab) {
                 patientSummaryEmpty.textContent = 'No patient selected.'
                 patientSummaryEmpty.classList.remove('hidden')
                 patientSummaryDetails.classList.add('hidden')
-                patientSummaryVisit.textContent = '—'
-                patientSummaryService.textContent = '—'
-                patientSummaryDoctor.textContent = '—'
+                patientSummaryVisit.textContent = '-'
+                patientSummaryService.textContent = '-'
+                patientSummaryDoctor.textContent = '-'
                 return
             }
             patientSummaryEmpty.classList.add('hidden')
             patientSummaryDetails.classList.remove('hidden')
-            patientSummaryVisit.textContent = summary.lastVisit || '—'
-            patientSummaryService.textContent = summary.serviceInquired || '—'
-            patientSummaryDoctor.textContent = summary.doctor || '—'
+            patientSummaryVisit.textContent = summary.lastVisit || '-'
+            patientSummaryService.textContent = summary.serviceInquired || '-'
+            patientSummaryDoctor.textContent = summary.doctor || '-'
         }
 
         function verificationTypeLabel(type) {
@@ -2239,8 +2239,8 @@ function setWalkInTab(tab) {
                     if (!res.ok) {
                         setPatientSummaryCard({
                             lastVisit: 'No walk-in visit yet.',
-                            serviceInquired: '—',
-                            doctor: '—'
+                            serviceInquired: '-',
+                            doctor: '-'
                         })
                         return
                     }
@@ -2267,7 +2267,7 @@ function setWalkInTab(tab) {
 
                     setPatientSummaryCard({
                         lastVisit: formatAppointmentVisitLabel(last && last.appointment_datetime ? last.appointment_datetime : ''),
-                        serviceInquired: serviceText || '—',
+                        serviceInquired: serviceText || '-',
                         doctor: appointmentDoctorDisplayName(last)
                     })
 
@@ -2282,8 +2282,8 @@ function setWalkInTab(tab) {
                     if (!selectedPatient || String(selectedPatient.user_id || '') !== String(patientId)) return
                     setPatientSummaryCard({
                         lastVisit: 'No walk-in visit yet.',
-                        serviceInquired: '—',
-                        doctor: '—'
+                        serviceInquired: '-',
+                        doctor: '-'
                     })
                 })
         }
@@ -2304,7 +2304,7 @@ function setWalkInTab(tab) {
                 var meta = [p.email, p.contact_number].filter(Boolean).join(' • ')
                 html += '<button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50 border-b border-slate-100 last:border-0">' +
                     '<div class="text-[0.78rem] text-slate-800 font-semibold">' + escapeHtml(name) + '</div>' +
-                    '<div class="text-[0.72rem] text-slate-500">' + (meta ? escapeHtml(meta) : '—') + '</div>' +
+                    '<div class="text-[0.72rem] text-slate-500">' + (meta ? escapeHtml(meta) : '-') + '</div>' +
                 '</button>'
             })
             patientResults.innerHTML = html
@@ -2402,7 +2402,7 @@ function setWalkInTab(tab) {
                     '<div class="flex items-center justify-between gap-2 py-1.5 border-b border-slate-200 last:border-0">' +
                         '<div class="min-w-0">' +
                             '<div class="text-[0.78rem] text-slate-800 font-semibold truncate">' + escapeHtml(name) + '</div>' +
-                            '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || '—') + '</div>' +
+                            '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || '-') + '</div>' +
                         '</div>' +
                         '<button type="button" class="reception-remove-service inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 text-slate-600 hover:bg-white" data-service-id="' + escapeHtml(id) + '">' +
                             window.receptionWalkInsIconX +
@@ -2501,7 +2501,7 @@ function setWalkInTab(tab) {
                         '<span class="min-w-0 truncate">' + escapeHtml(name) + '</span>' +
                         tag +
                     '</div>' +
-                    '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || '—') + '</div>' +
+                    '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || '-') + '</div>' +
                     (desc ? '<div class="mt-0.5 text-[0.72rem] text-slate-500">' + escapeHtml(desc) + '</div>' : '') +
                 '</button>'
             })

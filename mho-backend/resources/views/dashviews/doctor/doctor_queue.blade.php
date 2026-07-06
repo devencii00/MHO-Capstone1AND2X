@@ -100,8 +100,8 @@
                                     <span class="text-slate-400">Patient</span>
                                 @endif
                             </td>
-                            <td class="py-2 pr-4 text-[0.78rem] text-slate-500">{{ $dateKey ?: '—' }}</td>
-                            <td class="py-2 pr-4 text-[0.78rem] text-slate-500">{{ $timeKey ?: '—' }}</td>
+                            <td class="py-2 pr-4 text-[0.78rem] text-slate-500">{{ $dateKey ?: '-' }}</td>
+                            <td class="py-2 pr-4 text-[0.78rem] text-slate-500">{{ $timeKey ?: '-' }}</td>
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
                                 <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border bg-slate-50 border-slate-100 text-slate-700">
                                     {{ ucfirst(str_replace('_', ' ', $statusName ?: 'unknown')) }}
@@ -129,7 +129,7 @@
                                         @endif
                                     </div>
                                 @else
-                                    <span class="text-[0.7rem] text-slate-400">—</span>
+                                    <span class="text-[0.7rem] text-slate-400">-</span>
                                 @endif
                             </td>
                         </tr>

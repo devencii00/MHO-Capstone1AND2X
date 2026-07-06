@@ -204,7 +204,7 @@
         }
 
         function personLabel(u, fallback) {
-            if (!u) return fallback || '—'
+            if (!u) return fallback || '-'
             var name = ((u.firstname || '') + ' ' + (u.lastname || '')).trim()
             if (name) return name
             if (u.email) return u.email
@@ -228,7 +228,7 @@
 
         function apptTypeLabel(type) {
             var map = { walk_in: 'Walk In', scheduled: 'Scheduled' }
-            return map[String(type || '').toLowerCase()] || type || '—'
+            return map[String(type || '').toLowerCase()] || type || '-'
         }
 
         // ── History modal state ──
@@ -281,7 +281,7 @@
                         return
                     }
                     historyAppointments = Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
-                    if (historySubtitle) historySubtitle.textContent = (historyAppointments[0] ? personLabel(historyAppointments[0].patient) : 'Patient #' + patientId) + ' — ' + historyAppointments.length + ' appointment(s)'
+                    if (historySubtitle) historySubtitle.textContent = (historyAppointments[0] ? personLabel(historyAppointments[0].patient) : 'Patient #' + patientId) + ' - ' + historyAppointments.length + ' appointment(s)'
                     renderHistory()
                 })
                 .catch(function () {
@@ -312,8 +312,8 @@
 
             var html = ''
             filtered.forEach(function (a) {
-                var dt = a.appointment_datetime ? String(a.appointment_datetime).replace('T', ' ').slice(0, 16) : '—'
-                var doctor = personLabel(a.doctor, '—')
+                var dt = a.appointment_datetime ? String(a.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
+                var doctor = personLabel(a.doctor, '-')
                 html += '<div class="rounded-xl border border-slate-200 bg-white p-3 hover:border-green-200 transition-colors cursor-pointer admin-history-row" data-appointment-id="' + a.appointment_id + '">' +
                     '<div class="flex items-center justify-between mb-1">' +
                         '<span class="text-[0.78rem] font-semibold text-slate-800">' + escapeHtml(dt) + '</span>' +
@@ -363,7 +363,7 @@
 
         function renderPrescriptions(appt) {
             var tx = appt.transaction || null
-            if (!tx) return '<span class="text-slate-400">—</span>'
+            if (!tx) return '<span class="text-slate-400">-</span>'
             var prescriptions = Array.isArray(tx.prescriptions) ? tx.prescriptions : []
             if (!prescriptions.length) return '<span class="text-slate-400">No prescriptions.</span>'
             var html = ''
@@ -396,16 +396,16 @@
 
         function renderAppointmentDetail(appt) {
             if (!detailBody) return
-            var dt = appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '—'
+            var dt = appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
             var tx = appt.transaction || null
             var services = Array.isArray(appt.services) ? appt.services : []
-            var serviceNames = services.length ? services.map(function (s) { return s.service_name || s.name || '' }).filter(Boolean).join(', ') : '—'
+            var serviceNames = services.length ? services.map(function (s) { return s.service_name || s.name || '' }).filter(Boolean).join(', ') : '-'
             var amount = tx ? (tx.amount || 0) : 0
             var discountAmount = tx ? (tx.discount_amount || 0) : 0
             var discountType = tx ? (tx.discount_type || 'none') : 'none'
             var net = parseFloat(amount) - parseFloat(discountAmount)
-            var diagnosis = tx ? (tx.diagnosis || '—') : '—'
-            var treatment = tx ? (tx.treatment_notes || '—') : '—'
+            var diagnosis = tx ? (tx.diagnosis || '-') : '-'
+            var treatment = tx ? (tx.treatment_notes || '-') : '-'
 
             var html = '<div class="space-y-3">' +
                 '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
@@ -414,13 +414,13 @@
                         '<div class="text-slate-500">Date & Time</div>' +
                         '<div class="text-slate-800 font-medium">' + escapeHtml(dt) + '</div>' +
                         '<div class="text-slate-500">Doctor</div>' +
-                        '<div class="text-slate-800 font-medium">' + escapeHtml(personLabel(appt.doctor, '—')) + '</div>' +
+                        '<div class="text-slate-800 font-medium">' + escapeHtml(personLabel(appt.doctor, '-')) + '</div>' +
                         '<div class="text-slate-500">Type</div>' +
                         '<div class="text-slate-800 font-medium">' + escapeHtml(apptTypeLabel(appt.appointment_type)) + '</div>' +
                         '<div class="text-slate-500">Status</div>' +
                         '<div>' + statusBadge(appt.status) + '</div>' +
                         '<div class="text-slate-500">Reason</div>' +
-                        '<div class="text-slate-800">' + (appt.reason_for_visit ? escapeHtml(appt.reason_for_visit) : '<span class="text-slate-400">—</span>') + '</div>' +
+                        '<div class="text-slate-800">' + (appt.reason_for_visit ? escapeHtml(appt.reason_for_visit) : '<span class="text-slate-400">-</span>') + '</div>' +
                     '</div>' +
                 '</div>' +
                 '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
@@ -435,7 +435,7 @@
                         '<div class="text-slate-500 font-semibold">Net</div>' +
                         '<div class="text-slate-800 font-bold text-green-700">₱' + escapeHtml(net.toFixed(2)) + '</div>' +
                         '<div class="text-slate-500">Payment Mode</div>' +
-                        '<div class="text-slate-800">' + (tx ? escapeHtml(tx.payment_mode || '—') : '—') + '</div>' +
+                        '<div class="text-slate-800">' + (tx ? escapeHtml(tx.payment_mode || '-') : '-') + '</div>' +
                     '</div>' +
                 '</div>' +
                 '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
@@ -599,7 +599,7 @@
 
             var html = ''
             pageSlice.forEach(function (a) {
-                var dt = a.appointment_datetime ? String(a.appointment_datetime).replace('T', ' ').slice(0, 16) : '—'
+                var dt = a.appointment_datetime ? String(a.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
                 var patient = personLabel(a.patient, 'Patient #' + (a.patient_id || ''))
                 var patientId = a.patient_id || (a.patient && a.patient.user_id) || ''
                 var doctor = personLabel(a.doctor, 'Doctor #' + (a.doctor_id || ''))

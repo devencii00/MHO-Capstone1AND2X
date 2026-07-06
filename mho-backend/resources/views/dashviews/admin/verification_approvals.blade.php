@@ -9,15 +9,15 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
             <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Pending</div>
-            <div id="admin_verif_stat_pending" class="mt-1 text-xl font-semibold text-slate-900">—</div>
+            <div id="admin_verif_stat_pending" class="mt-1 text-xl font-semibold text-slate-900">-</div>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
             <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Approved</div>
-            <div id="admin_verif_stat_approved" class="mt-1 text-xl font-semibold text-slate-900">—</div>
+            <div id="admin_verif_stat_approved" class="mt-1 text-xl font-semibold text-slate-900">-</div>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
             <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Rejected</div>
-            <div id="admin_verif_stat_rejected" class="mt-1 text-xl font-semibold text-slate-900">—</div>
+            <div id="admin_verif_stat_rejected" class="mt-1 text-xl font-semibold text-slate-900">-</div>
         </div>
     </div>
 
@@ -313,7 +313,7 @@
 
         function getVerifierLabel(v) {
             var u = v && v.verifier ? v.verifier : null
-            if (!u) return '—'
+            if (!u) return '-'
             var name = ((u.firstname || '') + ' ' + (u.lastname || '')).trim()
             if (name) return name
             if (u.email) return u.email
@@ -339,13 +339,13 @@
 
         function formatBirthdateMain(value) {
             var date = normalizeDateValue(value)
-            if (!date) return '—'
+            if (!date) return '-'
             return padNumber(date.getMonth() + 1) + '-' + padNumber(date.getDate()) + '-' + date.getFullYear()
         }
 
         function formatBirthdateDayFirst(value) {
             var date = normalizeDateValue(value)
-            if (!date) return '—'
+            if (!date) return '-'
             return padNumber(date.getDate()) + '-' + padNumber(date.getMonth() + 1) + '-' + date.getFullYear()
         }
 
@@ -375,7 +375,7 @@
 
         function patientFieldValue(value, fallback) {
             var text = String(value || '').trim()
-            return text || (fallback || '—')
+            return text || (fallback || '-')
         }
 
         function renderPatientSummary(verification) {
@@ -482,9 +482,9 @@
             items.forEach(function (v) {
                 var id = v.verification_id
                 var patientLabel = escapeHtml(getPatientLabel(v))
-                var type = escapeHtml(v.type || '—')
+                var type = escapeHtml(v.type || '-')
                 var status = v.status || ''
-                var uploaded = v.created_at ? escapeHtml(String(v.created_at).slice(0, 10)) : '—'
+                var uploaded = v.created_at ? escapeHtml(String(v.created_at).slice(0, 10)) : '-'
                 var verifier = escapeHtml(getVerifierLabel(v))
                 var hasDoc = !!v.document_path
 
@@ -846,14 +846,14 @@
             }
 
             historyBody.innerHTML = items.map(function (entry) {
-                var uploaded = entry && entry.created_at ? String(entry.created_at).slice(0, 10) : '—'
-                var remarks = entry && entry.remarks ? String(entry.remarks) : '—'
+                var uploaded = entry && entry.created_at ? String(entry.created_at).slice(0, 10) : '-'
+                var remarks = entry && entry.remarks ? String(entry.remarks) : '-'
                 var thumb = entry && entry.document_path
                     ? '<button type="button" class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.72rem] font-semibold text-slate-700 hover:bg-slate-50 admin-verif-history-doc" data-id="' + escapeHtml(entry.verification_id) + '">Open</button>'
                     : '<span class="text-slate-400">No doc</span>'
                 return '<tr>' +
                     '<td class="px-3 py-2 align-top text-slate-700 whitespace-nowrap">#' + escapeHtml(entry.verification_id) + '</td>' +
-                    '<td class="px-3 py-2 align-top text-slate-700 whitespace-nowrap">' + escapeHtml(entry.type || '—') + '</td>' +
+                    '<td class="px-3 py-2 align-top text-slate-700 whitespace-nowrap">' + escapeHtml(entry.type || '-') + '</td>' +
                     '<td class="px-3 py-2 align-top text-slate-700 whitespace-nowrap">' + escapeHtml(statusText(entry.status)) + '</td>' +
                     '<td class="px-3 py-2 align-top text-slate-700 break-words leading-5">' + escapeHtml(remarks) + '</td>' +
                     '<td class="px-3 py-2 align-top whitespace-nowrap">' + thumb + '</td>' +
@@ -866,7 +866,7 @@
         function openDocumentPanelFor(verification) {
             if (!verification) return
             // if (docPanelTitle) docPanelTitle.textContent = 'Verification #' + verification.verification_id
-            if (docPanelSubtitle) docPanelSubtitle.textContent = getPatientLabel(verification) + ' | ' + statusText(verification.status) + ' | ' + (verification.type || '—')
+            if (docPanelSubtitle) docPanelSubtitle.textContent = getPatientLabel(verification) + ' | ' + statusText(verification.status) + ' | ' + (verification.type || '-')
             if (historyDrawerTitle) historyDrawerTitle.textContent = getPatientLabel(verification)
             currentHistoryLabel = getPatientLabel(verification)
             renderPatientSummary(verification)
@@ -952,9 +952,9 @@
                     // '<li><strong class="font-semibold text-slate-800">Verification ID:</strong> #' + escapeHtml(verification.verification_id) + '</li>' +
                     '<li><strong class="font-semibold text-slate-800">Patient:</strong> ' + escapeHtml(getPatientLabel(verification)) + '</li>' +
                     '<li><strong class="font-semibold text-slate-800">DOB:</strong> ' + escapeHtml(formatBirthdateDayFirst(patient ? patient.birthdate : null)) + '</li>' +
-                    '<li><strong class="font-semibold text-slate-800">Sex:</strong> ' + escapeHtml(patientFieldValue(patient ? patient.sex : '', '—')) + '</li>' +
+                    '<li><strong class="font-semibold text-slate-800">Sex:</strong> ' + escapeHtml(patientFieldValue(patient ? patient.sex : '', '-')) + '</li>' +
                     '<li><strong class="font-semibold text-slate-800">Address:</strong> ' + escapeHtml(patientFieldValue(patient ? patient.address : '', 'No address submitted.')) + '</li>' +
-                    '<li><strong class="font-semibold text-slate-800">Type:</strong> ' + escapeHtml(verification.type || '—') + '</li>' +
+                    '<li><strong class="font-semibold text-slate-800">Type:</strong> ' + escapeHtml(verification.type || '-') + '</li>' +
                     '<li><strong class="font-semibold text-slate-800">Current Status:</strong> ' + escapeHtml(statusText(verification.status)) + '</li>' +
                 '</ul>'
 
@@ -1091,7 +1091,7 @@
                         return
                     }
                     // if (docPanelTitle) docPanelTitle.textContent = 'Verification #' + selected.verification_id
-                    if (docPanelSubtitle) docPanelSubtitle.textContent = getPatientLabel(selected) + ' | ' + statusText(selected.status) + ' | ' + (selected.type || '—')
+                    if (docPanelSubtitle) docPanelSubtitle.textContent = getPatientLabel(selected) + ' | ' + statusText(selected.status) + ' | ' + (selected.type || '-')
                     if (historyDrawerTitle) historyDrawerTitle.textContent = currentHistoryLabel
                     renderPatientSummary(selected)
                     closeImageViewer()

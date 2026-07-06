@@ -33,17 +33,17 @@
                     @foreach ($appointments as $appointment)
                         @php
                             $patientName = $formatUserName($appointment->patient);
-                            $labelDate = optional($appointment->appointment_datetime)->format('Y-m-d') ?? '—';
-                            $labelTime = optional($appointment->appointment_datetime)->format('H:i') ?? '—';
+                            $labelDate = optional($appointment->appointment_datetime)->format('Y-m-d') ?? '-';
+                            $labelTime = optional($appointment->appointment_datetime)->format('H:i') ?? '-';
                             $statusName = strtolower((string) ($appointment->status ?? ''));
                         @endphp
                         <option
                             value="{{ $appointment->appointment_id }}"
                             data-status="{{ $statusName }}"
-                            data-label="{{ $patientName }} — {{ $labelDate }} {{ $labelTime }}"
+                            data-label="{{ $patientName }} - {{ $labelDate }} {{ $labelTime }}"
                             {{ (string) $appointment->appointment_id === (string) $initialAppointmentId ? 'selected' : '' }}
                         >
-                            {{ $statusName === 'consulted' ? '[ Consulted ] ' : '' }}{{ $patientName }} — {{ $labelDate }} {{ $labelTime }}
+                            {{ $statusName === 'consulted' ? '[ Consulted ] ' : '' }}{{ $patientName }} - {{ $labelDate }} {{ $labelTime }}
                         </option>
                     @endforeach
                 </select>
@@ -56,13 +56,13 @@
                 <div class="flex items-start justify-between gap-2">
                     <div>
                         <div class="text-[0.7rem] text-slate-400">Patient</div>
-                        <div id="consultPatientName" class="text-[0.95rem] font-semibold text-slate-900">—</div>
-                        <div id="consultPatientMeta" class="text-[0.72rem] text-slate-500">—</div>
+                        <div id="consultPatientName" class="text-[0.95rem] font-semibold text-slate-900">-</div>
+                        <div id="consultPatientMeta" class="text-[0.72rem] text-slate-500">-</div>
                     </div>
                     <div class="text-right">
                         <div class="text-[0.7rem] text-slate-400">Appointment</div>
-                        <div id="consultApptDateTime" class="text-[0.75rem] font-semibold text-slate-700">—</div>
-                        <div id="consultApptType" class="text-[0.72rem] text-slate-500">—</div>
+                        <div id="consultApptDateTime" class="text-[0.75rem] font-semibold text-slate-700">-</div>
+                        <div id="consultApptType" class="text-[0.72rem] text-slate-500">-</div>
                     </div>
                 </div>
 
@@ -71,15 +71,15 @@
                     <dl class="grid grid-cols-2 gap-x-3 gap-y-1 text-[0.72rem] text-slate-600">
                         <div>
                             <dt class="text-slate-400">Phone</dt>
-                            <dd id="consultPatientPhone" class="font-medium text-slate-800">—</dd>
+                            <dd id="consultPatientPhone" class="font-medium text-slate-800">-</dd>
                         </div>
                         <div>
                             <dt class="text-slate-400">Email</dt>
-                            <dd id="consultPatientEmail" class="font-medium text-slate-800">—</dd>
+                            <dd id="consultPatientEmail" class="font-medium text-slate-800">-</dd>
                         </div>
                         <div class="col-span-2">
                             <dt class="text-slate-400">Address</dt>
-                            <dd id="consultPatientAddress" class="font-medium text-slate-800">—</dd>
+                            <dd id="consultPatientAddress" class="font-medium text-slate-800">-</dd>
                         </div>
                     </dl>
                 </div>
@@ -87,7 +87,7 @@
                 <div>
                     <div class="text-[0.7rem] font-semibold text-slate-700 mb-1">Dependent</div>
                     <div id="consultDependentBox" class="rounded-lg border border-slate-100 bg-white px-2.5 py-2 text-[0.72rem] text-slate-600">
-                        <div id="consultDependentStatus" class="text-slate-500">—</div>
+                        <div id="consultDependentStatus" class="text-slate-500">-</div>
                         <div id="consultParentName" class="font-semibold text-slate-800"></div>
                         <div id="consultParentMeta" class="text-slate-500"></div>
                     </div>
@@ -114,11 +114,11 @@
                 <div class="grid grid-cols-2 gap-2">
                     <div class="rounded-lg border border-slate-100 bg-white px-2.5 py-2">
                         <div class="text-[0.68rem] text-slate-400">Last visit</div>
-                        <div id="consultLastVisit" class="text-[0.75rem] font-semibold text-slate-800">—</div>
+                        <div id="consultLastVisit" class="text-[0.75rem] font-semibold text-slate-800">-</div>
                     </div>
                     <div class="rounded-lg border border-slate-100 bg-white px-2.5 py-2">
                         <div class="text-[0.68rem] text-slate-400">Total visits</div>
-                        <div id="consultTotalVisits" class="text-[0.75rem] font-semibold text-slate-800">—</div>
+                        <div id="consultTotalVisits" class="text-[0.75rem] font-semibold text-slate-800">-</div>
                     </div>
                 </div>
             </div>
@@ -335,11 +335,11 @@
                     <div class="space-y-3">
                         <div>
                             <div class="text-[0.72rem] font-semibold text-slate-700">Diagnosis</div>
-                            <div id="consultConfirmDiagnosis" class="mt-1 text-[0.8rem] text-slate-700 whitespace-pre-line">—</div>
+                            <div id="consultConfirmDiagnosis" class="mt-1 text-[0.8rem] text-slate-700 whitespace-pre-line">-</div>
                         </div>
                         <div>
                             <div class="text-[0.72rem] font-semibold text-slate-700">Treatment Notes</div>
-                            <div id="consultConfirmTreatment" class="mt-1 text-[0.8rem] text-slate-700 whitespace-pre-line">—</div>
+                            <div id="consultConfirmTreatment" class="mt-1 text-[0.8rem] text-slate-700 whitespace-pre-line">-</div>
                         </div>
                     </div>
                 </div>
@@ -478,7 +478,7 @@
 
         function setText(el, text) {
             if (!el) return
-            el.textContent = text || '—'
+            el.textContent = text || '-'
         }
 
         function setHtml(el, html) {
@@ -612,7 +612,7 @@
             if (variant === 'danger') cls += 'bg-red-50 border-red-200 text-red-700'
             else if (variant === 'warn') cls += 'bg-amber-50 border-amber-200 text-amber-800'
             else cls += 'bg-white border-slate-200 text-slate-700'
-            return '<span class="' + cls + '">' + (label || '—') + '</span>'
+            return '<span class="' + cls + '">' + (label || '-') + '</span>'
         }
 
         function showSafetyModal(text) {
@@ -668,7 +668,7 @@
         }
 
         function formatName(user) {
-            if (!user) return '—'
+            if (!user) return '-'
             var parts = []
             if (user.firstname) parts.push(user.firstname)
             if (user.middlename) parts.push(user.middlename)
@@ -678,7 +678,7 @@
         }
 
         function medicineDisplayName(med) {
-            if (!med) return '—'
+            if (!med) return '-'
             var generic = med.generic_name || ''
             var brand = med.brand_name || ''
             if (generic && brand) return generic + ' (' + brand + ')'
@@ -717,21 +717,21 @@
             state.medicalBackground = []
             state.history = []
             state.vitals = null
-            setText(elPatientName, '—')
-            setText(elPatientMeta, '—')
-            setText(elApptDateTime, '—')
-            setText(elApptType, '—')
-            setText(elPhone, '—')
-            setText(elEmail, '—')
-            setText(elAddress, '—')
-            setText(elDepStatus, '—')
+            setText(elPatientName, '-')
+            setText(elPatientMeta, '-')
+            setText(elApptDateTime, '-')
+            setText(elApptType, '-')
+            setText(elPhone, '-')
+            setText(elEmail, '-')
+            setText(elAddress, '-')
+            setText(elDepStatus, '-')
             setText(elParentName, '')
             setText(elParentMeta, '')
             setHtml(elAllergyDrug, '')
             setHtml(elAllergyFood, '')
             setHtml(elConditions, '')
-            setText(elLastVisit, '—')
-            setText(elTotalVisits, '—')
+            setText(elLastVisit, '-')
+            setText(elTotalVisits, '-')
             if (diagnosisEl) diagnosisEl.value = ''
             if (treatmentEl) treatmentEl.value = ''
             if (prescriptionBody) prescriptionBody.innerHTML = ''
@@ -780,8 +780,8 @@
             function updateMeta() {
                 var id = sel.value
                 var med = state.medicinesById[id]
-                ind.textContent = med && med.indications ? med.indications : '—'
-                contra.textContent = med && med.contraindications ? med.contraindications : '—'
+                ind.textContent = med && med.indications ? med.indications : '-'
+                contra.textContent = med && med.contraindications ? med.contraindications : '-'
                 renderSafety()
 
                 var conflicts = computeConflicts()
@@ -893,9 +893,9 @@
                 else if (cat === 'condition') cond.push(b)
             })
 
-            setHtml(elAllergyDrug, drug.length ? drug.map(function (b) { return badge(b.name || '—', 'danger') }).join(' ') : '<span class="text-[0.72rem] text-slate-400">None recorded</span>')
-            setHtml(elAllergyFood, food.length ? food.map(function (b) { return badge(b.name || '—', 'warn') }).join(' ') : '<span class="text-[0.72rem] text-slate-400">None recorded</span>')
-            setHtml(elConditions, cond.length ? cond.map(function (b) { return badge(b.name || '—', 'default') }).join(' ') : '<span class="text-[0.72rem] text-slate-400">None recorded</span>')
+            setHtml(elAllergyDrug, drug.length ? drug.map(function (b) { return badge(b.name || '-', 'danger') }).join(' ') : '<span class="text-[0.72rem] text-slate-400">None recorded</span>')
+            setHtml(elAllergyFood, food.length ? food.map(function (b) { return badge(b.name || '-', 'warn') }).join(' ') : '<span class="text-[0.72rem] text-slate-400">None recorded</span>')
+            setHtml(elConditions, cond.length ? cond.map(function (b) { return badge(b.name || '-', 'default') }).join(' ') : '<span class="text-[0.72rem] text-slate-400">None recorded</span>')
         }
 
         function renderHistory() {
@@ -915,7 +915,7 @@
 
             historyTimeline.innerHTML = items.map(function (tx) {
                 var dt = tx.visit_datetime || tx.transaction_datetime || ''
-                var dateStr = dt ? dt.toString().slice(0, 10) : '—'
+                var dateStr = dt ? dt.toString().slice(0, 10) : '-'
                 var timeStr = dt ? dt.toString().slice(11, 16) : ''
                 var dx = tx.diagnosis ? tx.diagnosis : 'No diagnosis'
                 var notes = tx.treatment_notes ? tx.treatment_notes : ''
@@ -1047,16 +1047,16 @@
                 if (sex) metaParts.push(sex)
                 if (age) metaParts.push(age + ' yrs')
                 metaParts.push(appt.patient && appt.patient.is_dependent ? 'Dependent' : 'Regular')
-                setText(elPatientMeta, metaParts.filter(Boolean).join(' • ') || '—')
+                setText(elPatientMeta, metaParts.filter(Boolean).join(' • ') || '-')
 
                 var dt = appt.appointment_datetime || ''
-                var dateStr = dt ? dt.toString().slice(0, 10) : '—'
-                var timeStr = dt ? dt.toString().slice(11, 16) : '—'
+                var dateStr = dt ? dt.toString().slice(0, 10) : '-'
+                var timeStr = dt ? dt.toString().slice(11, 16) : '-'
                 setText(elApptDateTime, dateStr + ' ' + timeStr)
-                setText(elApptType, appt.appointment_type ? appt.appointment_type.toString().replace('_', '-') : '—')
-                setText(elPhone, appt.patient && appt.patient.contact_number ? appt.patient.contact_number : '—')
-                setText(elEmail, appt.patient && appt.patient.email ? appt.patient.email : '—')
-                setText(elAddress, appt.patient && appt.patient.address ? appt.patient.address : '—')
+                setText(elApptType, appt.appointment_type ? appt.appointment_type.toString().replace('_', '-') : '-')
+                setText(elPhone, appt.patient && appt.patient.contact_number ? appt.patient.contact_number : '-')
+                setText(elEmail, appt.patient && appt.patient.email ? appt.patient.email : '-')
+                setText(elAddress, appt.patient && appt.patient.address ? appt.patient.address : '-')
 
                 if (appt.patient && appt.patient.is_dependent && state.parentUserId) {
                     setText(elDepStatus, 'Dependent of:')
@@ -1144,7 +1144,7 @@
                 setText(elTotalVisits, String(state.history.length))
                 var last = state.history.length ? state.history[0] : null
                 var dt = last ? (last.visit_datetime || last.transaction_datetime || '') : ''
-                setText(elLastVisit, dt ? dt.toString().slice(0, 10) : '—')
+                setText(elLastVisit, dt ? dt.toString().slice(0, 10) : '-')
                 renderHistory()
             }).catch(function (err) {
                 historyError.textContent = err && err.body ? err.body : 'Unable to load patient history.'

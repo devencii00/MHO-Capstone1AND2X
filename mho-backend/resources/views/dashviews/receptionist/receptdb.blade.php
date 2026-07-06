@@ -78,7 +78,7 @@
                     </div>
                 </div>
 
-                <!-- Today's Transactions Table View -->
+            
                 <div class="mt-4 flex-1 min-h-0 border border-slate-200 rounded-xl overflow-hidden flex flex-col bg-white">
                     <div class="bg-slate-50 px-4 py-2.5 border-b border-slate-200 shrink-0 flex justify-between items-center">
                         <h3 class="text-[0.75rem] font-semibold text-slate-700 uppercase tracking-wider">Today's Transactions</h3>
@@ -98,7 +98,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100" id="receptionTodaysTransactionsTableBody">
-                                <!-- Placeholder / Empty state -->
+                            
                                 <tr>
                                     <td colspan="8" class="px-4 py-8 text-center text-slate-400">
                                         No transactions recorded today.
@@ -107,6 +107,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="receptionTransactionsPagination" class="flex items-center justify-center gap-1 px-4 py-2.5 border-t border-slate-100 shrink-0 flex-wrap"></div>
                 </div>
 
             </div>
@@ -353,13 +354,13 @@
                                 var nowServingLabels = serving.slice(0, 4).map(function (q) {
                                     var patientName = q && q.patient && q.patient.name ? String(q.patient.name) : 'Patient'
                                     var doctorName = q && q.doctor && q.doctor.name ? String(q.doctor.name) : ''
-                                    return queueLabel(q) + ' ' + patientName + (doctorName ? (' — ' + doctorName) : '')
+                                    return queueLabel(q) + ' ' + patientName + (doctorName ? (' - ' + doctorName) : '')
                                 })
 
                                 var html = ''
                                const labels = nowServingLabels.length 
     ? nowServingLabels.map(label => `<span class="bg-slate-100 px-2 py-0.5 rounded text-slate-800">${escapeHtml(label)}</span>`).join(' ')
-    : '<span class="text-slate-400">—</span>';
+    : '<span class="text-slate-400">-</span>';
 
 html += `
 <li class="text-[0.78rem] flex items-start gap-2 py-2">
@@ -394,7 +395,7 @@ if (!next.length) {
                             #${escapeHtml(qn)}
                         </span>
                         <span class="text-slate-800 font-medium">${escapeHtml(nm)}</span>
-                        <span class="text-slate-400">— ${escapeHtml(doctorName)}</span>
+                        <span class="text-slate-400">- ${escapeHtml(doctorName)}</span>
                     </div>
                     ${estLabel}
                 </div>`;
@@ -487,6 +488,146 @@ if (!next.length) {
                             })
                     })
                 }
+
+                // ── Today's Transactions with Pagination ──
+                var txTableBody = document.getElementById('receptionTodaysTransactionsTableBody')
+                var transactions = []
+                var txPerPage = 10
+                var txCurrentPage = 1
+                var txFiltered = []
+                var txVisibleCount = 6
+
+                function renderTxPagination() {
+                    var pagination = document.getElementById('receptionTransactionsPagination')
+                    if (!pagination) return
+                    var total = txFiltered.length
+                    if (total === 0) {
+                        pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
+                        return
+                    }
+                    var totalPages = Math.ceil(total / txPerPage)
+                    var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border '
+                    var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer'
+                    var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default'
+                    var btnActive = btnBase + 'bg-green-600 text-white border-green-600'
+                    var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+                    html += '<button type="button" class="' + (txCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (txCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+                    var windowStart = txCurrentPage
+                    var windowEnd = Math.min(windowStart + txVisibleCount - 1, totalPages)
+                    for (var i = windowStart; i <= windowEnd; i++) {
+                        html += '<button type="button" class="' + (i === txCurrentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
+                    }
+                    if (windowEnd < totalPages) {
+                        html += '<button type="button" class="' + btnInactive + '" data-page="next-window" title="Next set">…</button>'
+                    }
+                    html += '<button type="button" class="' + (txCurrentPage === totalPages ? btnDisabled : btnInactive) + '" data-page="next"' + (txCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+                    pagination.innerHTML = html
+                    pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
+                        btn.addEventListener('click', function () {
+                            var p = btn.getAttribute('data-page')
+                            if (p === 'prev' && txCurrentPage > 1) { txCurrentPage--; renderTransactions() }
+                            else if (p === 'next' && txCurrentPage < totalPages) { txCurrentPage++; renderTransactions() }
+                            else if (p === 'next-window') {
+                                var nextStart = Math.min(windowEnd + 1, totalPages)
+                                txCurrentPage = nextStart
+                                renderTransactions()
+                            }
+                            else if (p !== 'prev' && p !== 'next') { txCurrentPage = parseInt(p, 10); renderTransactions() }
+                        })
+                    })
+                }
+
+                function renderTransactions() {
+                    if (!txTableBody) return
+                    txFiltered = transactions.slice()
+                    if (!txFiltered.length) {
+                        txTableBody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-slate-400">No transactions recorded today.</td></tr>'
+                        renderTxPagination()
+                        return
+                    }
+                    var totalPages = Math.ceil(txFiltered.length / txPerPage)
+                    if (txCurrentPage > totalPages) txCurrentPage = totalPages
+                    var start = (txCurrentPage - 1) * txPerPage
+                    var end = Math.min(start + txPerPage, txFiltered.length)
+                    var pageSlice = txFiltered.slice(start, end)
+
+                    var html = ''
+                    pageSlice.forEach(function (tx) {
+                        var dateStr = txDatePart(tx)
+                        var ref = tx.transaction_reference || tx.reference_number || tx.invoice_number || '-'
+                        var patient = txPatientName(tx)
+                        var services = txServiceSummary(tx)
+                        var gross = tx.amount || 0
+                        var disc = tx.discount_amount || 0
+                        var net = parseFloat(gross) - parseFloat(disc)
+                        var mode = tx.payment_mode || '-'
+                        html += '<tr>' +
+                            '<td class="px-4 py-2">' + escapeHtml(dateStr) + '</td>' +
+                            '<td class="px-4 py-2">' + escapeHtml(ref) + '</td>' +
+                            '<td class="px-4 py-2">' + escapeHtml(patient) + '</td>' +
+                            '<td class="px-4 py-2">' + escapeHtml(services) + '</td>' +
+                            '<td class="px-4 py-2 text-right">₱' + escapeHtml(Number(gross).toFixed(2)) + '</td>' +
+                            '<td class="px-4 py-2 text-right">₱' + escapeHtml(Number(disc).toFixed(2)) + '</td>' +
+                            '<td class="px-4 py-2 text-right">₱' + escapeHtml(net.toFixed(2)) + '</td>' +
+                            '<td class="px-4 py-2">' + escapeHtml(mode) + '</td>' +
+                        '</tr>'
+                    })
+                    txTableBody.innerHTML = html
+                    renderTxPagination()
+                }
+
+                function txDatePart(tx) {
+                    var raw = tx && tx.transaction_datetime ? String(tx.transaction_datetime) : ''
+                    if (!raw) raw = tx && tx.created_at ? String(tx.created_at) : ''
+                    return raw ? raw.replace('T', ' ').slice(0, 16) : '-'
+                }
+
+                function txPatientName(tx) {
+                    var appt = tx && tx.appointment ? tx.appointment : null
+                    if (!appt) return 'Patient'
+                    var patient = appt.patient
+                    if (!patient) return 'Patient'
+                    var parts = [patient.firstname, patient.middlename, patient.lastname].filter(function (v) { return String(v || '').trim() !== '' })
+                    var name = parts.join(' ').trim()
+                    return name || ('Patient #' + patient.user_id)
+                }
+
+                function txServiceSummary(tx) {
+                    var appt = tx && tx.appointment ? tx.appointment : null
+                    var services = appt && Array.isArray(appt.services) ? appt.services : []
+                    var names = services.map(function (s) { return String((s && s.service_name) ? s.service_name : '').trim() }).filter(function (v) { return v !== '' })
+                    if (!names.length) return '-'
+                    return names.join(', ')
+                }
+
+                function loadTransactions() {
+                    if (typeof apiFetch !== 'function') return
+                    var now = new Date()
+                    var yyyy = now.getFullYear()
+                    var mm = String(now.getMonth() + 1).padStart(2, '0')
+                    var dd = String(now.getDate()).padStart(2, '0')
+                    var today = yyyy + '-' + mm + '-' + dd
+                    var url = "{{ url('/api/transactions') }}" + '?per_page=200&start_date=' + encodeURIComponent(today) + '&end_date=' + encodeURIComponent(today)
+
+                    apiFetch(url, { method: 'GET' })
+                        .then(function (response) {
+                            return response.json().then(function (data) { return { ok: response.ok, data: data } }).catch(function () { return { ok: false, data: null } })
+                        })
+                        .then(function (result) {
+                            if (!result.ok || !result.data) {
+                                if (txTableBody) txTableBody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-slate-400">Unable to load transactions.</td></tr>'
+                                return
+                            }
+                            transactions = Array.isArray(result.data.data) ? result.data.data.slice() : (Array.isArray(result.data) ? result.data.slice() : [])
+                            txCurrentPage = 1
+                            renderTransactions()
+                        })
+                        .catch(function () {
+                            if (txTableBody) txTableBody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-slate-400">Unable to load transactions.</td></tr>'
+                        })
+                }
+
+                loadTransactions()
 
                 load()
 

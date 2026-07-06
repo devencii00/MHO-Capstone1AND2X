@@ -117,9 +117,9 @@
                             @forelse ($todayAppointments as $appointment)
                                 @php
                                     $patientName = $formatUserName($appointment->patient);
-                                    $time = optional($appointment->appointment_datetime)->format('H:i') ?? '—';
-                                    $typeLabel = $appointment->appointment_type ? ucfirst(str_replace('_', '-', $appointment->appointment_type)) : '—';
-                                    $statusLabel = $appointment->status ? ucfirst(str_replace('_', ' ', $appointment->status)) : '—';
+                                    $time = optional($appointment->appointment_datetime)->format('H:i') ?? '-';
+                                    $typeLabel = $appointment->appointment_type ? ucfirst(str_replace('_', '-', $appointment->appointment_type)) : '-';
+                                    $statusLabel = $appointment->status ? ucfirst(str_replace('_', ' ', $appointment->status)) : '-';
                                     $statusKey = strtolower((string) ($appointment->status ?? ''));
                                     $showScheduleActions = $statusKey !== 'completed';
                                     $consultationParams = [
@@ -151,7 +151,7 @@
                                                 </a>
                                             </div>
                                         @else
-                                            <span class="text-[0.72rem] text-slate-400">—</span>
+                                            <span class="text-[0.72rem] text-slate-400">-</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -176,7 +176,7 @@
                                     @foreach ($recentVisits as $visit)
                                         @php
                                             $patientName = $formatUserName(optional($visit->appointment)->patient);
-                                            $visitDate = optional($visit->visit_datetime)->format('Y-m-d') ?? (optional($visit->transaction_datetime)->format('Y-m-d') ?? '—');
+                                            $visitDate = optional($visit->visit_datetime)->format('Y-m-d') ?? (optional($visit->transaction_datetime)->format('Y-m-d') ?? '-');
                                         @endphp
                                         <li class="flex items-start justify-between gap-2">
                                             <div>
@@ -212,8 +212,8 @@
                                     @foreach ($recentAppointments as $appointment)
                                         @php
                                             $patientName = $formatUserName($appointment->patient);
-                                            $dateKey = optional($appointment->appointment_datetime)->format('Y-m-d') ?? '—';
-                                            $timeKey = optional($appointment->appointment_datetime)->format('H:i') ?? '—';
+                                            $dateKey = optional($appointment->appointment_datetime)->format('Y-m-d') ?? '-';
+                                            $timeKey = optional($appointment->appointment_datetime)->format('H:i') ?? '-';
                                         @endphp
                                         <li class="flex items-start justify-between gap-2">
                                             <div>
@@ -241,8 +241,8 @@
                                     @foreach ($todayUpcomingAppointments as $appointment)
                                         @php
                                             $patientName = $formatUserName($appointment->patient);
-                                            $dateKey = optional($appointment->appointment_datetime)->format('Y-m-d') ?? '—';
-                                            $timeKey = optional($appointment->appointment_datetime)->format('H:i') ?? '—';
+                                            $dateKey = optional($appointment->appointment_datetime)->format('Y-m-d') ?? '-';
+                                            $timeKey = optional($appointment->appointment_datetime)->format('H:i') ?? '-';
                                         @endphp
                                         <li class="flex items-start justify-between gap-2">
                                             <div>
@@ -310,9 +310,9 @@
                 @foreach ($todayQueue as $queue)
                     @php
                         $patientName = $formatUserName(optional(optional($queue->appointment)->patient));
-                        $dateKey = optional($queue->queue_datetime)->format('Y-m-d') ?? '—';
-                        $timeKey = optional($queue->queue_datetime)->format('H:i') ?? '—';
-                        $statusLabel = $queue->status ? ucfirst(str_replace('_', ' ', $queue->status)) : '—';
+                        $dateKey = optional($queue->queue_datetime)->format('Y-m-d') ?? '-';
+                        $timeKey = optional($queue->queue_datetime)->format('H:i') ?? '-';
+                        $statusLabel = $queue->status ? ucfirst(str_replace('_', ' ', $queue->status)) : '-';
                         
                         // Status badge styling
                         $statusColors = [

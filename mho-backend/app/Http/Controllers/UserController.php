@@ -359,7 +359,7 @@ class UserController extends Controller
             return $user;
         });
 
-        // Send email after transaction — queued to avoid blocking the response
+        // Send email after transaction - queued to avoid blocking the response
         Mail::to($user->email)->queue(new StaffInviteMail($user, $plainPassword));
 
         return response()->json($user, 201);

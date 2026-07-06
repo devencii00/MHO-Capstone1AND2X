@@ -294,13 +294,13 @@
                                         {{ ucfirst(str_replace('_', ' ', $statusName)) }}
                                     </span>
                                 @else
-                                    <span class="text-[0.7rem] text-slate-400">—</span>
+                                    <span class="text-[0.7rem] text-slate-400">-</span>
                                 @endif
                             </td>
                             <td class="py-2 pr-4 text-[0.78rem] text-right text-slate-500">
                                 @if ($queueId ?? null)
                                     @if (in_array(strtolower($statusName), ['done', 'cancelled', 'no_show'], true))
-                                        <span class="text-[0.7rem] text-slate-400">—</span>
+                                        <span class="text-[0.7rem] text-slate-400">-</span>
                                     @else
                                         <div class="inline-flex items-center gap-1.5">
                                             @if (strtolower($statusName) !== 'serving')
@@ -336,7 +336,7 @@
                                         </div>
                                     @endif
                                 @else
-                                    <span class="text-[0.7rem] text-slate-400">—</span>
+                                    <span class="text-[0.7rem] text-slate-400">-</span>
                                 @endif
                             </td>
                         </tr>
@@ -903,7 +903,7 @@
             var pName = patient ? [patient.firstname, patient.middlename, patient.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim() : ''
             var dName = doctor ? [doctor.firstname, doctor.middlename, doctor.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim() : ''
             var when = appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : 'Queue request'
-            return '#' + id + ' — ' + (pName || 'Patient') + ' · ' + (dName || 'Doctor') + ' · ' + when
+            return '#' + id + ' - ' + (pName || 'Patient') + ' · ' + (dName || 'Doctor') + ' · ' + when
         }
 
         function setAppointmentSelection(appt) {
@@ -1533,7 +1533,7 @@
                     var cards = serving.map(function (item) {
                         var qn = displayQueueLabel(item)
                         var patient = item && item.patient && item.patient.name ? item.patient.name : 'Patient'
-                        var doctor = item && item.doctor && item.doctor.name ? item.doctor.name : '—'
+                        var doctor = item && item.doctor && item.doctor.name ? item.doctor.name : '-'
                         var room = roomLabel(item && item.room_number != null ? item.room_number : null)
 
                         return '' +

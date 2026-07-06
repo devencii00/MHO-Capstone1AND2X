@@ -48,14 +48,14 @@
                             @if ($transaction->appointment)
                                 Appointment #{{ $transaction->appointment->appointment_id }}
                             @else
-                                <span class="text-slate-400">—</span>
+                                <span class="text-slate-400">-</span>
                             @endif
                         </td>
                         <td class="py-2 pr-4 text-[0.78rem] text-slate-700">
                             ₱{{ number_format((float) $transaction->amount, 2) }}
                         </td>
                         <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                            {{ optional($transaction->transaction_datetime)->format('Y-m-d') ?? '—' }}
+                            {{ optional($transaction->transaction_datetime)->format('Y-m-d') ?? '-' }}
                         </td>
                     </tr>
                 @empty

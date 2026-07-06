@@ -361,7 +361,7 @@
             })
             list.forEach(function (o) {
                 if (excludeId && String(o.id) === String(excludeId)) return
-                html += '<option value="' + String(o.id) + '">#' + String(o.id) + ' — ' + escapeHtml(o.button_text || '') + '</option>'
+                html += '<option value="' + String(o.id) + '">#' + String(o.id) + ' - ' + escapeHtml(o.button_text || '') + '</option>'
             })
             editParent.innerHTML = html
             editParent.value = current

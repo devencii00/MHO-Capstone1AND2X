@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Queue Display — Opol Primary Healthcare</title>
+    <title>Queue Display - Opol Primary Healthcare</title>
     @vite('resources/css/app.css')
     @vite('resources/js/app.js')
        <link rel="stylesheet" href="{{ asset('assets/fonts/css/stylefont.css') }}">
@@ -204,7 +204,7 @@
                     nowGrid.innerHTML = serving.map(function (item) {
                         var qn = displayQueueLabel(item);
                         var patient = item && item.patient && item.patient.name ? item.patient.name : 'Patient';
-                        var doctor = item && item.doctor && item.doctor.name ? item.doctor.name : '—';
+                        var doctor = item && item.doctor && item.doctor.name ? item.doctor.name : '-';
                         var room = roomLabel(item && item.room_number != null ? item.room_number : null);
 
                       return '' +
@@ -215,7 +215,7 @@
         '</div>' +
         '<div class="text-right shrink-0">' +
             '<div class="text-[0.75rem] text-slate-500 uppercase tracking-widest mb-1">Room</div>' +
-            '<div class="text-4xl md:text-5xl font-serif font-bold text-green-300">' + (item && item.room_number != null ? escapeHtml(String(item.room_number)) : '—') + '</div>' +
+            '<div class="text-4xl md:text-5xl font-serif font-bold text-green-300">' + (item && item.room_number != null ? escapeHtml(String(item.room_number)) : '-') + '</div>' +
         '</div>' +
     '</div>';
                     }).join('');
@@ -268,7 +268,7 @@
             if (doctorId) {
                 url += '&doctor_id=' + encodeURIComponent(doctorId);
             }
-            // Use native fetch — this page is anonymous so window.axios may not be available
+            // Use native fetch - this page is anonymous so window.axios may not be available
             var headers = { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
             fetch(url, { headers: headers })
                 .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
@@ -276,7 +276,7 @@
                     render(data);
                 })
                 .catch(function () {
-                    // silent fail — polling will retry
+                    // silent fail - polling will retry
                 });
         }
 
@@ -323,7 +323,7 @@
 
             // Fallback polling only when Echo is unavailable
             if (!echoAvailable) {
-                console.warn('[QueueDisplay] Echo not available — using 30s polling fallback');
+                console.warn('[QueueDisplay] Echo not available - using 30s polling fallback');
                 setInterval(load, 30000);
             }
         })();

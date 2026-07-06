@@ -170,7 +170,7 @@ function InfoCard({ icon, label, value, sub, delay = 0, onPress }: InfoCardProps
         </View>
         <View style={styles.infoCardBottom}>
           <Text style={styles.infoValue}>{value}</Text>
-          <Text style={styles.infoSub}>{sub || '—'}</Text>
+          <Text style={styles.infoSub}>{sub || '-'}</Text>
         </View>
       </Pressable>
     </AnimatedCard>
@@ -560,7 +560,7 @@ export default function PatientDashboardScreen() {
             <InfoCard
               icon="people-outline"
               label="Your current Queue"
-              value={queueStatus ? queueStatus.queueNumber || '—' : 'Join Queue'}
+              value={queueStatus ? queueStatus.queueNumber || '-' : 'Join Queue'}
               sub={queueStatus
                 ? (queueStatus.position != null ? `Patient in front: ${queueStatus.position}` : 'Queue entry active')
                 : 'Tap here to join the walk-in queue'}

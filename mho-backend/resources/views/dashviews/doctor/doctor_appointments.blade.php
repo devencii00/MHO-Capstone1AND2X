@@ -97,7 +97,7 @@
                                     {{ ucfirst($statusName) }}
                                 </span>
                             @else
-                                <span class="text-[0.7rem] text-slate-400">—</span>
+                                <span class="text-[0.7rem] text-slate-400">-</span>
                             @endif
                         </td>
                     </tr>

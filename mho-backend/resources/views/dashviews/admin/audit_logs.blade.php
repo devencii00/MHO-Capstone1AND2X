@@ -61,7 +61,7 @@
                             data-action="{{ strtolower($log->action ?? '') }}"
                             data-date="{{ optional($log->created_at)->format('Y-m-d H:i') ?? '' }}">
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                                {{ optional($log->created_at)->format('Y-m-d H:i') ?? '—' }}
+                                {{ optional($log->created_at)->format('Y-m-d H:i') ?? '-' }}
                             </td>
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-700">
                                 @if ($log->user)
@@ -136,7 +136,7 @@
                             data-record="{{ $access->record_id }}"
                             data-date="{{ optional($access->created_at)->format('Y-m-d H:i') ?? '' }}">
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                                {{ optional($access->created_at)->format('Y-m-d H:i') ?? '—' }}
+                                {{ optional($access->created_at)->format('Y-m-d H:i') ?? '-' }}
                             </td>
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-700">
                                 @if ($access->user)

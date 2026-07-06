@@ -174,28 +174,28 @@
                     <x-lucide-receipt class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
                     <div class="flex flex-wrap items-baseline gap-1">
                         <span class="font-medium text-slate-800">Invoice #:</span>
-                        <span class="text-slate-600">—</span>
+                        <span class="text-slate-600">-</span>
                     </div>
                 </div>
                 <div class="flex items-start gap-2.5">
                     <x-lucide-dollar-sign class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
                     <div class="flex flex-wrap items-baseline gap-1">
                         <span class="font-medium text-slate-800">Amount:</span>
-                        <span class="text-slate-600">—</span>
+                        <span class="text-slate-600">-</span>
                     </div>
                 </div>
                 <div class="flex items-start gap-2.5">
                     <x-lucide-credit-card class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
                     <div class="flex flex-wrap items-baseline gap-1">
                         <span class="font-medium text-slate-800">Payment Method:</span>
-                        <span class="text-slate-600">—</span>
+                        <span class="text-slate-600">-</span>
                     </div>
                 </div>
                 <div class="flex items-start gap-2.5">
                     <x-lucide-calendar class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
                     <div class="flex flex-wrap items-baseline gap-1">
                         <span class="font-medium text-slate-800">Date:</span>
-                        <span class="text-slate-600">—</span>
+                        <span class="text-slate-600">-</span>
                     </div>
                 </div>
                 <div class="mt-3 pt-2 border-t border-slate-200 text-xs text-amber-600 bg-amber-50/50 -mx-2 px-2 py-1.5 rounded-md flex items-center gap-2">
@@ -455,7 +455,7 @@
                 }
             }
 
-            var when = appt && appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '—'
+            var when = appt && appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
             if (appointmentPreview) {
                 appointmentPreview.textContent = 'Patient: ' + appointmentPatientName(appt) + ' • Doctor: ' + appointmentDoctorName(appt) + ' • Date/Time: ' + when + ' • Type: ' + appointmentTypeLabel(appt)
                 appointmentPreview.classList.remove('hidden')
@@ -491,7 +491,7 @@
             appointmentResults.innerHTML = list.map(function (appt) {
                 var id = appt && appt.appointment_id != null ? appt.appointment_id : ''
                 var patient = appointmentPatientName(appt)
-                var when = appt && appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '—'
+                var when = appt && appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
                 var type = appointmentTypeLabel(appt)
                 return '<button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50 border-b border-slate-100 last:border-0">' +
                     '<div class="text-[0.78rem] text-slate-800 font-semibold">#' + escapeHtml(id) + ' - ' + escapeHtml(patient) + '</div>' +
@@ -603,7 +603,7 @@
             var appt = tx && tx.appointment ? tx.appointment : null
             var services = appt && Array.isArray(appt.services) ? appt.services : []
             var names = services.map(function (s) { return String((s && s.service_name) ? s.service_name : '').trim() }).filter(function (v) { return v !== '' })
-            if (!names.length) return '—'
+            if (!names.length) return '-'
             return names.join(', ')
         }
 
@@ -615,7 +615,7 @@
         function txDatePart(tx) {
             var raw = tx && tx.transaction_datetime ? String(tx.transaction_datetime) : ''
             if (!raw) raw = tx && tx.created_at ? String(tx.created_at) : ''
-            return raw ? raw.replace('T', ' ').slice(0, 16) : '—'
+            return raw ? raw.replace('T', ' ').slice(0, 16) : '-'
         }
 
         function renderTransactions(rows) {
@@ -629,7 +629,7 @@
                 var appt = tx && tx.appointment ? tx.appointment : null
                 var apptStatus = String(appt && appt.status ? appt.status : '').toLowerCase()
                 var date = txDatePart(tx)
-                var ref = tx && tx.reference_number ? String(tx.reference_number) : '—'
+                var ref = tx && tx.reference_number ? String(tx.reference_number) : '-'
                 var patient = txPatientName(tx)
                 var services = txServiceSummary(tx)
                 var type = appointmentTypeLabel(appt)

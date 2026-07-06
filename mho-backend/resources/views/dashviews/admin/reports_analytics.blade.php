@@ -92,7 +92,7 @@
         <div class="flex items-center justify-between mb-3">
             <h3 class="text-xs font-semibold text-slate-900">Today's Transactions</h3>
             <div class="flex items-center gap-2">
-                <span id="adminTxnTodayCount" class="text-[0.68rem] text-slate-400 uppercase tracking-widest">— entries</span>
+                <span id="adminTxnTodayCount" class="text-[0.68rem] text-slate-400 uppercase tracking-widest">- entries</span>
                 <button type="button" id="adminTxnTodayRefreshBtn" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.68rem] font-semibold text-slate-600 hover:bg-slate-50">
                     <x-lucide-refresh-cw class="w-[12px] h-[12px]" />
                     Refresh
@@ -359,7 +359,7 @@
         }
 
         function formatDate(iso) {
-            if (!iso) return '—'
+            if (!iso) return '-'
             var d = new Date(iso)
             if (isNaN(d.getTime())) return iso
             return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes())
@@ -367,20 +367,20 @@
 
         function patientName(tx) {
             var p = tx && tx.appointment && tx.appointment.patient ? tx.appointment.patient : null
-            if (!p) return '—'
+            if (!p) return '-'
             return trim((p.firstname || '') + ' ' + (p.lastname || ''))
         }
 
         function doctorName(tx) {
             var d = tx && tx.appointment && tx.appointment.doctor ? tx.appointment.doctor : null
-            if (!d) return '—'
+            if (!d) return '-'
             return trim((d.firstname || '') + ' ' + (d.lastname || ''))
         }
 
         function serviceNames(tx) {
             var svcs = tx && tx.appointment && Array.isArray(tx.appointment.services) ? tx.appointment.services : []
             var names = svcs.map(function (s) { return String(s.service_name || '').trim() }).filter(function (v) { return v !== '' })
-            return names.length ? names.join(', ') : '—'
+            return names.length ? names.join(', ') : '-'
         }
 
         function statusHtml(status) {

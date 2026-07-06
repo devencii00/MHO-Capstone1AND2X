@@ -57,9 +57,9 @@
             <div id="receptionAppointmentPatientSummaryCard" class="rounded-xl border border-slate-200 bg-white px-3 py-3 min-h-[96px]">
                 <div id="receptionAppointmentPatientSummaryEmpty" class="text-[0.75rem] text-slate-500">No patient selected.</div>
                 <div id="receptionAppointmentPatientSummaryDetails" class="hidden space-y-1.5 text-[0.75rem] text-slate-700">
-                    <div><span class="font-semibold text-slate-800">Last visit:</span> <span id="receptionAppointmentPatientSummaryVisit">—</span></div>
-                    <div><span class="font-semibold text-slate-800">Service inquired:</span> <span id="receptionAppointmentPatientSummaryService">—</span></div>
-                    <div><span class="font-semibold text-slate-800">Doctor:</span> <span id="receptionAppointmentPatientSummaryDoctor">—</span></div>
+                    <div><span class="font-semibold text-slate-800">Last visit:</span> <span id="receptionAppointmentPatientSummaryVisit">-</span></div>
+                    <div><span class="font-semibold text-slate-800">Service inquired:</span> <span id="receptionAppointmentPatientSummaryService">-</span></div>
+                    <div><span class="font-semibold text-slate-800">Doctor:</span> <span id="receptionAppointmentPatientSummaryDoctor">-</span></div>
                 </div>
             </div>
         </div>
@@ -233,35 +233,35 @@
                         <x-lucide-user class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
                         <div class="flex flex-wrap items-baseline gap-1">
                             <span class="font-medium text-slate-800">Patient:</span>
-                            <span class="text-slate-600">—</span>
+                            <span class="text-slate-600">-</span>
                         </div>
                     </div>
                     <div class="flex items-start gap-2.5">
                         <x-lucide-calendar-days class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
                         <div class="flex flex-wrap items-baseline gap-1">
                             <span class="font-medium text-slate-800">Date:</span>
-                            <span class="text-slate-600">—</span>
+                            <span class="text-slate-600">-</span>
                         </div>
                     </div>
                     <div class="flex items-start gap-2.5">
                         <x-lucide-clock class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
                         <div class="flex flex-wrap items-baseline gap-1">
                             <span class="font-medium text-slate-800">Time:</span>
-                            <span class="text-slate-600">—</span>
+                            <span class="text-slate-600">-</span>
                         </div>
                     </div>
                     <div class="flex items-start gap-2.5">
                         <x-lucide-stethoscope class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
                         <div class="flex flex-wrap items-baseline gap-1">
                             <span class="font-medium text-slate-800">Doctor / Department:</span>
-                            <span class="text-slate-600">—</span>
+                            <span class="text-slate-600">-</span>
                         </div>
                     </div>
                     <div class="flex items-start gap-2.5">
                         <x-lucide-file-text class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
                         <div class="flex flex-wrap items-baseline gap-1">
                             <span class="font-medium text-slate-800">Reason / Notes:</span>
-                            <span class="text-slate-600">—</span>
+                            <span class="text-slate-600">-</span>
                         </div>
                     </div>
                 </div>
@@ -458,7 +458,7 @@ function setAppointmentTab(tab) {
             var parts = [p && p.firstname, p && p.middlename, p && p.lastname].filter(function (v) { return String(v || '').trim() !== '' })
             var name = parts.join(' ').trim()
             if (!name) name = 'Patient'
-            return '#' + id + ' — ' + name
+            return '#' + id + ' - ' + name
         }
 
         function patientDisplayName(patient) {
@@ -477,7 +477,7 @@ function setAppointmentTab(tab) {
         }
 
         function appointmentDoctorDisplayName(appointment) {
-            if (!appointment) return '—'
+            if (!appointment) return '-'
             var doctor = appointment.doctor || null
             if (doctor) {
                 var name = [doctor.firstname, doctor.middlename, doctor.lastname]
@@ -488,7 +488,7 @@ function setAppointmentTab(tab) {
                 if (doctor.user_id != null) return 'Doctor #' + doctor.user_id
             }
             if (appointment.doctor_id != null) return 'Doctor #' + appointment.doctor_id
-            return '—'
+            return '-'
         }
 
         function formatAppointmentVisitLabel(value) {
@@ -512,16 +512,16 @@ function setAppointmentTab(tab) {
                 patientSummaryEmpty.textContent = 'No patient selected.'
                 patientSummaryEmpty.classList.remove('hidden')
                 patientSummaryDetails.classList.add('hidden')
-                patientSummaryVisit.textContent = '—'
-                patientSummaryService.textContent = '—'
-                patientSummaryDoctor.textContent = '—'
+                patientSummaryVisit.textContent = '-'
+                patientSummaryService.textContent = '-'
+                patientSummaryDoctor.textContent = '-'
                 return
             }
             patientSummaryEmpty.classList.add('hidden')
             patientSummaryDetails.classList.remove('hidden')
-            patientSummaryVisit.textContent = summary.lastVisit || '—'
-            patientSummaryService.textContent = summary.serviceInquired || '—'
-            patientSummaryDoctor.textContent = summary.doctor || '—'
+            patientSummaryVisit.textContent = summary.lastVisit || '-'
+            patientSummaryService.textContent = summary.serviceInquired || '-'
+            patientSummaryDoctor.textContent = summary.doctor || '-'
         }
 
         function setPatientSelection(patient) {
@@ -573,8 +573,8 @@ function setAppointmentTab(tab) {
                     if (!res.ok) {
                         setPatientSummaryCard({
                             lastVisit: 'No scheduled visit yet.',
-                            serviceInquired: '—',
-                            doctor: '—'
+                            serviceInquired: '-',
+                            doctor: '-'
                         })
                         return
                     }
@@ -601,7 +601,7 @@ function setAppointmentTab(tab) {
 
                     setPatientSummaryCard({
                         lastVisit: formatAppointmentVisitLabel(last && last.appointment_datetime ? last.appointment_datetime : ''),
-                        serviceInquired: serviceText || '—',
+                        serviceInquired: serviceText || '-',
                         doctor: appointmentDoctorDisplayName(last)
                     })
 
@@ -614,8 +614,8 @@ function setAppointmentTab(tab) {
                     if (!selectedPatient || String(selectedPatient.user_id || '') !== String(patientId)) return
                     setPatientSummaryCard({
                         lastVisit: 'No scheduled visit yet.',
-                        serviceInquired: '—',
-                        doctor: '—'
+                        serviceInquired: '-',
+                        doctor: '-'
                     })
                 })
         }
@@ -636,7 +636,7 @@ function setAppointmentTab(tab) {
                 var meta = [p.email, p.contact_number].filter(Boolean).join(' • ')
                 html += '<button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50 border-b border-slate-100 last:border-0">' +
                     '<div class="text-[0.78rem] text-slate-800 font-semibold">' + escapeHtml(name) + '</div>' +
-                    '<div class="text-[0.72rem] text-slate-500">' + (meta ? escapeHtml(meta) : '—') + '</div>' +
+                    '<div class="text-[0.72rem] text-slate-500">' + (meta ? escapeHtml(meta) : '-') + '</div>' +
                 '</button>'
             })
             patientResults.innerHTML = html
@@ -984,7 +984,7 @@ function setAppointmentTab(tab) {
                         '<span class="min-w-0 truncate">' + escapeHtml(title) + '</span>' +
                         tag +
                     '</div>' +
-                    '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || '—') + '</div>' +
+                    '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || '-') + '</div>' +
                     (sub ? '<div class="mt-0.5 text-[0.72rem] text-slate-500">' + escapeHtml(sub) + '</div>' : '') +
                 '</button>'
             })
@@ -1004,7 +1004,7 @@ function setAppointmentTab(tab) {
             if (!d) return ''
             var name = [d.firstname, d.middlename, d.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
             if (!name) name = 'Doctor #' + (d.user_id || '')
-            return name + (d.specialization ? ' — ' + d.specialization : '')
+            return name + (d.specialization ? ' - ' + d.specialization : '')
         }
 
         function doctorSchedulesForDay(doctor, dayKey, dateStr) {
@@ -1154,7 +1154,7 @@ function setAppointmentTab(tab) {
                 html += '<button type="button" class="w-full text-left px-3 py-2 border-b border-slate-100 last:border-0 flex items-start justify-between gap-3 ' + (x.isSelectable ? 'hover:bg-slate-50' : 'bg-slate-50/60 cursor-not-allowed') + '" ' + (x.isSelectable ? '' : 'disabled') + '>' +
                     '<div class="min-w-0">' +
                         '<div class="text-[0.78rem] text-slate-800 font-semibold">' + escapeHtml('Dr. ' + name) + '</div>' +
-                        '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(d.specialization || '—') + '</div>' +
+                        '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(d.specialization || '-') + '</div>' +
                     '</div>' +
                     (x.tag
                         ? '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] font-semibold ' + ((x.tag === 'Last provider') ? 'bg-green-500/10 text-green-700 border border-green-200' : 'bg-slate-100 text-slate-500 border border-slate-200') + '">' + escapeHtml(x.tag) + '</span>'
@@ -2358,7 +2358,7 @@ function updateManageTodayButton() {
             var names = services
                 .map(function (s) { return String((s && s.service_name) ? s.service_name : '').trim() })
                 .filter(function (v) { return v !== '' })
-            if (!names.length) return '—'
+            if (!names.length) return '-'
             return names.join(', ')
         }
 
@@ -2379,7 +2379,7 @@ function updateManageTodayButton() {
             var patientName = patientFullName(p) || ('Patient #' + (p && p.user_id != null ? p.user_id : ''))
             var doctorName = patientFullName(d) || ('Doctor #' + (d && d.user_id != null ? d.user_id : ''))
             var age = ageFromBirthdate(p && p.birthdate ? p.birthdate : '')
-            var contact = p && p.contact_number ? String(p.contact_number) : '—'
+            var contact = p && p.contact_number ? String(p.contact_number) : '-'
             var serviceText = serviceSummary(appt)
             var statusLabel = manageStatusLabel(appt)
             var statusBadge = statusLabel
@@ -2402,17 +2402,17 @@ function updateManageTodayButton() {
             }
 
             if (!actions) {
-                actions = '<span class="text-slate-400">—</span>'
+                actions = '<span class="text-slate-400">-</span>'
             } else {
                 actions = '<div class="inline-flex items-center gap-1">' + actions + '</div>'
             }
 
             return (
                 '<tr data-appointment-id="' + escapeHtml(id) + '">' +
-                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.date || '—') + statusBadge + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.time ? formatTime12h(when.time) : '—') + '</td>' +
+                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.date || '-') + statusBadge + '</td>' +
+                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.time ? formatTime12h(when.time) : '-') + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(patientName) + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(age || '—') + '</td>' +
+                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(age || '-') + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(contact) + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 min-w-[14rem] whitespace-nowrap">' + escapeHtml(serviceText) + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(doctorName) + '</td>' +

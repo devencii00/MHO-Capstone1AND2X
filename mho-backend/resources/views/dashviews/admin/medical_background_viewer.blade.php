@@ -74,7 +74,7 @@
             if (k === 'allergy_food') return 'Food'
             if (k === 'allergy_drug') return 'Drug'
             if (k === 'condition') return 'Condition'
-            return k || '—'
+            return k || '-'
         }
 
         function patientLabel(p) {
@@ -141,12 +141,12 @@
             var html = ''
             filtered.forEach(function (r) {
                 var p = r.patient || null
-                var created = r.created_at ? String(r.created_at).slice(0, 10) : '—'
+                var created = r.created_at ? String(r.created_at).slice(0, 10) : '-'
                 html += '<tr class="border-b border-slate-50 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(patientLabel(p)) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(categoryLabel(r.category)) + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(r.name || '—') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (r.notes ? escapeHtml(r.notes) : '<span class="text-slate-400">—</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(r.name || '-') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (r.notes ? escapeHtml(r.notes) : '<span class="text-slate-400">-</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(created) + '</td>' +
                 '</tr>'
             })

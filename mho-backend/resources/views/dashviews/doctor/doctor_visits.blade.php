@@ -73,7 +73,7 @@
                             {{ $dateKey }}
                         </td>
                         <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                            {{ \Illuminate\Support\Str::limit(optional($visit->appointment)->reason_for_visit ?? '—', 50) }}
+                            {{ \Illuminate\Support\Str::limit(optional($visit->appointment)->reason_for_visit ?? '-', 50) }}
                         </td>
                         <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
                             @if ($visit->diagnosis)
@@ -89,7 +89,7 @@
                                     View information
                                 </button>
                             @else
-                                <span class="text-[0.7rem] text-slate-400">—</span>
+                                <span class="text-[0.7rem] text-slate-400">-</span>
                             @endif
                         </td>
                     </tr>
@@ -130,13 +130,13 @@
             <div class="grid gap-4 md:grid-cols-2">
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
                     <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient</div>
-                    <div id="doctorVisitPatientName" class="mt-1 text-sm font-semibold text-slate-900">—</div>
-                    <div id="doctorVisitPatientMeta" class="mt-1 text-[0.75rem] text-slate-500">—</div>
+                    <div id="doctorVisitPatientName" class="mt-1 text-sm font-semibold text-slate-900">-</div>
+                    <div id="doctorVisitPatientMeta" class="mt-1 text-[0.75rem] text-slate-500">-</div>
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
                     <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Contacts</div>
-                    <div id="doctorVisitPatientContacts" class="mt-1 text-[0.75rem] text-slate-600">—</div>
-                    <div id="doctorVisitPatientAddress" class="mt-1 text-[0.75rem] text-slate-500">—</div>
+                    <div id="doctorVisitPatientContacts" class="mt-1 text-[0.75rem] text-slate-600">-</div>
+                    <div id="doctorVisitPatientAddress" class="mt-1 text-[0.75rem] text-slate-500">-</div>
                 </div>
             </div>
 
@@ -278,7 +278,7 @@
             backgroundEl.innerHTML = rows.map(function (item) {
                 var category = String(item.category || '')
                 var tone = category === 'allergy_drug' ? 'danger' : (category === 'allergy_food' ? 'warn' : 'default')
-                return renderBadge(item.name || '—', tone)
+                return renderBadge(item.name || '-', tone)
             }).join(' ')
         }
 
@@ -290,12 +290,12 @@
             }
 
             visitsPanel.innerHTML = rows.map(function (visit) {
-                var when = String(visit.visit_datetime || visit.transaction_datetime || '').replace('T', ' ').slice(0, 16) || '—'
+                var when = String(visit.visit_datetime || visit.transaction_datetime || '').replace('T', ' ').slice(0, 16) || '-'
                 var reason = visit.appointment && visit.appointment.reason_for_visit ? visit.appointment.reason_for_visit : 'No reason recorded'
                 var diagnosis = visit.diagnosis || 'No diagnosis recorded'
                 var appointmentType = visit.appointment && visit.appointment.appointment_type
                     ? String(visit.appointment.appointment_type).replace(/_/g, '-')
-                    : '—'
+                    : '-'
 
                 return '' +
                     '<div class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 mb-3">' +
@@ -334,7 +334,7 @@
             }
 
             prescriptionsPanel.innerHTML = entries.map(function (entry) {
-                var when = String(entry.prescribed_datetime || '').replace('T', ' ').slice(0, 16) || '—'
+                var when = String(entry.prescribed_datetime || '').replace('T', ' ').slice(0, 16) || '-'
                 var doctorName = entry.doctor
                     ? [entry.doctor.firstname, entry.doctor.middlename, entry.doctor.lastname].filter(Boolean).join(' ').trim()
                     : 'Doctor'
@@ -391,15 +391,15 @@
                 if (visit && visit.appointment && visit.appointment.appointment_type) {
                     parts.push(String(visit.appointment.appointment_type).replace(/_/g, '-'))
                 }
-                patientMetaEl.textContent = parts.join(' • ') || '—'
+                patientMetaEl.textContent = parts.join(' • ') || '-'
             }
             if (patientContactsEl) {
                 patientContactsEl.textContent = [patient && patient.contact_number ? patient.contact_number : '', patient && patient.email ? patient.email : '']
                     .filter(Boolean)
-                    .join(' • ') || '—'
+                    .join(' • ') || '-'
             }
             if (patientAddressEl) {
-                patientAddressEl.textContent = patient && patient.address ? patient.address : '—'
+                patientAddressEl.textContent = patient && patient.address ? patient.address : '-'
             }
 
             renderMedicalBackground(backgrounds)

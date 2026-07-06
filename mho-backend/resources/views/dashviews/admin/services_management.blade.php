@@ -423,7 +423,7 @@
 
             var subtitle = service && service.service_name ? String(service.service_name) : ('Service #' + (service && service.service_id ? service.service_id : ''))
             if (serviceEditSubtitle) {
-                serviceEditSubtitle.textContent = 'Editing — ' + subtitle
+                serviceEditSubtitle.textContent = 'Editing - ' + subtitle
             }
             if (serviceEditName) serviceEditName.value = service.service_name || ''
             if (serviceEditDescription) serviceEditDescription.value = service.description || ''
@@ -544,8 +544,8 @@
                 var tr = document.createElement('tr')
                 tr.className = 'border-b border-slate-50 last:border-0'
 
-                var price = service.price != null ? '₱' + parseFloat(service.price).toFixed(2) : '—'
-                var duration = service.duration_minutes != null ? String(service.duration_minutes) + ' min' : '—'
+                var price = service.price != null ? '₱' + parseFloat(service.price).toFixed(2) : '-'
+                var duration = service.duration_minutes != null ? String(service.duration_minutes) + ' min' : '-'
                 var isActive = service && service.is_active !== false
                 var statusText = isActive ? 'Active' : 'Inactive'
                 var statusClass = isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-600 border-slate-100'

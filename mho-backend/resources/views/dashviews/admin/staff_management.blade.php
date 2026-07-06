@@ -8,15 +8,15 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
             <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Doctor</div>
-            <div id="admin_staff_stat_doctor" class="mt-1 text-xl font-semibold text-slate-900">—</div>
+            <div id="admin_staff_stat_doctor" class="mt-1 text-xl font-semibold text-slate-900">-</div>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
             <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Receptionist</div>
-            <div id="admin_staff_stat_receptionist" class="mt-1 text-xl font-semibold text-slate-900">—</div>
+            <div id="admin_staff_stat_receptionist" class="mt-1 text-xl font-semibold text-slate-900">-</div>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
             <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Total Staff</div>
-            <div id="admin_staff_stat_total" class="mt-1 text-xl font-semibold text-slate-900">—</div>
+            <div id="admin_staff_stat_total" class="mt-1 text-xl font-semibold text-slate-900">-</div>
         </div>
     </div>
 
@@ -267,7 +267,7 @@
                             <div>
                                 <label for="adminDoctorEditEmploymentStatus" class="block text-[0.7rem] text-slate-600 mb-1">Employment status</label>
                                 <select id="adminDoctorEditEmploymentStatus" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                                    <option value="">—</option>
+                                    <option value="">-</option>
                                     <option value="contractual">Contractual</option>
                                     <option value="permanent">Permanent</option>
                                 </select>
@@ -577,7 +577,7 @@
 
             var fullName = ((doctor.firstname || '') + ' ' + (doctor.lastname || '')).trim()
             if (!fullName) fullName = doctor.email || ('Staff #' + (doctor.user_id || ''))
-            if (doctorEditSubtitle) doctorEditSubtitle.textContent = 'Editing — ' + fullName
+            if (doctorEditSubtitle) doctorEditSubtitle.textContent = 'Editing - ' + fullName
 
             if (doctorEditRole) doctorEditRole.value = doctor.role || 'doctor'
             if (doctorEditFirstname) doctorEditFirstname.value = doctor.firstname || ''
@@ -813,7 +813,7 @@
             })
         }
 
-        // Role change handler — toggle specialization required / N/A default
+        // Role change handler - toggle specialization required / N/A default
         if (doctorEditRole) {
             doctorEditRole.addEventListener('change', function () {
                 if (!doctorEditSpecialization) return
@@ -1278,7 +1278,7 @@
                 var prc = (staff.prc_license || '').trim()
                 var ptr = (staff.ptr_number || '').trim()
                 var phic = (staff.philhealth_number || '').trim()
-                var roleLabel = staff.role === 'doctor' ? 'Doctor' : (staff.role === 'receptionist' ? 'Receptionist' : (staff.role || '—'))
+                var roleLabel = staff.role === 'doctor' ? 'Doctor' : (staff.role === 'receptionist' ? 'Receptionist' : (staff.role || '-'))
                 var profileImg = staff.prof_path ? staff.prof_path : null
 
                 tr.innerHTML =
@@ -1295,12 +1295,12 @@
                         '">' + roleLabel + '</span>' +
                     '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' +
-                        (specialization ? specialization : (staff.role === 'receptionist' ? 'N/A' : '<span class="text-slate-400">—</span>')) +
+                        (specialization ? specialization : (staff.role === 'receptionist' ? 'N/A' : '<span class="text-slate-400">-</span>')) +
                     '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (empNum ? empNum : '<span class="text-slate-400">—</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (prc ? prc : '<span class="text-slate-400">—</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (ptr ? ptr : '<span class="text-slate-400">—</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (phic ? phic : '<span class="text-slate-400">—</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (empNum ? empNum : '<span class="text-slate-400">-</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (prc ? prc : '<span class="text-slate-400">-</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (ptr ? ptr : '<span class="text-slate-400">-</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (phic ? phic : '<span class="text-slate-400">-</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem]">' +
                         '<div class="flex items-center gap-2 flex-wrap">' +
                             '<button type="button" class="inline-flex items-center justify-center rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 transition-colors admin-doctor-edit" data-doctor-id="' + staff.user_id + '">Edit Info</button>' +
@@ -2022,7 +2022,7 @@ if (!currentScheduleId && !toDay) {
                             (txt ? '<div class="text-[0.65rem] text-slate-500 mt-0.5">' + txt + '</div>' : '') +
                         '</td>'
                     } else {
-                        html += '<td class="p-1.5 text-center border" style="background:' + c.bg + ';border-color:' + c.border + '"><span class="text-slate-300">—</span></td>'
+                        html += '<td class="p-1.5 text-center border" style="background:' + c.bg + ';border-color:' + c.border + '"><span class="text-slate-300">-</span></td>'
                     }
                 })
                 html += '</tr>'
@@ -2091,7 +2091,7 @@ if (!currentScheduleId && !toDay) {
             })
         }
 
-        // Wrapper for filter/sort — resets to page 1
+        // Wrapper for filter/sort - resets to page 1
         var renderDoctorsWithReset = function () {
             staffPage = 1
             renderDoctors()

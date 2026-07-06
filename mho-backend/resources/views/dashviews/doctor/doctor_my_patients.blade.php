@@ -63,11 +63,11 @@
                             @if ($contact)
                                 {{ $contact }}
                             @else
-                                <span class="text-slate-400">—</span>
+                                <span class="text-slate-400">-</span>
                             @endif
                         </td>
                         <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                            {{ optional($patient->created_at)->format('Y-m-d') ?? '—' }}
+                            {{ optional($patient->created_at)->format('Y-m-d') ?? '-' }}
                         </td>
                     </tr>
                 @empty

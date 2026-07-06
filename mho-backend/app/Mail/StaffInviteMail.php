@@ -27,7 +27,7 @@ class StaffInviteMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your sign-in details — OPOL - MHO',
+            subject: 'Your sign-in details - OPOL - MHO',
         );
     }
 

@@ -99,7 +99,7 @@
                                 class="doctor-prescription-view-items inline-flex items-center justify-center rounded-xl border border-green-200 bg-green-50 px-3 py-1.5 text-[0.74rem] font-semibold text-green-700 hover:bg-green-100"
                                 data-prescription-id="{{ $prescription->prescription_id }}"
                                 data-patient-name="{{ $patientName !== '' ? $patientName : 'Patient' }}"
-                                data-prescribed-date="{{ $dateKey !== '' ? $dateKey : '—' }}"
+                                data-prescribed-date="{{ $dateKey !== '' ? $dateKey : '-' }}"
                                 data-items='@json($itemPayload)'
                             >
                                 View items
@@ -181,10 +181,10 @@
 
         function renderItemCard(item, index) {
             var details = [
-                { label: 'Dosage', value: item && item.dosage ? item.dosage : '—' },
-                { label: 'Frequency', value: item && item.frequency ? item.frequency : '—' },
-                { label: 'Duration', value: item && item.duration ? item.duration : '—' },
-                { label: 'Instructions', value: item && item.instructions ? item.instructions : '—' },
+                { label: 'Dosage', value: item && item.dosage ? item.dosage : '-' },
+                { label: 'Frequency', value: item && item.frequency ? item.frequency : '-' },
+                { label: 'Duration', value: item && item.duration ? item.duration : '-' },
+                { label: 'Instructions', value: item && item.instructions ? item.instructions : '-' },
             ]
 
             return '' +
@@ -212,7 +212,7 @@
 
             var prescriptionId = button.getAttribute('data-prescription-id') || ''
             var patientName = button.getAttribute('data-patient-name') || 'Patient'
-            var prescribedDate = button.getAttribute('data-prescribed-date') || '—'
+            var prescribedDate = button.getAttribute('data-prescribed-date') || '-'
             var items = []
 
             try {

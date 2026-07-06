@@ -421,7 +421,7 @@
                     var desc = s.description != null ? String(s.description).trim() : ''
                     html += '<button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50 border-b border-slate-100 last:border-0">' +
                         '<div class="text-[0.78rem] text-slate-800 font-semibold">' + escapeHtml(name) + '</div>' +
-                        '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || '—') + '</div>' +
+                        '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || '-') + '</div>' +
                         (desc ? '<div class="mt-0.5 text-[0.72rem] text-slate-500">' + escapeHtml(desc) + '</div>' : '') +
                     '</button>'
                 })

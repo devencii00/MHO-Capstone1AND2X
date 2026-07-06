@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Prescription Receipt — Opol Primary Healthcare</title>
+    <title>Prescription Receipt - Opol Primary Healthcare</title>
     @vite('resources/css/app.css')
     <style>
         @media print {
@@ -41,13 +41,13 @@
             <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-[0.85rem]">
                 <div class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
                     <div class="text-[0.7rem] uppercase tracking-widest text-slate-400">Patient</div>
-                    <div id="rxPatientName" class="text-sm font-semibold text-slate-900 mt-1">—</div>
-                    <div id="rxPatientInfo" class="text-[0.78rem] text-slate-600 mt-1">—</div>
+                    <div id="rxPatientName" class="text-sm font-semibold text-slate-900 mt-1">-</div>
+                    <div id="rxPatientInfo" class="text-[0.78rem] text-slate-600 mt-1">-</div>
                 </div>
                 <div class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
                     <div class="text-[0.7rem] uppercase tracking-widest text-slate-400">Doctor</div>
-                    <div id="rxDoctorName" class="text-sm font-semibold text-slate-900 mt-1">—</div>
-                    <div id="rxDoctorInfo" class="text-[0.78rem] text-slate-600 mt-1">—</div>
+                    <div id="rxDoctorName" class="text-sm font-semibold text-slate-900 mt-1">-</div>
+                    <div id="rxDoctorInfo" class="text-[0.78rem] text-slate-600 mt-1">-</div>
                 </div>
             </div>
 
@@ -72,13 +72,13 @@
             <div class="mt-7 grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                 <div>
                     <div class="text-[0.75rem] uppercase tracking-widest text-slate-400 mb-2">Notes</div>
-                    <div id="rxNotes" class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-[0.85rem] text-slate-700 whitespace-pre-line">—</div>
+                    <div id="rxNotes" class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-[0.85rem] text-slate-700 whitespace-pre-line">-</div>
                 </div>
                 <div class="text-right">
                     <div class="text-[0.75rem] uppercase tracking-widest text-slate-400 mb-2">Doctor Signature</div>
                     <div class="rounded-2xl border border-slate-100 bg-white px-4 py-3">
                         <div id="rxSignatureBox" class="h-20 flex items-center justify-center text-[0.78rem] text-slate-400">No signature</div>
-                        <div id="rxSignatureName" class="mt-2 text-[0.85rem] font-semibold text-slate-900">—</div>
+                        <div id="rxSignatureName" class="mt-2 text-[0.85rem] font-semibold text-slate-900">-</div>
                     </div>
                 </div>
             </div>
@@ -127,7 +127,7 @@
             }
 
             function nameForUser(u, fallback) {
-                if (!u) return fallback || '—';
+                if (!u) return fallback || '-';
                 var parts = [u.firstname, u.middlename, u.lastname].filter(function (v) { return String(v || '').trim() !== ''; });
                 var name = parts.join(' ').trim();
                 return name || fallback || ('User #' + (u.user_id || ''));
@@ -182,7 +182,7 @@
                         var items = rx.items || [];
 
                         var dt = rx.prescribed_datetime ? String(rx.prescribed_datetime).replace('T', ' ').slice(0, 16) : '';
-                        if (rxMeta) rxMeta.textContent = dt ? ('Prescribed: ' + dt) : '—';
+                        if (rxMeta) rxMeta.textContent = dt ? ('Prescribed: ' + dt) : '-';
 
                         if (patientName) patientName.textContent = nameForUser(patient, 'Patient');
                         if (patientInfo) {
@@ -190,7 +190,7 @@
                             if (patient && patient.sex) meta.push(patient.sex);
                             if (patient && patient.birthdate) meta.push(String(patient.birthdate).slice(0, 10));
                             if (appt && appt.appointment_id) meta.push('Appointment #' + appt.appointment_id);
-                            patientInfo.textContent = meta.length ? meta.join(' • ') : '—';
+                            patientInfo.textContent = meta.length ? meta.join(' • ') : '-';
                         }
 
                         if (doctorName) doctorName.textContent = nameForUser(doctor, 'Doctor');
@@ -198,10 +198,10 @@
                             var dmeta = [];
                             if (doctor && doctor.specialization) dmeta.push(doctor.specialization);
                             if (doctor && doctor.prc_license) dmeta.push('Lic: ' + doctor.prc_license);
-                            doctorInfo.textContent = dmeta.length ? dmeta.join(' • ') : '—';
+                            doctorInfo.textContent = dmeta.length ? dmeta.join(' • ') : '-';
                         }
 
-                        if (notesBox) notesBox.textContent = rx.notes ? String(rx.notes) : '—';
+                        if (notesBox) notesBox.textContent = rx.notes ? String(rx.notes) : '-';
 
                         if (itemsBody) {
                             if (!items.length) {
@@ -211,10 +211,10 @@
                                     return '' +
                                         '<tr class="border-b border-slate-100 last:border-0">' +
                                             '<td class="py-2 pr-4 font-semibold text-slate-900">' + escapeHtml(medicineName(it)) + '</td>' +
-                                            '<td class="py-2 pr-4">' + escapeHtml(it.dosage || '—') + '</td>' +
-                                            '<td class="py-2 pr-4">' + escapeHtml(it.frequency || '—') + '</td>' +
-                                            '<td class="py-2 pr-4">' + escapeHtml(it.duration || '—') + '</td>' +
-                                            '<td class="py-2 pr-0">' + escapeHtml(it.instructions || '—') + '</td>' +
+                                            '<td class="py-2 pr-4">' + escapeHtml(it.dosage || '-') + '</td>' +
+                                            '<td class="py-2 pr-4">' + escapeHtml(it.frequency || '-') + '</td>' +
+                                            '<td class="py-2 pr-4">' + escapeHtml(it.duration || '-') + '</td>' +
+                                            '<td class="py-2 pr-0">' + escapeHtml(it.instructions || '-') + '</td>' +
                                         '</tr>';
                                 }).join('');
                             }

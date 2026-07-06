@@ -863,7 +863,7 @@ export default function PatientQueueScreen() {
                   </View>
                   <View style={styles.infoCardTopCopy}>
                     <Text style={styles.infoLabel}>Queue line</Text>
-                    <Text style={styles.queueHeadline}>{queueStatus ? `#${queueStatus.queueNumber || '—'}` : 'Not in the queue'}</Text>
+                    <Text style={styles.queueHeadline}>{queueStatus ? `#${queueStatus.queueNumber || '-'}` : 'Not in the queue'}</Text>
                   </View>
                 </View>
 

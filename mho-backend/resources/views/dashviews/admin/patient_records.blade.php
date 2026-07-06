@@ -111,21 +111,21 @@
                     </div>
                     <div class="flex-1 flex gap-x-5 gap-y-[3px] text-[0.78rem]">
                         <div class="flex-1 space-y-[3px]">
-                            <div><span class="text-slate-500">First name:</span> <span id="prDetailFirstname" class="text-slate-800 ml-1">—</span></div>
-                            <div><span class="text-slate-500">Middle Name:</span> <span id="prDetailMiddlename" class="text-slate-800 ml-1">—</span></div>
-                            <div><span class="text-slate-500">Last Name:</span> <span id="prDetailLastname" class="text-slate-800 ml-1">—</span></div>
-                            <div><span class="text-slate-500">Date Of Birth:</span> <span id="prDetailBirthdate" class="text-slate-800 ml-1">—</span></div>
-                            <div><span class="text-slate-500">Address:</span> <span id="prDetailAddress" class="text-slate-800 ml-1">—</span></div>
-                            <div><span class="text-slate-500">Sex:</span> <span id="prDetailSex" class="text-slate-800 ml-1">—</span></div>
-                            <div><span class="text-slate-500">Civil status:</span> <span id="prDetailCivilStatus" class="text-slate-800 ml-1">—</span></div>
+                            <div><span class="text-slate-500">First name:</span> <span id="prDetailFirstname" class="text-slate-800 ml-1">-</span></div>
+                            <div><span class="text-slate-500">Middle Name:</span> <span id="prDetailMiddlename" class="text-slate-800 ml-1">-</span></div>
+                            <div><span class="text-slate-500">Last Name:</span> <span id="prDetailLastname" class="text-slate-800 ml-1">-</span></div>
+                            <div><span class="text-slate-500">Date Of Birth:</span> <span id="prDetailBirthdate" class="text-slate-800 ml-1">-</span></div>
+                            <div><span class="text-slate-500">Address:</span> <span id="prDetailAddress" class="text-slate-800 ml-1">-</span></div>
+                            <div><span class="text-slate-500">Sex:</span> <span id="prDetailSex" class="text-slate-800 ml-1">-</span></div>
+                            <div><span class="text-slate-500">Civil status:</span> <span id="prDetailCivilStatus" class="text-slate-800 ml-1">-</span></div>
                         </div>
                         <div class="flex-1 space-y-[3px]">
-                            <div><span class="text-slate-500">Nationality:</span> <span id="prDetailNationality" class="text-slate-800 ml-1">—</span></div>
-                            <div><span class="text-slate-500">Contact Number:</span> <span id="prDetailContact" class="text-slate-800 ml-1">—</span></div>
-                            <div><span class="text-slate-500">PHIC #:</span> <span id="prDetailPhic" class="text-slate-800 ml-1">—</span></div>
-                            <div><span class="text-slate-500">Occupation:</span> <span id="prDetailOccupation" class="text-slate-800 ml-1">—</span></div>
-                            <div><span class="text-slate-500">Emergency contact:</span> <span id="prDetailEmergContact" class="text-slate-800 ml-1">—</span></div>
-                            <div><span class="text-slate-500">Emergency Contact Number:</span> <span id="prDetailEmergNumber" class="text-slate-800 ml-1">—</span></div>
+                            <div><span class="text-slate-500">Nationality:</span> <span id="prDetailNationality" class="text-slate-800 ml-1">-</span></div>
+                            <div><span class="text-slate-500">Contact Number:</span> <span id="prDetailContact" class="text-slate-800 ml-1">-</span></div>
+                            <div><span class="text-slate-500">PHIC #:</span> <span id="prDetailPhic" class="text-slate-800 ml-1">-</span></div>
+                            <div><span class="text-slate-500">Occupation:</span> <span id="prDetailOccupation" class="text-slate-800 ml-1">-</span></div>
+                            <div><span class="text-slate-500">Emergency contact:</span> <span id="prDetailEmergContact" class="text-slate-800 ml-1">-</span></div>
+                            <div><span class="text-slate-500">Emergency Contact Number:</span> <span id="prDetailEmergNumber" class="text-slate-800 ml-1">-</span></div>
                         </div>
                     </div>
                 </div>
@@ -145,15 +145,15 @@
             <div class="px-5 py-4 space-y-3">
                 <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
                     <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification status</div>
-                    <div id="adminPrPanelVerificationStatus" class="text-[0.8rem] font-semibold text-slate-700 mt-1">—</div>
+                    <div id="adminPrPanelVerificationStatus" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
                 </div>
                 <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
                     <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient type</div>
-                    <div id="adminPrPanelPatientType" class="text-[0.8rem] font-semibold text-slate-700 mt-1">—</div>
+                    <div id="adminPrPanelPatientType" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
                 </div>
                 <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
                     <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification ID</div>
-                    <div id="adminPrPanelVerificationId" class="text-[0.8rem] font-semibold text-slate-700 mt-1">—</div>
+                    <div id="adminPrPanelVerificationId" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
                 </div>
             </div>
         </div>
@@ -457,11 +457,11 @@
             if (k === 'allergy_food') return 'Food'
             if (k === 'allergy_drug') return 'Drug'
             if (k === 'condition') return 'Condition'
-            return k || '—'
+            return k || '-'
         }
 
         function fullName(p, fallback) {
-            if (!p) return fallback || '—'
+            if (!p) return fallback || '-'
             var parts = []
             if (p.firstname) parts.push(String(p.firstname))
             if (p.middlename) parts.push(String(p.middlename))
@@ -505,12 +505,12 @@
         }
 
         function displayValue(value) {
-            return (value != null && value !== '') ? String(value) : '—'
+            return (value != null && value !== '') ? String(value) : '-'
         }
 
         function sexLabel(value) {
             var text = displayValue(value)
-            if (text === '—') return text
+            if (text === '-') return text
             return text.charAt(0).toUpperCase() + text.slice(1)
         }
 
@@ -551,21 +551,21 @@
 
         function formatRecordedAt(value) {
             var raw = value ? String(value) : ''
-            if (!raw) return '—'
+            if (!raw) return '-'
             return raw.replace('T', ' ').slice(0, 16)
         }
 
         function formatNumeric(value, decimals) {
-            if (value == null || value === '') return '—'
+            if (value == null || value === '') return '-'
             var num = typeof value === 'number' ? value : parseFloat(value)
-            if (isNaN(num)) return '—'
+            if (isNaN(num)) return '-'
             return num.toFixed(decimals == null ? 1 : decimals)
         }
 
         function formatCurrency(value) {
-            if (value == null || value === '') return '—'
+            if (value == null || value === '') return '-'
             var num = typeof value === 'number' ? value : parseFloat(value)
-            if (isNaN(num)) return '—'
+            if (isNaN(num)) return '-'
             return 'PHP ' + num.toFixed(2)
         }
 
@@ -703,7 +703,7 @@
             setPatientEditSubmitting(false)
 
             var fullName = fullNameForEdit(patient)
-            if (patientEditSubtitle) patientEditSubtitle.textContent = 'Editing — ' + fullName
+            if (patientEditSubtitle) patientEditSubtitle.textContent = 'Editing - ' + fullName
             if (patientEditFirstname) patientEditFirstname.value = patient.firstname || ''
             if (patientEditMiddlename) patientEditMiddlename.value = patient.middlename || ''
             if (patientEditLastname) patientEditLastname.value = patient.lastname || ''
@@ -841,10 +841,10 @@
                 var procedureDate = row && row.procedure_date ? String(row.procedure_date) : ''
                 rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(categoryLabel(row.category)) + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(row && row.name ? String(row.name) : '—') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosisDate ? escapeHtml(diagnosisDate) : '<span class="text-slate-400">—</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (procedureDate ? escapeHtml(procedureDate) : '<span class="text-slate-400">—</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (row && row.notes ? escapeHtml(String(row.notes)) : '<span class="text-slate-400">—</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(row && row.name ? String(row.name) : '-') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosisDate ? escapeHtml(diagnosisDate) : '<span class="text-slate-400">-</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (procedureDate ? escapeHtml(procedureDate) : '<span class="text-slate-400">-</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (row && row.notes ? escapeHtml(String(row.notes)) : '<span class="text-slate-400">-</span>') + '</td>' +
                 '</tr>'
             })
             renderDrawerTable(headers, rowsHtml, 'No medical background entries found.')
@@ -861,7 +861,7 @@
                 var appointment = visit && visit.appointment ? visit.appointment : null
                 var doctor = appointment && appointment.doctor ? appointment.doctor : null
                 var dateRaw = visit && (visit.visit_datetime || visit.transaction_datetime) ? String(visit.visit_datetime || visit.transaction_datetime) : ''
-                var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '—'
+                var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
                 rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(fullName(doctor, 'Doctor')) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(dateText) + '</td>' +
@@ -889,11 +889,11 @@
             var rowsHtml = ''
             rows.forEach(function (vital) {
                 var recorded = formatRecordedAt(vital && vital.recorded_at ? vital.recorded_at : (vital && vital.appointment_datetime ? vital.appointment_datetime : ''))
-                var height = vital && vital.height_cm != null ? formatNumeric(vital.height_cm, 1) : '—'
-                var weight = vital && vital.weight_kg != null ? formatNumeric(vital.weight_kg, 1) : '—'
-                var bp = vital && vital.blood_pressure ? String(vital.blood_pressure) : '—'
-                var temp = vital && vital.temperature != null ? formatNumeric(vital.temperature, 1) : '—'
-                var pulse = vital && vital.pulse_rate != null ? String(vital.pulse_rate) : '—'
+                var height = vital && vital.height_cm != null ? formatNumeric(vital.height_cm, 1) : '-'
+                var weight = vital && vital.weight_kg != null ? formatNumeric(vital.weight_kg, 1) : '-'
+                var bp = vital && vital.blood_pressure ? String(vital.blood_pressure) : '-'
+                var temp = vital && vital.temperature != null ? formatNumeric(vital.temperature, 1) : '-'
+                var pulse = vital && vital.pulse_rate != null ? String(vital.pulse_rate) : '-'
                 rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(recorded) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(height) + '</td>' +
@@ -935,7 +935,7 @@
                         '</div>' +
                         '<div class="flex-1 min-w-0 space-y-1">' +
                             '<div class="text-[0.82rem] font-semibold text-slate-900 truncate">' + escapeHtml(fullName(dependent, 'Dependent')) + '</div>' +
-                            '<div class="text-[0.76rem] text-slate-500">Age: <span class="text-slate-700">' + escapeHtml(age == null ? '—' : String(age)) + '</span></div>' +
+                            '<div class="text-[0.76rem] text-slate-500">Age: <span class="text-slate-700">' + escapeHtml(age == null ? '-' : String(age)) + '</span></div>' +
                             '<div class="text-[0.76rem] text-slate-500">Sex: <span class="text-slate-700">' + escapeHtml(sexLabel(dependent && dependent.sex)) + '</span></div>' +
                         '</div>' +
                     '</div>' +
@@ -962,8 +962,8 @@
             var birthdate = record && record.birthdate ? String(record.birthdate) : ''
             var age = ageFromBirthdate(birthdate)
             var verificationStatus = activeDependentVerification && activeDependentVerification.status ? String(activeDependentVerification.status) : 'Not submitted'
-            var patientType = activeDependentVerification && activeDependentVerification.type ? String(activeDependentVerification.type) : '—'
-            var verificationHtml = '—'
+            var patientType = activeDependentVerification && activeDependentVerification.type ? String(activeDependentVerification.type) : '-'
+            var verificationHtml = '-'
             if (activeDependentVerification && activeDependentVerification.document_url) {
                 verificationHtml = '<a href="' + String(activeDependentVerification.document_url).replace(/"/g, '&quot;') + '" target="_blank" class="text-green-700 underline hover:text-green-800">View ID</a>'
             }
@@ -1018,7 +1018,7 @@
                                 '<div><span class="text-slate-500">First name:</span> <span class="text-slate-800 ml-1">' + escapeHtml(displayValue(record && record.firstname)) + '</span></div>' +
                                 '<div><span class="text-slate-500">Middle Name:</span> <span class="text-slate-800 ml-1">' + escapeHtml(displayValue(record && record.middlename)) + '</span></div>' +
                                 '<div><span class="text-slate-500">Last Name:</span> <span class="text-slate-800 ml-1">' + escapeHtml(displayValue(record && record.lastname)) + '</span></div>' +
-                                '<div><span class="text-slate-500">Date Of Birth:</span> <span class="text-slate-800 ml-1">' + escapeHtml(birthdate ? birthdate.substring(0, 10) + (age != null ? ' (Age: ' + age + ')' : '') : '—') + '</span></div>' +
+                                '<div><span class="text-slate-500">Date Of Birth:</span> <span class="text-slate-800 ml-1">' + escapeHtml(birthdate ? birthdate.substring(0, 10) + (age != null ? ' (Age: ' + age + ')' : '') : '-') + '</span></div>' +
                                 '<div><span class="text-slate-500">Address:</span> <span class="text-slate-800 ml-1">' + escapeHtml(displayValue(record && record.address)) + '</span></div>' +
                                 '<div><span class="text-slate-500">Sex:</span> <span class="text-slate-800 ml-1">' + escapeHtml(sexLabel(record && record.sex)) + '</span></div>' +
                                 '<div><span class="text-slate-500">Civil status:</span> <span class="text-slate-800 ml-1">' + escapeHtml(displayValue(record && record.civil_status)) + '</span></div>' +
@@ -1092,9 +1092,9 @@
                 rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(categoryLabel(row.category)) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(displayValue(row && row.name)) + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosisDate ? escapeHtml(diagnosisDate) : '<span class="text-slate-400">—</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (procedureDate ? escapeHtml(procedureDate) : '<span class="text-slate-400">—</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (row && row.notes ? escapeHtml(String(row.notes)) : '<span class="text-slate-400">—</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosisDate ? escapeHtml(diagnosisDate) : '<span class="text-slate-400">-</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (procedureDate ? escapeHtml(procedureDate) : '<span class="text-slate-400">-</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (row && row.notes ? escapeHtml(String(row.notes)) : '<span class="text-slate-400">-</span>') + '</td>' +
                 '</tr>'
             })
             return rowsHtml
@@ -1107,7 +1107,7 @@
                 var appointment = visit && visit.appointment ? visit.appointment : null
                 var doctor = appointment && appointment.doctor ? appointment.doctor : null
                 var dateRaw = visit && (visit.visit_datetime || visit.transaction_datetime) ? String(visit.visit_datetime || visit.transaction_datetime) : ''
-                var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '—'
+                var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
                 rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(fullName(doctor, 'Doctor')) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(dateText) + '</td>' +
@@ -1123,11 +1123,11 @@
             var rowsHtml = ''
             rows.forEach(function (vital) {
                 var recorded = formatRecordedAt(vital && vital.recorded_at ? vital.recorded_at : (vital && vital.appointment_datetime ? vital.appointment_datetime : ''))
-                var height = vital && vital.height_cm != null ? formatNumeric(vital.height_cm, 1) : '—'
-                var weight = vital && vital.weight_kg != null ? formatNumeric(vital.weight_kg, 1) : '—'
-                var bp = vital && vital.blood_pressure ? String(vital.blood_pressure) : '—'
-                var temp = vital && vital.temperature != null ? formatNumeric(vital.temperature, 1) : '—'
-                var pulse = vital && vital.pulse_rate != null ? String(vital.pulse_rate) : '—'
+                var height = vital && vital.height_cm != null ? formatNumeric(vital.height_cm, 1) : '-'
+                var weight = vital && vital.weight_kg != null ? formatNumeric(vital.weight_kg, 1) : '-'
+                var bp = vital && vital.blood_pressure ? String(vital.blood_pressure) : '-'
+                var temp = vital && vital.temperature != null ? formatNumeric(vital.temperature, 1) : '-'
+                var pulse = vital && vital.pulse_rate != null ? String(vital.pulse_rate) : '-'
                 rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(recorded) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(height) + '</td>' +
@@ -1418,10 +1418,10 @@
                         ) +
                     '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(name) + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (address ? escapeHtml(address) : '<span class="text-slate-400">—</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (age != null ? escapeHtml(age) : '<span class="text-slate-400">—</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (sex ? escapeHtml(sex.charAt(0).toUpperCase() + sex.slice(1)) : '<span class="text-slate-400">—</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (verificationType ? escapeHtml(verificationType.charAt(0).toUpperCase() + verificationType.slice(1)) : '<span class="text-slate-400">—</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (address ? escapeHtml(address) : '<span class="text-slate-400">-</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (age != null ? escapeHtml(age) : '<span class="text-slate-400">-</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (sex ? escapeHtml(sex.charAt(0).toUpperCase() + sex.slice(1)) : '<span class="text-slate-400">-</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (verificationType ? escapeHtml(verificationType.charAt(0).toUpperCase() + verificationType.slice(1)) : '<span class="text-slate-400">-</span>') + '</td>' +
                     '<td class="py-2 pr-4">' +
                         '<button type="button" class="admin-pr-open-panel inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.78rem] font-semibold hover:bg-slate-50" data-patient-id="' + escapeHtml(patientId) + '">View Details and History</button>' +
                     '</td>' +
@@ -1443,9 +1443,9 @@
         }
 
         function resetPanelMetaFields() {
-            if (panelVerificationStatus) panelVerificationStatus.textContent = '—'
-            if (panelPatientType) panelPatientType.textContent = '—'
-            if (panelVerificationId) panelVerificationId.textContent = '—'
+            if (panelVerificationStatus) panelVerificationStatus.textContent = '-'
+            if (panelPatientType) panelPatientType.textContent = '-'
+            if (panelVerificationId) panelVerificationId.textContent = '-'
         }
 
         function loadPatientPanelData(patientId) {
@@ -1529,20 +1529,20 @@
 
                     var verRes = results[3]
                     if (!verRes || !verRes.ok || !verRes.data) {
-                        if (panelVerificationStatus) panelVerificationStatus.textContent = '—'
-                        if (panelPatientType) panelPatientType.textContent = '—'
-                        if (panelVerificationId) panelVerificationId.textContent = '—'
+                        if (panelVerificationStatus) panelVerificationStatus.textContent = '-'
+                        if (panelPatientType) panelPatientType.textContent = '-'
+                        if (panelVerificationId) panelVerificationId.textContent = '-'
                     } else {
                         var verRows = Array.isArray(verRes.data.data) ? verRes.data.data : (Array.isArray(verRes.data) ? verRes.data : [])
                         var latest = verRows && verRows.length ? verRows[0] : null
                         if (panelVerificationStatus) panelVerificationStatus.textContent = latest && latest.status ? String(latest.status) : 'Not submitted'
-                        if (panelPatientType) panelPatientType.textContent = latest && latest.type ? String(latest.type) : '—'
+                        if (panelPatientType) panelPatientType.textContent = latest && latest.type ? String(latest.type) : '-'
                         if (panelVerificationId) {
                             var docUrl = latest && latest.document_url ? String(latest.document_url) : ''
                             if (docUrl) {
                                 panelVerificationId.innerHTML = '<a href="' + docUrl.replace(/"/g, '&quot;') + '" target="_blank" class="text-green-700 underline hover:text-green-800">View ID</a>'
                             } else {
-                                panelVerificationId.textContent = '—'
+                                panelVerificationId.textContent = '-'
                             }
                         }
                     }
@@ -1569,7 +1569,7 @@
             var age = ageFromBirthdate(patient && patient.birthdate ? String(patient.birthdate) : null)
             var contact = patient && patient.contact_number ? String(patient.contact_number) : ''
             var profileImg = patient && patient.prof_path_url ? String(patient.prof_path_url) : ''
-            var value = function (input) { return (input != null && input !== '') ? String(input) : '—' }
+            var value = function (input) { return (input != null && input !== '') ? String(input) : '-' }
 
             if (panelProfilePic) {
                 panelProfilePic.innerHTML = profileImg
@@ -1582,7 +1582,7 @@
             if (prDetailLastname) prDetailLastname.textContent = value(patient && patient.lastname)
             if (prDetailBirthdate) {
                 var birthdate = patient && patient.birthdate ? String(patient.birthdate) : ''
-                prDetailBirthdate.textContent = birthdate ? birthdate.substring(0, 10) + (age != null ? ' (Age: ' + age + ')' : '') : '—'
+                prDetailBirthdate.textContent = birthdate ? birthdate.substring(0, 10) + (age != null ? ' (Age: ' + age + ')' : '') : '-'
             }
             if (prDetailAddress) prDetailAddress.textContent = value(address)
             if (prDetailSex) prDetailSex.textContent = value(patient && patient.sex)

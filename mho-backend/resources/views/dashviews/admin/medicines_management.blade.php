@@ -423,10 +423,10 @@
                 var html = ''
                 for (var i = 0; i < matches.length; i++) {
                     var m = matches[i]
-                    var g = m && m.generic_name ? String(m.generic_name) : '—'
-                    var b = m && m.brand_name ? String(m.brand_name) : '—'
-                    var ind = m && m.indications ? String(m.indications) : '—'
-                    var con = m && m.contraindications ? String(m.contraindications) : '—'
+                    var g = m && m.generic_name ? String(m.generic_name) : '-'
+                    var b = m && m.brand_name ? String(m.brand_name) : '-'
+                    var ind = m && m.indications ? String(m.indications) : '-'
+                    var con = m && m.contraindications ? String(m.contraindications) : '-'
                     var active = m && m.is_active ? 'Active' : 'Inactive'
 
                     html += '<div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">' +
@@ -571,10 +571,10 @@
                     : '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border bg-slate-50 text-slate-600 border-slate-100">Inactive</span>'
 
                 html += '<tr class="border-b border-slate-50 last:border-0">' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(m.generic_name || '—') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (m.brand_name ? escapeHtml(m.brand_name) : '<span class="text-slate-400">—</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (m.indications ? escapeHtml(m.indications) : '<span class="text-slate-400">—</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (m.contraindications ? escapeHtml(m.contraindications) : '<span class="text-slate-400">—</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(m.generic_name || '-') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (m.brand_name ? escapeHtml(m.brand_name) : '<span class="text-slate-400">-</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (m.indications ? escapeHtml(m.indications) : '<span class="text-slate-400">-</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (m.contraindications ? escapeHtml(m.contraindications) : '<span class="text-slate-400">-</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem]">' + badge + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem]">' +
                         '<div class="flex items-center gap-2">' +

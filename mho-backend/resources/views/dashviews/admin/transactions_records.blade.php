@@ -88,7 +88,7 @@
                             </span>
                         </td>
                         <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                            {{ optional($transaction->transaction_datetime)->format('Y-m-d') ?? '—' }}
+                            {{ optional($transaction->transaction_datetime)->format('Y-m-d') ?? '-' }}
                         </td>
                     </tr>
                 @empty

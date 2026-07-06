@@ -74,7 +74,7 @@ export default function PatientSettingsScreen() {
   const [loggingOut, setLoggingOut] = useState(false);
 
   const accountStatus = useMemo(() => {
-    if (!user) return { label: '—', color: T.slate700, bg: T.slate50, border: T.slate200 };
+    if (!user) return { label: '-', color: T.slate700, bg: T.slate50, border: T.slate200 };
     if (user.account_activated) return { label: 'Activated', color: T.green700, bg: T.green100, border: 'rgba(34,197,94,0.25)' };
     return { label: 'Not activated', color: T.red700, bg: T.red100, border: 'rgba(239,68,68,0.25)' };
   }, [user]);
@@ -319,7 +319,7 @@ export default function PatientSettingsScreen() {
           <View style={styles.cardBody}>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Email</Text>
-              <Text style={styles.infoValue}>{user?.email ?? '—'}</Text>
+              <Text style={styles.infoValue}>{user?.email ?? '-'}</Text>
             </View>
 
             <View style={styles.infoRow}>

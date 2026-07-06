@@ -230,7 +230,7 @@
                         @forelse (($adminRecentAuditLogs ?? []) as $log)
                             <tr class="border-b border-slate-50 last:border-0 admin-activity-row">
                                 <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                                    {{ optional($log->created_at)->format('Y-m-d H:i') ?? '—' }}
+                                    {{ optional($log->created_at)->format('Y-m-d H:i') ?? '-' }}
                                 </td>
                                 <td class="py-2 pr-4 text-[0.78rem] text-slate-700">
                                     @if ($log->user)

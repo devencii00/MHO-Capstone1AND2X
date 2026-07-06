@@ -10,7 +10,7 @@
     <div class="grid grid-cols-1 gap-3 mb-4">
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
             <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Total Users</div>
-            <div id="admin_user_stat_total" class="mt-1 text-xl font-semibold text-slate-900">—</div>
+            <div id="admin_user_stat_total" class="mt-1 text-xl font-semibold text-slate-900">-</div>
         </div>
     </div>
 
@@ -247,14 +247,14 @@
                             @if ($fullName)
                                 {{ $fullName }}
                             @else
-                                <span class="text-slate-400">—</span>
+                                <span class="text-slate-400">-</span>
                             @endif
                         </td>
                         <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
                             @if ($contact)
                                 {{ $contact }}
                             @else
-                                <span class="text-slate-400">—</span>
+                                <span class="text-slate-400">-</span>
                             @endif
                         </td>
                         <td class="py-2 pr-4 text-[0.78rem] text-slate-700">{{ $user->email }}</td>
@@ -269,7 +269,7 @@
                             </span>
                         </td>
                         <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                            {{ optional($user->created_at)->format('Y-m-d') ?? '—' }}
+                            {{ optional($user->created_at)->format('Y-m-d') ?? '-' }}
                         </td>
                         <td class="py-2 pr-4 text-[0.78rem]">
                             <div class="flex items-center gap-2">
@@ -592,7 +592,7 @@
                 name = user && user.email ? String(user.email) : ('User #' + (user && user.user_id ? user.user_id : ''))
             }
             if (userEditSubtitle) {
-                userEditSubtitle.textContent = 'Editing — ' + name
+                userEditSubtitle.textContent = 'Editing - ' + name
             }
             if (userEditEmail) userEditEmail.value = user.email || ''
 
@@ -624,7 +624,7 @@
                 name = user && user.email ? String(user.email) : ('User #' + (user && user.user_id ? user.user_id : ''))
             }
             if (userStatusSubtitle) {
-                userStatusSubtitle.textContent = 'Updating status — ' + name
+                userStatusSubtitle.textContent = 'Updating status - ' + name
             }
             if (userStatusSelect) {
                 userStatusSelect.value = (user.status || 'active')
@@ -983,8 +983,8 @@
 
                 html += '<tr class="border-b border-slate-200/60 last:border-0">' +
                     '<td class="py-2 pr-4 text-slate-700">' + escapeHtml(name) + '</td>' +
-                    '<td class="py-2 pr-4 text-slate-500">' + (relationship ? escapeHtml(relationship) : '—') + '</td>' +
-                    '<td class="py-2 pr-4 text-slate-500">' + (age === null ? '—' : String(age)) + '</td>' +
+                    '<td class="py-2 pr-4 text-slate-500">' + (relationship ? escapeHtml(relationship) : '-') + '</td>' +
+                    '<td class="py-2 pr-4 text-slate-500">' + (age === null ? '-' : String(age)) + '</td>' +
                     '<td class="py-2 pr-4">' +
                         '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border ' + statusClass + '">' + escapeHtml(statusLabel) + '</span>' +
                     '</td>' +
@@ -1017,14 +1017,14 @@
 
             var rows = [
                 
-                ['Name', fullName || '—'],
-                ['Email', user.email || '—'],
-                ['Contact', user.contact_number || '—'],
-                ['Birthdate', formatLongDate(user.birthdate) || '—'],
-                ['Sex', user.sex || '—'],
-                ['Address', user.address || '—'],
-                ['Relationship', user.relationship || '—'],
-                ['Status', user.status ? String(user.status) : '—'],
+                ['Name', fullName || '-'],
+                ['Email', user.email || '-'],
+                ['Contact', user.contact_number || '-'],
+                ['Birthdate', formatLongDate(user.birthdate) || '-'],
+                ['Sex', user.sex || '-'],
+                ['Address', user.address || '-'],
+                ['Relationship', user.relationship || '-'],
+                ['Status', user.status ? String(user.status) : '-'],
                 ['Activated', user.account_activated ? 'Yes' : 'No']
             ]
 

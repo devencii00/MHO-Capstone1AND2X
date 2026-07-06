@@ -179,9 +179,9 @@ function normalizeText(value: any): string {
 }
 
 function formatNumberLabel(value: any, suffix = ''): string {
-  if (value == null || value === '') return '—';
+  if (value == null || value === '') return '-';
   const numeric = Number(value);
-  if (Number.isNaN(numeric)) return '—';
+  if (Number.isNaN(numeric)) return '-';
   return `${numeric.toFixed(1)}${suffix}`;
 }
 
@@ -189,7 +189,7 @@ function computeBmi(heightCmRaw: any, weightKgRaw: any): { bmi: string; category
   const heightCm = Number(heightCmRaw);
   const weightKg = Number(weightKgRaw);
   if (Number.isNaN(heightCm) || Number.isNaN(weightKg) || heightCm <= 0 || weightKg <= 0) {
-    return { bmi: '—', category: 'Unavailable' };
+    return { bmi: '-', category: 'Unavailable' };
   }
 
   const heightM = heightCm / 100;
@@ -358,9 +358,9 @@ export default function PatientRecordsScreen() {
             doctor: doctorFull === 'Dr.' ? 'Doctor' : doctorFull,
             heightCm: formatNumberLabel(row?.height_cm, ' cm'),
             weightKg: formatNumberLabel(row?.weight_kg, ' kg'),
-            bloodPressure: normalizeText(row?.blood_pressure) || '—',
+            bloodPressure: normalizeText(row?.blood_pressure) || '-',
             temperature: formatNumberLabel(row?.temperature, ' C'),
-            pulseRate: row?.pulse_rate != null && row?.pulse_rate !== '' ? `${row.pulse_rate} bpm` : '—',
+            pulseRate: row?.pulse_rate != null && row?.pulse_rate !== '' ? `${row.pulse_rate} bpm` : '-',
             bmi: bmi.bmi,
             bmiCategory: bmi.category,
           };

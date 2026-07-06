@@ -262,7 +262,7 @@
                                     <td class="py-2 pr-3 whitespace-nowrap">{{ $row['date_label'] }}</td>
                                     <td class="py-2 pr-3">{{ $row['patient_name'] }}</td>
                                     <td class="py-2 pr-3">{{ $row['doctor_name'] }}</td>
-                                    <td class="py-2 pr-3">{{ count($row['services']) ? implode(', ', $row['services']) : '—' }}</td>
+                                    <td class="py-2 pr-3">{{ count($row['services']) ? implode(', ', $row['services']) : '-' }}</td>
                                     <td class="py-2 pr-3 whitespace-nowrap num">&#8369;{{ number_format((float) $row['amount'], 2) }}</td>
                                     <td class="py-2 pr-3">
                                         <div class="text-right">{{ $row['discount_type'] }}</div>
