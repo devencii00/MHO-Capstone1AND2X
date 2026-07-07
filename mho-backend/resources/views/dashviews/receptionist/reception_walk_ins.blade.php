@@ -59,9 +59,11 @@
                 <label for="reception_guest_service_ids" class="block text-[0.7rem] text-slate-600 mb-1">Services</label>
                 <div class="mb-1 text-[0.7rem] text-slate-500">&nbsp;</div>
                 <div class="relative">
-                    <input id="reception_guest_service_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Type to search service">
+                    <input id="reception_guest_service_search" type="text" readonly class="w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 pr-24 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Select service">
                     <input id="reception_guest_service_ids" type="hidden">
-                    <div id="receptionGuestServiceResults" class="hidden absolute left-0 right-0 top-full mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-sm max-h-64 overflow-y-auto overscroll-contain z-50"></div>
+                    <button id="reception_guest_service_picker_btn" type="button" class="absolute inset-y-1 right-1 inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-100">
+                        Browse
+                    </button>
                 </div>
                 <div id="receptionGuestSelectedServices" class="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.78rem] text-slate-700 max-h-24 overflow-y-auto overscroll-contain"></div>
             </div>
@@ -69,9 +71,11 @@
                 <label for="reception_guest_doctor_id" class="block text-[0.7rem] text-slate-600 mb-1">Doctor</label>
                 <div class="mb-1 text-[0.7rem] text-slate-500">&nbsp;</div>
                 <div class="relative">
-                    <input id="reception_guest_doctor_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Type to search doctor" disabled>
+                    <input id="reception_guest_doctor_search" type="text" readonly class="w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 pr-24 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none disabled:cursor-not-allowed disabled:bg-slate-100" placeholder="Select doctor" disabled>
                     <input id="reception_guest_doctor_id" type="hidden" required>
-                    <div id="receptionGuestDoctorResults" class="hidden absolute left-0 right-0 top-full mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-sm max-h-64 overflow-y-auto overscroll-contain z-50"></div>
+                    <button id="reception_guest_doctor_picker_btn" type="button" class="absolute inset-y-1 right-1 inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60" disabled>
+                        Browse
+                    </button>
                 </div>
                 
                 <div id="receptionGuestDoctorPreview" class="hidden mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.78rem] text-slate-700 break-words"></div>
@@ -118,27 +122,33 @@
             <div class="min-w-0">
                 <label for="reception_walkin_patient_id" class="block text-[0.7rem] text-slate-600 mb-1">Patient</label>
                 <div class="relative">
-                    <input id="reception_walkin_patient_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Type to search patient">
+                    <input id="reception_walkin_patient_search" type="text" readonly class="w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 pr-24 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Select patient">
                     <input id="reception_walkin_patient_id" type="hidden" required>
-                    <div id="receptionWalkInPatientResults" class="hidden absolute left-0 right-0 top-full mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-sm max-h-64 overflow-y-auto overscroll-contain z-50"></div>
+                    <button id="reception_walkin_patient_picker_btn" type="button" class="absolute inset-y-1 right-1 inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-100">
+                        Browse
+                    </button>
                 </div>
                 <div id="receptionWalkInPatientPreview" class="hidden mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.78rem] text-slate-700 break-words"></div>
             </div>
             <div class="min-w-0">
                 <label for="reception_walkin_service_ids" class="block text-[0.7rem] text-slate-600 mb-1">Services</label>
                 <div class="relative">
-                    <input id="reception_walkin_service_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Type to search service">
+                    <input id="reception_walkin_service_search" type="text" readonly class="w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 pr-24 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Select service">
                     <input id="reception_walkin_service_ids" type="hidden">
-                    <div id="receptionWalkInServiceResults" class="hidden absolute left-0 right-0 top-full mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-sm max-h-64 overflow-y-auto overscroll-contain z-50"></div>
+                    <button id="reception_walkin_service_picker_btn" type="button" class="absolute inset-y-1 right-1 inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-100">
+                        Browse
+                    </button>
                 </div>
                 <div id="receptionWalkInSelectedServices" class="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.78rem] text-slate-700 max-h-24 overflow-y-auto overscroll-contain"></div>
             </div>
             <div class="min-w-0">
                 <label for="reception_walkin_doctor_id" class="block text-[0.7rem] text-slate-600 mb-1">Doctor</label>
                 <div class="relative">
-                    <input id="reception_walkin_doctor_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Type to search doctor" disabled>
+                    <input id="reception_walkin_doctor_search" type="text" readonly class="w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 pr-24 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none disabled:cursor-not-allowed disabled:bg-slate-100" placeholder="Select doctor" disabled>
                     <input id="reception_walkin_doctor_id" type="hidden" required>
-                    <div id="receptionWalkInDoctorResults" class="hidden absolute left-0 right-0 top-full mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-sm max-h-64 overflow-y-auto overscroll-contain z-50"></div>
+                    <button id="reception_walkin_doctor_picker_btn" type="button" class="absolute inset-y-1 right-1 inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60" disabled>
+                        Browse
+                    </button>
                 </div>
                 <div id="receptionWalkInDoctorPreview" class="hidden mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.78rem] text-slate-700 break-words"></div>
             </div>
@@ -182,6 +192,7 @@
             </div>
         </form>
     </div>
+
 
     <div class="mt-4 rounded-2xl border border-slate-100 bg-white overflow-hidden">
         <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-100">
@@ -432,6 +443,43 @@
         </div>
     </div>
 </div>
+
+    <div id="receptionWalkInSelectorOverlay" class="hidden fixed inset-0 z-[80] bg-slate-900/50 items-center justify-center p-4">
+        <div class="w-full max-w-5xl h-[88vh] rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] overflow-hidden grid grid-cols-1 md:grid-cols-2">
+            <div class="border-b md:border-b-0 md:border-r border-slate-200 flex flex-col min-h-0">
+                <div class="px-4 py-3 border-b border-slate-100 shrink-0 flex items-start justify-between gap-3">
+                    <div>
+                        <div id="receptionWalkInSelectorTitle" class="text-sm font-semibold text-slate-900">Select record</div>
+                        <div id="receptionWalkInSelectorSubtitle" class="text-[0.72rem] text-slate-500">Recent records appear here.</div>
+                    </div>
+                    <button type="button" id="receptionWalkInSelectorClose" class="text-slate-400 hover:text-slate-600">
+                        <x-lucide-x class="w-[20px] h-[20px]" />
+                    </button>
+                </div>
+                <div class="px-4 py-3 border-b border-slate-100 shrink-0">
+                    <label for="receptionWalkInSelectorSearch" class="block text-[0.65rem] uppercase tracking-widest text-slate-400 mb-1">Search</label>
+                    <input id="receptionWalkInSelectorSearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search records">
+                    <div id="receptionWalkInSelectorListLabel" class="mt-2 text-[0.7rem] text-slate-500">Latest records</div>
+                </div>
+                <div id="receptionWalkInSelectorListBody" class="flex-1 overflow-y-auto p-3 space-y-2">
+                    <div class="text-center text-[0.78rem] text-slate-400 py-8">Loading records…</div>
+                </div>
+            </div>
+            <div class="flex flex-col min-h-0 bg-slate-50/60">
+                <div class="px-4 py-3 border-b border-slate-100 shrink-0">
+                    <div class="text-sm font-semibold text-slate-900">Details</div>
+                    <div class="text-[0.72rem] text-slate-500">Review the selected record before confirming.</div>
+                </div>
+                <div id="receptionWalkInSelectorDetailBody" class="flex-1 overflow-y-auto p-4">
+                    <div class="text-center text-[0.78rem] text-slate-400 py-8">Select a record to view details.</div>
+                </div>
+                <div class="px-4 py-3 border-t border-slate-100 bg-white shrink-0 flex items-center justify-end gap-2">
+                    <button type="button" id="receptionWalkInSelectorCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+                    <button type="button" id="receptionWalkInSelectorConfirm" class="px-3 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60" disabled>Select</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 <template id="receptionWalkInsIconX">
     <x-lucide-x class="w-[18px] h-[18px]" />
@@ -1057,6 +1105,33 @@ function setWalkInTab(tab) {
         var guestFirstNameInput = document.getElementById('reception_guest_firstname')
         var guestMiddleNameInput = document.getElementById('reception_guest_middlename')
         var guestLastNameInput = document.getElementById('reception_guest_lastname')
+        var guestServicePickerBtn = document.getElementById('reception_guest_service_picker_btn')
+        var guestDoctorPickerBtn = document.getElementById('reception_guest_doctor_picker_btn')
+
+        function updateGuestData() {
+            window._guestData = {
+                services: guestServices,
+                doctors: guestDoctors,
+                selectedServices: guestSelectedServices,
+                selectedDoctor: guestSelectedDoctor,
+                previousServiceIds: guestPreviousServiceIds,
+                previousServiceIdSet: guestPreviousServiceIdSet,
+                previousDoctorId: guestPreviousDoctorId,
+                applyServices: function (services) {
+                    guestSelectedServices = Array.isArray(services) ? services : []
+                    syncGuestServiceHiddenInput()
+                    renderGuestSelectedServices()
+                    syncGuestDoctorEnabled()
+                    setGuestDoctorSelection(null)
+                    if (guestDoctorSearch) guestDoctorSearch.value = ''
+                },
+                applyDoctor: function (doctor) {
+                    setGuestDoctorSelection(doctor)
+                    if (guestDoctorSearch) guestDoctorSearch.value = doctorDisplayName(doctor)
+                }
+            }
+        }
+        updateGuestData()
 
         function showGuestError(message) {
             if (message && typeof showToast === 'function') showToast(message, 'error')
@@ -1233,6 +1308,7 @@ function setWalkInTab(tab) {
             guestPreviousServiceIds = Array.from(new Set(guestPreviousServiceIds.map(function (v) { return String(v) }))).map(function (v) { return parseInt(v, 10) })
             guestPreviousServiceIdSet = {}
             guestPreviousServiceIds.forEach(function (id) { guestPreviousServiceIdSet[String(id)] = true })
+            updateGuestData()
         }
 
         function loadGuestHistoryForNames() {
@@ -1533,6 +1609,7 @@ function setWalkInTab(tab) {
                     if (!res.ok) return
                     var raw = res.data && Array.isArray(res.data.data) ? res.data.data : (Array.isArray(res.data) ? res.data : [])
                     guestServices = raw || []
+                    updateGuestData()
                 })
                 .catch(function () {})
                 .finally(function () { guestLoadingServices = false })
@@ -1556,6 +1633,7 @@ function setWalkInTab(tab) {
                     if (!res.ok) return
                     var raw = res.data && Array.isArray(res.data.data) ? res.data.data : (Array.isArray(res.data) ? res.data : [])
                     guestDoctors = raw || []
+                    updateGuestData()
                 })
                 .catch(function () {})
                 .finally(function () { guestLoadingDoctors = false })
@@ -1590,6 +1668,19 @@ function setWalkInTab(tab) {
             guestDoctorSearch.addEventListener('input', function () {
                 loadGuestDoctors()
                 searchGuestDoctors(String(guestDoctorSearch.value || ''))
+            })
+        }
+
+        if (guestServicePickerBtn) {
+            guestServicePickerBtn.addEventListener('click', function () {
+                updateGuestData()
+                if (window._openSelectorModal) window._openSelectorModal('service', 'guest')
+            })
+        }
+        if (guestDoctorPickerBtn) {
+            guestDoctorPickerBtn.addEventListener('click', function () {
+                updateGuestData()
+                if (window._openSelectorModal) window._openSelectorModal('doctor', 'guest')
             })
         }
 
@@ -1927,14 +2018,17 @@ function setWalkInTab(tab) {
         var submitSpinner = accountQuery('#receptionWalkInAccountSpinner')
         var submitLabel = accountQuery('#receptionWalkInAccountSubmitLabel')
         var patientSearch = accountQuery('#reception_walkin_patient_search')
+        var patientPickerBtn = accountQuery('#reception_walkin_patient_picker_btn')
         var patientSelect = accountQuery('#reception_walkin_patient_id')
         var patientResults = accountQuery('#receptionWalkInPatientResults')
         var patientPreview = accountQuery('#receptionWalkInPatientPreview')
         var serviceSearch = accountQuery('#reception_walkin_service_search')
+        var servicePickerBtn = accountQuery('#reception_walkin_service_picker_btn')
         var serviceIdsInput = accountQuery('#reception_walkin_service_ids')
         var serviceResults = accountQuery('#receptionWalkInServiceResults')
         var selectedServicesEl = accountQuery('#receptionWalkInSelectedServices')
         var doctorSearch = accountQuery('#reception_walkin_doctor_search')
+        var doctorPickerBtn = accountQuery('#reception_walkin_doctor_picker_btn')
         var doctorSelect = accountQuery('#reception_walkin_doctor_id')
         var doctorResults = accountQuery('#receptionWalkInDoctorResults')
         var doctorPreview = accountQuery('#receptionWalkInDoctorPreview')
@@ -1992,6 +2086,25 @@ function setWalkInTab(tab) {
         var dateCursorLastIso = null
         var dateCursorIndex = 0
         var typeInput = accountQuery('#reception_walkin_type')
+        var selectorOverlay = document.getElementById('receptionWalkInSelectorOverlay')
+        var selectorCloseBtn = document.getElementById('receptionWalkInSelectorClose')
+        var selectorTitle = document.getElementById('receptionWalkInSelectorTitle')
+        var selectorSubtitle = document.getElementById('receptionWalkInSelectorSubtitle')
+        var selectorSearch = document.getElementById('receptionWalkInSelectorSearch')
+        var selectorListLabel = document.getElementById('receptionWalkInSelectorListLabel')
+        var selectorListBody = document.getElementById('receptionWalkInSelectorListBody')
+        var selectorDetailBody = document.getElementById('receptionWalkInSelectorDetailBody')
+        var selectorCancelBtn = document.getElementById('receptionWalkInSelectorCancel')
+        var selectorConfirmBtn = document.getElementById('receptionWalkInSelectorConfirm')
+        var selectorState = {
+            type: '',
+            items: [],
+            activeItem: null,
+            stagedServices: [],
+            searchTimer: null,
+            searchSeq: 0,
+            mode: 'account'
+        }
 
         function getAppointmentType() {
             return typeInput && typeInput.value ? String(typeInput.value) : 'walk_in'
@@ -2056,6 +2169,10 @@ function setWalkInTab(tab) {
                 .replace(/'/g, '&#039;')
         }
 
+        function escapeAttr(input) {
+            return escapeHtml(input).replace(/`/g, '&#096;')
+        }
+
         function patientDisplayName(patient) {
             if (!patient) return ''
             var name = [patient.firstname, patient.middlename, patient.lastname]
@@ -2079,6 +2196,622 @@ function setWalkInTab(tab) {
             }
             if (appointment.doctor_id != null) return 'Doctor #' + appointment.doctor_id
             return '-'
+        }
+
+        function selectedServicesLabel() {
+            var list = Array.isArray(selectedServices) ? selectedServices : []
+            if (!list.length) return ''
+            if (list.length === 1) return serviceDisplayName(list[0]) || '1 service selected'
+            return String(list.length) + ' services selected'
+        }
+
+        function syncSelectionTriggers() {
+            if (patientSearch) patientSearch.value = selectedPatient ? patientDisplayName(selectedPatient) : ''
+            if (serviceSearch) serviceSearch.value = selectedServicesLabel()
+            if (doctorSearch) doctorSearch.value = selectedDoctor ? doctorDisplayName(selectedDoctor) : ''
+            if (doctorPickerBtn) doctorPickerBtn.disabled = !(doctorSearch && !doctorSearch.disabled)
+        }
+
+        var selectorUserIcon = '' +
+            '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+                '<path d="M18 20a6 6 0 0 0-12 0"/>' +
+                '<circle cx="12" cy="10" r="4"/>' +
+                '<circle cx="12" cy="12" r="10"/>' +
+            '</svg>'
+
+        function profilePhotoUrl(record) {
+            if (!record) return ''
+            return String(record.prof_path_url || record.profile_photo_url || '').trim()
+        }
+
+        function renderProfileAvatar(record, labelText) {
+            var photo = profilePhotoUrl(record)
+            if (photo) {
+                return '<img src="' + escapeAttr(photo) + '" alt="' + escapeAttr(labelText || '') + '" class="w-20 h-20 rounded-2xl object-cover border border-slate-200 bg-white">'
+            }
+            return '' +
+                '<div class="w-20 h-20 rounded-2xl border border-slate-200 bg-white text-slate-400 flex items-center justify-center">' +
+                    selectorUserIcon +
+                '</div>'
+        }
+
+        function ageFromBirthdate(birthdate) {
+            if (!birthdate) return ''
+            var date = new Date(String(birthdate))
+            if (isNaN(date.getTime())) return ''
+            var today = new Date()
+            var age = today.getFullYear() - date.getFullYear()
+            var monthDiff = today.getMonth() - date.getMonth()
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < date.getDate())) {
+                age -= 1
+            }
+            return age >= 0 ? String(age) : ''
+        }
+
+        function titleCase(value) {
+            var raw = String(value || '').trim()
+            if (!raw) return ''
+            return raw.replace(/[_\-]+/g, ' ').replace(/\b\w/g, function (chr) { return chr.toUpperCase() })
+        }
+
+        function patientTypeLabel(patient) {
+            return titleCase(patient && (patient.account_type || patient.patient_type || 'patient')) || 'Patient'
+        }
+
+        function dayChipLabel(key) {
+            var map = {
+                mon: 'Mon',
+                tue: 'Tue',
+                wed: 'Wed',
+                thu: 'Thu',
+                fri: 'Fri',
+                sat: 'Sat',
+                sun: 'Sun'
+            }
+            return map[String(key || '').toLowerCase()] || ''
+        }
+
+        function doctorScheduleSummary(doctor) {
+            var schedules = doctor && Array.isArray(doctor.doctor_schedules) ? doctor.doctor_schedules : []
+            if (!schedules.length) return 'No schedule posted.'
+            var order = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+            var unique = []
+            schedules.forEach(function (entry) {
+                var key = normalizeDayKey(entry && entry.day_of_week != null ? entry.day_of_week : '')
+                if (key && unique.indexOf(key) === -1) unique.push(key)
+            })
+            unique.sort(function (a, b) { return order.indexOf(a) - order.indexOf(b) })
+            if (!unique.length) return 'No schedule posted.'
+            var ranges = []
+            var start = unique[0]
+            var previous = unique[0]
+            for (var i = 1; i <= unique.length; i++) {
+                var current = unique[i]
+                var prevIndex = order.indexOf(previous)
+                var currentIndex = order.indexOf(current)
+                if (current && currentIndex === prevIndex + 1) {
+                    previous = current
+                    continue
+                }
+                ranges.push(start === previous ? dayChipLabel(start) : (dayChipLabel(start) + ' - ' + dayChipLabel(previous)))
+                start = current
+                previous = current
+            }
+            return ranges.join(', ')
+        }
+
+        function sameIdList(a, b) {
+            var left = Array.isArray(a) ? a.slice().map(String).sort() : []
+            var right = Array.isArray(b) ? b.slice().map(String).sort() : []
+            if (left.length !== right.length) return false
+            for (var i = 0; i < left.length; i++) {
+                if (left[i] !== right[i]) return false
+            }
+            return true
+        }
+
+        function setSelectorOpen(isOpen) {
+            if (!selectorOverlay) return
+            selectorOverlay.classList.toggle('hidden', !isOpen)
+            selectorOverlay.classList.toggle('flex', !!isOpen)
+        }
+
+        function closeSelectorModal() {
+            if (selectorState.searchTimer) clearTimeout(selectorState.searchTimer)
+            selectorState.searchTimer = null
+            selectorState.searchSeq += 1
+            selectorState.type = ''
+            selectorState.items = []
+            selectorState.activeItem = null
+            selectorState.stagedServices = []
+            if (selectorSearch) selectorSearch.value = ''
+            setSelectorOpen(false)
+        }
+
+        function setSelectorLoading(message) {
+            if (!selectorListBody) return
+            selectorListBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">' + escapeHtml(message || 'Loading records…') + '</div>'
+        }
+
+        function updateSelectorConfirmState() {
+            if (!selectorConfirmBtn) return
+            var hasSelection = false
+            if (selectorState.type === 'service') {
+                hasSelection = !!(selectorState.stagedServices && selectorState.stagedServices.length)
+            } else {
+                hasSelection = !!selectorState.activeItem
+            }
+            selectorConfirmBtn.disabled = !hasSelection
+        }
+
+        function renderSelectorPatientDetail(patient) {
+            if (!selectorDetailBody) return
+            if (!patient) {
+                selectorDetailBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select a patient to view details.</div>'
+                updateSelectorConfirmState()
+                return
+            }
+            var name = patientDisplayName(patient)
+            var age = ageFromBirthdate(patient.birthdate)
+            selectorDetailBody.innerHTML = '' +
+                '<div class="space-y-3">' +
+                    '<div class="rounded-xl border border-slate-200 bg-white p-4">' +
+                        '<div class="flex items-start gap-3">' +
+                            renderProfileAvatar(patient, name) +
+                            '<div class="min-w-0 flex-1">' +
+                                '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-1">Patient</div>' +
+                                '<div class="text-base font-semibold text-slate-900 break-words">' + escapeHtml(name) + '</div>' +
+                                '<div class="mt-1 text-[0.78rem] text-slate-500">#' + escapeHtml(patient.user_id) + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="rounded-xl border border-slate-200 bg-white p-4">' +
+                        '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Patient Summary</div>' +
+                        '<div class="grid grid-cols-2 gap-x-3 gap-y-2 text-[0.78rem]">' +
+                            '<div class="text-slate-500">Age</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(age ? (age + ' years old') : '-') + '</div>' +
+                            '<div class="text-slate-500">Date of Birth</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(patient.birthdate ? String(patient.birthdate).slice(0, 10) : '-') + '</div>' +
+                            '<div class="text-slate-500">Address</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(patient.address || '-') + '</div>' +
+                            '<div class="text-slate-500">Patient Type</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(patientTypeLabel(patient)) + '</div>' +
+                            '<div class="text-slate-500">Sex</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(titleCase(patient.sex || '-') || '-') + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>'
+            updateSelectorConfirmState()
+        }
+
+        function renderSelectorServiceDetail() {
+            if (!selectorDetailBody) return
+            var list = Array.isArray(selectorState.stagedServices) ? selectorState.stagedServices : []
+            if (!list.length) {
+                selectorDetailBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select one or more services to review them here.</div>'
+                updateSelectorConfirmState()
+                return
+            }
+            var html = '' +
+                '<div class="space-y-3">' +
+                    '<div class="rounded-xl border border-slate-200 bg-white p-4">' +
+                        '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Selected Services</div>' +
+                        '<div class="text-[0.78rem] text-slate-500">' + escapeHtml(String(list.length)) + ' service(s) selected</div>' +
+                    '</div>' +
+                    '<div class="space-y-2">'
+            list.forEach(function (service) {
+                var meta = []
+                if (service && service.duration_minutes != null) meta.push(String(service.duration_minutes) + ' min')
+                if (service && service.price != null) meta.push('₱' + String(service.price))
+                html += '' +
+                    '<div class="rounded-xl border border-slate-200 bg-white p-4">' +
+                        '<div class="text-[0.82rem] font-semibold text-slate-900">' + escapeHtml(serviceDisplayName(service) || 'Service') + '</div>' +
+                        '<div class="mt-1 text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || '-') + '</div>' +
+                        '<div class="mt-2 text-[0.75rem] text-slate-600">' + escapeHtml(service && service.description ? service.description : 'No description provided.') + '</div>' +
+                    '</div>'
+            })
+            html += '</div></div>'
+            selectorDetailBody.innerHTML = html
+            updateSelectorConfirmState()
+        }
+
+        function renderSelectorDoctorDetail(doctor) {
+            if (!selectorDetailBody) return
+            if (!doctor) {
+                selectorDetailBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select a doctor to view details.</div>'
+                updateSelectorConfirmState()
+                return
+            }
+            var name = 'Dr. ' + doctorDisplayName(doctor)
+            selectorDetailBody.innerHTML = '' +
+                '<div class="space-y-3">' +
+                    '<div class="rounded-xl border border-slate-200 bg-white p-4">' +
+                        '<div class="flex items-start gap-3">' +
+                            renderProfileAvatar(doctor, name) +
+                            '<div class="min-w-0 flex-1">' +
+                                '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-1">Doctor</div>' +
+                                '<div class="text-base font-semibold text-slate-900 break-words">' + escapeHtml(name) + '</div>' +
+                                '<div class="mt-1 text-[0.78rem] text-slate-500">#' + escapeHtml(doctor.user_id) + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="rounded-xl border border-slate-200 bg-white p-4">' +
+                        '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Doctor Summary</div>' +
+                        '<div class="grid grid-cols-2 gap-x-3 gap-y-2 text-[0.78rem]">' +
+                            '<div class="text-slate-500">Full Name</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(name) + '</div>' +
+                            '<div class="text-slate-500">Specialization</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(doctor.specialization || '-') + '</div>' +
+                            '<div class="text-slate-500">Schedule</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(doctorScheduleSummary(doctor)) + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>'
+            updateSelectorConfirmState()
+        }
+
+        function renderSelectorDetail() {
+            if (selectorState.type === 'patient') {
+                renderSelectorPatientDetail(selectorState.activeItem)
+                return
+            }
+            if (selectorState.type === 'service') {
+                renderSelectorServiceDetail()
+                return
+            }
+            if (selectorState.type === 'doctor') {
+                renderSelectorDoctorDetail(selectorState.activeItem)
+                return
+            }
+            if (selectorDetailBody) {
+                selectorDetailBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select a record to view details.</div>'
+            }
+            updateSelectorConfirmState()
+        }
+
+        function fetchWalkInPatients(query) {
+            if (typeof apiFetch !== 'function') return Promise.resolve([])
+            var url = "{{ url('/api/patients') }}?per_page=10&sort=desc"
+            var trimmed = String(query || '').trim()
+            if (trimmed) url += '&search=' + encodeURIComponent(trimmed)
+            return apiFetch(url, { method: 'GET' })
+                .then(function (response) { return readResponse(response) })
+                .then(function (result) {
+                    if (!result.ok) return []
+                    return result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                })
+                .catch(function () { return [] })
+        }
+
+        function renderSelectorPatientList(items, query) {
+            if (!selectorListBody) return
+            selectorState.items = Array.isArray(items) ? items : []
+            if (selectorListLabel) selectorListLabel.textContent = query ? 'Patient search results' : 'Latest patients'
+            if (!selectorState.items.length) {
+                selectorListBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No patients found.</div>'
+                renderSelectorDetail()
+                return
+            }
+            var html = ''
+            selectorState.items.forEach(function (patient, idx) {
+                var active = selectorState.activeItem && String(selectorState.activeItem.user_id) === String(patient.user_id)
+                var name = patientDisplayName(patient)
+                var meta = []
+                if (patient.email) meta.push(patient.email)
+                if (patient.contact_number) meta.push(patient.contact_number)
+                html += '' +
+                    '<button type="button" class="reception-selector-patient w-full rounded-xl border px-3 py-3 text-left transition-colors ' + (active ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-white hover:border-green-200 hover:bg-slate-50') + '" data-index="' + idx + '">' +
+                        '<div class="flex items-start justify-between gap-3">' +
+                            '<div class="min-w-0">' +
+                                '<div class="text-[0.8rem] font-semibold text-slate-900 truncate">' + escapeHtml(name) + '</div>' +
+                                '<div class="mt-1 text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || ('#' + String(patient.user_id))) + '</div>' +
+                            '</div>' +
+                            '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] font-semibold border ' + (active ? 'border-green-200 bg-white text-green-700' : 'border-slate-200 bg-slate-50 text-slate-500') + '">' + (active ? 'Selected' : 'Recent') + '</span>' +
+                        '</div>' +
+                    '</button>'
+            })
+            selectorListBody.innerHTML = html
+            Array.prototype.forEach.call(selectorListBody.querySelectorAll('.reception-selector-patient'), function (btn) {
+                btn.addEventListener('click', function () {
+                    var idx = parseInt(btn.getAttribute('data-index') || '-1', 10)
+                    selectorState.activeItem = selectorState.items[idx] || null
+                    renderSelectorPatientList(selectorState.items, query)
+                    renderSelectorDetail()
+                })
+            })
+            renderSelectorDetail()
+        }
+
+        function walkInServiceSourceList() {
+            var query = normalizeText(selectorSearch ? selectorSearch.value : '')
+            var srcServices, srcPrevIds, srcPrevIdSet
+            if (selectorState.mode === 'guest') {
+                var gd = window._guestData || {}
+                srcServices = Array.isArray(gd.services) ? gd.services : []
+                srcPrevIds = Array.isArray(gd.previousServiceIds) ? gd.previousServiceIds : []
+                srcPrevIdSet = gd.previousServiceIdSet || {}
+            } else {
+                srcServices = (services || []).slice()
+                srcPrevIds = previousServiceIds || []
+                srcPrevIdSet = previousServiceIdSet || {}
+            }
+            var list = srcServices.slice()
+            var isWalkIn = selectorState.mode === 'guest' || getAppointmentType() === 'walk_in'
+            if (isWalkIn) {
+                list = list.filter(function (service) { return !isWalkInExcludedService(service) })
+            }
+            var baseSelection = selectorState.stagedServices && selectorState.stagedServices.length ? selectorState.stagedServices[0] : null
+            if (baseSelection) {
+                var baseGroup = serviceGroup(baseSelection)
+                if (baseGroup) {
+                    list = list.filter(function (service) { return serviceGroup(service) === baseGroup })
+                }
+            }
+            if (query) {
+                list = list.filter(function (service) {
+                    return wordPrefixMatch(service && service.service_name ? service.service_name : '', query)
+                })
+            }
+            list.sort(function (a, b) {
+                var ai = a && a.service_id != null ? parseInt(a.service_id, 10) : 0
+                var bi = b && b.service_id != null ? parseInt(b.service_id, 10) : 0
+                return (isNaN(bi) ? 0 : bi) - (isNaN(ai) ? 0 : ai)
+            })
+            if (srcPrevIds && srcPrevIds.length) {
+                var order = {}
+                srcPrevIds.forEach(function (id, idx) { order[String(id)] = idx })
+                var pinned = []
+                var rest = []
+                list.forEach(function (service) {
+                    var sid = service && service.service_id != null ? String(service.service_id) : ''
+                    if (sid && order[sid] != null) pinned.push(service)
+                    else rest.push(service)
+                })
+                pinned.sort(function (a, b) {
+                    return (order[String(a.service_id)] || 0) - (order[String(b.service_id)] || 0)
+                })
+                list = pinned.concat(rest)
+            }
+            return list.slice(0, 12)
+        }
+
+        function renderSelectorServiceList() {
+            if (!selectorListBody) return
+            var list = walkInServiceSourceList()
+            var query = String(selectorSearch ? selectorSearch.value : '').trim()
+            selectorState.items = list
+            if (selectorListLabel) selectorListLabel.textContent = query ? 'Service search results' : 'Latest services'
+            if (!list.length) {
+                selectorListBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No services found.</div>'
+                renderSelectorDetail()
+                return
+            }
+            var html = ''
+            list.forEach(function (service, idx) {
+                var isSelected = (selectorState.stagedServices || []).some(function (entry) {
+                    return String(entry && entry.service_id) === String(service && service.service_id)
+                })
+                var meta = []
+                if (service && service.duration_minutes != null) meta.push(String(service.duration_minutes) + ' min')
+                if (service && service.price != null) meta.push('₱' + String(service.price))
+                var prevIdSet = selectorState.mode === 'guest' ? (window._guestData ? window._guestData.previousServiceIdSet : {}) : (previousServiceIdSet || {})
+                var isLast = !!(prevIdSet[String(service.service_id)])
+                html += '' +
+                    '<button type="button" class="reception-selector-service w-full rounded-xl border px-3 py-3 text-left transition-colors ' + (isSelected ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-white hover:border-green-200 hover:bg-slate-50') + '" data-index="' + idx + '">' +
+                        '<div class="flex items-start justify-between gap-3">' +
+                            '<div class="min-w-0">' +
+                                '<div class="text-[0.8rem] font-semibold text-slate-900 truncate">' + escapeHtml(serviceDisplayName(service) || 'Service') + '</div>' +
+                                '<div class="mt-1 text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || '-') + '</div>' +
+                                (service && service.description ? '<div class="mt-1 text-[0.72rem] text-slate-500">' + escapeHtml(service.description) + '</div>' : '') +
+                            '</div>' +
+                            '<div class="shrink-0 flex flex-col items-end gap-1">' +
+                                (isLast ? '<span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[0.65rem] font-semibold text-amber-700">Last inquired</span>' : '') +
+                                '<span class="inline-flex items-center rounded-full border px-2 py-0.5 text-[0.65rem] font-semibold ' + (isSelected ? 'border-green-200 bg-white text-green-700' : 'border-slate-200 bg-slate-50 text-slate-500') + '">' + (isSelected ? 'Selected' : 'Add') + '</span>' +
+                            '</div>' +
+                        '</div>' +
+                    '</button>'
+            })
+            selectorListBody.innerHTML = html
+            Array.prototype.forEach.call(selectorListBody.querySelectorAll('.reception-selector-service'), function (btn) {
+                btn.addEventListener('click', function () {
+                    var idx = parseInt(btn.getAttribute('data-index') || '-1', 10)
+                    var chosen = selectorState.items[idx] || null
+                    if (!chosen || chosen.service_id == null) return
+                    var key = String(chosen.service_id)
+                    var exists = (selectorState.stagedServices || []).some(function (entry) {
+                        return String(entry && entry.service_id) === key
+                    })
+                    if (exists) {
+                        selectorState.stagedServices = (selectorState.stagedServices || []).filter(function (entry) {
+                            return String(entry && entry.service_id) !== key
+                        })
+                    } else {
+                        selectorState.stagedServices = (selectorState.stagedServices || []).concat([chosen])
+                    }
+                    renderSelectorServiceList()
+                    renderSelectorDetail()
+                })
+            })
+            renderSelectorDetail()
+        }
+
+        function walkInDoctorSourceList() {
+            var srcSelectedServices, srcDoctorList, srcPreviousDoctorId
+            if (selectorState.mode === 'guest') {
+                var gd = window._guestData || {}
+                srcSelectedServices = Array.isArray(gd.selectedServices) ? gd.selectedServices : []
+                srcDoctorList = Array.isArray(gd.doctors) ? gd.doctors : []
+                srcPreviousDoctorId = gd.previousDoctorId || 0
+            } else {
+                srcSelectedServices = selectedServices || []
+                srcDoctorList = doctors || []
+                srcPreviousDoctorId = previousDoctorId || 0
+            }
+            if (!srcSelectedServices || !srcSelectedServices.length) {
+                return { needsService: true, list: [] }
+            }
+            var query = normalizeText(selectorSearch ? selectorSearch.value : '')
+            var isGuest = selectorState.mode === 'guest'
+            var type = isGuest ? 'walk_in' : getAppointmentType()
+            var dateStr = type === 'walk_in'
+                ? localDateIso()
+                : ((dateSelect && dateSelect.value) ? String(dateSelect.value) : localDateIso())
+            var dayKey = dayKeyFromDate(dateStr)
+            var checkTime = type === 'walk_in'
+                ? new Date().toTimeString().slice(0, 5)
+                : (selectedSlotStart ? String(selectedSlotStart).slice(0, 5) : '')
+            var categories = (srcSelectedServices || [])
+                .map(function (service) { return extractServiceCategory(service && service.service_name ? service.service_name : '') })
+                .filter(function (category) { return !!category })
+            var list = (srcDoctorList || []).filter(function (doctor) {
+                var spec = doctor && doctor.specialization ? doctor.specialization : ''
+                return categories.every(function (category) { return specializationMatches(category, spec) })
+            })
+            if (query) {
+                list = list.filter(function (doctor) {
+                    var spec = doctor && doctor.specialization ? doctor.specialization : ''
+                    return wordPrefixMatch(doctorDisplayName(doctor) + ' ' + spec, query)
+                })
+            }
+            var enriched = list.map(function (doctor) {
+                var isDoctorAvailable = doctor && doctor.is_available !== false
+                var hasSchedule = !!dayKey && hasScheduleAtTime(doctor, dayKey, dateStr, checkTime)
+                var isSelectable = isDoctorAvailable && hasSchedule
+                var tag = ''
+                if (!isDoctorAvailable) tag = 'Unavailable'
+                else if (!hasSchedule) tag = 'No schedule on this time'
+                else if (srcPreviousDoctorId && parseInt(doctor.user_id, 10) === srcPreviousDoctorId) tag = 'Last provider'
+                return { doctor: doctor, isSelectable: isSelectable, tag: tag }
+            })
+            enriched.sort(function (a, b) {
+                if (a.isSelectable !== b.isSelectable) return a.isSelectable ? -1 : 1
+                if ((a.tag === 'Last provider') !== (b.tag === 'Last provider')) return a.tag === 'Last provider' ? -1 : 1
+                return normalizeText(doctorDisplayName(a.doctor)).localeCompare(normalizeText(doctorDisplayName(b.doctor)))
+            })
+            return { needsService: false, list: enriched.slice(0, 10) }
+        }
+
+        function renderSelectorDoctorList() {
+            if (!selectorListBody) return
+            var source = walkInDoctorSourceList()
+            selectorState.items = source.list
+            if (selectorListLabel) selectorListLabel.textContent = selectorSearch && selectorSearch.value ? 'Doctor search results' : 'Latest doctors'
+            if (source.needsService) {
+                selectorListBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select a service first to load matching doctors.</div>'
+                renderSelectorDetail()
+                return
+            }
+            if (!source.list.length) {
+                selectorListBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No doctors found.</div>'
+                renderSelectorDetail()
+                return
+            }
+            var html = ''
+            source.list.forEach(function (entry, idx) {
+                var doctor = entry.doctor
+                var isActive = selectorState.activeItem && String(selectorState.activeItem.user_id) === String(doctor.user_id)
+                html += '' +
+                    '<button type="button" class="reception-selector-doctor w-full rounded-xl border px-3 py-3 text-left transition-colors ' + (entry.isSelectable ? (isActive ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-white hover:border-green-200 hover:bg-slate-50') : 'border-slate-200 bg-slate-100/80') + '" data-index="' + idx + '" ' + (entry.isSelectable ? '' : 'disabled') + '>' +
+                        '<div class="flex items-start justify-between gap-3">' +
+                            '<div class="min-w-0">' +
+                                '<div class="text-[0.8rem] font-semibold text-slate-900 truncate">' + escapeHtml('Dr. ' + doctorDisplayName(doctor)) + '</div>' +
+                                '<div class="mt-1 text-[0.72rem] text-slate-500">' + escapeHtml(doctor.specialization || '-') + '</div>' +
+                            '</div>' +
+                            (entry.tag ? '<span class="inline-flex items-center rounded-full border px-2 py-0.5 text-[0.65rem] font-semibold ' + (entry.tag === 'Last provider' ? 'border-green-200 bg-white text-green-700' : 'border-slate-200 bg-white text-slate-500') + '">' + escapeHtml(entry.tag) + '</span>' : '') +
+                        '</div>' +
+                    '</button>'
+            })
+            selectorListBody.innerHTML = html
+            Array.prototype.forEach.call(selectorListBody.querySelectorAll('.reception-selector-doctor'), function (btn) {
+                btn.addEventListener('click', function () {
+                    var idx = parseInt(btn.getAttribute('data-index') || '-1', 10)
+                    selectorState.activeItem = selectorState.items[idx] ? selectorState.items[idx].doctor : null
+                    renderSelectorDoctorList()
+                    renderSelectorDetail()
+                })
+            })
+            renderSelectorDetail()
+        }
+
+        function ensureWalkInServicesLoaded() {
+            if (servicesLoaded && services.length) return Promise.resolve(services)
+            if (typeof apiFetch !== 'function') return Promise.resolve([])
+            return apiFetch("{{ url('/api/services') }}?per_page=100", { method: 'GET' })
+                .then(function (response) { return readResponse(response) })
+                .then(function (result) {
+                    if (!result.ok) return services || []
+                    services = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    servicesLoaded = true
+                    return services
+                })
+                .catch(function () { return services || [] })
+        }
+
+        function ensureWalkInDoctorsLoaded() {
+            if (doctorsLoaded && doctors.length) return Promise.resolve(doctors)
+            if (typeof apiFetch !== 'function') return Promise.resolve([])
+            return apiFetch("{{ url('/api/doctors') }}?per_page=100", { method: 'GET' })
+                .then(function (response) { return readResponse(response) })
+                .then(function (result) {
+                    if (!result.ok) return doctors || []
+                    doctors = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    doctorsLoaded = true
+                    return doctors
+                })
+                .catch(function () { return doctors || [] })
+        }
+
+        function openSelectorModal(type, mode) {
+            selectorState.type = type
+            selectorState.mode = mode || 'account'
+            selectorState.items = []
+            selectorState.activeItem = null
+            selectorState.stagedServices = []
+            if (selectorSearch) selectorSearch.value = ''
+            if (type === 'patient') {
+                selectorState.activeItem = selectedPatient
+                if (selectorTitle) selectorTitle.textContent = 'Select Patient'
+                if (selectorSubtitle) selectorSubtitle.textContent = 'Choose from the most recently created patient records or search for another patient.'
+                if (selectorSearch) selectorSearch.placeholder = 'Search patient by name, email, contact, or address'
+                if (selectorConfirmBtn) selectorConfirmBtn.textContent = 'Select Patient'
+                setSelectorOpen(true)
+                setSelectorLoading('Loading patients…')
+                fetchWalkInPatients('').then(function (items) {
+                    if (selectorState.type !== 'patient') return
+                    renderSelectorPatientList(items, '')
+                })
+            } else if (type === 'service') {
+                selectorState.stagedServices = Array.isArray(selectedServices) ? selectedServices.slice() : []
+                if (selectorTitle) selectorTitle.textContent = 'Select Service/s'
+                if (selectorSubtitle) selectorSubtitle.textContent = 'Choose one or more services from the latest records or search for another service.'
+                if (selectorSearch) selectorSearch.placeholder = 'Search service name'
+                if (selectorConfirmBtn) selectorConfirmBtn.textContent = 'Select Service/s'
+                setSelectorOpen(true)
+                setSelectorLoading('Loading services…')
+                ensureWalkInServicesLoaded().then(function () {
+                    if (selectorState.type !== 'service') return
+                    renderSelectorServiceList()
+                })
+            } else if (type === 'doctor') {
+                selectorState.activeItem = selectedDoctor
+                if (selectorTitle) selectorTitle.textContent = 'Select Doctor'
+                if (selectorSubtitle) selectorSubtitle.textContent = 'Choose from the most recently created matching doctors or search for another doctor.'
+                if (selectorSearch) selectorSearch.placeholder = 'Search doctor name or specialization'
+                if (selectorConfirmBtn) selectorConfirmBtn.textContent = 'Select Doctor'
+                setSelectorOpen(true)
+                setSelectorLoading('Loading doctors…')
+                Promise.all([ensureWalkInServicesLoaded(), ensureWalkInDoctorsLoaded()]).then(function () {
+                    if (selectorState.type !== 'doctor') return
+                    renderSelectorDoctorList()
+                })
+            } else {
+                return
+            }
+            renderSelectorDetail()
+            updateSelectorConfirmState()
+            window.setTimeout(function () {
+                if (selectorSearch && selectorState.type === type) selectorSearch.focus()
+            }, 80)
         }
 
         function formatAppointmentVisitLabel(value) {
@@ -2189,6 +2922,7 @@ function setWalkInTab(tab) {
         function setPatientSelection(patient) {
             selectedPatient = patient || null
             if (patientSelect) patientSelect.value = patient && patient.user_id ? String(patient.user_id) : ''
+            syncSelectionTriggers()
             previousDoctorId = 0
             previousServiceIds = []
             previousServiceIdSet = {}
@@ -2387,6 +3121,7 @@ function setWalkInTab(tab) {
         function renderSelectedServices() {
             if (!selectedServicesEl) return
             var list = Array.isArray(selectedServices) ? selectedServices : []
+            syncSelectionTriggers()
             if (!list.length) {
                 selectedServicesEl.innerHTML = '<div class="text-[0.75rem] text-slate-500">No services selected.</div>'
                 return
@@ -2566,6 +3301,7 @@ function setWalkInTab(tab) {
         function setDoctorSelection(doctor) {
             selectedDoctor = doctor || null
             if (doctorSelect) doctorSelect.value = doctor && doctor.user_id ? String(doctor.user_id) : ''
+            syncSelectionTriggers()
 
             if (doctorPreview) {
                 if (!doctor) {
@@ -2729,6 +3465,7 @@ function setWalkInTab(tab) {
                 if (doctorSearch) doctorSearch.disabled = true
                 setDoctorSelection(null)
                 if (doctorSearch) doctorSearch.value = ''
+                syncSelectionTriggers()
                 if (doctorResults) doctorResults.classList.add('hidden')
                 return
             }
@@ -2766,6 +3503,89 @@ function setWalkInTab(tab) {
                     }
                 }
             }
+            syncSelectionTriggers()
+        }
+
+        if (selectorSearch) {
+            selectorSearch.addEventListener('input', function () {
+                if (selectorState.searchTimer) clearTimeout(selectorState.searchTimer)
+                if (selectorState.type === 'patient') {
+                    var query = String(selectorSearch.value || '').trim()
+                    selectorState.searchTimer = window.setTimeout(function () {
+                        var requestId = ++selectorState.searchSeq
+                        setSelectorLoading(query ? 'Searching patients…' : 'Loading patients…')
+                        fetchWalkInPatients(query).then(function (items) {
+                            if (selectorState.type !== 'patient' || selectorState.searchSeq !== requestId) return
+                            renderSelectorPatientList(items, query)
+                        })
+                    }, 250)
+                    return
+                }
+                if (selectorState.type === 'service') {
+                    renderSelectorServiceList()
+                    return
+                }
+                if (selectorState.type === 'doctor') {
+                    renderSelectorDoctorList()
+                }
+            })
+        }
+
+        if (selectorConfirmBtn) {
+            selectorConfirmBtn.addEventListener('click', function () {
+                if (selectorState.type === 'patient') {
+                    if (selectorState.mode === 'guest') return
+                    if (!selectorState.activeItem) return
+                    setPatientSelection(selectorState.activeItem)
+                    closeSelectorModal()
+                    return
+                }
+                if (selectorState.type === 'service') {
+                    if (selectorState.mode === 'guest') {
+                        var gd = window._guestData || {}
+                        if (gd && typeof gd.applyServices === 'function') {
+                            gd.applyServices(Array.isArray(selectorState.stagedServices) ? selectorState.stagedServices.slice() : [])
+                        }
+                        closeSelectorModal()
+                        return
+                    }
+                    var nextServices = Array.isArray(selectorState.stagedServices) ? selectorState.stagedServices.slice() : []
+                    var currentIds = selectedServiceIds()
+                    var nextIds = nextServices.map(function (service) { return service && service.service_id != null ? parseInt(service.service_id, 10) : 0 }).filter(function (id) { return !!id && !isNaN(id) })
+                    var changed = !sameIdList(currentIds, nextIds)
+                    selectedServices = nextServices
+                    syncServiceHiddenInput()
+                    renderSelectedServices()
+                    filterDoctorsByService()
+                    if (changed && !selectedServices.length && doctorSearch) {
+                        doctorSearch.value = ''
+                    }
+                    closeSelectorModal()
+                    return
+                }
+                if (selectorState.type === 'doctor') {
+                    if (selectorState.mode === 'guest') {
+                        if (!selectorState.activeItem) return
+                        var gd = window._guestData || {}
+                        if (gd && typeof gd.applyDoctor === 'function') {
+                            gd.applyDoctor(selectorState.activeItem)
+                        }
+                        closeSelectorModal()
+                        return
+                    }
+                    if (!selectorState.activeItem) return
+                    setDoctorSelection(selectorState.activeItem)
+                    closeSelectorModal()
+                }
+            })
+        }
+
+        if (selectorCloseBtn) selectorCloseBtn.addEventListener('click', closeSelectorModal)
+        if (selectorCancelBtn) selectorCancelBtn.addEventListener('click', closeSelectorModal)
+        if (selectorOverlay) {
+            selectorOverlay.addEventListener('click', function (e) {
+                if (e.target === selectorOverlay) closeSelectorModal()
+            })
         }
 
         function searchDoctors(query) {
@@ -3407,51 +4227,30 @@ function setWalkInTab(tab) {
         if (typeScheduledBtn) typeScheduledBtn.addEventListener('click', function () { setAppointmentType('scheduled') })
         if (typeWalkInBtn) typeWalkInBtn.addEventListener('click', function () { setAppointmentType('walk_in') })
 
-        if (patientSearch) {
-            patientSearch.addEventListener('input', function () {
-                var q = String(patientSearch.value || '').trim()
-                if (selectedPatient) setPatientSelection(null)
-                if (patientSearchTimer) clearTimeout(patientSearchTimer)
-                patientSearchTimer = setTimeout(function () {
-                    searchPatients(q)
-                }, 250)
-            })
-            patientSearch.addEventListener('focus', function () {
-                var q = String(patientSearch.value || '').trim()
-                if (q) {
-                    searchPatients(q)
-                } else {
-                    searchPatients('')
-                }
-            })
+        function bindSelectorTrigger(inputEl, buttonEl, type) {
+            function openCurrentSelector() {
+                showError('')
+                showSuccess('')
+                if (type === 'doctor' && inputEl && inputEl.disabled) return
+                openSelectorModal(type)
+            }
+            if (inputEl) {
+                inputEl.addEventListener('click', openCurrentSelector)
+                inputEl.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        openCurrentSelector()
+                    }
+                })
+            }
+            if (buttonEl) {
+                buttonEl.addEventListener('click', openCurrentSelector)
+            }
         }
 
-        if (serviceSearch) {
-            serviceSearch.addEventListener('input', function () {
-                loadServicesAndDoctors()
-                var q = String(serviceSearch.value || '').trim()
-                searchServices(q)
-            })
-            serviceSearch.addEventListener('focus', function () {
-                loadServicesAndDoctors()
-                var q = String(serviceSearch.value || '').trim()
-                searchServices(q)
-            })
-        }
-
-        if (doctorSearch) {
-            doctorSearch.addEventListener('input', function () {
-                loadServicesAndDoctors()
-                var q = String(doctorSearch.value || '').trim()
-                if (selectedDoctor) setDoctorSelection(null)
-                searchDoctors(q)
-            })
-            doctorSearch.addEventListener('focus', function () {
-                loadServicesAndDoctors()
-                var q = String(doctorSearch.value || '').trim()
-                searchDoctors(q)
-            })
-        }
+        bindSelectorTrigger(patientSearch, patientPickerBtn, 'patient')
+        bindSelectorTrigger(serviceSearch, servicePickerBtn, 'service')
+        bindSelectorTrigger(doctorSearch, doctorPickerBtn, 'doctor')
 
         document.addEventListener('click', function (e) {
             var target = e && e.target ? e.target : null
@@ -3514,6 +4313,7 @@ function setWalkInTab(tab) {
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
+                closeSelectorModal()
                 closeDateOverlay()
                 closeTimeOverlay()
             }
@@ -3525,6 +4325,7 @@ function setWalkInTab(tab) {
         if (typeInput && !typeInput.value) typeInput.value = 'walk_in'
         syncTypeToggleUI()
         applyAppointmentTypeUI()
+        syncSelectionTriggers()
 
         if (form) {
             form.addEventListener('submit', function (e) {
@@ -3752,5 +4553,8 @@ function setWalkInTab(tab) {
                 })
             })
         }
+
+        window._openSelectorModal = openSelectorModal
+        window._closeSelectorModal = closeSelectorModal
     })
 </script>
