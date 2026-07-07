@@ -93,7 +93,7 @@
             <h3 class="text-xs font-semibold text-slate-900">Today's Transactions</h3>
             <div class="flex items-center gap-2">
                 <span id="adminTxnTodayCount" class="text-[0.68rem] text-slate-400 uppercase tracking-widest">- entries</span>
-                <button type="button" id="adminTxnTodayRefreshBtn" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.68rem] font-semibold text-slate-600 hover:bg-slate-50">
+                <button type="button" id="adminTxnTodayRefreshBtn" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-2.5 py-1.5 text-[0.68rem] font-semibold text-orange-700 hover:bg-orange-100">
                     <x-lucide-refresh-cw class="w-[12px] h-[12px]" />
                     Refresh
                 </button>
@@ -470,6 +470,7 @@
             var ds = todayIsoDate()
             var q = trim(txnSearch ? txnSearch.value : '').toLowerCase()
             var svc = txnServiceFilter ? txnServiceFilter.value : ''
+            txnBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading transactions…</td></tr>'
             var url = '/api/transactions?per_page=15&start_date=' + ds + '&end_date=' + ds + '&order=latest'
             url += '&page=' + (page || 1)
             if (q) url += '&search=' + encodeURIComponent(q)

@@ -155,7 +155,13 @@
                 <h3 class="text-sm font-semibold text-slate-900">Transactions record</h3>
                 <p class="text-xs text-slate-500">Search and review billing transactions.</p>
             </div>
-            <button id="receptionTransactionsTodayOnlyBtn" type="button" class="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.75rem] font-semibold text-slate-700 hover:bg-slate-50">Show today only</button>
+            <div class="flex items-center gap-2">
+                <button id="receptionTransactionsTodayOnlyBtn" type="button" class="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.75rem] font-semibold text-slate-700 hover:bg-slate-50">Show today only</button>
+                <button type="button" id="recTransRefreshBtn" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+                    <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+                    Refresh
+                </button>
+            </div>
         </div>
 
         <div id="receptionTransactionsError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
@@ -179,10 +185,6 @@
                     <option value="latest">Latest first</option>
                     <option value="oldest">Oldest first</option>
                 </select>
-            </div>
-            <div class="min-w-0">
-                <label class="block text-[0.7rem] text-slate-600 mb-1">&nbsp;</label>
-                <button id="receptionTransactionsRefresh" type="button" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50">Refresh</button>
             </div>
         </div>
 
@@ -363,7 +365,7 @@
         var txServiceId = document.getElementById('receptionTransactionsServiceId')
         var txServiceResults = document.getElementById('receptionTransactionsServiceResults')
         var txSort = document.getElementById('receptionTransactionsSort')
-        var txRefresh = document.getElementById('receptionTransactionsRefresh')
+        var txRefresh = document.getElementById('recTransRefreshBtn')
         var txTableBody = document.getElementById('receptionTransactionsTableBody')
         var txPagination = document.getElementById('receptionTransactionsPagination')
 
@@ -1003,6 +1005,7 @@
         function loadTransactions() {
             if (typeof apiFetch !== 'function') return
             showTransactionsError('')
+            txTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading transactions…</td></tr>'
 
             var url = "{{ url('/api/transactions') }}" + '?per_page=15'
             var order = txSort && txSort.value ? String(txSort.value) : 'latest'

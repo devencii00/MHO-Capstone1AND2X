@@ -36,7 +36,7 @@
                 </select>
             </div>
             <div class="w-full md:w-24 pt-1">
-                <button type="button" id="adminAuditRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.68rem] font-semibold text-slate-600 hover:bg-slate-50">
+                <button type="button" id="adminAuditRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-2.5 py-1.5 text-[0.68rem] font-semibold text-orange-700 hover:bg-orange-100">
                     <x-lucide-refresh-cw class="w-[12px] h-[12px]" />
                     Refresh
                 </button>
@@ -112,7 +112,7 @@
                 </select>
             </div>
             <div class="w-full md:w-24 pt-1">
-                <button type="button" id="adminAccessRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.68rem] font-semibold text-slate-600 hover:bg-slate-50">
+                <button type="button" id="adminAccessRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-2.5 py-1.5 text-[0.68rem] font-semibold text-orange-700 hover:bg-orange-100">
                     <x-lucide-refresh-cw class="w-[12px] h-[12px]" />
                     Refresh
                 </button>
@@ -553,6 +553,10 @@
     })
 
     function reloadAuditData() {
+        var auditTbody = document.querySelector('#adminLogsPanelAudit tbody')
+        var accessTbody = document.querySelector('#adminLogsPanelAccess tbody')
+        if (auditTbody) auditTbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">Loading audit logs…</td></tr>'
+        if (accessTbody) accessTbody.innerHTML = '<tr><td colspan="3" class="py-4 text-center text-[0.78rem] text-slate-400">Loading access logs…</td></tr>'
         fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function (r) { return r.text() })
             .then(function (html) {

@@ -45,6 +45,12 @@
                 <option value="name_desc">Name Z–A</option>
             </select>
         </div>
+        <div class="w-full md:w-28 pt-1">
+            <button type="button" id="adminStaffRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+                <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+                Refresh
+            </button>
+        </div>
     </div>
 
 <div class="overflow-x-auto overflow-y-auto scrollbar-hidden" style="height: 610px;">
@@ -1750,6 +1756,11 @@
             sortSelect.addEventListener('change', function () {
                 renderDoctorsWithReset()
             })
+        }
+
+        var staffRefreshBtn = document.getElementById('adminStaffRefreshBtn')
+        if (staffRefreshBtn) {
+            staffRefreshBtn.addEventListener('click', function () { loadDoctors() })
         }
 
         if (scheduleAddToggle && scheduleFormWrap) {

@@ -129,9 +129,15 @@
                 <h3 class="text-sm font-semibold text-slate-900">Manage appointment</h3>
                 <p class="text-xs text-slate-500">Search, update status, or mark check-in for an existing appointment.</p>
             </div>
-           <button id="receptionManageTodayOnlyBtn" type="button" class="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.75rem] font-semibold text-slate-700">
-    Show today only
-</button>
+           <div class="flex items-center gap-2">
+            <button id="receptionManageTodayOnlyBtn" type="button" class="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.75rem] font-semibold text-slate-700">
+                Show today only
+            </button>
+            <button type="button" id="recBookRefreshBtn" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+                <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+                Refresh
+            </button>
+        </div>
         </div>
 
         <div id="receptionManageAppointmentError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
@@ -189,7 +195,6 @@
     </div>
     <div id="receptionManageAppointmentTableFooter" class="px-3 py-2 text-[0.72rem] text-slate-500 bg-white border-t border-slate-100 flex items-center justify-between">
         <div id="receptionManageAppointmentMeta">Showing latest 10 booked appointments.</div>
-        <button id="receptionManageAppointmentRefresh" type="button" class="text-green-700 font-semibold hover:text-green-800">Refresh</button>
     </div>
     <div id="receptionManagePagination" class="px-3 py-2 bg-white border-t border-slate-50 flex items-center justify-center gap-1"></div>
 </div>
@@ -2892,7 +2897,7 @@ function setAppointmentTab(tab) {
         var manageStatusSelect = document.getElementById('receptionManageStatus')
         var manageTableBody = document.getElementById('receptionManageAppointmentTableBody')
         var manageMeta = document.getElementById('receptionManageAppointmentMeta')
-        var manageRefreshBtn = document.getElementById('receptionManageAppointmentRefresh')
+        var manageRefreshBtn = document.getElementById('recBookRefreshBtn')
         var manageTodayOnlyBtn = document.getElementById('receptionManageTodayOnlyBtn')
         var manageShowTodayOnly = false
         var manageSearchTimer = null
@@ -3489,6 +3494,7 @@ function updateManageTodayButton() {
             showManageSuccess('')
             showManageResult(null)
             setManageSubmitting(true)
+            manageTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading appointments…</td></tr>'
 
             var url = "{{ url('/api/appointments') }}" + '?per_page=15&appointment_type=scheduled'
             var order = manageSortSelect && manageSortSelect.value ? String(manageSortSelect.value) : 'latest'

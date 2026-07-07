@@ -93,10 +93,6 @@
                     Call next
                 </span>
             </button>
-            <button id="receptionRefreshQueueButton" type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 text-white text-[0.8rem] font-semibold hover:bg-orange-700 transition-colors border border-orange-200">
-                <x-lucide-refresh-cw class="w-[18px] h-[18px]" />
-                Refresh
-            </button>
             <a href="{{ route('queue.display', ['date' => now()->toDateString()]) }}" target="_blank" id="receptionPublicQueueLinkButton" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-slate-800 text-[0.8rem] font-semibold hover:bg-slate-50 transition-colors border border-slate-200">
                 <x-lucide-link class="w-[18px] h-[18px]" />
                 Public link
@@ -210,6 +206,12 @@
                     <option value="newest">Newest</option>
                     <option value="oldest">Oldest</option>
                 </select>
+            </div>
+            <div class="w-full md:w-28 pt-1">
+                <button type="button" id="recQueueRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+                    <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+                    Refresh
+                </button>
             </div>
         </div>
 
@@ -1618,13 +1620,6 @@
 
         // Status item clicks handled via event delegation above
 
-        var refreshButton = document.getElementById('receptionRefreshQueueButton')
-        if (refreshButton) {
-            refreshButton.addEventListener('click', function () {
-                refreshFullPage()
-            })
-        }
-
         var callNextButton = document.getElementById('receptionCallNextButton')
         var callNextSpinner = document.getElementById('receptionCallNextSpinner')
         var callNextContent = document.getElementById('receptionCallNextContent')
@@ -1969,6 +1964,13 @@
         }
 
         // Only set up polling and Echo listener once (not after each refresh)
+        var queueRefreshBtn = document.getElementById('recQueueRefreshBtn')
+        if (queueRefreshBtn) {
+            queueRefreshBtn.addEventListener('click', function () {
+                refreshFullPage()
+            })
+        }
+
         if (!window.__queueInited) {
             window.__queueInited = true
             fetchQueueSnapshot()

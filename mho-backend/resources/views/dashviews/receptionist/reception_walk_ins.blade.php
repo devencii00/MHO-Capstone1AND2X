@@ -4,7 +4,7 @@
     Walk-in
 </button>
 <button id="receptionWalkInTabGuest" type="button" class="px-4 py-3 text-xs font-semibold text-slate-900 bg-white hover:bg-slate-50 border-l border-slate-200 rounded-tr-[18px]">
-    History
+    Walk-ins History
 </button>
     </div>
 
@@ -45,7 +45,10 @@
                 <option value="cancelled">Cancelled</option>
                 <option value="no_show">No-show</option>
             </select>
-            <button id="receptionWalkInHistoryRefresh" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-600 text-white text-[0.72rem] font-semibold hover:bg-green-700">Refresh</button>
+            <button type="button" id="recWalkinsRefreshBtn" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+                <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+                Refresh
+            </button>
         </div>
     </div>
     <div id="receptionWalkInHistoryError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
@@ -584,7 +587,7 @@ function setWalkInTab(tab) {
         var sortSelect = document.getElementById('receptionWalkInHistorySort')
         var statusSelect = document.getElementById('receptionWalkInHistoryStatus')
         var tableBody = document.getElementById('receptionWalkInHistoryTableBody')
-        var refreshBtn = document.getElementById('receptionWalkInHistoryRefresh')
+        var refreshBtn = document.getElementById('recWalkinsRefreshBtn')
         var searchTimer = null
         var services = []
         var servicesLoaded = false
@@ -715,7 +718,7 @@ function setWalkInTab(tab) {
                         '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(doctorName) + '</td>' +
                         '<td class="px-3 py-2 whitespace-nowrap"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border ' + statusBadgeClass(appt) + '">' + escapeHtml(status) + '</span></td>' +
                         '<td class="text-right px-3 py-2 whitespace-nowrap">' +
-                            '<button type="button" class="walkin-see-history-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300" data-patient-id="' + escapeHtml(patient && patient.user_id != null ? patient.user_id : '') + '" data-patient-name="' + escapeHtml(patientName) + '">See History</button>' +
+                            '<button type="button" class="walkin-see-history-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300" data-patient-id="' + escapeHtml(patient && patient.user_id != null ? patient.user_id : '') + '" data-patient-name="' + escapeHtml(patientName) + '">See Walk-ins History</button>' +
                         '</td>' +
                     '</tr>'
             }).join('')
@@ -819,7 +822,7 @@ function setWalkInTab(tab) {
         function loadHistory() {
             if (typeof apiFetch !== 'function') return
             showError('')
-            renderRows([])
+            tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading walk-in history…</td></tr>'
             var metaBox = document.getElementById('receptionWalkInHistoryMeta')
             if (metaBox) metaBox.textContent = 'Loading walk-in history…'
 

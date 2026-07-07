@@ -50,6 +50,12 @@
             <label for="admin_appt_search" class="block text-[0.7rem] text-slate-600 mb-1">Search</label>
             <input id="admin_appt_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Patient/doctor name">
         </div>
+        <div class="pt-1">
+            <button type="button" id="adminApptRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+                <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+                Refresh
+            </button>
+        </div>
     </div>
 
    <div class="overflow-auto scrollbar-hidden h-[575px]">
@@ -633,6 +639,11 @@
         if (statusSelect) statusSelect.addEventListener('change', renderAppointments)
         if (sortSelect) sortSelect.addEventListener('change', renderAppointments)
         if (searchInput) searchInput.addEventListener('input', renderAppointments)
+
+        var apptRefreshBtn = document.getElementById('adminApptRefreshBtn')
+        if (apptRefreshBtn) {
+            apptRefreshBtn.addEventListener('click', function () { loadAppointments() })
+        }
 
         loadDoctors()
         loadAppointments()

@@ -37,10 +37,6 @@
                     Call next
                 </span>
             </button>
-            <button id="doctorQueueRefreshButton" type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-800 text-[0.8rem] font-semibold hover:bg-slate-200 transition-colors border border-slate-200">
-                <x-lucide-refresh-cw class="w-[18px] h-[18px]" />
-                Refresh
-            </button>
         </div>
     </div>
 
@@ -61,6 +57,13 @@
                     <option value="oldest">Oldest first</option>
                 </select>
             </div>
+            <div class="w-full md:w-auto">
+                <label class="block text-[0.7rem] text-slate-600 mb-1">&nbsp;</label>
+                <button type="button" id="docQueueRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+                    <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+                    Refresh
+                </button>
+            </div>
         </div>
 
     <div class="overflow-x-auto overflow-y-auto scrollbar-hidden h-[330px]">
@@ -75,7 +78,7 @@
                         <th class="py-2 pr-4 font-semibold text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="doctorQueueTbody">
                     @forelse ($doctorQueueItems as $queue)
                         @php
                             $patientName = optional(optional($queue->appointment)->patient)->personalInformation->full_name ?? '';
@@ -153,7 +156,6 @@
         var rows = Array.prototype.slice.call(document.querySelectorAll('.doctor-queue-row'))
         var errorBox = document.getElementById('doctorQueueError')
         var successBox = document.getElementById('doctorQueueSuccess')
-        var refreshButton = document.getElementById('doctorQueueRefreshButton')
         var callNextButton = document.getElementById('doctorQueueCallNextButton')
         var callNextSpinner = document.getElementById('doctorQueueCallNextSpinner')
         var callNextContent = document.getElementById('doctorQueueCallNextContent')
@@ -290,11 +292,35 @@
         if (sortSelect) {
             sortSelect.addEventListener('change', applyDoctorQueueSort)
         }
-        if (refreshButton) {
-            refreshButton.addEventListener('click', function () {
-                window.location.reload()
-            })
+        function refreshTableFromServer(tableBodyEl) {
+            if (!tableBodyEl) return
+            tableBodyEl.innerHTML = '<tr><td colspan="999" class="py-4 text-center text-[0.78rem] text-slate-400">Loading…</td></tr>'
+            var url = window.location.href
+            fetch(url)
+                .then(function (r) { return r.text() })
+                .then(function (html) {
+                    var parser = new DOMParser()
+                    var doc = parser.parseFromString(html, 'text/html')
+                    var freshBody = doc.getElementById(tableBodyEl.id)
+                    if (freshBody) {
+                        tableBodyEl.innerHTML = freshBody.innerHTML
+                    }
+                    rows = Array.prototype.slice.call(document.querySelectorAll('.doctor-queue-row'))
+                    document.querySelectorAll('.doctor-queue-status').forEach(function (button) {
+                        button.addEventListener('click', function () {
+                            var queueId = button.getAttribute('data-queue-id')
+                            var status = button.getAttribute('data-status')
+                            if (!queueId || !status) return
+                            updateQueueStatus(queueId, status, 'Queue status updated.')
+                        })
+                    })
+                    applyDoctorQueueFilters()
+                })
+                .catch(function () {
+                    tableBodyEl.innerHTML = '<tr><td colspan="999" class="py-4 text-center text-[0.78rem] text-slate-400 text-red-500">Refresh failed.</td></tr>'
+                })
         }
+        if (document.getElementById('docQueueRefreshBtn')) document.getElementById('docQueueRefreshBtn').addEventListener('click', function () { refreshTableFromServer(document.getElementById('doctorQueueTbody')) })
         if (callNextButton) {
             callNextButton.addEventListener('click', function () {
                 if (callNextButton.disabled || typeof apiFetch !== 'function') return

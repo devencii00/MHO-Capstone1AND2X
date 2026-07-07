@@ -47,18 +47,18 @@
                 <option value="pregnant">Pregnant</option>
             </select>
         </div>
-        <div class="w-full md:w-28 pt-1">
-            <button type="button" id="recVerifRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50">
-                <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
-                Refresh
-            </button>
-        </div>
         <div class="w-full md:w-44">
             <label for="rec_verif_sort" class="block text-[0.7rem] text-slate-600 mb-1">Sort</label>
             <select id="rec_verif_sort" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                 <option value="date_desc">Newest first</option>
                 <option value="date_asc">Oldest first</option>
             </select>
+        </div>
+        <div class="w-full md:w-28 pt-1">
+            <button type="button" id="recVerifRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+                <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+                Refresh
+            </button>
         </div>
     </div>
 

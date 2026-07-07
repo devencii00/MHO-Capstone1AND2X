@@ -80,7 +80,13 @@
             <div class="bg-white border border-slate-200 rounded-[18px] p-5 lg:col-span-2 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="text-sm font-semibold text-slate-900">Today&apos;s schedule</h2>
-                    <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Consultations</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Consultations</span>
+                        <button type="button" id="docScheduleRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+                            <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+                            Refresh
+                        </button>
+                    </div>
                 </div>
                 <div class="grid gap-3 grid-cols-1 sm:grid-cols-4 text-sm text-slate-600">
                     <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
@@ -113,7 +119,7 @@
                                 <th class="py-2 px-3 font-semibold">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="doctorScheduleTbody">
                             @forelse ($todayAppointments as $appointment)
                                 @php
                                     $patientName = $formatUserName($appointment->patient);
@@ -451,6 +457,26 @@
                             })
                     })
                 }
+
+                function refreshTableFromServer(tableBodyEl) {
+                    if (!tableBodyEl) return
+                    tableBodyEl.innerHTML = '<tr><td colspan="999" class="py-4 text-center text-[0.78rem] text-slate-400">Loading…</td></tr>'
+                    var url = window.location.href
+                    fetch(url)
+                        .then(function (r) { return r.text() })
+                        .then(function (html) {
+                            var parser = new DOMParser()
+                            var doc = parser.parseFromString(html, 'text/html')
+                            var freshBody = doc.getElementById(tableBodyEl.id)
+                            if (freshBody) {
+                                tableBodyEl.innerHTML = freshBody.innerHTML
+                            }
+                        })
+                        .catch(function () {
+                            tableBodyEl.innerHTML = '<tr><td colspan="999" class="py-4 text-center text-[0.78rem] text-slate-400 text-red-500">Refresh failed.</td></tr>'
+                        })
+                }
+                if (document.getElementById('docScheduleRefreshBtn')) document.getElementById('docScheduleRefreshBtn').addEventListener('click', function () { refreshTableFromServer(document.getElementById('doctorScheduleTbody')) })
             })
         </script>
     @else

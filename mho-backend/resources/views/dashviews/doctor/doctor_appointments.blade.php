@@ -34,9 +34,15 @@
         </div>
         <div class="w-full md:w-auto">
             <label class="block text-[0.7rem] text-slate-600 mb-1">Quick filter</label>
-            <button id="doctor_appointment_today_toggle" type="button" class="w-full md:w-auto inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
-                Today
-            </button>
+            <div class="flex items-center gap-2">
+                <button id="doctor_appointment_today_toggle" type="button" class="w-full md:w-auto inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+                    Today
+                </button>
+                <button type="button" id="docAppointmentRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+                    <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+                    Refresh
+                </button>
+            </div>
         </div>
     </div>
 
@@ -52,7 +58,7 @@
                     <th class="py-2 pr-4 font-semibold">Status</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="doctorAppointmentTbody">
                 @forelse ($scheduledAppointments as $appointment)
                     @php
                         $patientParts = array_filter([
@@ -221,5 +227,27 @@
 
         applyTodayToggleUi()
         applyDoctorAppointmentFilters()
+
+        function refreshTableFromServer(tableBodyEl) {
+            if (!tableBodyEl) return
+            tableBodyEl.innerHTML = '<tr><td colspan="999" class="py-4 text-center text-[0.78rem] text-slate-400">Loading…</td></tr>'
+            var url = window.location.href
+            fetch(url)
+                .then(function (r) { return r.text() })
+                .then(function (html) {
+                    var parser = new DOMParser()
+                    var doc = parser.parseFromString(html, 'text/html')
+                    var freshBody = doc.getElementById(tableBodyEl.id)
+                    if (freshBody) {
+                        tableBodyEl.innerHTML = freshBody.innerHTML
+                    }
+                    rows = Array.prototype.slice.call(document.querySelectorAll('.doctor-appointment-row'))
+                    applyDoctorAppointmentFilters()
+                })
+                .catch(function () {
+                    tableBodyEl.innerHTML = '<tr><td colspan="999" class="py-4 text-center text-[0.78rem] text-slate-400 text-red-500">Refresh failed.</td></tr>'
+                })
+        }
+        if (document.getElementById('docAppointmentRefreshBtn')) document.getElementById('docAppointmentRefreshBtn').addEventListener('click', function () { refreshTableFromServer(document.getElementById('doctorAppointmentTbody')) })
     })
 </script>
