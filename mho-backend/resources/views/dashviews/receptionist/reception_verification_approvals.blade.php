@@ -1,37 +1,36 @@
 <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
     <div class="flex items-center justify-between mb-2">
-        <h2 class="text-sm font-semibold text-slate-900">Verification Oversight</h2>
+        <h2 class="text-sm font-semibold text-slate-900"></h2>
         <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Patients</span>
     </div>
     <p class="text-xs text-slate-500 mb-4">
-        Review verification requests, inspect uploaded documents, and decide approval status.
-    </p>
+       
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
             <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Pending</div>
-            <div id="admin_verif_stat_pending" class="mt-1 text-xl font-semibold text-slate-900">-</div>
+            <div id="rec_verif_stat_pending" class="mt-1 text-xl font-semibold text-slate-900">-</div>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
             <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Approved</div>
-            <div id="admin_verif_stat_approved" class="mt-1 text-xl font-semibold text-slate-900">-</div>
+            <div id="rec_verif_stat_approved" class="mt-1 text-xl font-semibold text-slate-900">-</div>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
             <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Rejected</div>
-            <div id="admin_verif_stat_rejected" class="mt-1 text-xl font-semibold text-slate-900">-</div>
+            <div id="rec_verif_stat_rejected" class="mt-1 text-xl font-semibold text-slate-900">-</div>
         </div>
     </div>
 
-    <div id="adminVerifError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
+    <div id="recVerifError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
 
     <div class="mb-3 flex flex-col gap-2 md:flex-row md:items-end">
         <div class="flex-1">
-            <label for="admin_verif_search" class="block text-[0.7rem] text-slate-600 mb-1">Search</label>
-            <input id="admin_verif_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Patient name, email, or verification ID">
+            <label for="rec_verif_search" class="block text-[0.7rem] text-slate-600 mb-1">Search</label>
+            <input id="rec_verif_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Patient name, email, or verification ID">
         </div>
         <div class="w-full md:w-44">
-            <label for="admin_verif_status_filter" class="block text-[0.7rem] text-slate-600 mb-1">Status</label>
-            <select id="admin_verif_status_filter" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+            <label for="rec_verif_status_filter" class="block text-[0.7rem] text-slate-600 mb-1">Status</label>
+            <select id="rec_verif_status_filter" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                 <option value="">All</option>
                 <option value="pending">Pending</option>
                 <option value="approved">Approved</option>
@@ -39,8 +38,8 @@
             </select>
         </div>
         <div class="w-full md:w-44">
-            <label for="admin_verif_type_filter" class="block text-[0.7rem] text-slate-600 mb-1">Type</label>
-            <select id="admin_verif_type_filter" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+            <label for="rec_verif_type_filter" class="block text-[0.7rem] text-slate-600 mb-1">Type</label>
+            <select id="rec_verif_type_filter" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                 <option value="">All</option>
                 <option value="none">None</option>
                 <option value="senior">Senior</option>
@@ -48,20 +47,25 @@
                 <option value="pregnant">Pregnant</option>
             </select>
         </div>
-        <div class="w-full md:w-40">
-            <label for="admin_verif_sort" class="block text-[0.7rem] text-slate-600 mb-1">Sort</label>
-            <select id="admin_verif_sort" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+        <div class="w-full md:w-28 pt-1">
+            <button type="button" id="recVerifRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+                <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+                Refresh
+            </button>
+        </div>
+        <div class="w-full md:w-44">
+            <label for="rec_verif_sort" class="block text-[0.7rem] text-slate-600 mb-1">Sort</label>
+            <select id="rec_verif_sort" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                 <option value="date_desc">Newest first</option>
                 <option value="date_asc">Oldest first</option>
             </select>
         </div>
     </div>
 
-<div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[300px]">
+<div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[460px]">
         <table class="min-w-full text-left text-xs text-slate-600">
             <thead>
                 <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
-                    <th class="py-2 pr-4 font-semibold">ID</th>
                     <th class="py-2 pr-4 font-semibold">Patient</th>
                     <th class="py-2 pr-4 font-semibold">Type</th>
                     <th class="py-2 pr-4 font-semibold">Status</th>
@@ -70,85 +74,133 @@
                     <th class="py-2 pr-4 font-semibold">Actions</th>
                 </tr>
             </thead>
-            <tbody id="admin_verif_table_body">
+            <tbody id="rec_verif_table_body">
                 <tr>
-                    <td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">
+                    <td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">
                         Loading verifications…
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
-    <div id="adminVerifPagination" class="flex items-center justify-center gap-3 pt-2 pb-1"></div>
+    <div id="recVerifPagination" class="flex items-center justify-center gap-3 pt-2 pb-1"></div>
 
 </div>
 
-<div id="adminVerifDocPanelOverlay" class="hidden fixed inset-0 z-[80] bg-slate-900/40">
-    <div id="adminVerifDocPanel" class="absolute top-0 right-0 h-full w-full max-w-[46rem] bg-white border-l border-slate-200 shadow-[-16px_0_40px_rgba(15,23,42,0.2)] transform translate-x-full transition-transform duration-300 ease-out flex flex-col">
+<div id="recVerifDocPanelOverlay" class="hidden fixed inset-0 z-[80] bg-slate-900/40">
+    <div id="recVerifHistoryDrawer" class="hidden fixed top-0 right-0 md:right-[35rem] h-full w-full max-w-[30rem] bg-white border-l border-slate-200 shadow-xl">
+        <div class="h-full flex flex-col">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 shrink-0">
+                <div class="min-w-0">
+                    <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification history</div>
+                    <div id="recVerifHistoryDrawerTitle" class="text-[0.82rem] font-semibold text-slate-900 mt-1">History</div>
+                </div>
+                <button type="button" id="recVerifHistoryDrawerClose" class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800">
+                    <x-lucide-x class="w-[16px] h-[16px]" />
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 scrollbar-hidden">
+                <div class="rounded-xl border border-slate-200 overflow-hidden">
+                    <div class="overflow-auto h-[calc(100vh-8rem)]">
+                        <table class="w-full table-fixed text-xs">
+                            <thead class="bg-slate-50 text-slate-500 sticky top-0">
+                                <tr>
+                                    <th class="w-[4.75rem] text-left px-3 py-2 font-semibold whitespace-nowrap">ID</th>
+                                    <th class="w-[5.75rem] text-left px-3 py-2 font-semibold whitespace-nowrap">Type</th>
+                                    <th class="w-[5.75rem] text-left px-3 py-2 font-semibold whitespace-nowrap">Status</th>
+                                    <th class="text-left px-3 py-2 font-semibold">Remarks</th>
+                                    <th class="w-[6.5rem] text-left px-3 py-2 font-semibold whitespace-nowrap">Document</th>
+                                    <th class="w-[6rem] text-left px-3 py-2 font-semibold whitespace-nowrap">Uploaded</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recVerifHistoryBody" class="divide-y divide-slate-100 bg-white">
+                                <tr><td colspan="6" class="px-3 py-4 text-center text-slate-400">No history loaded.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="recVerifDocPanel" class="absolute top-0 right-0 h-full w-full max-w-[35rem] bg-white border-l border-slate-200 shadow-[-16px_0_40px_rgba(15,23,42,0.2)] transform translate-x-full transition-transform duration-300 ease-out flex flex-col">
         <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
             <div class="min-w-0">
-                <div class="text-sm font-semibold text-slate-900" id="adminVerifDocPanelTitle">Patient Verification</div>
-                <div class="text-[0.72rem] text-slate-500 mt-0.5" id="adminVerifDocPanelSubtitle"></div>
+                <div class="text-sm font-semibold text-slate-900" id="recVerifDocPanelTitle">Patient Verification</div>
+                <div class="text-[0.72rem] text-slate-500 mt-0.5" id="recVerifDocPanelSubtitle"></div>
             </div>
-            <button id="adminVerifDocPanelClose" type="button" class="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
+            <button id="recVerifDocPanelClose" type="button" class="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
                 <x-lucide-x class="w-[18px] h-[18px]" />
             </button>
         </div>
         <div class="flex-1 overflow-y-auto">
         <div class="p-4 border-b border-slate-100">
             <div class="text-[0.72rem] font-semibold text-slate-600 mb-2 uppercase tracking-wide">Patient Details</div>
-            <div id="adminVerifPatientCard" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 mb-4">
+            <div id="recVerifPatientCard" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 mb-4">
                 <div class="text-[0.78rem] text-slate-500">Select a verification record.</div>
             </div>
             <div class="text-[0.72rem] font-semibold text-slate-600 mb-2 uppercase tracking-wide">Latest Uploaded Document</div>
-            <div id="adminVerifDocMainWrap" class="rounded-xl border border-slate-200 bg-slate-50 overflow-hidden h-[16rem] flex items-center justify-center text-[0.78rem] text-slate-500">
+            <div id="recVerifDocMainWrap" class="rounded-xl border border-slate-200 bg-slate-50 overflow-hidden h-[16rem] flex items-center justify-center text-[0.78rem] text-slate-500 transition cursor-default">
                 Select a verification record.
             </div>
+            <div class="mt-3 flex items-center justify-between gap-3">
+                <div id="recVerifDocHint" class="text-[0.72rem] text-slate-500">Image previews can be opened fullscreen for closer inspection.</div>
+                <button id="recVerifHistoryTrigger" type="button" disabled class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-[0.78rem] font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400">
+                    See History
+                </button>
+            </div>
         </div>
-        <div class="p-4">
-            <div class="text-[0.72rem] font-semibold text-slate-600 mb-2 uppercase tracking-wide">Verification History</div>
-            <div class="rounded-xl border border-slate-200 overflow-hidden">
-                <div class="overflow-auto max-h-[24rem]">
-                    <table class="w-full text-xs">
-                        <thead class="bg-slate-50 text-slate-500 sticky top-0">
-                            <tr>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">ID</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Type</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Status</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Remarks</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Document</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Uploaded</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminVerifHistoryBody" class="divide-y divide-slate-100 bg-white">
-                            <tr><td colspan="6" class="px-3 py-4 text-center text-slate-400">No history loaded.</td></tr>
-                        </tbody>
-                    </table>
+        </div>
+    </div>
+
+    <div id="recVerifImageViewer" class="hidden fixed inset-0 z-[95] bg-slate-950/90 p-4 md:p-6">
+        <div class="flex h-full flex-col">
+            <div class="mb-4 flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                    <div class="text-[0.7rem] uppercase tracking-widest text-slate-400">Document viewer</div>
+                    <div id="recVerifImageViewerTitle" class="truncate text-sm font-semibold text-white">Verification document</div>
                 </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="recVerifZoomOut" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-white hover:bg-white/20">
+                        <x-lucide-minus class="w-[16px] h-[16px]" />
+                    </button>
+                    <button type="button" id="recVerifZoomReset" class="rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-[0.78rem] font-semibold text-white hover:bg-white/20">
+                        100%
+                    </button>
+                    <button type="button" id="recVerifZoomIn" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-white hover:bg-white/20">
+                        <x-lucide-plus class="w-[16px] h-[16px]" />
+                    </button>
+                    <button type="button" id="recVerifImageViewerClose" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-white hover:bg-white/20">
+                        <x-lucide-x class="w-[16px] h-[16px]" />
+                    </button>
+                </div>
+            </div>
+            <div id="recVerifImageViewerStage" class="relative flex-1 overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80">
+                <img id="recVerifImageViewerImg" src="" alt="Verification document" class="absolute left-1/2 top-1/2 max-h-none max-w-none select-none" style="transform: translate(-50%, -50%) translate(0px, 0px) scale(1); transform-origin: center center;" draggable="false">
             </div>
         </div>
         </div>
     </div>
 </div>
 
-<div id="adminVerifActionOverlay" class="hidden fixed inset-0 z-[90] bg-slate-900/40 items-center justify-center p-4">
+<div id="recVerifActionOverlay" class="hidden fixed inset-0 z-[90] bg-slate-900/40 items-center justify-center p-4">
     <div class="w-full max-w-lg rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] p-4">
         <div class="flex items-start gap-3">
             <div class="w-9 h-9 rounded-xl bg-green-50 border border-green-100 flex items-center justify-center text-green-700">
                 <x-lucide-shield-check class="w-[18px] h-[18px]" />
             </div>
             <div class="flex-1 min-w-0">
-                <div id="adminVerifActionTitle" class="text-sm font-semibold text-slate-900">Confirm Action</div>
-                <div id="adminVerifActionMessage" class="text-[0.78rem] text-slate-600 mt-0.5"></div>
+                <div id="recVerifActionTitle" class="text-sm font-semibold text-slate-900">Confirm Action</div>
+                <div id="recVerifActionMessage" class="text-[0.78rem] text-slate-600 mt-0.5"></div>
             </div>
         </div>
-        <div id="adminVerifActionDetails" class="mt-3 text-[0.78rem] text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2"></div>
-        <div id="adminVerifActionDocWrap" class="mt-3 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden h-32 flex items-center justify-center text-[0.74rem] text-slate-500">
+        <div id="recVerifActionDetails" class="mt-3 text-[0.78rem] text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2"></div>
+        <div id="recVerifActionDocWrap" class="mt-3 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden h-32 flex items-center justify-center text-[0.74rem] text-slate-500">
             No document preview.
         </div>
-        <div id="adminVerifRejectReasonWrap" class="hidden mt-3">
-            <label for="adminVerifRejectReason" class="block text-[0.7rem] text-slate-600 mb-1">Reject reason</label>
-            <select id="adminVerifRejectReason" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+        <div id="recVerifRejectReasonWrap" class="hidden mt-3">
+            <label for="recVerifRejectReason" class="block text-[0.7rem] text-slate-600 mb-1">Reject reason</label>
+            <select id="recVerifRejectReason" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                 <option value="Blurry document">Blurry Document</option>
                 <option value="Invalid Document">Invalid Document</option>
                 <option value="Expired Document">Expired Document</option>
@@ -157,51 +209,73 @@
             </select>
         </div>
         <div class="mt-4 flex items-center justify-end gap-2">
-            <button id="adminVerifActionCancel" type="button" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
-            <button id="adminVerifActionConfirm" type="button" class="px-3 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700">Confirm</button>
+            <button id="recVerifActionCancel" type="button" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button id="recVerifActionConfirm" type="button" class="px-3 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700">Confirm</button>
         </div>
     </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var errorBox = document.getElementById('adminVerifError')
-        var statPending = document.getElementById('admin_verif_stat_pending')
-        var statApproved = document.getElementById('admin_verif_stat_approved')
-        var statRejected = document.getElementById('admin_verif_stat_rejected')
+        var errorBox = document.getElementById('recVerifError')
+        var statPending = document.getElementById('rec_verif_stat_pending')
+        var statApproved = document.getElementById('rec_verif_stat_approved')
+        var statRejected = document.getElementById('rec_verif_stat_rejected')
 
-        var searchInput = document.getElementById('admin_verif_search')
-        var statusFilter = document.getElementById('admin_verif_status_filter')
-        var typeFilter = document.getElementById('admin_verif_type_filter')
-        var sortSelect = document.getElementById('admin_verif_sort')
-        var tableBody = document.getElementById('admin_verif_table_body')
+        var searchInput = document.getElementById('rec_verif_search')
+        var statusFilter = document.getElementById('rec_verif_status_filter')
+        var typeFilter = document.getElementById('rec_verif_type_filter')
+        var sortSelect = document.getElementById('rec_verif_sort')
+        var tableBody = document.getElementById('rec_verif_table_body')
 
-        var docPanelOverlay = document.getElementById('adminVerifDocPanelOverlay')
-        var docPanel = document.getElementById('adminVerifDocPanel')
-        var docPanelClose = document.getElementById('adminVerifDocPanelClose')
-        var docPanelTitle = document.getElementById('adminVerifDocPanelTitle')
-        var docPanelSubtitle = document.getElementById('adminVerifDocPanelSubtitle')
-        var patientCard = document.getElementById('adminVerifPatientCard')
-        var docMainWrap = document.getElementById('adminVerifDocMainWrap')
-        var historyBody = document.getElementById('adminVerifHistoryBody')
+        var docPanelOverlay = document.getElementById('recVerifDocPanelOverlay')
+        var docPanel = document.getElementById('recVerifDocPanel')
+        var docPanelClose = document.getElementById('recVerifDocPanelClose')
+        var docPanelTitle = document.getElementById('recVerifDocPanelTitle')
+        var docPanelSubtitle = document.getElementById('recVerifDocPanelSubtitle')
+        var patientCard = document.getElementById('recVerifPatientCard')
+        var docMainWrap = document.getElementById('recVerifDocMainWrap')
+        var docHint = document.getElementById('recVerifDocHint')
+        var historyTrigger = document.getElementById('recVerifHistoryTrigger')
+        var historyDrawer = document.getElementById('recVerifHistoryDrawer')
+        var historyDrawerTitle = document.getElementById('recVerifHistoryDrawerTitle')
+        var historyDrawerClose = document.getElementById('recVerifHistoryDrawerClose')
+        var historyBody = document.getElementById('recVerifHistoryBody')
 
-        var actionOverlay = document.getElementById('adminVerifActionOverlay')
-        var actionTitle = document.getElementById('adminVerifActionTitle')
-        var actionMessage = document.getElementById('adminVerifActionMessage')
-        var actionDetails = document.getElementById('adminVerifActionDetails')
-        var actionDocWrap = document.getElementById('adminVerifActionDocWrap')
-        var actionCancel = document.getElementById('adminVerifActionCancel')
-        var actionConfirm = document.getElementById('adminVerifActionConfirm')
-        var rejectReasonWrap = document.getElementById('adminVerifRejectReasonWrap')
-        var rejectReasonSelect = document.getElementById('adminVerifRejectReason')
+        var actionOverlay = document.getElementById('recVerifActionOverlay')
+        var actionTitle = document.getElementById('recVerifActionTitle')
+        var actionMessage = document.getElementById('recVerifActionMessage')
+        var actionDetails = document.getElementById('recVerifActionDetails')
+        var actionDocWrap = document.getElementById('recVerifActionDocWrap')
+        var actionCancel = document.getElementById('recVerifActionCancel')
+        var actionConfirm = document.getElementById('recVerifActionConfirm')
+        var rejectReasonWrap = document.getElementById('recVerifRejectReasonWrap')
+        var rejectReasonSelect = document.getElementById('recVerifRejectReason')
 
         var currentPage = 1
         var lastPayload = null
         var currentHistoryRows = []
+        var currentHistoryLabel = 'History'
         var actionResolver = null
         var actionDelayTimer = null
         var actionCountdownTimer = null
         var actionConfirmDefaultHtml = actionConfirm ? actionConfirm.innerHTML : ''
+        var imageViewer = document.getElementById('recVerifImageViewer')
+        var imageViewerTitle = document.getElementById('recVerifImageViewerTitle')
+        var imageViewerStage = document.getElementById('recVerifImageViewerStage')
+        var imageViewerImg = document.getElementById('recVerifImageViewerImg')
+        var imageViewerClose = document.getElementById('recVerifImageViewerClose')
+        var zoomInButton = document.getElementById('recVerifZoomIn')
+        var zoomOutButton = document.getElementById('recVerifZoomOut')
+        var zoomResetButton = document.getElementById('recVerifZoomReset')
+        var imageViewerState = {
+            scale: 1,
+            offsetX: 0,
+            offsetY: 0,
+            dragging: false,
+            startX: 0,
+            startY: 0
+        }
 
         function showError(message) {
             if (message && typeof showToast === 'function') showToast(message, 'error')
@@ -340,7 +414,7 @@
 
         function buildQuery(page) {
             var params = []
-            params.push('per_page=500')
+            params.push('per_page=10')
             params.push('page=' + encodeURIComponent(page || 1))
 
             var status = statusFilter ? statusFilter.value : ''
@@ -349,6 +423,12 @@
             var type = typeFilter ? typeFilter.value : ''
             if (type) params.push('type=' + encodeURIComponent(type))
 
+            var query = searchInput ? searchInput.value.trim() : ''
+            if (query) params.push('search=' + encodeURIComponent(query))
+
+            var sort = sortSelect ? sortSelect.value : 'date_desc'
+            params.push('sort=' + encodeURIComponent(sort))
+
             return params.join('&')
         }
 
@@ -356,9 +436,9 @@
             currentPage = page || 1
             showError('')
             if (tableBody) {
-                tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading verifications…</td></tr>'
+                tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading verifications…</td></tr>'
             }
-            var pag = document.getElementById('adminVerifPagination')
+            var pag = document.getElementById('recVerifPagination')
             if (pag) pag.innerHTML = ''
 
             apiFetch("{{ url('/api/patient-verifications') }}?" + buildQuery(currentPage), { method: 'GET' })
@@ -370,8 +450,8 @@
                 .then(function (result) {
                     if (!result.ok) {
                         showError('Failed to load verifications.')
-                        if (tableBody) tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No data.</td></tr>'
-                        var pag = document.getElementById('adminVerifPagination')
+                        if (tableBody) tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No data.</td></tr>'
+                        var pag = document.getElementById('recVerifPagination')
                         if (pag) pag.innerHTML = ''
                         return
                     }
@@ -380,8 +460,8 @@
                 })
                 .catch(function () {
                     showError('Network error while loading verifications.')
-                    if (tableBody) tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No data.</td></tr>'
-                    var pag = document.getElementById('adminVerifPagination')
+                    if (tableBody) tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No data.</td></tr>'
+                    var pag = document.getElementById('recVerifPagination')
                     if (pag) pag.innerHTML = ''
                 })
         }
@@ -391,28 +471,9 @@
             var payload = lastPayload || {}
             var items = Array.isArray(payload.data) ? payload.data : []
 
-            var query = searchInput ? searchInput.value.toLowerCase().trim() : ''
-            if (query) {
-                items = items.filter(function (v) {
-                    var id = String(v.verification_id || '')
-                    var patientLabel = getPatientLabel(v).toLowerCase()
-                    var patientEmail = v && v.patient && v.patient.email ? String(v.patient.email).toLowerCase() : ''
-                    return ('#' + id).indexOf(query) !== -1 || patientLabel.indexOf(query) !== -1 || patientEmail.indexOf(query) !== -1
-                })
-            }
-
-            var sort = sortSelect ? sortSelect.value : 'date_desc'
-            items.sort(function (a, b) {
-                var da = (a.created_at || '')
-                var db = (b.created_at || '')
-                if (da < db) return sort === 'date_asc' ? -1 : 1
-                if (da > db) return sort === 'date_asc' ? 1 : -1
-                return 0
-            })
-
             if (!items.length) {
-                tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No verifications found.</td></tr>'
-                var pag = document.getElementById('adminVerifPagination')
+                tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No verifications found.</td></tr>'
+                var pag = document.getElementById('recVerifPagination')
                 if (pag) pag.innerHTML = ''
                 return
             }
@@ -428,7 +489,6 @@
                 var hasDoc = !!v.document_path
 
                 html += '<tr class="border-b border-slate-50 last:border-0">' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">#' + id + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + patientLabel + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + type + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem]">' + statusBadge(status) + '</td>' +
@@ -437,10 +497,10 @@
                     '<td class="py-2 pr-4 text-[0.78rem]">' +
                         '<div class="flex items-center gap-2 flex-nowrap min-w-[19rem]">' +
                             (hasDoc
-                                ? '<button type="button" class="w-28 shrink-0 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.72rem] font-semibold text-slate-700 text-center hover:bg-slate-50 admin-verif-doc" data-id="' + id + '">View document</button>'
+                                ? '<button type="button" class="w-28 shrink-0 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.72rem] font-semibold text-slate-700 text-center hover:bg-slate-50 rec-verif-doc" data-id="' + id + '">View document</button>'
                                 : '<button type="button" disabled class="w-28 shrink-0 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-100 text-[0.72rem] font-semibold text-slate-400 text-center cursor-not-allowed">No document</button>') +
-                            '<button type="button" class="w-20 shrink-0 px-2.5 py-1 rounded-lg border border-emerald-200 bg-emerald-50 text-[0.72rem] font-semibold text-emerald-700 text-center hover:bg-emerald-100 admin-verif-set" data-id="' + id + '" data-status="approved">Approve</button>' +
-                            '<button type="button" class="w-20 shrink-0 px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-[0.72rem] font-semibold text-rose-700 text-center hover:bg-rose-100 admin-verif-set" data-id="' + id + '" data-status="rejected">Reject</button>' +
+                            '<button type="button" class="w-20 shrink-0 px-2.5 py-1 rounded-lg border border-emerald-200 bg-emerald-50 text-[0.72rem] font-semibold text-emerald-700 text-center hover:bg-emerald-100 rec-verif-set" data-id="' + id + '" data-status="approved">Approve</button>' +
+                            '<button type="button" class="w-20 shrink-0 px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-[0.72rem] font-semibold text-rose-700 text-center hover:bg-rose-100 rec-verif-set" data-id="' + id + '" data-status="rejected">Reject</button>' +
                         '</div>' +
                     '</td>' +
                 '</tr>'
@@ -448,73 +508,50 @@
 
             tableBody.innerHTML = html
             bindRowActions()
-            initVerifPagination()
+            renderServerPagination(payload)
         }
 
-        // ── Verification pagination ──
-        var verifPerPage = 10
-        var verifCurrentPage = 1
-        var verifVisibleCount = 6
-
-        function initVerifPagination() {
-            var rows = Array.prototype.slice.call(tableBody.querySelectorAll('tr'))
-            if (rows.length === 1 && rows[0].querySelectorAll('td').length === 7 && rows[0].textContent.indexOf('verification') !== -1) {
-                renderVerifPagination([])
-                return
-            }
-            renderVerifPagination(rows)
-        }
-
-        function showVerifPage(page, rows) {
-            var total = rows.length
-            var totalPages = Math.ceil(total / verifPerPage) || 1
-            if (page < 1) page = 1
-            if (page > totalPages) page = totalPages
-            verifCurrentPage = page
-            var start = (page - 1) * verifPerPage
-            var end = Math.min(start + verifPerPage, total)
-            rows.forEach(function (row, i) {
-                row.style.display = (i >= start && i < end) ? '' : 'none'
-            })
-            renderVerifPagination(rows)
-        }
-
-        function renderVerifPagination(rows) {
-            var pagination = document.getElementById('adminVerifPagination')
+        // ── Server-side pagination ──
+        function renderServerPagination(payload) {
+            var pagination = document.getElementById('recVerifPagination')
             if (!pagination) return
-            var total = rows.length
+            var total = payload.total || 0
+            var lastPage = payload.last_page || 1
+            var current = payload.current_page || 1
+
             if (total === 0) {
                 pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
                 return
             }
-            var totalPages = Math.ceil(total / verifPerPage)
+
             var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border ';
             var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer';
             var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default';
             var btnActive = btnBase + 'bg-green-600 text-white border-green-600';
             var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
-            html += '<button type="button" class="' + (verifCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (verifCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
-            var windowStart = verifCurrentPage;
-            var windowEnd = Math.min(windowStart + verifVisibleCount - 1, totalPages);
+            html += '<button type="button" class="' + (current === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (current === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+
+            var windowStart = current
+            var windowEnd = Math.min(windowStart + 5, lastPage)
             for (var i = windowStart; i <= windowEnd; i++) {
-                html += '<button type="button" class="' + (i === verifCurrentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
+                html += '<button type="button" class="' + (i === current ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
             }
-            if (windowEnd < totalPages) {
+            if (windowEnd < lastPage) {
                 html += '<button type="button" class="' + btnInactive + '" data-page="next-window" title="Next set">…</button>'
             }
-            html += '<button type="button" class="' + (verifCurrentPage === totalPages ? btnDisabled : btnInactive) + '" data-page="next"' + (verifCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            html += '<button type="button" class="' + (current === lastPage ? btnDisabled : btnInactive) + '" data-page="next"' + (current === lastPage ? ' disabled' : '') + '>Next ›</button>'
+
             pagination.innerHTML = html
 
             pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var p = btn.getAttribute('data-page')
-                    if (p === 'prev' && verifCurrentPage > 1) showVerifPage(verifCurrentPage - 1, rows)
-                    else if (p === 'next' && verifCurrentPage < totalPages) showVerifPage(verifCurrentPage + 1, rows)
-                    else if (p === 'next-window') {
-                        var nextStart = Math.min(windowEnd + 1, totalPages);
-                        showVerifPage(nextStart, rows)
-                    }
-                    else if (p !== 'prev' && p !== 'next') showVerifPage(parseInt(p, 10), rows)
+                    var goTo
+                    if (p === 'prev' && current > 1) goTo = current - 1
+                    else if (p === 'next' && current < lastPage) goTo = current + 1
+                    else if (p === 'next-window') goTo = Math.min(windowEnd + 1, lastPage)
+                    else if (p !== 'prev' && p !== 'next') goTo = parseInt(p, 10)
+                    if (goTo) loadVerifications(goTo)
                 })
             })
         }
@@ -527,6 +564,13 @@
 
         function documentUrl(verificationId) {
             return "{{ url('/api/patient-verifications') }}/" + encodeURIComponent(String(verificationId)) + "/document"
+        }
+
+        function directDocumentUrl(verification) {
+            if (!verification) return ''
+            if (verification.document_url) return String(verification.document_url)
+            if (verification.verification_id) return documentUrl(verification.verification_id)
+            return ''
         }
 
         function revokePreviewUrl(target) {
@@ -554,9 +598,24 @@
             return String(contentType || '').indexOf('pdf') !== -1 || String(extension || '').toLowerCase() === 'pdf'
         }
 
+        function guessedContentType(extension) {
+            var ext = String(extension || '').toLowerCase()
+            if (['jpg', 'jpeg'].indexOf(ext) !== -1) return 'image/jpeg'
+            if (ext === 'png') return 'image/png'
+            if (ext === 'gif') return 'image/gif'
+            if (ext === 'webp') return 'image/webp'
+            if (ext === 'bmp') return 'image/bmp'
+            if (ext === 'pdf') return 'application/pdf'
+            return ''
+        }
+
         function setPreviewHtml(target, html) {
             if (!target) return
             revokePreviewUrl(target)
+            target.removeAttribute('data-preview-image-url')
+            target.removeAttribute('data-preview-title')
+            target.classList.remove('cursor-zoom-in', 'hover:border-green-300')
+            target.classList.add('cursor-default')
             target.innerHTML = html
         }
 
@@ -565,35 +624,87 @@
                 return Promise.reject(new Error('No document available.'))
             }
 
+            var extension = documentExtension(verification.document_path)
+            var fallbackUrl = directDocumentUrl(verification)
+            var fallbackAsset = fallbackUrl
+                ? {
+                    url: fallbackUrl,
+                    contentType: guessedContentType(extension),
+                    extension: extension
+                }
+                : null
+
             return apiFetch(documentUrl(verification.verification_id), { method: 'GET' })
                 .then(function (response) {
                     if (!response.ok) {
+                        if (fallbackAsset) return fallbackAsset
                         throw new Error('Failed to load document.')
                     }
                     var contentType = response.headers.get('Content-Type') || ''
                     return response.blob().then(function (blob) {
-                        if (!window.URL || typeof window.URL.createObjectURL !== 'function') {
+                        if (!window.URL || typeof window.URL.createObjectURL !== 'function' || !blob || !blob.size) {
+                            if (fallbackAsset) return fallbackAsset
                             throw new Error('Preview is not supported in this browser.')
                         }
                         return {
                             url: window.URL.createObjectURL(blob),
                             contentType: contentType || blob.type || '',
-                            extension: documentExtension(verification.document_path)
+                            extension: extension
                         }
                     })
                 })
+                .catch(function () {
+                    if (fallbackAsset) return fallbackAsset
+                    throw new Error('Failed to load document.')
+                })
         }
 
-        function renderDocumentAsset(target, asset, title) {
-            if (!target || !asset) return
-            revokePreviewUrl(target)
-            target.setAttribute('data-object-url', asset.url)
+        function setZoomablePreview(target, asset, title, enabled) {
+            if (!target) return
+            target.removeAttribute('data-preview-image-url')
+            target.removeAttribute('data-preview-title')
+            target.classList.remove('cursor-zoom-in', 'hover:border-green-300')
+            target.classList.add('cursor-default')
 
-            if (isImageDocument(asset.contentType, asset.extension)) {
-                target.innerHTML = '<img src="' + escapeHtml(asset.url) + '" alt="' + escapeHtml(title || 'Verification document') + '" class="max-w-full max-h-full object-contain bg-white">'
+            if (!enabled || !asset || !asset.url) {
+                if (target === docMainWrap) {
+                    if (docHint) docHint.textContent = 'Image previews can be opened fullscreen for closer inspection.'
+                }
                 return
             }
 
+            target.setAttribute('data-preview-image-url', asset.url)
+            target.setAttribute('data-preview-title', title || 'Verification document')
+            target.classList.remove('cursor-default')
+            target.classList.add('cursor-zoom-in', 'hover:border-green-300')
+            if (target === docMainWrap) {
+                if (docHint) docHint.textContent = 'Click the image preview to inspect it fullscreen and zoom in.'
+            }
+        }
+
+        function renderDocumentAsset(target, asset, title, options) {
+            if (!target || !asset) return
+            options = options || {}
+            revokePreviewUrl(target)
+            if (String(asset.url || '').indexOf('blob:') === 0) {
+                target.setAttribute('data-object-url', asset.url)
+            } else {
+                target.removeAttribute('data-object-url')
+            }
+
+            if (isImageDocument(asset.contentType, asset.extension)) {
+                setZoomablePreview(target, asset, title, !!options.zoomable)
+                target.innerHTML =
+                    '<div class="relative h-full w-full bg-white">' +
+                        '<img src="' + escapeHtml(asset.url) + '" alt="' + escapeHtml(title || 'Verification document') + '" class="h-full w-full object-contain bg-white">' +
+                        (options.zoomable
+                            ? '<div class="pointer-events-none absolute bottom-3 right-3 rounded-full bg-slate-900/75 px-3 py-1 text-[0.68rem] font-semibold text-white shadow-lg">Click to inspect</div>'
+                            : '') +
+                    '</div>'
+                return
+            }
+
+            setZoomablePreview(target, null, '', false)
             if (isPdfDocument(asset.contentType, asset.extension)) {
                 target.innerHTML = '<iframe src="' + escapeHtml(asset.url) + '" class="w-full h-full bg-white" title="' + escapeHtml(title || 'Verification document preview') + '"></iframe>'
                 return
@@ -606,8 +717,9 @@
                 '</div>'
         }
 
-        function loadDocumentPreview(target, verification, emptyMessage, loadingMessage, title) {
+        function loadDocumentPreview(target, verification, emptyMessage, loadingMessage, title, options) {
             if (!target) return Promise.resolve()
+            options = options || {}
             if (!verification || !verification.document_path) {
                 setPreviewHtml(target, '<div class="text-[0.78rem] text-slate-500">' + escapeHtml(emptyMessage || 'No document uploaded.') + '</div>')
                 return Promise.resolve()
@@ -623,11 +735,64 @@
 
             return fetchDocumentAsset(verification)
                 .then(function (asset) {
-                    renderDocumentAsset(target, asset, title)
+                    renderDocumentAsset(target, asset, title, options)
                 })
                 .catch(function () {
                     setPreviewHtml(target, '<div class="px-4 text-center text-[0.78rem] text-slate-500">Unable to load the document preview.</div>')
                 })
+        }
+
+        function closeHistoryDrawer() {
+            if (historyDrawer) historyDrawer.classList.add('hidden')
+        }
+
+        function openHistoryDrawer() {
+            if (!historyDrawer) return
+            historyDrawer.classList.remove('hidden')
+        }
+
+        function resetImageViewerTransform() {
+            imageViewerState.scale = 1
+            imageViewerState.offsetX = 0
+            imageViewerState.offsetY = 0
+            if (zoomResetButton) zoomResetButton.textContent = '100%'
+            if (imageViewerImg) {
+                imageViewerImg.style.transform =
+                    'translate(-50%, -50%) translate(' + imageViewerState.offsetX + 'px, ' + imageViewerState.offsetY + 'px) scale(' + imageViewerState.scale + ')'
+            }
+        }
+
+        function setImageViewerScale(nextScale) {
+            var clamped = Math.max(1, Math.min(6, nextScale))
+            imageViewerState.scale = clamped
+            if (clamped === 1) {
+                imageViewerState.offsetX = 0
+                imageViewerState.offsetY = 0
+            }
+            if (zoomResetButton) zoomResetButton.textContent = Math.round(clamped * 100) + '%'
+            if (imageViewerImg) {
+                imageViewerImg.style.transform =
+                    'translate(-50%, -50%) translate(' + imageViewerState.offsetX + 'px, ' + imageViewerState.offsetY + 'px) scale(' + clamped + ')'
+            }
+        }
+
+        function closeImageViewer() {
+            imageViewerState.dragging = false
+            if (imageViewer) imageViewer.classList.add('hidden')
+            if (imageViewerImg) {
+                imageViewerImg.removeAttribute('src')
+                imageViewerImg.style.transform = 'translate(-50%, -50%) translate(0px, 0px) scale(1)'
+            }
+            if (imageViewerTitle) imageViewerTitle.textContent = 'Verification document'
+            resetImageViewerTransform()
+        }
+
+        function openImageViewer(url, title) {
+            if (!imageViewer || !imageViewerImg || !url) return
+            if (imageViewerTitle) imageViewerTitle.textContent = title || 'Verification document'
+            imageViewer.classList.remove('hidden')
+            imageViewerImg.setAttribute('src', url)
+            resetImageViewerTransform()
         }
 
         function openDocPanel() {
@@ -640,6 +805,8 @@
 
         function closeDocPanel() {
             if (!docPanelOverlay || !docPanel) return
+            closeHistoryDrawer()
+            closeImageViewer()
             docPanel.classList.add('translate-x-full')
             setTimeout(function () {
                 docPanelOverlay.classList.add('hidden')
@@ -647,6 +814,14 @@
                     patientCard.innerHTML = '<div class="text-[0.78rem] text-slate-500">Select a verification record.</div>'
                 }
                 setPreviewHtml(docMainWrap, 'Select a verification record.')
+                if (historyBody) {
+                    historyBody.innerHTML = '<tr><td colspan="6" class="px-3 py-4 text-center text-slate-400">No history loaded.</td></tr>'
+                }
+                if (historyDrawerTitle) historyDrawerTitle.textContent = 'History'
+                currentHistoryRows = []
+                currentHistoryLabel = 'History'
+                if (historyTrigger) historyTrigger.disabled = true
+                if (docHint) docHint.textContent = 'Image previews can be opened fullscreen for closer inspection.'
             }, 220)
         }
 
@@ -656,7 +831,8 @@
                 v,
                 'No document uploaded for this verification.',
                 'Loading document...',
-                'Verification document preview'
+                'Verification document preview',
+                { zoomable: true }
             )
         }
 
@@ -673,15 +849,15 @@
                 var uploaded = entry && entry.created_at ? String(entry.created_at).slice(0, 10) : '-'
                 var remarks = entry && entry.remarks ? String(entry.remarks) : '-'
                 var thumb = entry && entry.document_path
-                    ? '<button type="button" class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.72rem] font-semibold text-slate-700 hover:bg-slate-50 admin-verif-history-doc" data-id="' + escapeHtml(entry.verification_id) + '">Open</button>'
+                    ? '<button type="button" class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.72rem] font-semibold text-slate-700 hover:bg-slate-50 rec-verif-history-doc" data-id="' + escapeHtml(entry.verification_id) + '">Open</button>'
                     : '<span class="text-slate-400">No doc</span>'
                 return '<tr>' +
-                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">#' + escapeHtml(entry.verification_id) + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(entry.type || '-') + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(statusText(entry.status)) + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 min-w-[14rem]">' + escapeHtml(remarks) + '</td>' +
-                    '<td class="px-3 py-2">' + thumb + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(uploaded) + '</td>' +
+                    '<td class="px-3 py-2 align-top text-slate-700 whitespace-nowrap">#' + escapeHtml(entry.verification_id) + '</td>' +
+                    '<td class="px-3 py-2 align-top text-slate-700 whitespace-nowrap">' + escapeHtml(entry.type || '-') + '</td>' +
+                    '<td class="px-3 py-2 align-top text-slate-700 whitespace-nowrap">' + escapeHtml(statusText(entry.status)) + '</td>' +
+                    '<td class="px-3 py-2 align-top text-slate-700 break-words leading-5">' + escapeHtml(remarks) + '</td>' +
+                    '<td class="px-3 py-2 align-top whitespace-nowrap">' + thumb + '</td>' +
+                    '<td class="px-3 py-2 align-top text-slate-700 whitespace-nowrap">' + escapeHtml(uploaded) + '</td>' +
                 '</tr>'
             }).join('')
             bindHistoryActions()
@@ -690,10 +866,15 @@
         function openDocumentPanelFor(verification) {
             if (!verification) return
             // if (docPanelTitle) docPanelTitle.textContent = 'Verification #' + verification.verification_id
-            if (docPanelSubtitle) docPanelSubtitle.textContent = getPatientLabel(verification) + ' | ' + statusText(verification.status) + ' | ' + (verification.type || '-')   
+            if (docPanelSubtitle) docPanelSubtitle.textContent = getPatientLabel(verification) + ' | ' + statusText(verification.status) + ' | ' + (verification.type || '-')
+            if (historyDrawerTitle) historyDrawerTitle.textContent = getPatientLabel(verification)
+            currentHistoryLabel = getPatientLabel(verification)
             renderPatientSummary(verification)
+            closeHistoryDrawer()
+            closeImageViewer()
             setMainDocumentPreview(verification)
             openDocPanel()
+            if (historyTrigger) historyTrigger.disabled = true
 
             if (historyBody) {
                 historyBody.innerHTML = '<tr><td colspan="6" class="px-3 py-4 text-center text-slate-400">Loading verification history...</td></tr>'
@@ -701,6 +882,7 @@
             var patientId = verification && verification.patient_id ? verification.patient_id : 0
             if (!patientId) {
                 renderHistory([])
+                if (historyTrigger) historyTrigger.disabled = false
                 return
             }
 
@@ -715,6 +897,7 @@
                 .then(function (result) {
                     if (!result.ok || !result.data) {
                         renderHistory([])
+                        if (historyTrigger) historyTrigger.disabled = false
                         return
                     }
                     var rows = Array.isArray(result.data.data) ? result.data.data : []
@@ -726,9 +909,11 @@
                         return 0
                     })
                     renderHistory(rows)
+                    if (historyTrigger) historyTrigger.disabled = false
                 })
                 .catch(function () {
                     renderHistory([])
+                    if (historyTrigger) historyTrigger.disabled = false
                 })
         }
 
@@ -778,7 +963,8 @@
                     verification,
                     'No document preview.',
                     'Loading preview...',
-                    'Verification action preview'
+                    'Verification action preview',
+                    { zoomable: false }
                 )
 
                 if (isReject) {
@@ -834,7 +1020,7 @@
         }
 
         function bindRowActions() {
-            var docButtons = document.querySelectorAll('.admin-verif-doc')
+            var docButtons = document.querySelectorAll('.rec-verif-doc')
             docButtons.forEach(function (button) {
                 button.addEventListener('click', function () {
                     var id = this.getAttribute('data-id')
@@ -850,7 +1036,7 @@
                 })
             })
 
-            var setButtons = document.querySelectorAll('.admin-verif-set')
+            var setButtons = document.querySelectorAll('.rec-verif-set')
             setButtons.forEach(function (button) {
                 button.addEventListener('click', function () {
                     var id = this.getAttribute('data-id')
@@ -892,7 +1078,7 @@
 
         function bindHistoryActions() {
             if (!historyBody) return
-            var historyButtons = historyBody.querySelectorAll('.admin-verif-history-doc')
+            var historyButtons = historyBody.querySelectorAll('.rec-verif-history-doc')
             historyButtons.forEach(function (button) {
                 button.addEventListener('click', function () {
                     var id = this.getAttribute('data-id')
@@ -906,18 +1092,70 @@
                     }
                     // if (docPanelTitle) docPanelTitle.textContent = 'Verification #' + selected.verification_id
                     if (docPanelSubtitle) docPanelSubtitle.textContent = getPatientLabel(selected) + ' | ' + statusText(selected.status) + ' | ' + (selected.type || '-')
+                    if (historyDrawerTitle) historyDrawerTitle.textContent = currentHistoryLabel
                     renderPatientSummary(selected)
+                    closeImageViewer()
                     void setMainDocumentPreview(selected)
                 })
             })
         }
 
-        if (docPanelClose) docPanelClose.addEventListener('click', closeDocPanel)
-        if (docPanelOverlay) {
-            docPanelOverlay.addEventListener('click', function (e) {
-                if (e.target === docPanelOverlay) closeDocPanel()
+        if (historyTrigger) {
+            historyTrigger.addEventListener('click', function () {
+                if (historyTrigger.disabled) return
+                openHistoryDrawer()
             })
         }
+        if (historyDrawerClose) historyDrawerClose.addEventListener('click', closeHistoryDrawer)
+        if (docPanelClose) docPanelClose.addEventListener('click', closeDocPanel)
+        if (docMainWrap) {
+            docMainWrap.addEventListener('click', function () {
+                var imageUrl = docMainWrap.getAttribute('data-preview-image-url')
+                if (!imageUrl) return
+                openImageViewer(imageUrl, docMainWrap.getAttribute('data-preview-title') || 'Verification document')
+            })
+        }
+        if (docPanelOverlay) {
+            docPanelOverlay.addEventListener('click', function (e) {
+                if (e.target === docPanelOverlay) {
+                    if (imageViewer && !imageViewer.classList.contains('hidden')) {
+                        closeImageViewer()
+                        return
+                    }
+                    closeDocPanel()
+                }
+            })
+        }
+        if (imageViewerClose) imageViewerClose.addEventListener('click', closeImageViewer)
+        if (imageViewer) {
+            imageViewer.addEventListener('click', function (e) {
+                if (e.target === imageViewer) closeImageViewer()
+            })
+        }
+        if (zoomInButton) zoomInButton.addEventListener('click', function () { setImageViewerScale(imageViewerState.scale + 0.25) })
+        if (zoomOutButton) zoomOutButton.addEventListener('click', function () { setImageViewerScale(imageViewerState.scale - 0.25) })
+        if (zoomResetButton) zoomResetButton.addEventListener('click', resetImageViewerTransform)
+        if (imageViewerStage) {
+            imageViewerStage.addEventListener('wheel', function (e) {
+                e.preventDefault()
+                setImageViewerScale(imageViewerState.scale + (e.deltaY < 0 ? 0.2 : -0.2))
+            }, { passive: false })
+            imageViewerStage.addEventListener('mousedown', function (e) {
+                if (imageViewerState.scale <= 1) return
+                imageViewerState.dragging = true
+                imageViewerState.startX = e.clientX - imageViewerState.offsetX
+                imageViewerState.startY = e.clientY - imageViewerState.offsetY
+            })
+        }
+        document.addEventListener('mousemove', function (e) {
+            if (!imageViewerState.dragging) return
+            imageViewerState.offsetX = e.clientX - imageViewerState.startX
+            imageViewerState.offsetY = e.clientY - imageViewerState.startY
+            setImageViewerScale(imageViewerState.scale)
+        })
+        document.addEventListener('mouseup', function () {
+            imageViewerState.dragging = false
+        })
         if (actionCancel) actionCancel.addEventListener('click', function () { closeActionModal(null) })
         if (actionConfirm) {
             actionConfirm.addEventListener('click', function () {
@@ -931,6 +1169,8 @@
         }
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
+                closeImageViewer()
+                closeHistoryDrawer()
                 closeDocPanel()
                 closeActionModal(null)
             }
@@ -938,7 +1178,7 @@
 
         if (searchInput) {
             searchInput.addEventListener('input', function () {
-                renderVerifications()
+                loadVerifications(1)
             })
         }
         if (statusFilter) {
@@ -955,8 +1195,13 @@
         }
         if (sortSelect) {
             sortSelect.addEventListener('change', function () {
-                renderVerifications()
+                loadVerifications(1)
             })
+        }
+
+        var verifRefreshBtn = document.getElementById('recVerifRefreshBtn')
+        if (verifRefreshBtn) {
+            verifRefreshBtn.addEventListener('click', function () { loadVerifications(currentPage) })
         }
 
         loadStats()
