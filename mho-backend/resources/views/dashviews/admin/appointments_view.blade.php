@@ -466,7 +466,6 @@
         if (historyStatus) historyStatus.addEventListener('change', renderHistory)
         if (historyType) historyType.addEventListener('change', renderHistory)
 
-        // ── Load data ──
         function loadDoctors() {
             apiFetch("{{ url('/api/doctors') }}?per_page=100", { method: 'GET' })
                 .then(function (response) {

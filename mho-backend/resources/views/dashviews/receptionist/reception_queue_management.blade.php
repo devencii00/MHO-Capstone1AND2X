@@ -301,10 +301,19 @@
                                 @endif
                             </td>
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
+                                @php $canChangeDoctor = in_array(strtolower($statusName), ['waiting', 'serving', 'skipped'], true); @endphp
                                 @if ($doctorName)
-                                    <button type="button" class="rec-queue-change-doctor text-left underline decoration-dotted underline-offset-2 hover:text-green-700 hover:decoration-green-400">{{ $doctorName }}</button>
+                                    @if ($canChangeDoctor)
+                                        <button type="button" class="rec-queue-change-doctor text-left underline decoration-dotted underline-offset-2 hover:text-green-700 hover:decoration-green-400">{{ $doctorName }}</button>
+                                    @else
+                                        <span class="text-slate-700">{{ $doctorName }}</span>
+                                    @endif
                                 @else
-                                    <button type="button" class="rec-queue-change-doctor text-[0.7rem] text-slate-400 underline decoration-dotted underline-offset-2 hover:text-green-700 hover:decoration-green-400">Assign doctor</button>
+                                    @if ($canChangeDoctor)
+                                        <button type="button" class="rec-queue-change-doctor text-[0.7rem] text-slate-400 underline decoration-dotted underline-offset-2 hover:text-green-700 hover:decoration-green-400">Assign doctor</button>
+                                    @else
+                                        <span class="text-[0.7rem] text-slate-400">Assign doctor</span>
+                                    @endif
                                 @endif
                             </td>
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-500 max-w-[180px]">
@@ -340,7 +349,7 @@
                             </td>
                             <td class="py-2 pr-4 text-[0.78rem] text-right text-slate-500">
                                 @if ($queueId ?? null)
-                                    @if (in_array(strtolower($statusName), ['done', 'cancelled', 'no_show', 'skipped', 'consulted'], true))
+                                    @if (in_array(strtolower($statusName), ['done', 'cancelled', 'no_show', 'consulted'], true))
                                         <span class="inline-flex items-center gap-1.5 text-[0.7rem] text-slate-400">
                                             @if (strtolower($statusName) === 'consulted')
                                                 <span class="inline-flex items-center gap-1.5 rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-[0.68rem] font-medium text-green-700">
@@ -683,8 +692,7 @@
             var row = btn.closest('.reception-queue-row')
             if (!row) return
             var rowStatus = row.getAttribute('data-status') || ''
-            if (rowStatus !== 'waiting' && rowStatus !== 'serving') {
-                if (typeof showToast === 'function') showToast('Can only change doctor for waiting or serving patients.', 'error')
+            if (rowStatus !== 'waiting' && rowStatus !== 'serving' && rowStatus !== 'skipped') {
                 return
             }
             var appointmentId = row.getAttribute('data-appointment-id')
@@ -1670,8 +1678,6 @@
 
                         showQueueSuccess(selectedDoctorId ? 'Next patient for selected doctor is now serving.' : 'Next patient is now serving.')
                         refreshFullPage()
-                        loadQueueRequests()
-                        fetchQueueSnapshot()
                     })
                     .catch(function () {
                         showQueueError('Network error while calling next.')

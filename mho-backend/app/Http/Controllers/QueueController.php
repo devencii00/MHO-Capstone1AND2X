@@ -908,7 +908,7 @@ class QueueController extends Controller
         $nextStatus = array_key_exists('status', $data) ? $data['status'] : null;
 
         // Lock: if queue is in a terminal/locked state, reject further modifications
-        $lockedStatuses = ['consulted', 'done', 'cancelled', 'no_show', 'skipped'];
+        $lockedStatuses = ['consulted', 'done', 'cancelled', 'no_show'];
         $currentStatus = strtolower(trim((string) $queue->status));
         if (in_array($currentStatus, $lockedStatuses, true)) {
             return response()->json([
@@ -1035,7 +1035,7 @@ class QueueController extends Controller
     public function move(Request $request, Queue $queue)
     {
         // Lock: prevent moving queue entries in terminal/locked states
-        $lockedStatuses = ['consulted', 'done', 'cancelled', 'no_show', 'skipped'];
+        $lockedStatuses = ['consulted', 'done', 'cancelled', 'no_show'];
         $currentStatus = strtolower(trim((string) $queue->status));
         if (in_array($currentStatus, $lockedStatuses, true)) {
             return response()->json([

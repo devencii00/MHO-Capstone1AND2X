@@ -1057,31 +1057,9 @@
 
                 setSubmitting(true)
 
-                fetchPossibleDuplicates(body)
-                    .then(function (dupes) {
-                        function normalizeText(v) {
-                            return String(v || '').trim().toLowerCase().replace(/\s+/g, ' ')
-                        }
-                        var strongMatches = (dupes || []).filter(function (p) {
-                            if (!p) return false
-                            return normalizeText(p.firstname) === normalizeText(body.firstname) &&
-                                normalizeText(p.middlename) === normalizeText(body.middlename) &&
-                                normalizeText(p.lastname) === normalizeText(body.lastname) &&
-                                String(p.birthdate || '').trim() === String(body.birthdate || '').trim() &&
-                                normalizeText(p.sex) === normalizeText(body.sex) &&
-                                String(p.contact_number || '').trim() === String(body.contact_number || '').trim() &&
-                                normalizeText(p.address) === normalizeText(body.address)
-                        })
-
-                        if (strongMatches.length) {
-                            return confirmAction(
-                                'There’s a patient with similar info. Do you still want to register this patient?',
-                                buildStrongMatchDetails(strongMatches)
-                            )
-                        }
-
-                        return confirmAction('Register this patient?', buildConfirmDetails(dupes))
-                    })
+                // Skip client-side duplicate check to speed up registration;
+                // server-side validation will catch duplicates if needed
+                confirmAction('Register this patient?', buildConfirmDetails([]))
                     .then(function (confirmed) {
                         if (!confirmed) {
                             setSubmitting(false)

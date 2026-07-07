@@ -137,7 +137,7 @@ class PatientController extends Controller
                 'account_activated' => true,
             ]);
 
-            Mail::to($user->email)->send(new StaffInviteMail($user, $plainPassword));
+            Mail::to($user->email)->queue(new StaffInviteMail($user, $plainPassword));
 
             return $user;
         });

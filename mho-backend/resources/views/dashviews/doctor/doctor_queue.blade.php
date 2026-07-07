@@ -108,7 +108,7 @@
                                 </span>
                             </td>
                             <td class="py-2 pr-4 text-right">
-                                @if ($queueId && ! in_array($statusName, ['done', 'cancelled', 'no_show', 'skipped'], true))
+                                @if ($queueId && ! in_array($statusName, ['done', 'cancelled', 'no_show'], true))
                                     <div class="inline-flex items-center gap-1.5">
                                         @if ($statusName === 'waiting')
                                             <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-[0.7rem] text-slate-600 hover:bg-slate-50 doctor-queue-status" data-queue-id="{{ $queueId }}" data-status="serving">

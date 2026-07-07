@@ -105,16 +105,15 @@
                         <table class="w-full table-fixed text-xs">
                             <thead class="bg-slate-50 text-slate-500 sticky top-0">
                                 <tr>
-                                    <th class="w-[4.75rem] text-left px-3 py-2 font-semibold whitespace-nowrap">ID</th>
-                                    <th class="w-[5.75rem] text-left px-3 py-2 font-semibold whitespace-nowrap">Type</th>
-                                    <th class="w-[5.75rem] text-left px-3 py-2 font-semibold whitespace-nowrap">Status</th>
-                                    <th class="text-left px-3 py-2 font-semibold">Remarks</th>
-                                    <th class="w-[6.5rem] text-left px-3 py-2 font-semibold whitespace-nowrap">Document</th>
-                                    <th class="w-[6rem] text-left px-3 py-2 font-semibold whitespace-nowrap">Uploaded</th>
+                                    <th class="w-[5.5rem] text-left px-2 py-2 font-semibold whitespace-nowrap">Type</th>
+                                    <th class="w-[5.5rem] text-left px-2 py-2 font-semibold whitespace-nowrap">Status</th>
+                                    <th class="text-left px-2 py-2 font-semibold">Remarks</th>
+                                    <th class="w-[6rem] text-left px-2 py-2 font-semibold whitespace-nowrap">Document</th>
+                                    <th class="w-[5.5rem] text-left px-2 py-2 font-semibold whitespace-nowrap">Uploaded</th>
                                 </tr>
                             </thead>
                             <tbody id="recVerifHistoryBody" class="divide-y divide-slate-100 bg-white">
-                                <tr><td colspan="6" class="px-3 py-4 text-center text-slate-400">No history loaded.</td></tr>
+                                <tr><td colspan="5" class="px-2 py-4 text-center text-slate-400">No history loaded.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -499,8 +498,10 @@
                             (hasDoc
                                 ? '<button type="button" class="w-28 shrink-0 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.72rem] font-semibold text-slate-700 text-center hover:bg-slate-50 rec-verif-doc" data-id="' + id + '">View document</button>'
                                 : '<button type="button" disabled class="w-28 shrink-0 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-100 text-[0.72rem] font-semibold text-slate-400 text-center cursor-not-allowed">No document</button>') +
-                            '<button type="button" class="w-20 shrink-0 px-2.5 py-1 rounded-lg border border-emerald-200 bg-emerald-50 text-[0.72rem] font-semibold text-emerald-700 text-center hover:bg-emerald-100 rec-verif-set" data-id="' + id + '" data-status="approved">Approve</button>' +
-                            '<button type="button" class="w-20 shrink-0 px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-[0.72rem] font-semibold text-rose-700 text-center hover:bg-rose-100 rec-verif-set" data-id="' + id + '" data-status="rejected">Reject</button>' +
+                            (status !== 'approved' && status !== 'rejected'
+                                ? '<button type="button" class="w-20 shrink-0 px-2.5 py-1 rounded-lg border border-emerald-200 bg-emerald-50 text-[0.72rem] font-semibold text-emerald-700 text-center hover:bg-emerald-100 rec-verif-set" data-id="' + id + '" data-status="approved">Approve</button>' +
+                                  '<button type="button" class="w-20 shrink-0 px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-[0.72rem] font-semibold text-rose-700 text-center hover:bg-rose-100 rec-verif-set" data-id="' + id + '" data-status="rejected">Reject</button>'
+                                : '') +
                         '</div>' +
                     '</td>' +
                 '</tr>'
@@ -841,23 +842,27 @@
             var items = Array.isArray(rows) ? rows : []
             currentHistoryRows = items
             if (!items.length) {
-                historyBody.innerHTML = '<tr><td colspan="6" class="px-3 py-4 text-center text-slate-400">No verification history found.</td></tr>'
+                historyBody.innerHTML = '<tr><td colspan="5" class="px-2 py-4 text-center text-slate-400">No verification history found.</td></tr>'
                 return
             }
 
             historyBody.innerHTML = items.map(function (entry) {
                 var uploaded = entry && entry.created_at ? String(entry.created_at).slice(0, 10) : '-'
-                var remarks = entry && entry.remarks ? String(entry.remarks) : '-'
+                var remarks = entry && entry.remarks ? String(entry.remarks) : ''
+                var firstWord = remarks ? String(remarks).split(/\s+/)[0] : ''
+                var hasMore = remarks && String(remarks).split(/\s+/).length > 1
+                var remarksHtml = remarks
+                    ? '<span class="rec-verif-remarks cursor-pointer hover:text-green-700" data-full="' + escapeHtml(remarks) + '">' + escapeHtml(firstWord) + (hasMore ? '<span class="text-slate-400">…</span>' : '') + '</span>'
+                    : '<span class="text-slate-400">-</span>'
                 var thumb = entry && entry.document_path
                     ? '<button type="button" class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.72rem] font-semibold text-slate-700 hover:bg-slate-50 rec-verif-history-doc" data-id="' + escapeHtml(entry.verification_id) + '">Open</button>'
                     : '<span class="text-slate-400">No doc</span>'
                 return '<tr>' +
-                    '<td class="px-3 py-2 align-top text-slate-700 whitespace-nowrap">#' + escapeHtml(entry.verification_id) + '</td>' +
-                    '<td class="px-3 py-2 align-top text-slate-700 whitespace-nowrap">' + escapeHtml(entry.type || '-') + '</td>' +
-                    '<td class="px-3 py-2 align-top text-slate-700 whitespace-nowrap">' + escapeHtml(statusText(entry.status)) + '</td>' +
-                    '<td class="px-3 py-2 align-top text-slate-700 break-words leading-5">' + escapeHtml(remarks) + '</td>' +
-                    '<td class="px-3 py-2 align-top whitespace-nowrap">' + thumb + '</td>' +
-                    '<td class="px-3 py-2 align-top text-slate-700 whitespace-nowrap">' + escapeHtml(uploaded) + '</td>' +
+                    '<td class="px-2 py-2 align-top text-slate-700 whitespace-nowrap">' + escapeHtml(entry.type || '-') + '</td>' +
+                    '<td class="px-2 py-2 align-top text-slate-700 whitespace-nowrap">' + escapeHtml(statusText(entry.status)) + '</td>' +
+                    '<td class="px-2 py-2 align-top text-slate-700 leading-5">' + remarksHtml + '</td>' +
+                    '<td class="px-2 py-2 align-top whitespace-nowrap">' + thumb + '</td>' +
+                    '<td class="px-2 py-2 align-top text-slate-700 whitespace-nowrap">' + escapeHtml(uploaded) + '</td>' +
                 '</tr>'
             }).join('')
             bindHistoryActions()
@@ -1096,6 +1101,17 @@
                     renderPatientSummary(selected)
                     closeImageViewer()
                     void setMainDocumentPreview(selected)
+                })
+            })
+            var remarksEls = historyBody.querySelectorAll('.rec-verif-remarks')
+            remarksEls.forEach(function (el) {
+                el.addEventListener('click', function () {
+                    var full = this.getAttribute('data-full')
+                    if (full && this.innerHTML.indexOf('…') >= 0) {
+                        this.innerHTML = escapeHtml(full)
+                        this.classList.add('text-slate-700')
+                        this.classList.remove('hover:text-green-700')
+                    }
                 })
             })
         }
