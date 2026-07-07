@@ -413,7 +413,7 @@
 
         function buildQuery(page) {
             var params = []
-            params.push('per_page=10')
+            params.push('per_page=15')
             params.push('page=' + encodeURIComponent(page || 1))
 
             var status = statusFilter ? statusFilter.value : ''
@@ -891,7 +891,7 @@
                 return
             }
 
-            apiFetch("{{ url('/api/patient-verifications') }}?per_page=100&patient_id=" + encodeURIComponent(String(patientId)), { method: 'GET' })
+            apiFetch("{{ url('/api/patient-verifications') }}?per_page=15&patient_id=" + encodeURIComponent(String(patientId)), { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }

@@ -797,7 +797,7 @@ function setWalkInTab(tab) {
         function loadServices() {
             if (servicesLoaded || servicesLoading || typeof apiFetch !== 'function') return
             servicesLoading = true
-            apiFetch("{{ url('/api/services') }}?per_page=100", { method: 'GET' })
+            apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -823,7 +823,7 @@ function setWalkInTab(tab) {
             var metaBox = document.getElementById('receptionWalkInHistoryMeta')
             if (metaBox) metaBox.textContent = 'Loading walk-in history…'
 
-            var url = "{{ url('/api/appointments') }}" + '?per_page=100&appointment_type=walk_in'
+            var url = "{{ url('/api/appointments') }}" + '?per_page=15&appointment_type=walk_in'
             var order = sortSelect && sortSelect.value === 'oldest' ? 'oldest' : 'latest'
             url += '&order=' + encodeURIComponent(order)
 
@@ -960,7 +960,7 @@ function setWalkInTab(tab) {
 
         function loadWalkinPatientHistory(patientId) {
             if (!patientId) return
-            apiFetch("{{ url('/api/appointments') }}?per_page=100&patient_id=" + patientId, { method: 'GET' })
+            apiFetch("{{ url('/api/appointments') }}?per_page=15&patient_id=" + patientId, { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -1846,7 +1846,7 @@ function setWalkInTab(tab) {
         function loadGuestServices() {
             if (guestLoadingServices || typeof apiFetch !== 'function') return
             guestLoadingServices = true
-            apiFetch("{{ url('/api/services') }}?per_page=100", { method: 'GET' })
+            apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
                 .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d } }).catch(function () { return { ok: r.ok, data: null } }) })
                 .then(function (res) {
                     if (!res.ok) return
@@ -1870,7 +1870,7 @@ function setWalkInTab(tab) {
         function loadGuestDoctors() {
             if (guestLoadingDoctors || typeof apiFetch !== 'function') return
             guestLoadingDoctors = true
-            apiFetch("{{ url('/api/doctors') }}?per_page=100", { method: 'GET' })
+            apiFetch("{{ url('/api/doctors') }}?per_page=15", { method: 'GET' })
                 .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d } }).catch(function () { return { ok: r.ok, data: null } }) })
                 .then(function (res) {
                     if (!res.ok) return
@@ -2714,7 +2714,7 @@ function setWalkInTab(tab) {
 
         function fetchWalkInPatients(query) {
             if (typeof apiFetch !== 'function') return Promise.resolve([])
-            var url = "{{ url('/api/patients') }}?per_page=10&sort=desc"
+            var url = "{{ url('/api/patients') }}?per_page=15&sort=desc"
             var trimmed = String(query || '').trim()
             if (trimmed) url += '&search=' + encodeURIComponent(trimmed)
             return apiFetch(url, { method: 'GET' })
@@ -2979,7 +2979,7 @@ function setWalkInTab(tab) {
         function ensureWalkInServicesLoaded() {
             if (servicesLoaded && services.length) return Promise.resolve(services)
             if (typeof apiFetch !== 'function') return Promise.resolve([])
-            return apiFetch("{{ url('/api/services') }}?per_page=100", { method: 'GET' })
+            return apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) return services || []
@@ -2993,7 +2993,7 @@ function setWalkInTab(tab) {
         function ensureWalkInDoctorsLoaded() {
             if (doctorsLoaded && doctors.length) return Promise.resolve(doctors)
             if (typeof apiFetch !== 'function') return Promise.resolve([])
-            return apiFetch("{{ url('/api/doctors') }}?per_page=100", { method: 'GET' })
+            return apiFetch("{{ url('/api/doctors') }}?per_page=15", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) return doctors || []
@@ -3150,7 +3150,7 @@ function setWalkInTab(tab) {
             syncPriorityInputState()
 
             if (!patientId || typeof apiFetch !== 'function') return
-            apiFetch("{{ url('/api/patient-verifications') }}?patient_id=" + encodeURIComponent(patientId) + "&status=approved&per_page=20", { method: 'GET' })
+            apiFetch("{{ url('/api/patient-verifications') }}?patient_id=" + encodeURIComponent(patientId) + "&status=approved&per_page=15", { method: 'GET' })
                 .then(function (r) { return readResponse(r) })
                 .then(function (res) {
                     if (!res.ok) return
@@ -3299,7 +3299,7 @@ function setWalkInTab(tab) {
 
         function searchPatients(query) {
             if (typeof apiFetch !== 'function') return
-            apiFetch("{{ url('/api/patients') }}?per_page=10&sort=desc&search=" + encodeURIComponent(query), { method: 'GET' })
+            apiFetch("{{ url('/api/patients') }}?per_page=15&sort=desc&search=" + encodeURIComponent(query), { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -4264,7 +4264,7 @@ function setWalkInTab(tab) {
         function loadDoctorSchedulesAndAvailability(doctorId, dateStr) {
             if (!doctorId || typeof apiFetch !== 'function') return
             clearAvailability()
-            apiFetch("{{ url('/api/doctor-schedules') }}?doctor_id=" + encodeURIComponent(doctorId) + "&per_page=100", { method: 'GET' })
+            apiFetch("{{ url('/api/doctor-schedules') }}?doctor_id=" + encodeURIComponent(doctorId) + "&per_page=15", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) {
@@ -4307,7 +4307,7 @@ function setWalkInTab(tab) {
 
         function loadDoctorAppointments(doctorId, dateStr) {
             if (!doctorId || !dateStr || typeof apiFetch !== 'function') return
-            apiFetch("{{ url('/api/appointments') }}?doctor_id=" + encodeURIComponent(doctorId) + "&start_date=" + encodeURIComponent(dateStr) + "&end_date=" + encodeURIComponent(dateStr) + "&per_page=200", { method: 'GET' })
+            apiFetch("{{ url('/api/appointments') }}?doctor_id=" + encodeURIComponent(doctorId) + "&start_date=" + encodeURIComponent(dateStr) + "&end_date=" + encodeURIComponent(dateStr) + "&per_page=15", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
@@ -4344,7 +4344,7 @@ function setWalkInTab(tab) {
             if (!servicesLoaded && !servicesLoading) {
                 servicesLoading = true
                 servicesLoadError = ''
-                apiFetch("{{ url('/api/services') }}?per_page=100", { method: 'GET' })
+                apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
                     .then(function (r) { return readResponse(r) })
                     .then(function (res) {
                         if (res.ok) {
@@ -4379,7 +4379,7 @@ function setWalkInTab(tab) {
             if (!doctorsLoaded && !doctorsLoading) {
                 doctorsLoading = true
                 doctorsLoadError = ''
-                apiFetch("{{ url('/api/doctors') }}?per_page=100", { method: 'GET' })
+                apiFetch("{{ url('/api/doctors') }}?per_page=15", { method: 'GET' })
                     .then(function (r) { return readResponse(r) })
                     .then(function (res) {
                         if (res.ok) {

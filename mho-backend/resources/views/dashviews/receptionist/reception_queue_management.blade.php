@@ -1126,7 +1126,7 @@
         function loadAppointmentOptions(search) {
             if (typeof apiFetch !== 'function') return
             var today = localDateIso()
-            var url = "{{ url('/api/appointments') }}" + '?per_page=100&start_date=' + encodeURIComponent(today) + '&end_date=' + encodeURIComponent(today) + '&today_only=1&order=latest&appointment_type=walk_in'
+            var url = "{{ url('/api/appointments') }}" + '?per_page=15&start_date=' + encodeURIComponent(today) + '&end_date=' + encodeURIComponent(today) + '&today_only=1&order=latest&appointment_type=walk_in'
             if (search) {
                 url += '&search=' + encodeURIComponent(search)
             }

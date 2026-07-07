@@ -911,7 +911,7 @@ function setAppointmentTab(tab) {
 
         function fetchBookPatients(query) {
             if (typeof apiFetch !== 'function') return Promise.resolve([])
-            var url = "{{ url('/api/patients') }}?per_page=10&sort=desc"
+            var url = "{{ url('/api/patients') }}?per_page=15&sort=desc"
             var trimmed = String(query || '').trim()
             if (trimmed) url += '&search=' + encodeURIComponent(trimmed)
             return apiFetch(url, { method: 'GET' })
@@ -1156,7 +1156,7 @@ function setAppointmentTab(tab) {
         function ensureBookServicesLoaded() {
             if (servicesLoaded && services.length) return Promise.resolve(services)
             if (typeof apiFetch !== 'function') return Promise.resolve([])
-            return apiFetch("{{ url('/api/services') }}?per_page=100", { method: 'GET' })
+            return apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) return services || []
@@ -1170,7 +1170,7 @@ function setAppointmentTab(tab) {
         function ensureBookDoctorsLoaded() {
             if (doctorsLoaded && doctors.length) return Promise.resolve(doctors)
             if (typeof apiFetch !== 'function') return Promise.resolve([])
-            return apiFetch("{{ url('/api/doctors') }}?per_page=200", { method: 'GET' })
+            return apiFetch("{{ url('/api/doctors') }}?per_page=15", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) return doctors || []
@@ -1418,7 +1418,7 @@ function setAppointmentTab(tab) {
 
         function searchPatients(query) {
             if (typeof apiFetch !== 'function') return
-            apiFetch("{{ url('/api/patients') }}?per_page=10&sort=desc&search=" + encodeURIComponent(query), { method: 'GET' })
+            apiFetch("{{ url('/api/patients') }}?per_page=15&sort=desc&search=" + encodeURIComponent(query), { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -1447,7 +1447,7 @@ function setAppointmentTab(tab) {
         function loadInitialPatients() {
             if (patientInitialLoaded || patientInitialLoading || typeof apiFetch !== 'function') return
             patientInitialLoading = true
-            apiFetch("{{ url('/api/patients') }}?per_page=10&sort=desc", { method: 'GET' })
+            apiFetch("{{ url('/api/patients') }}?per_page=15&sort=desc", { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -2401,7 +2401,7 @@ function setAppointmentTab(tab) {
         function loadDoctorSchedulesAndAvailability(doctorId, dateStr) {
             if (!doctorId || typeof apiFetch !== 'function') return
             clearAvailability()
-            apiFetch("{{ url('/api/doctor-schedules') }}?doctor_id=" + encodeURIComponent(doctorId) + "&per_page=100", { method: 'GET' })
+            apiFetch("{{ url('/api/doctor-schedules') }}?doctor_id=" + encodeURIComponent(doctorId) + "&per_page=15", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) {
@@ -2444,7 +2444,7 @@ function setAppointmentTab(tab) {
 
         function loadDoctorAppointments(doctorId, dateStr) {
             if (!doctorId || !dateStr || typeof apiFetch !== 'function') return
-            apiFetch("{{ url('/api/appointments') }}?doctor_id=" + encodeURIComponent(doctorId) + "&start_date=" + encodeURIComponent(dateStr) + "&end_date=" + encodeURIComponent(dateStr) + "&per_page=200", { method: 'GET' })
+            apiFetch("{{ url('/api/appointments') }}?doctor_id=" + encodeURIComponent(doctorId) + "&start_date=" + encodeURIComponent(dateStr) + "&end_date=" + encodeURIComponent(dateStr) + "&per_page=15", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
@@ -2461,7 +2461,7 @@ function setAppointmentTab(tab) {
             if (typeof apiFetch !== 'function') return
 
             servicesLoading = true
-            apiFetch("{{ url('/api/services') }}?per_page=100", { method: 'GET' })
+            apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -2491,7 +2491,7 @@ function setAppointmentTab(tab) {
                 })
 
             doctorsLoading = true
-            apiFetch("{{ url('/api/doctors') }}?per_page=200", { method: 'GET' })
+            apiFetch("{{ url('/api/doctors') }}?per_page=15", { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -3221,7 +3221,7 @@ function updateManageTodayButton() {
         function loadManagePatientHistory(patientId) {
             if (!patientId || typeof apiFetch !== 'function') return
             if (manageHistBody) manageHistBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading history…</div>'
-            apiFetch("{{ url('/api/appointments') }}?per_page=200&patient_id=" + encodeURIComponent(patientId), { method: 'GET' })
+            apiFetch("{{ url('/api/appointments') }}?per_page=15&patient_id=" + encodeURIComponent(patientId), { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result || !result.ok || !result.data) {
@@ -3417,7 +3417,7 @@ function updateManageTodayButton() {
         function loadManageServices() {
             if (manageServicesLoaded || manageServicesLoading || typeof apiFetch !== 'function') return
             manageServicesLoading = true
-            apiFetch("{{ url('/api/services') }}?per_page=100", { method: 'GET' })
+            apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) return
@@ -3490,7 +3490,7 @@ function updateManageTodayButton() {
             showManageResult(null)
             setManageSubmitting(true)
 
-            var url = "{{ url('/api/appointments') }}" + '?per_page=100&appointment_type=scheduled'
+            var url = "{{ url('/api/appointments') }}" + '?per_page=15&appointment_type=scheduled'
             var order = manageSortSelect && manageSortSelect.value ? String(manageSortSelect.value) : 'latest'
             url += '&order=' + encodeURIComponent(order === 'oldest' ? 'oldest' : 'latest')
 

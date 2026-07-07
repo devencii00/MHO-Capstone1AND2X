@@ -33,7 +33,7 @@ class PatientController extends Controller
         $request->validate([
             'search' => ['nullable', 'string'],
             'parents_only' => ['nullable', 'boolean'],
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:15'],
             'sort' => ['nullable', 'in:asc,desc'],
         ]);
 
@@ -382,10 +382,10 @@ class PatientController extends Controller
         $data = $request->validate([
             'patient_id' => [$isPatient ? 'sometimes' : 'required', 'integer', 'exists:users,user_id'],
             'appointment_id' => ['nullable', 'integer', 'exists:appointments,appointment_id'],
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:15'],
         ]);
 
-        $perPage = (int) ($data['per_page'] ?? 50);
+        $perPage = (int) ($data['per_page'] ?? 15);
         if ($perPage < 1) {
             $perPage = 50;
         }

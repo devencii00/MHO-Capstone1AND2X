@@ -331,7 +331,7 @@
         var patientsTableBody = document.getElementById('admin_pr_patients_table_body')
         var pagination = document.getElementById('adminPrPagination')
         var patientsRows = []
-        var perPage = 10
+        var perPage = 15
         var currentPage = 1
         var visibleCount = 6
 
@@ -1160,7 +1160,7 @@
             renderDependentRecordView()
 
             var depId = String(dependentId)
-            var medBgReq = apiFetch(apiBaseUrl + "/medical-backgrounds?per_page=100&patient_id=" + encodeURIComponent(depId), { method: 'GET' })
+            var medBgReq = apiFetch(apiBaseUrl + "/medical-backgrounds?per_page=15&patient_id=" + encodeURIComponent(depId), { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -1169,7 +1169,7 @@
                     })
                 })
 
-            var visitsReq = apiFetch(apiBaseUrl + "/visits?per_page=100&patient_id=" + encodeURIComponent(depId), { method: 'GET' })
+            var visitsReq = apiFetch(apiBaseUrl + "/visits?per_page=15&patient_id=" + encodeURIComponent(depId), { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -1178,7 +1178,7 @@
                     })
                 })
 
-            var vitalsReq = apiFetch(apiBaseUrl + "/vitals?per_page=100&patient_id=" + encodeURIComponent(depId), { method: 'GET' })
+            var vitalsReq = apiFetch(apiBaseUrl + "/vitals?per_page=15&patient_id=" + encodeURIComponent(depId), { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -1312,7 +1312,7 @@
             patientsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading patients…</td></tr>'
             showInlineBox(patientsError, '')
 
-            apiFetch(apiBaseUrl + "/patients?per_page=50", { method: 'GET' })
+            apiFetch(apiBaseUrl + "/patients?per_page=15", { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -1463,7 +1463,7 @@
             resetPanelMetaFields()
             if (currentPanelTab) renderTabDrawerContent(currentPanelTab)
 
-            var medBgReq = apiFetch(apiBaseUrl + "/medical-backgrounds?per_page=100&patient_id=" + encodeURIComponent(currentPatientId), { method: 'GET' })
+            var medBgReq = apiFetch(apiBaseUrl + "/medical-backgrounds?per_page=15&patient_id=" + encodeURIComponent(currentPatientId), { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -1472,7 +1472,7 @@
                     })
                 })
 
-            var visitsReq = apiFetch(apiBaseUrl + "/visits?per_page=100&patient_id=" + encodeURIComponent(currentPatientId), { method: 'GET' })
+            var visitsReq = apiFetch(apiBaseUrl + "/visits?per_page=15&patient_id=" + encodeURIComponent(currentPatientId), { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -1481,7 +1481,7 @@
                     })
                 })
 
-            var vitalsReq = apiFetch(apiBaseUrl + "/vitals?per_page=100&patient_id=" + encodeURIComponent(currentPatientId), { method: 'GET' })
+            var vitalsReq = apiFetch(apiBaseUrl + "/vitals?per_page=15&patient_id=" + encodeURIComponent(currentPatientId), { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }

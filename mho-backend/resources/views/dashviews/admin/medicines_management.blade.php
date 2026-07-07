@@ -491,7 +491,7 @@
         function loadMedicines() {
             if (!tableBody) return
             tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading medicines…</td></tr>'
-            apiFetch("{{ url('/api/medicines') }}?per_page=100", { method: 'GET' })
+            apiFetch("{{ url('/api/medicines') }}?per_page=15", { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }

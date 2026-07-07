@@ -33,13 +33,29 @@
             </div>
 
             <div id="receptionDependentParentSection" class="hidden md:col-span-3">
-                <label for="reception_parent_search" class="block text-[0.7rem] text-slate-600 mb-1">Parent (search by name, email, ID)</label>
+                <label class="block text-[0.7rem] text-slate-600 mb-1">Parent</label>
                 <div class="relative">
-                    <input id="reception_parent_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Type to search parent">
+                    <input id="reception_parent_search" type="text" readonly class="w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 pr-24 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Select parent patient">
                     <input id="reception_parent_user_id" type="hidden">
-                    <div id="receptionParentResults" class="hidden absolute z-10 mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden"></div>
+                    <button id="receptionPrParentPickerBtn" type="button" class="absolute inset-y-1 right-1 inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-100">
+                        Browse
+                    </button>
                 </div>
-                <div id="receptionParentPreview" class="hidden mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.78rem] text-slate-700"></div>
+                <div id="receptionParentPreview" class="hidden mt-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-full bg-green-50 border border-green-200 flex items-center justify-center text-green-600 shrink-0">
+                            <x-lucide-user class="w-[16px] h-[16px]" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div id="receptionParentPreviewName" class="text-[0.8rem] font-semibold text-slate-900 truncate"></div>
+                            <div id="receptionParentPreviewAddress" class="text-[0.72rem] text-slate-500 truncate mt-0.5"></div>
+                            <div id="receptionParentPreviewContact" class="text-[0.72rem] text-slate-500 truncate"></div>
+                        </div>
+                        <button type="button" id="receptionPrParentRemoveBtn" class="shrink-0 text-slate-400 hover:text-red-500">
+                            <x-lucide-x class="w-[16px] h-[16px]" />
+                        </button>
+                    </div>
+                </div>
                 <div id="receptionDependentRelationshipSection" class="hidden mt-3">
                     <label for="reception_dependent_relationship" class="block text-[0.7rem] text-slate-600 mb-1">Relationship</label>
                     <select id="reception_dependent_relationship" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
@@ -476,6 +492,45 @@
         </div>
     </div>
 </div>
+
+<!-- Parent Picker Modal (2-panel, matching walk-ins selector) -->
+<div id="receptionPrParentPickerOverlay" class="hidden fixed inset-0 z-[80] bg-slate-900/50 items-center justify-center p-4">
+    <div class="w-full max-w-5xl h-[88vh] rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] overflow-hidden grid grid-cols-1 md:grid-cols-2">
+        <div class="border-b md:border-b-0 md:border-r border-slate-200 flex flex-col min-h-0">
+            <div class="px-4 py-3 border-b border-slate-100 shrink-0 flex items-start justify-between gap-3">
+                <div>
+                    <div class="text-sm font-semibold text-slate-900">Select Parent</div>
+                    <div class="text-[0.72rem] text-slate-500">Select a parent patient for the dependent account.</div>
+                </div>
+                <button type="button" id="receptionPrParentPickerClose" class="text-slate-400 hover:text-slate-600">
+                    <x-lucide-x class="w-[20px] h-[20px]" />
+                </button>
+            </div>
+            <div class="px-4 py-3 border-b border-slate-100 shrink-0">
+                <label for="receptionPrParentPickerSearch" class="block text-[0.65rem] uppercase tracking-widest text-slate-400 mb-1">Search</label>
+                <input id="receptionPrParentPickerSearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search by name, email, contact, or address">
+                <div id="receptionPrParentPickerListLabel" class="mt-2 text-[0.7rem] text-slate-500">Latest patients</div>
+            </div>
+            <div id="receptionPrParentPickerListBody" class="flex-1 overflow-y-auto p-3 space-y-2">
+                <div class="text-center text-[0.78rem] text-slate-400 py-8">Loading patients…</div>
+            </div>
+        </div>
+        <div class="flex flex-col min-h-0 bg-slate-50/60">
+            <div class="px-4 py-3 border-b border-slate-100 shrink-0">
+                <div class="text-sm font-semibold text-slate-900">Details</div>
+                <div class="text-[0.72rem] text-slate-500">Review the selected patient before confirming.</div>
+            </div>
+            <div id="receptionPrParentPickerDetailBody" class="flex-1 overflow-y-auto p-4">
+                <div class="text-center text-[0.78rem] text-slate-400 py-8">Select a patient to view details.</div>
+            </div>
+            <div class="px-4 py-3 border-t border-slate-100 bg-white shrink-0 flex items-center justify-end gap-2">
+                <button type="button" id="receptionPrParentPickerCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button type="button" id="receptionPrParentPickerConfirmBtn" class="px-3 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60" disabled>Select Parent</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         var form = document.getElementById('receptionRegisterPatientForm')
@@ -486,7 +541,6 @@
         var parentSection = document.getElementById('receptionDependentParentSection')
         var parentSearchInput = document.getElementById('reception_parent_search')
         var parentUserIdInput = document.getElementById('reception_parent_user_id')
-        var parentResults = document.getElementById('receptionParentResults')
         var parentPreview = document.getElementById('receptionParentPreview')
         var relationshipSection = document.getElementById('receptionDependentRelationshipSection')
         var relationshipSelect = document.getElementById('reception_dependent_relationship')
@@ -494,7 +548,6 @@
         var emailLabel = document.getElementById('reception_patient_email_label')
         var contactLabel = document.getElementById('reception_patient_contact_label')
         var hint = document.getElementById('receptionRegisterPatientHint')
-        var parentSearchTimer = null
         var selectedParent = null
         var successTimer = null
 
@@ -635,24 +688,19 @@
 
             if (parentPreview) {
                 if (!parent) {
-                    parentPreview.textContent = ''
                     parentPreview.classList.add('hidden')
                 } else {
-                    var parts = []
                     var name = [parent.firstname, parent.middlename, parent.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
                     if (!name) name = 'User #' + parent.user_id
-                    parts.push('Name: ' + name)
-                    if (parent.email) parts.push('Email: ' + parent.email)
-                    if (parent.contact_number) parts.push('Contact: ' + parent.contact_number)
-                    if (parent.address) parts.push('Address: ' + parent.address)
-                    parentPreview.textContent = parts.join(' • ')
+                    var nameEl = document.getElementById('receptionParentPreviewName')
+                    var addrEl = document.getElementById('receptionParentPreviewAddress')
+                    var contactEl = document.getElementById('receptionParentPreviewContact')
+                    if (nameEl) nameEl.textContent = name
+                    if (addrEl) addrEl.textContent = parent.address ? 'Address: ' + String(parent.address) : ''
+                    if (contactEl) contactEl.textContent = parent.contact_number ? 'Contact: ' + String(parent.contact_number) : ''
+                    if (parentSearchInput) parentSearchInput.value = name
                     parentPreview.classList.remove('hidden')
                 }
-            }
-
-            if (parentResults) {
-                parentResults.innerHTML = ''
-                parentResults.classList.add('hidden')
             }
 
             if (relationshipSection) {
@@ -704,90 +752,189 @@
             setDependentMode(!!dependentToggle.checked)
         }
 
-        function renderParentResults(items) {
-            if (!parentResults) return
-            var list = Array.isArray(items) ? items : []
-            if (!list.length) {
-                parentResults.innerHTML = '<div class="px-3 py-2 text-[0.75rem] text-slate-500">No parents found.</div>'
-                parentResults.classList.remove('hidden')
-                return
-            }
+        // Parent picker modal state
+        var parentPickerState = { items: [], activeItem: null }
 
-            var html = ''
-            list.forEach(function (p) {
-                var name = [p.firstname, p.middlename, p.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
-                if (!name) name = 'User #' + p.user_id
-                var meta = [p.email, p.contact_number].filter(Boolean).join(' • ')
-                html += '<button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50 border-b border-slate-100 last:border-0">' +
-                    '<div class="text-[0.78rem] text-slate-800 font-semibold">' + escapeHtml(name) + '</div>' +
-                    '<div class="text-[0.72rem] text-slate-500">#' + escapeHtml(p.user_id) + (meta ? ' • ' + escapeHtml(meta) : '') + '</div>' +
-                '</button>'
-            })
-            parentResults.innerHTML = html
-            parentResults.classList.remove('hidden')
-
-            var buttons = parentResults.querySelectorAll('button')
-            Array.prototype.forEach.call(buttons, function (btn, idx) {
-                btn.addEventListener('click', function () {
-                    setParentSelection(list[idx])
-                    if (parentSearchInput) {
-                        var chosenName = [list[idx].firstname, list[idx].middlename, list[idx].lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
-                        if (!chosenName) chosenName = 'User #' + list[idx].user_id
-                        parentSearchInput.value = chosenName
-                    }
-                })
-            })
+        function openParentPicker() {
+            if (!parentPickerOverlay) return
+            parentPickerState.items = []
+            parentPickerState.activeItem = null
+            parentPickerOverlay.classList.remove('hidden')
+            parentPickerOverlay.classList.add('flex')
+            fetchParentPickerPatients('')
         }
 
-        function searchParents(query) {
+        function closeParentPicker() {
+            if (!parentPickerOverlay) return
+            parentPickerOverlay.classList.add('hidden')
+            parentPickerOverlay.classList.remove('flex')
+        }
+
+        function fetchParentPickerPatients(query) {
             if (typeof apiFetch !== 'function') return
-            apiFetch("{{ url('/api/patients') }}?parents_only=1&per_page=8&search=" + encodeURIComponent(query), { method: 'GET' })
-                .then(function (response) {
-                    return response.json().then(function (data) {
-                        return { ok: response.ok, data: data }
-                    }).catch(function () {
-                        return { ok: response.ok, data: null }
-                    })
+            var url = "{{ url('/api/patients') }}?per_page=15&parents_only=1"
+            var trimmed = String(query || '').trim()
+            if (trimmed) url += '&search=' + encodeURIComponent(trimmed)
+            if (parentPickerListLabel) parentPickerListLabel.textContent = trimmed ? 'Search results' : 'Latest patients'
+            if (parentPickerListBody) parentPickerListBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading patients…</div>'
+            apiFetch(url, { method: 'GET' })
+                .then(function (r) {
+                    return r.json().then(function (d) { return { ok: r.ok, data: d } }).catch(function () { return { ok: false, data: null } })
                 })
                 .then(function (result) {
                     if (!result.ok) {
-                        renderParentResults([])
+                        if (parentPickerListBody) parentPickerListBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Failed to load patients.</div>'
                         return
                     }
-                    var list = []
-                    if (result.data && Array.isArray(result.data.data)) {
-                        list = result.data.data
-                    } else if (Array.isArray(result.data)) {
-                        list = result.data
-                    }
-                    renderParentResults(list)
+                    var list = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    parentPickerState.items = list
+                    renderParentPickerList(list)
                 })
                 .catch(function () {
-                    renderParentResults([])
+                    if (parentPickerListBody) parentPickerListBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Network error.</div>'
                 })
         }
 
+        function renderParentPickerList(items) {
+            if (!parentPickerListBody) return
+            if (!items.length) {
+                parentPickerListBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No patients found.</div>'
+                renderParentPickerDetail(null)
+                return
+            }
+            var activeId = parentPickerState.activeItem ? String(parentPickerState.activeItem.user_id) : null
+            var html = ''
+            items.forEach(function (p, idx) {
+                var name = [p.firstname, p.middlename, p.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
+                if (!name) name = 'User #' + p.user_id
+                var meta = []
+                if (p.email) meta.push(p.email)
+                if (p.contact_number) meta.push(p.contact_number)
+                var isActive = activeId && String(p.user_id) === activeId
+                html += '<button type="button" class="reception-pr-parent-pick w-full rounded-xl border px-3 py-3 text-left transition-colors ' + (isActive ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-white hover:border-green-200 hover:bg-slate-50') + '" data-idx="' + idx + '">' +
+                    '<div class="text-[0.8rem] font-semibold text-slate-900 truncate">' + escapeHtml(name) + '</div>' +
+                    '<div class="mt-1 text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || ('#' + p.user_id)) + '</div>' +
+                '</button>'
+            })
+            parentPickerListBody.innerHTML = html
+            Array.prototype.forEach.call(parentPickerListBody.querySelectorAll('button.reception-pr-parent-pick'), function (btn) {
+                btn.addEventListener('click', function () {
+                    var idx = parseInt(btn.getAttribute('data-idx') || '-1', 10)
+                    var chosen = parentPickerState.items[idx]
+                    if (chosen) {
+                        parentPickerState.activeItem = chosen
+                        renderParentPickerList(parentPickerState.items)
+                        renderParentPickerDetail(chosen)
+                    }
+                })
+            })
+            renderParentPickerDetail(parentPickerState.activeItem)
+        }
+
+        function renderParentPickerDetail(patient) {
+            if (!parentPickerDetailBody) return
+            if (!patient) {
+                parentPickerDetailBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select a patient to view details.</div>'
+                updateParentPickerConfirmState()
+                return
+            }
+            var name = [patient.firstname, patient.middlename, patient.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
+            if (!name) name = 'User #' + patient.user_id
+            var age = patient.birthdate ? (function () {
+                var bd = new Date(patient.birthdate)
+                if (isNaN(bd.getTime())) return ''
+                var diff = new Date() - bd
+                return Math.floor(diff / 31557600000)
+            })() : ''
+            parentPickerDetailBody.innerHTML = '' +
+                '<div class="space-y-3">' +
+                    '<div class="rounded-xl border border-slate-200 bg-white p-4">' +
+                        '<div class="flex items-start gap-3">' +
+                            '<div class="w-10 h-10 rounded-full bg-green-50 border border-green-200 flex items-center justify-center text-green-600 shrink-0">' +
+                                '<svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="5"/><path d="M3 21v-2a7 7 0 0 1 14 0v2"/></svg>' +
+                            '</div>' +
+                            '<div class="min-w-0 flex-1">' +
+                                '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-1">Patient</div>' +
+                                '<div class="text-base font-semibold text-slate-900 break-words">' + escapeHtml(name) + '</div>' +
+                                '<div class="mt-1 text-[0.78rem] text-slate-500">#' + escapeHtml(patient.user_id) + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="rounded-xl border border-slate-200 bg-white p-4">' +
+                        '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Patient Summary</div>' +
+                        '<div class="grid grid-cols-2 gap-x-3 gap-y-2 text-[0.78rem]">' +
+                            '<div class="text-slate-500">Age</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(age ? (age + ' years old') : '-') + '</div>' +
+                            '<div class="text-slate-500">Date of Birth</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(patient.birthdate ? String(patient.birthdate).slice(0, 10) : '-') + '</div>' +
+                            '<div class="text-slate-500">Address</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(patient.address || '-') + '</div>' +
+                            '<div class="text-slate-500">Sex</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(patient.sex ? String(patient.sex) : '-') + '</div>' +
+                            '<div class="text-slate-500">Contact</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(patient.contact_number || '-') + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>'
+            updateParentPickerConfirmState()
+        }
+
+        function updateParentPickerConfirmState() {
+            if (!parentPickerConfirmBtn) return
+            parentPickerConfirmBtn.disabled = !parentPickerState.activeItem
+        }
+
+        // Wire up parent picker browse button
         if (parentSearchInput) {
-            parentSearchInput.addEventListener('input', function () {
-                var q = String(parentSearchInput.value || '').trim()
-                if (parentSearchTimer) clearTimeout(parentSearchTimer)
-                if (q.length < 2) {
-                    if (parentResults) parentResults.classList.add('hidden')
-                    return
+            parentSearchInput.addEventListener('click', openParentPicker)
+        }
+        var parentPickerBtn = document.getElementById('receptionPrParentPickerBtn')
+        if (parentPickerBtn) {
+            parentPickerBtn.addEventListener('click', openParentPicker)
+        }
+
+        // Wire up parent picker modal elements
+        var parentPickerOverlay = document.getElementById('receptionPrParentPickerOverlay')
+        var parentPickerClose = document.getElementById('receptionPrParentPickerClose')
+        var parentPickerCancel = document.getElementById('receptionPrParentPickerCancel')
+        var parentPickerConfirmBtn = document.getElementById('receptionPrParentPickerConfirmBtn')
+        var parentPickerSearch = document.getElementById('receptionPrParentPickerSearch')
+        var parentPickerListLabel = document.getElementById('receptionPrParentPickerListLabel')
+        var parentPickerListBody = document.getElementById('receptionPrParentPickerListBody')
+        var parentPickerDetailBody = document.getElementById('receptionPrParentPickerDetailBody')
+
+        if (parentPickerClose) parentPickerClose.addEventListener('click', closeParentPicker)
+        if (parentPickerCancel) parentPickerCancel.addEventListener('click', closeParentPicker)
+        if (parentPickerConfirmBtn) {
+            parentPickerConfirmBtn.addEventListener('click', function () {
+                var chosen = parentPickerState.activeItem
+                if (chosen) {
+                    setParentSelection(chosen)
+                    closeParentPicker()
                 }
-                parentSearchTimer = setTimeout(function () {
-                    searchParents(q)
-                }, 250)
             })
         }
 
-        document.addEventListener('click', function (e) {
-            if (!parentResults || parentResults.classList.contains('hidden')) return
-            var target = e.target
-            if (parentResults.contains(target)) return
-            if (parentSearchInput && parentSearchInput.contains(target)) return
-            parentResults.classList.add('hidden')
-        })
+        // Search within parent picker modal
+        var parentPickerSearchTimer = null
+        if (parentPickerSearch) {
+            parentPickerSearch.addEventListener('input', function () {
+                var q = String(parentPickerSearch.value || '').trim()
+                if (parentPickerSearchTimer) clearTimeout(parentPickerSearchTimer)
+                parentPickerSearchTimer = setTimeout(function () {
+                    fetchParentPickerPatients(q)
+                }, 300)
+            })
+        }
+
+        // Remove parent button
+        var parentRemoveBtn = document.getElementById('receptionPrParentRemoveBtn')
+        if (parentRemoveBtn) {
+            parentRemoveBtn.addEventListener('click', function () {
+                setParentSelection(null)
+                if (parentSearchInput) parentSearchInput.value = ''
+            })
+        }
 
         var contactInput = document.getElementById('reception_patient_contact')
         // Auto-format phone input (same as staff_management.blade.php)
@@ -1057,9 +1204,31 @@
 
                 setSubmitting(true)
 
-                // Skip client-side duplicate check to speed up registration;
-                // server-side validation will catch duplicates if needed
-                confirmAction('Register this patient?', buildConfirmDetails([]))
+                fetchPossibleDuplicates(body)
+                    .then(function (dupes) {
+                        function normalizeText(v) {
+                            return String(v || '').trim().toLowerCase().replace(/\s+/g, ' ')
+                        }
+                        var strongMatches = (dupes || []).filter(function (p) {
+                            if (!p) return false
+                            return normalizeText(p.firstname) === normalizeText(body.firstname) &&
+                                normalizeText(p.middlename) === normalizeText(body.middlename) &&
+                                normalizeText(p.lastname) === normalizeText(body.lastname) &&
+                                String(p.birthdate || '').trim() === String(body.birthdate || '').trim() &&
+                                normalizeText(p.sex) === normalizeText(body.sex) &&
+                                String(p.contact_number || '').trim() === String(body.contact_number || '').trim() &&
+                                normalizeText(p.address) === normalizeText(body.address)
+                        })
+
+                        if (strongMatches.length) {
+                            return confirmAction(
+                                'There’s a patient with similar info. Do you still want to register this patient?',
+                                buildStrongMatchDetails(strongMatches)
+                            )
+                        }
+
+                        return confirmAction('Register this patient?', buildConfirmDetails(dupes))
+                    })
                     .then(function (confirmed) {
                         if (!confirmed) {
                             setSubmitting(false)
@@ -1365,12 +1534,12 @@
         function recIsValidPhilippinesNumber(value) { return /^\+63\d{10}$/.test(recNormalizePhilippinesNumber(value)) }
         function recIsValidName(value) { var v = String(value || '').trim(); if (v === '') return true; return /^[A-Za-z][A-Za-z\s.'-]*$/.test(v) }
 
-        // ── Fetch & Render Patients Table ──
+   
         function recLoadPatients() {
             if (!recPatientsTableBody) return
             recPatientsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading patients…</td></tr>'
             recShowInlineBox(recPatientsError, '')
-            var url = "{{ url('/api/patients') }}" + '?per_page=50'
+            var url = "{{ url('/api/patients') }}" + '?per_page=15'
             apiFetch(url, { method: 'GET' })
                 .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d } }).catch(function () { return { ok: false, data: null } }) })
                 .then(function (r) {
@@ -1404,7 +1573,7 @@
             recShowInlineBox(recPatientsError, '')
             var q = (recPatientsSearch && recPatientsSearch.value ? String(recPatientsSearch.value).trim() : '')
             var sort = (recSortSelect && recSortSelect.value ? String(recSortSelect.value) : '')
-            var url = "{{ url('/api/patients') }}" + '?per_page=50'
+            var url = "{{ url('/api/patients') }}" + '?per_page=15'
             if (q) url += '&search=' + encodeURIComponent(q)
             if (sort) url += '&sort=' + encodeURIComponent(sort)
             apiFetch(url, { method: 'GET' })
@@ -1510,7 +1679,7 @@
             })
         }
 
-        // ── Open Patient Panel / Drawer ──
+
         function recOpenPatientPanel(patientId) {
             recCurrentPatientId = patientId
             recCachedMedBgRows = null; recCachedVisitRows = null; recCachedVitalRows = null; recCachedDependentRows = null

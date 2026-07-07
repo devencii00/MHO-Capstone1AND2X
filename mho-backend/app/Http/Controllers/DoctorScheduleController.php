@@ -16,10 +16,10 @@ class DoctorScheduleController extends Controller
             'doctor_id' => ['nullable', 'integer', 'exists:users,user_id'],
             'available_only' => ['nullable', 'boolean'],
             'page' => ['nullable', 'integer', 'min:1'],
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:15'],
         ]);
 
-        $perPage = (int) ($data['per_page'] ?? $request->query('per_page', 50));
+        $perPage = (int) ($data['per_page'] ?? $request->query('per_page', 15));
         if ($perPage < 1) {
             $perPage = 50;
         }

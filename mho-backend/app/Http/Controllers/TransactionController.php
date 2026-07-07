@@ -24,7 +24,7 @@ class TransactionController extends Controller
         }
 
         $request->validate([
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:15'],
             'patient_id' => ['nullable', 'integer'],
             'service_id' => ['nullable', 'integer', 'exists:services,service_id'],
             'search' => ['nullable', 'string'],

@@ -14,7 +14,7 @@ class ServiceController extends Controller
         $request->validate([
             'status' => ['nullable', 'in:active,inactive'],
             'is_active' => ['nullable', 'boolean'],
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:15'],
         ]);
 
         $perPage = (int) $request->query('per_page', 15);

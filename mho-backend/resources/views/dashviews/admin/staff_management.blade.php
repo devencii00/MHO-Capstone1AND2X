@@ -225,7 +225,7 @@
             <div class="p-5">
                 <div id="adminDoctorEditError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
                 <form id="adminDoctorEditForm" class="grid grid-cols-1 md:grid-cols-5 gap-5">
-                    <!-- LEFT: Form fields (3 cols) -->
+               
                     <div class="md:col-span-3 space-y-3">
                         <div>
                             <label for="adminDoctorEditRole" class="block text-[0.7rem] text-slate-600 mb-1">Position</label>
@@ -485,7 +485,7 @@
         }
 
         function fetchAllDoctorSchedules(doctorId, onSuccess, onFailure) {
-            var perPage = 100
+            var perPage = 15
             var page = 1
             var all = []
 

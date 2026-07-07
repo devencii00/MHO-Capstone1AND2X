@@ -33,7 +33,7 @@ class MessagingController extends Controller
             ->withCount('messages')
             ->orderByDesc('updated_at')
             ->orderByDesc('conversation_id')
-            ->paginate((int) $request->query('per_page', 20));
+            ->paginate((int) $request->query('per_page', 15));
     }
 
     public function store(Request $request)
@@ -91,7 +91,7 @@ class MessagingController extends Controller
             abort(403);
         }
 
-        $perPage = (int) $request->query('per_page', 50);
+        $perPage = (int) $request->query('per_page', 15);
         if ($perPage < 1) {
             $perPage = 50;
         }

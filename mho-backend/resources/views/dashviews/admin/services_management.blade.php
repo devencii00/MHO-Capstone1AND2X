@@ -455,7 +455,7 @@
             if (!tableBody) return
             tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading services…</td></tr>'
 
-            apiFetch("{{ url('/api/services') }}?per_page=100", {
+            apiFetch("{{ url('/api/services') }}?per_page=15", {
                 method: 'GET'
             })
                 .then(function (response) {

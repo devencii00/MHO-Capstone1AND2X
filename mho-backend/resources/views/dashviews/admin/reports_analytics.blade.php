@@ -470,7 +470,7 @@
             var ds = todayIsoDate()
             var q = trim(txnSearch ? txnSearch.value : '').toLowerCase()
             var svc = txnServiceFilter ? txnServiceFilter.value : ''
-            var url = '/api/transactions?per_page=10&start_date=' + ds + '&end_date=' + ds + '&order=latest'
+            var url = '/api/transactions?per_page=15&start_date=' + ds + '&end_date=' + ds + '&order=latest'
             url += '&page=' + (page || 1)
             if (q) url += '&search=' + encodeURIComponent(q)
             if (svc) url += '&service_id=' + encodeURIComponent(svc)

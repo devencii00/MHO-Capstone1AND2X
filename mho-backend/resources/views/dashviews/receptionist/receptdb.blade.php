@@ -307,7 +307,7 @@
                     var today = isoDate(now)
 
                     var queueSnapshotUrl = "{{ route('queue.display.data') }}" + '?date=' + encodeURIComponent(today)
-                    var apptsUrl = "{{ url('/api/appointments') }}" + '?start_date=' + encodeURIComponent(today) + '&end_date=' + encodeURIComponent(today) + '&status=confirmed&per_page=100'
+                    var apptsUrl = "{{ url('/api/appointments') }}" + '?start_date=' + encodeURIComponent(today) + '&end_date=' + encodeURIComponent(today) + '&status=confirmed&per_page=15'
 
                     Promise.all([
                         apiFetch(queueSnapshotUrl, { method: 'GET' }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d } }).catch(function () { return { ok: r.ok, data: null } }) }).catch(function () { return { ok: false, data: null } }),
@@ -618,7 +618,7 @@ if (!next.length) {
                     var mm = String(now.getMonth() + 1).padStart(2, '0')
                     var dd = String(now.getDate()).padStart(2, '0')
                     var today = yyyy + '-' + mm + '-' + dd
-                    var url = "{{ url('/api/transactions') }}" + '?per_page=100&start_date=' + encodeURIComponent(today) + '&end_date=' + encodeURIComponent(today)
+                    var url = "{{ url('/api/transactions') }}" + '?per_page=15&start_date=' + encodeURIComponent(today) + '&end_date=' + encodeURIComponent(today)
 
                     apiFetch(url, { method: 'GET' })
                         .then(function (response) {
@@ -822,7 +822,7 @@ if (!next.length) {
                         showError('')
                         if (conversationList) conversationList.innerHTML = '<div class="p-4 text-[0.78rem] text-slate-400">Loading…</div>'
 
-                        apiFetch("{{ url('/api/conversations') }}?per_page=50", { method: 'GET' })
+                        apiFetch("{{ url('/api/conversations') }}?per_page=15", { method: 'GET' })
                             .then(function (response) {
                                 return response.json().then(function (data) { return { ok: response.ok, data: data } })
                             })
@@ -855,7 +855,7 @@ if (!next.length) {
                         if (!messageList || !conversationId) return
                         messageList.innerHTML = '<div class="text-[0.78rem] text-slate-400">Loading messages…</div>'
 
-                        apiFetch("{{ url('/api/conversations') }}/" + encodeURIComponent(conversationId) + "/messages?per_page=100", { method: 'GET' })
+                        apiFetch("{{ url('/api/conversations') }}/" + encodeURIComponent(conversationId) + "/messages?per_page=15", { method: 'GET' })
                             .then(function (response) {
                                 return response.json().then(function (data) { return { ok: response.ok, data: data } })
                             })

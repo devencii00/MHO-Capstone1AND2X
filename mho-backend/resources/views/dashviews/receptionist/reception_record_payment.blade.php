@@ -718,7 +718,7 @@
         function loadTodayAppointments(query) {
             if (typeof apiFetch !== 'function') return
             if (apptList) apptList.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading appointments...</div>'
-            var url = "{{ url('/api/appointments') }}" + '?per_page=200&order=latest&today_only=1&status=consulted'
+            var url = "{{ url('/api/appointments') }}" + '?per_page=15&order=latest&today_only=1&status=consulted'
             var q = String(query || '').trim()
             if (q) url += '&search=' + encodeURIComponent(q)
             apiFetch(url, { method: 'GET' })
@@ -1004,7 +1004,7 @@
             if (typeof apiFetch !== 'function') return
             showTransactionsError('')
 
-            var url = "{{ url('/api/transactions') }}" + '?per_page=100'
+            var url = "{{ url('/api/transactions') }}" + '?per_page=15'
             var order = txSort && txSort.value ? String(txSort.value) : 'latest'
             txSortOrder = order
             url += '&order=' + encodeURIComponent(order === 'oldest' ? 'oldest' : 'latest')
@@ -1094,7 +1094,7 @@
 
         function loadTxPatientHistory(patientId) {
             if (!patientId) return
-            apiFetch("{{ url('/api/transactions') }}?per_page=100&patient_id=" + patientId, { method: 'GET' })
+            apiFetch("{{ url('/api/transactions') }}?per_page=15&patient_id=" + patientId, { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) { return { ok: response.ok, data: data } }).catch(function () { return { ok: false, data: null } })
                 })
@@ -1267,7 +1267,7 @@
         function loadTxServices() {
             if (txServicesLoaded || txServicesLoading || typeof apiFetch !== 'function') return
             txServicesLoading = true
-            apiFetch("{{ url('/api/services') }}?per_page=100", { method: 'GET' })
+            apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
                 .then(function (response) { return response.json().then(function (data) { return { ok: response.ok, data: data } }).catch(function () { return { ok: response.ok, data: null } }) })
                 .then(function (result) {
                     if (!result.ok) return
