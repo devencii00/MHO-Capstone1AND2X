@@ -213,7 +213,7 @@
             </div>
         </div>
 
-      <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[300px]">
+      <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[470px]">
             <table class="min-w-full text-left text-xs text-slate-600">
                 <thead>
                     <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
@@ -233,12 +233,46 @@
                             $patientName = optional(optional($queue->appointment)->patient)->personalInformation->full_name ?? '';
                             $doctorName = optional(optional($queue->appointment)->doctor)->personalInformation->full_name ?? '';
                             $statusName = (string) ($queue->status ?? '');
+                            $statusDropdownColor = match(strtolower($statusName)) {
+                                'serving' => 'text-green-700 border-green-300 bg-green-50',
+                                'on_hold' => 'text-purple-700 border-purple-300 bg-purple-50',
+                                default => 'text-slate-700 border-slate-200 bg-white',
+                            };
                             $dateKey = $queue->queue_datetime ? $queue->queue_datetime->format('Y-m-d H:i') : '';
                             $queueId = $queue->queue_id ?? null;
                             $priority = (int) ($queue->priority_level ?? 5);
-                            $serviceNames = collect(optional(optional($queue)->appointment)->services ?? [])->pluck('service_name')->filter()->values();
-                            $serviceCount = $serviceNames->count();
-                            $servicePrimary = $serviceCount ? $serviceNames->first() : null;
+                            $services = collect(optional(optional($queue)->appointment)->services ?? [])
+                                ->filter(function ($s) { return $s && $s->service_name; })
+                                ->values()
+                                ->map(function ($s) {
+                                    return [
+                                        'name' => (string) ($s->service_name ?? ''),
+                                        'description' => (string) ($s->description ?? ''),
+                                        'service_id' => $s->service_id ?? null,
+                                    ];
+                                });
+                            $serviceCount = $services->count();
+                            $servicePrimary = $serviceCount ? $services->first() : null;
+                            $servicePrimaryLabel = $servicePrimary
+                                ? ($servicePrimary['name'] . ($servicePrimary['description'] ? ' - ' . $servicePrimary['description'] : ''))
+                                : null;
+                            $statusNameLower = strtolower($statusName);
+                             $statusDropdownColor = match($statusNameLower) {
+                                 'serving' => 'text-green-700 border-green-300 bg-green-50',
+                                 'on_hold' => 'text-purple-700 border-purple-300 bg-purple-50',
+                                 default => 'text-slate-700 border-slate-200 bg-white',
+                             };
+                             $statusBadgeColor = match($statusNameLower) {
+                                 'waiting' => 'bg-amber-50 text-amber-700 border-amber-100',
+                                 'serving' => 'bg-green-50 text-green-700 border-green-100',
+                                 'consulted' => 'bg-blue-50 text-blue-700 border-blue-100',
+                                 'done' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                                 'cancelled' => 'bg-red-50 text-red-700 border-red-100',
+                                 'no_show' => 'bg-slate-100 text-slate-600 border-slate-200',
+                                 'skipped' => 'bg-orange-50 text-orange-700 border-orange-100',
+                                 'on_hold' => 'bg-purple-50 text-purple-700 border-purple-100',
+                                 default => 'bg-slate-50 text-slate-700 border-slate-100',
+                             };
                         @endphp
                         <tr class="border-b border-slate-50 last:border-0 reception-queue-row"
                             data-queue-number="{{ $queue->queue_number }}"
@@ -266,17 +300,17 @@
                                     <span class="text-[0.7rem] text-slate-400">Doctor</span>
                                 @endif
                             </td>
-                            <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
+                            <td class="py-2 pr-4 text-[0.78rem] text-slate-500 max-w-[180px]">
                                 @if ($serviceCount > 0)
                                     <div class="inline-flex items-center gap-1">
-                                        <span>{{ $servicePrimary }}</span>
+                                        <span class="truncate">{{ $servicePrimaryLabel }}</span>
                                         @if ($serviceCount > 1)
                                             <button type="button"
                                                 class="inline-flex items-center rounded-lg border border-slate-200 px-2 py-0.5 text-[0.65rem] text-slate-600 hover:bg-slate-50 reception-service-overlay-trigger"
-                                                data-services='@json($serviceNames->values()->all())'
+                                                data-services='@json($services->values()->all())'
                                                 data-patient="{{ $patientName ?: 'Patient' }}"
                                                 data-queue-label="{{ $queue->queue_code ?? $queue->queue_number }}">
-                                                +{{ $serviceCount - 1 }} more
+                                                +{{ $serviceCount - 1 }}more
                                             </button>
                                         @endif
                                     </div>
@@ -290,7 +324,7 @@
                             </td>
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
                                 @if ($statusName)
-                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border bg-slate-50 border-slate-100 text-slate-700">
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border {{ $statusBadgeColor }}">
                                         {{ ucfirst(str_replace('_', ' ', $statusName)) }}
                                     </span>
                                 @else
@@ -299,40 +333,49 @@
                             </td>
                             <td class="py-2 pr-4 text-[0.78rem] text-right text-slate-500">
                                 @if ($queueId ?? null)
-                                    @if (in_array(strtolower($statusName), ['done', 'cancelled', 'no_show'], true))
+                                    @if (in_array(strtolower($statusName), ['done', 'cancelled', 'no_show', 'skipped'], true))
                                         <span class="text-[0.7rem] text-slate-400">-</span>
                                     @else
                                         <div class="inline-flex items-center gap-1.5">
-                                            @if (strtolower($statusName) !== 'serving')
-                                                <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-[0.7rem] text-slate-600 hover:bg-slate-50 reception-queue-status" data-queue-id="{{ $queueId }}" data-status="serving">
-                                                    <x-lucide-play class="w-[16px] h-[16px]" />
-                                                    Serving
+                                            <div class="relative reception-status-dropdown-container">
+                                                <button type="button" class="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[0.7rem] hover:bg-slate-50 reception-status-dropdown-trigger {{ $statusDropdownColor }}">
+                                                    <span class="font-medium">{{ ucfirst(str_replace('_', ' ', $statusName)) }}</span>
+                                                    <x-lucide-chevron-down class="w-[14px] h-[14px] text-slate-400" />
                                                 </button>
-                                                <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-2 py-1 text-[0.7rem] text-rose-700 hover:bg-rose-50 reception-queue-status" data-queue-id="{{ $queueId }}" data-status="no_show">
-                                                    <x-lucide-user-x class="w-[16px] h-[16px]" />
-                                                    No show
-                                                </button>
-                                            @else
-                                                <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-2 py-1 text-[0.7rem] text-rose-700 hover:bg-rose-50 reception-queue-status" data-queue-id="{{ $queueId }}" data-status="no_show">
-                                                    <x-lucide-user-x class="w-[16px] h-[16px]" />
-                                                    No show
-                                                </button>
-                                            @endif
+                                                <div class="hidden absolute right-0 top-full mt-1 w-[140px] rounded-lg border border-slate-200 bg-white shadow-lg z-50 reception-status-dropdown-menu">
+                                                    <div class="py-1">
+                                                        @if (strtolower($statusName) !== 'serving')
+                                                        <button type="button" class="w-full text-left px-3 py-1.5 text-[0.72rem] text-slate-700 hover:bg-slate-50 reception-queue-status flex items-center gap-2" data-queue-id="{{ $queueId }}" data-status="serving">
+                                                            <x-lucide-play class="w-[14px] h-[14px] text-emerald-500" />
+                                                            Serve
+                                                        </button>
+                                                        @endif
+                                                        @if (strtolower($statusName) !== 'skipped')
+                                                        <button type="button" class="w-full text-left px-3 py-1.5 text-[0.72rem] text-slate-700 hover:bg-slate-50 reception-queue-status flex items-center gap-2" data-queue-id="{{ $queueId }}" data-status="skipped">
+                                                            <x-lucide-skip-forward class="w-[14px] h-[14px] text-orange-500" />
+                                                            Skip
+                                                        </button>
+                                                        @endif
+                                                        @if (strtolower($statusName) !== 'on_hold')
+                                                        <button type="button" class="w-full text-left px-3 py-1.5 text-[0.72rem] text-slate-700 hover:bg-slate-50 reception-queue-status flex items-center gap-2" data-queue-id="{{ $queueId }}" data-status="on_hold">
+                                                            <x-lucide-pause class="w-[14px] h-[14px] text-purple-500" />
+                                                            On hold
+                                                        </button>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1.5 text-[0.7rem] text-slate-600 hover:bg-slate-50 reception-queue-config" data-queue-id="{{ $queueId }}" data-priority-level="{{ $priority }}">
+                                                <x-lucide-settings class="w-[14px] h-[14px]" />
+                                                Config
+                                            </button>
+
                                             @if (strtolower($statusName) === 'consulted')
                                                 <span class="inline-flex items-center rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-[0.68rem] font-medium text-green-700">
                                                     Waiting for payment
                                                 </span>
                                             @endif
-
-                                            <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-[0.7rem] text-slate-600 hover:bg-slate-50 reception-queue-config" data-queue-id="{{ $queueId }}" data-priority-level="{{ $priority }}">
-                                                <x-lucide-settings class="w-[16px] h-[16px]" />
-                                                Config
-                                            </button>
-
-                                            <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-[0.7rem] text-slate-600 hover:bg-red-50 hover:border-red-200 hover:text-red-700 reception-queue-remove" data-queue-id="{{ $queueId }}">
-                                                <x-lucide-x class="w-[16px] h-[16px]" />
-                                                Cancel
-                                            </button>
                                         </div>
                                     @endif
                                 @else
@@ -451,24 +494,20 @@
     </div>
 </div>
 
-<div id="receptionQueueConfigOverlay" class="hidden fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="w-full max-w-lg rounded-2xl bg-white border border-slate-200 shadow-[0_20px_80px_rgba(15,23,42,0.35)] overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
-            <div class="min-w-0">
-                <div class="text-sm font-semibold text-slate-900">Queue Config</div>
-                <div id="receptionQueueConfigMeta" class="mt-0.5 text-[0.78rem] text-slate-500"></div>
+<div id="receptionQueueConfigOverlay" class="hidden fixed" style="z-index:9999">
+    <div class="w-[280px] rounded-xl border border-slate-200 bg-white shadow-[0_8px_30px_rgba(15,23,42,0.18)]" style="max-height:70vh;overflow-y:auto;">
+        <!-- Config form content -->
+        <div id="receptionConfigFormContent">
+            <div class="px-3 py-2.5 border-b border-slate-100 flex items-center justify-between gap-2">
+                <div class="text-[0.72rem] font-semibold text-slate-800">Queue Config</div>
+                <div id="receptionQueueConfigMeta" class="text-[0.65rem] text-slate-500 truncate"></div>
             </div>
-            <button id="receptionQueueConfigClose" type="button" class="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
-                <x-lucide-x class="w-[20px] h-[20px]" />
-            </button>
-        </div>
-        <div class="px-5 py-4">
-            <div id="receptionQueueConfigError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
+            <div class="px-3 py-2.5">
+                <div id="receptionQueueConfigError" class="hidden mb-2 rounded-lg border border-red-200 bg-red-50 px-2 py-1.5 text-[0.7rem] text-red-700"></div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                    <label for="receptionQueueConfigPriority" class="block text-[0.7rem] text-slate-600 mb-1">Priority level</label>
-                    <select id="receptionQueueConfigPriority" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    <label for="receptionQueueConfigPriority" class="block text-[0.65rem] text-slate-600 mb-1">Priority level</label>
+                    <select id="receptionQueueConfigPriority" class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                         <option value="1">1 : Emergency</option>
                         <option value="2">2 : PWD</option>
                         <option value="3">3 : Pregnant</option>
@@ -476,25 +515,46 @@
                         <option value="5">5 : General</option>
                     </select>
                 </div>
-                <div>
-                    <label for="receptionQueueConfigMoveSteps" class="block text-[0.7rem] text-slate-600 mb-1">Move levels</label>
-                    <input id="receptionQueueConfigMoveSteps" type="number" min="1" max="4" value="1" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+
+                <div class="mt-2 flex items-center gap-2">
+                    <div class="flex-1">
+                        <label for="receptionQueueConfigMoveSteps" class="block text-[0.65rem] text-slate-600 mb-1">Move steps</label>
+                        <input id="receptionQueueConfigMoveSteps" type="number" min="1" max="4" value="1" class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    </div>
+                    <div class="flex gap-1 pt-5">
+                        <button id="receptionQueueConfigMoveUp" type="button" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-orange-500 text-white hover:bg-orange-600">
+                            <x-lucide-arrow-up class="w-[16px] h-[16px]" />
+                        </button>
+                        <button id="receptionQueueConfigMoveDown" type="button" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-500 text-white hover:bg-red-600">
+                            <x-lucide-arrow-down class="w-[16px] h-[16px]" />
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-2.5 flex items-center justify-end gap-2">
+                    <button id="receptionQueueConfigClose" type="button" class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-[0.7rem] font-semibold hover:bg-slate-200 border border-slate-200">
+                        Close
+                    </button>
+                    <button id="receptionQueueConfigSave" type="button" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-green-600 text-white text-[0.7rem] font-semibold hover:bg-green-700">
+                        <x-lucide-save class="w-[14px] h-[14px]" />
+                        Save
+                    </button>
                 </div>
             </div>
+        </div>
 
-            <div class="mt-3 flex flex-wrap gap-2">
-                <button id="receptionQueueConfigMoveUp" type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900 text-white text-[0.78rem] font-semibold hover:bg-slate-800">
-                    <x-lucide-arrow-up class="w-[18px] h-[18px]" />
-                    Move up
+        <!-- Confirmation content (hidden by default) -->
+        <div id="receptionConfigConfirmContent" class="hidden">
+            <div class="px-3 py-2.5 border-b border-slate-100">
+                <div id="receptionConfigConfirmTitle" class="text-[0.72rem] font-semibold text-slate-800">Change priority</div>
+                <div id="receptionConfigConfirmMessage" class="mt-1 text-[0.7rem] text-slate-600">Are you sure you want to update the priority level?</div>
+            </div>
+            <div class="px-3 py-2.5 flex items-center justify-end gap-2">
+                <button id="receptionConfigConfirmCancel" type="button" class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-[0.7rem] font-semibold hover:bg-slate-200 border border-slate-200">
+                    Cancel
                 </button>
-                <button id="receptionQueueConfigMoveDown" type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-[0.78rem] font-semibold hover:bg-slate-50">
-                    <x-lucide-arrow-down class="w-[18px] h-[18px]" />
-                    Move down
-                </button>
-                <div class="flex-1"></div>
-                <button id="receptionQueueConfigSave" type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700">
-                    <x-lucide-save class="w-[18px] h-[18px]" />
-                    Save
+                <button id="receptionConfigConfirmOk" type="button" class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-green-600 text-white text-[0.7rem] font-semibold hover:bg-green-700">
+                    Confirm
                 </button>
             </div>
         </div>
@@ -629,14 +689,29 @@
         }
 
         function closeQueueConfig() {
-            if (configOverlay) configOverlay.classList.add('hidden')
+            var overlay = configOverlay || document.getElementById('receptionQueueConfigOverlay')
+            if (!overlay) return
+            overlay.classList.add('hidden')
+            overlay.style.left = ''
+            overlay.style.top = ''
             configQueueId = null
             showConfigError('')
         }
 
-        function openQueueConfig(queueId, priorityLevel, metaText) {
+        function openQueueConfig(queueId, priorityLevel, metaText, triggerButton) {
             configQueueId = queueId ? String(queueId) : null
             if (!configQueueId) return
+
+            // Get fresh reference (in case DOM was refreshed via refreshFullPage)
+            var overlay = document.getElementById('receptionQueueConfigOverlay')
+            if (!overlay) return
+            configOverlay = overlay
+
+            // Append to body to avoid any parent CSS breaking position:fixed
+            if (overlay.parentNode !== document.body) {
+                document.body.appendChild(overlay)
+            }
+
             if (configMeta) configMeta.textContent = metaText || ('Queue #' + String(queueId))
             if (configPriority) {
                 var p = parseInt(priorityLevel, 10)
@@ -647,7 +722,22 @@
             }
             if (configMoveSteps) configMoveSteps.value = '1'
             showConfigError('')
-            if (configOverlay) configOverlay.classList.remove('hidden')
+
+            // Position under the trigger button, right-aligned, with viewport edge detection
+            if (triggerButton) {
+                var rect = triggerButton.getBoundingClientRect()
+                var overlayWidth = 280
+                var overlayHeight = overlay.offsetHeight || 260
+                var left = Math.max(8, Math.min(rect.right - overlayWidth, (window.innerWidth || 0) - overlayWidth - 8))
+                var top = rect.bottom + 4
+                if (top + overlayHeight + 8 > (window.innerHeight || 0)) {
+                    top = Math.max(8, rect.top - overlayHeight - 4)
+                }
+                if (top < 8) top = 8
+                overlay.style.left = String(left) + 'px'
+                overlay.style.top = String(top) + 'px'
+                overlay.classList.remove('hidden')
+            }
         }
 
         function updateQueuePriority(nextLevel) {
@@ -682,11 +772,22 @@
         }
 
         if (configClose) configClose.addEventListener('click', closeQueueConfig)
-        if (configOverlay) {
-            configOverlay.addEventListener('click', function (e) {
-                if (e.target === configOverlay) closeQueueConfig()
-            })
-        }
+
+        // Close config overlay on outside click (like a dropdown)
+        document.addEventListener('click', function (e) {
+            var overlay = document.getElementById('receptionQueueConfigOverlay')
+            if (!overlay || overlay.classList.contains('hidden')) return
+            if (overlay.contains(e.target)) return
+            if (e.target && e.target.closest && e.target.closest('.reception-queue-config')) return
+            closeQueueConfig()
+        })
+
+        // Close config overlay on scroll (handles scrollable containers + window scroll)
+        document.addEventListener('scroll', function () {
+            var overlay = document.getElementById('receptionQueueConfigOverlay')
+            if (!overlay || overlay.classList.contains('hidden')) return
+            closeQueueConfig()
+        }, { capture: true })
 
         function escapeHtml(input) {
             return String(input == null ? '' : input)
@@ -859,7 +960,10 @@
             serviceOverlayMeta.textContent = meta || ''
             serviceOverlayBody.innerHTML = list.length
                 ? ('<ul class="space-y-1.5">' + list.map(function (item) {
-                    return '<li class="rounded-lg bg-slate-50 border border-slate-100 px-2.5 py-1.5">' + escapeHtml(item) + '</li>'
+                    var name = item && item.name ? String(item.name) : ''
+                    var desc = item && item.description ? String(item.description) : ''
+                    var label = name + (desc ? ' - ' + desc : '')
+                    return '<li class="rounded-lg bg-slate-50 border border-slate-100 px-2.5 py-1.5">' + escapeHtml(label) + '</li>'
                 }).join('') + '</ul>')
                 : '<div class="text-slate-500">No services listed.</div>'
 
@@ -1137,10 +1241,13 @@
                 function statusRank(s) {
                     if (s === 'serving') return 0
                     if (s === 'waiting') return 1
-                    if (s === 'done') return 2
-                    if (s === 'cancelled') return 3
-                    if (s === 'no_show') return 4
-                    return 5
+                    if (s === 'on_hold') return 2
+                    if (s === 'consulted') return 3
+                    if (s === 'done') return 4
+                    if (s === 'cancelled') return 5
+                    if (s === 'skipped') return 6
+                    if (s === 'no_show') return 7
+                    return 8
                 }
                 var ra = statusRank(sa)
                 var rb = statusRank(sb)
@@ -1240,7 +1347,7 @@
                                 }
 
                                 showQueueSuccess('Appointment added to queue.')
-                                window.location.reload()
+                                refreshFullPage()
                             })
                             .catch(function () {
                                 showQueueError('Network error while adding to queue.')
@@ -1256,47 +1363,112 @@
                 var priority = button.getAttribute('data-priority-level') || '5'
                 var row = button.closest ? button.closest('tr.reception-queue-row') : null
                 var code = row ? (row.getAttribute('data-queue-code') || row.getAttribute('data-queue-number') || queueId) : queueId
-                openQueueConfig(queueId, priority, 'Queue #' + String(code))
+
+                // Toggle: if already open for this queueId, close it
+                if (configQueueId === queueId && configOverlay && !configOverlay.classList.contains('hidden')) {
+                    closeQueueConfig()
+                    return
+                }
+                openQueueConfig(queueId, priority, 'Queue #' + String(code), button)
             })
         })
 
+        var configFormContent = document.getElementById('receptionConfigFormContent')
+        var configConfirmContent = document.getElementById('receptionConfigConfirmContent')
+        var configConfirmTitle = document.getElementById('receptionConfigConfirmTitle')
+        var configConfirmMessage = document.getElementById('receptionConfigConfirmMessage')
+        var configConfirmCancel = document.getElementById('receptionConfigConfirmCancel')
+        var configConfirmOk = document.getElementById('receptionConfigConfirmOk')
+
+        function showConfigConfirm() {
+            if (configFormContent) configFormContent.classList.add('hidden')
+            if (configConfirmContent) configConfirmContent.classList.remove('hidden')
+        }
+        function hideConfigConfirm() {
+            if (configConfirmContent) configConfirmContent.classList.add('hidden')
+            if (configFormContent) configFormContent.classList.remove('hidden')
+        }
+
+        var configOriginalPriority = null
         if (configSave) {
             configSave.addEventListener('click', function () {
                 if (!configQueueId || !configPriority) return
-                updateQueuePriority(configPriority.value).then(function (ok) {
-                    if (ok) window.location.reload()
-                })
+                var newPriority = configPriority.value
+                if (configOriginalPriority !== null && String(configOriginalPriority) !== String(newPriority)) {
+                    // Show inline confirmation
+                    showConfigConfirm()
+                } else {
+                    saveAndReload(newPriority)
+                }
             })
+        }
+
+        if (configConfirmCancel) {
+            configConfirmCancel.addEventListener('click', function () {
+                // Reset to original priority and go back
+                if (configPriority && configOriginalPriority !== null) {
+                    configPriority.value = String(configOriginalPriority)
+                }
+                hideConfigConfirm()
+            })
+        }
+        if (configConfirmOk) {
+            configConfirmOk.addEventListener('click', function () {
+                if (!configPriority) return
+                saveAndReload(configPriority.value)
+            })
+        }
+
+        function saveAndReload(level) {
+            updateQueuePriority(level).then(function (ok) {
+                if (ok) refreshFullPage()
+            })
+        }
+
+        // Track original priority when config opens
+        var origOpenQueueConfig = openQueueConfig
+        openQueueConfig = function (queueId, priorityLevel, metaText, triggerButton) {
+            configOriginalPriority = priorityLevel
+            hideConfigConfirm()
+            origOpenQueueConfig(queueId, priorityLevel, metaText, triggerButton)
+        }
+
+        function moveQueuePosition(queueId, direction) {
+            if (!queueId || typeof apiFetch !== 'function') return Promise.resolve(false)
+            showConfigError('')
+            return apiFetch("{{ url('/api/queues') }}/" + encodeURIComponent(queueId) + "/move", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ direction: direction })
+            })
+                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d } }).catch(function () { return { ok: r.ok, data: null } }) })
+                .then(function (res) {
+                    if (!res.ok) {
+                        showConfigError((res.data && res.data.message) ? res.data.message : 'Failed to move queue entry.')
+                        return false
+                    }
+                    return true
+                })
+                .catch(function () {
+                    showConfigError('Network error while moving queue entry.')
+                    return false
+                })
         }
 
         if (configMoveUp) {
             configMoveUp.addEventListener('click', function () {
-                if (!configQueueId || !configPriority) return
-                var steps = configMoveSteps ? parseInt(configMoveSteps.value, 10) : 1
-                if (!steps || isNaN(steps) || steps < 1) steps = 1
-                if (steps > 4) steps = 4
-                var current = parseInt(configPriority.value, 10)
-                if (!current || isNaN(current)) current = 5
-                var next = Math.max(1, current - steps)
-                configPriority.value = String(next)
-                updateQueuePriority(next).then(function (ok) {
-                    if (ok) window.location.reload()
+                if (!configQueueId) return
+                moveQueuePosition(configQueueId, 'up').then(function (ok) {
+                    if (ok) refreshFullPage()
                 })
             })
         }
 
         if (configMoveDown) {
             configMoveDown.addEventListener('click', function () {
-                if (!configQueueId || !configPriority) return
-                var steps = configMoveSteps ? parseInt(configMoveSteps.value, 10) : 1
-                if (!steps || isNaN(steps) || steps < 1) steps = 1
-                if (steps > 4) steps = 4
-                var current = parseInt(configPriority.value, 10)
-                if (!current || isNaN(current)) current = 5
-                var next = Math.min(5, current + steps)
-                configPriority.value = String(next)
-                updateQueuePriority(next).then(function (ok) {
-                    if (ok) window.location.reload()
+                if (!configQueueId) return
+                moveQueuePosition(configQueueId, 'down').then(function (ok) {
+                    if (ok) refreshFullPage()
                 })
             })
         }
@@ -1309,18 +1481,28 @@
             }
         })
 
-        document.querySelectorAll('.reception-queue-remove').forEach(function (button) {
-            button.addEventListener('click', function () {
-                var queueId = button.getAttribute('data-queue-id')
-                if (!queueId) {
-                    return
+        // Status dropdown toggle
+        document.addEventListener('click', function (e) {
+            var trigger = e.target && e.target.closest ? e.target.closest('.reception-status-dropdown-trigger') : null
+            if (trigger) {
+                var container = trigger.closest('.reception-status-dropdown-container')
+                if (container) {
+                    var menu = container.querySelector('.reception-status-dropdown-menu')
+                    if (menu) {
+                        // Close all other dropdowns
+                        document.querySelectorAll('.reception-status-dropdown-menu').forEach(function (m) {
+                            if (m !== menu) m.classList.add('hidden')
+                        })
+                        menu.classList.toggle('hidden')
+                    }
                 }
-
-                confirmAction('Remove queue entry', 'Are you sure you want to remove this queue entry?')
-                    .then(function (confirmed) {
-                        if (!confirmed) return
-                        updateQueueStatus(queueId, 'cancelled', 'Queue entry removed.')
-                    })
+                return
+            }
+            // Close dropdowns on outside click
+            document.querySelectorAll('.reception-status-dropdown-menu:not(.hidden)').forEach(function (menu) {
+                if (!menu.contains(e.target) && !(e.target && e.target.closest && e.target.closest('.reception-status-dropdown-trigger'))) {
+                    menu.classList.add('hidden')
+                }
             })
         })
 
@@ -1375,23 +1557,20 @@
         }
 
         document.querySelectorAll('.reception-queue-status').forEach(function (button) {
-            button.addEventListener('click', function () {
+            button.addEventListener('click', function (e) {
+                e.stopPropagation()
                 var queueId = button.getAttribute('data-queue-id')
                 var status = button.getAttribute('data-status')
-                if (!queueId || !status) {
-                    return
-                }
-                var normalized = String(status).toLowerCase()
-                if (normalized === 'no_show') {
-                    confirmAction('Mark as no-show', 'Are you sure you want to mark this queue entry as no-show?')
-                        .then(function (confirmed) {
-                            if (!confirmed) return
-                            updateQueueStatus(queueId, status, 'Queue entry marked as no-show.')
-                        })
-                    return
+                if (!queueId || !status) return
+
+                // Close the dropdown menu after clicking
+                var container = button.closest('.reception-status-dropdown-container')
+                if (container) {
+                    var menu = container.querySelector('.reception-status-dropdown-menu')
+                    if (menu) menu.classList.add('hidden')
                 }
 
-                updateQueueStatus(queueId, status, 'Queue status updated.')
+                updateQueueStatus(queueId, status, 'Queue status updated to ' + String(status).replace(/_/g, ' ') + '.')
             })
         })
 

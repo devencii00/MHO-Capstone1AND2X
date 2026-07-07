@@ -901,7 +901,7 @@ class QueueController extends Controller
         $data = $request->validate([
             'queue_number' => ['sometimes', 'integer'],
             'queue_datetime' => ['sometimes', 'nullable', 'date'],
-            'status' => ['sometimes', 'in:waiting,serving,consulted,done,cancelled,no_show'],
+            'status' => ['sometimes', 'in:waiting,serving,consulted,done,cancelled,no_show,skipped,on_hold'],
             'priority_level' => ['sometimes', 'integer'],
         ]);
 
@@ -982,6 +982,12 @@ class QueueController extends Controller
                 } elseif ($queue->status === 'no_show') {
                     $notificationTitle = 'Queue Missed';
                     $notificationBody = 'You missed your queue number.';
+                } elseif ($queue->status === 'skipped') {
+                    $notificationTitle = 'Queue Skipped';
+                    $notificationBody = 'Your queue entry was skipped.';
+                } elseif ($queue->status === 'on_hold') {
+                    $notificationTitle = 'Queue On Hold';
+                    $notificationBody = 'Your queue entry has been placed on hold.';
                 }
             }
 
@@ -1014,6 +1020,58 @@ class QueueController extends Controller
         );
 
         return $queue;
+    }
+
+    public function move(Request $request, Queue $queue)
+    {
+        $data = $request->validate([
+            'direction' => ['required', 'in:up,down'],
+        ]);
+
+        $direction = $data['direction'];
+
+        $todayQueues = Queue::query()
+            ->whereDate('queue_datetime', $queue->queue_datetime ? $queue->queue_datetime->toDateString() : now()->toDateString())
+            ->whereIn('status', ['waiting', 'serving', 'consulted', 'on_hold'])
+            ->orderBy('queue_number')
+            ->get()
+            ->values();
+
+        $currentIndex = $todayQueues->search(function ($q) use ($queue) {
+            return (int) $q->queue_id === (int) $queue->queue_id;
+        });
+
+        if ($currentIndex === false) {
+            return response()->json(['message' => 'Queue entry not found in today\'s active queue.'], 404);
+        }
+
+        $swapIndex = $direction === 'up' ? $currentIndex - 1 : $currentIndex + 1;
+
+        if ($swapIndex < 0 || $swapIndex >= $todayQueues->count()) {
+            return response()->json(['message' => 'Cannot move further '.$direction.'.'], 422);
+        }
+
+        $swapQueue = $todayQueues->get($swapIndex);
+        $currentNumber = (int) $queue->queue_number;
+        $swapNumber = (int) $swapQueue->queue_number;
+
+        DB::transaction(function () use ($queue, $swapQueue, $currentNumber, $swapNumber) {
+            $queue->update(['queue_number' => $swapNumber]);
+            $swapQueue->update(['queue_number' => $currentNumber]);
+        });
+
+        $queue->refresh()->load(['appointment.patient', 'appointment.doctor', 'appointment.services']);
+        $swapQueue->refresh()->load(['appointment.patient', 'appointment.doctor', 'appointment.services']);
+
+        $this->broadcastQueueUpdated(
+            $queue->appointment ? (int) $queue->appointment->doctor_id : null,
+            $queue
+        );
+
+        return response()->json([
+            'message' => 'Queue entry moved '.$direction.'.',
+            'queue' => $queue,
+        ]);
     }
 
     private function broadcastQueueUpdated(?int $doctorId, ?Queue $queue = null): void

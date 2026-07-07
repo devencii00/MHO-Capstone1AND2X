@@ -79,7 +79,7 @@ type DoctorOption = {
 type QueueStatus = {
   queueId: string;
   queueNumber: string;
-  status: 'waiting' | 'serving' | 'done' | 'cancelled';
+  status: 'waiting' | 'serving' | 'done' | 'cancelled' | 'skipped' | 'on_hold';
   doctor: string;
   doctorId: string;
   position: number | null;

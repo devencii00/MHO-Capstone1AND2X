@@ -322,6 +322,8 @@
                             'done' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
                             'cancelled' => 'bg-red-50 text-red-700 border-red-100',
                             'no_show' => 'bg-slate-100 text-slate-600 border-slate-200',
+                            'skipped' => 'bg-orange-50 text-orange-700 border-orange-100',
+                            'on_hold' => 'bg-purple-50 text-purple-700 border-purple-100',
                         ];
                         $statusColor = $statusColors[strtolower($queue->status)] ?? 'bg-slate-50 text-slate-600 border-slate-100';
                     @endphp

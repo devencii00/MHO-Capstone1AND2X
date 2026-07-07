@@ -89,7 +89,7 @@ type DependentQueueSummary = {
   queueId: string;
   patientId: number;
   queueNumber: string;
-  status: 'waiting' | 'serving' | 'done' | 'cancelled';
+  status: 'waiting' | 'serving' | 'done' | 'cancelled' | 'skipped' | 'on_hold';
   doctorId: string;
   doctor: string;
   position: number | null;
@@ -246,11 +246,13 @@ function formatPaymentStatus(value: any): string {
   return raw ? `${raw.charAt(0).toUpperCase()}${raw.slice(1).replace(/_/g, ' ')}` : 'Pending payment';
 }
 
-function formatQueueStatus(value: any): 'waiting' | 'serving' | 'done' | 'cancelled' {
+function formatQueueStatus(value: any): 'waiting' | 'serving' | 'done' | 'cancelled' | 'skipped' | 'on_hold' {
   const raw = normalizeText(value).toLowerCase();
   if (raw === 'serving') return 'serving';
   if (raw === 'done') return 'done';
   if (raw === 'cancelled') return 'cancelled';
+  if (raw === 'skipped') return 'skipped';
+  if (raw === 'on_hold') return 'on_hold';
   return 'waiting';
 }
 
@@ -259,6 +261,8 @@ function formatQueueStatusLabel(value: any): string {
   if (status === 'serving') return 'In service';
   if (status === 'done') return 'Done';
   if (status === 'cancelled') return 'Cancelled';
+  if (status === 'skipped') return 'Skipped';
+  if (status === 'on_hold') return 'On hold';
   return 'Waiting';
 }
 

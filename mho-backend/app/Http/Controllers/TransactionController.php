@@ -623,7 +623,7 @@ class TransactionController extends Controller
 
         Queue::query()
             ->where('appointment_id', (int) $appointment->appointment_id)
-            ->whereNotIn('status', ['done', 'cancelled', 'no_show'])
+            ->whereNotIn('status', ['done', 'cancelled', 'no_show', 'skipped'])
             ->update(['status' => 'consulted']);
     }
 

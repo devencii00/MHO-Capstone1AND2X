@@ -16,6 +16,26 @@ class Queue extends Model
 
     protected $primaryKey = 'queue_id';
 
+    public const STATUS_WAITING = 'waiting';
+    public const STATUS_SERVING = 'serving';
+    public const STATUS_CONSULTED = 'consulted';
+    public const STATUS_DONE = 'done';
+    public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_NO_SHOW = 'no_show';
+    public const STATUS_SKIPPED = 'skipped';
+    public const STATUS_ON_HOLD = 'on_hold';
+
+    public const STATUSES = [
+        self::STATUS_WAITING,
+        self::STATUS_SERVING,
+        self::STATUS_CONSULTED,
+        self::STATUS_DONE,
+        self::STATUS_CANCELLED,
+        self::STATUS_NO_SHOW,
+        self::STATUS_SKIPPED,
+        self::STATUS_ON_HOLD,
+    ];
+
     protected $fillable = [
         'appointment_id',
         'queue_number',

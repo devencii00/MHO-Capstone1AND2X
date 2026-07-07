@@ -108,7 +108,7 @@
                                 </span>
                             </td>
                             <td class="py-2 pr-4 text-right">
-                                @if ($queueId && ! in_array($statusName, ['done', 'cancelled', 'no_show'], true))
+                                @if ($queueId && ! in_array($statusName, ['done', 'cancelled', 'no_show', 'skipped'], true))
                                     <div class="inline-flex items-center gap-1.5">
                                         @if ($statusName === 'waiting')
                                             <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-[0.7rem] text-slate-600 hover:bg-slate-50 doctor-queue-status" data-queue-id="{{ $queueId }}" data-status="serving">
@@ -116,7 +116,7 @@
                                                 Serving
                                             </button>
                                         @endif
-                                        @if (in_array($statusName, ['waiting', 'serving'], true))
+                                        @if (in_array($statusName, ['waiting', 'serving', 'on_hold'], true))
                                             <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-2 py-1 text-[0.7rem] text-rose-700 hover:bg-rose-50 doctor-queue-status" data-queue-id="{{ $queueId }}" data-status="no_show">
                                                 <x-lucide-user-x class="w-[16px] h-[16px]" />
                                                 No show
@@ -211,10 +211,12 @@
                     if (status === 'serving') return 0
                     if (status === 'waiting') return 1
                     if (status === 'consulted') return 2
-                    if (status === 'done') return 3
-                    if (status === 'no_show') return 4
-                    if (status === 'cancelled') return 5
-                    return 6
+                    if (status === 'on_hold') return 3
+                    if (status === 'done') return 4
+                    if (status === 'no_show') return 5
+                    if (status === 'skipped') return 6
+                    if (status === 'cancelled') return 7
+                    return 8
                 }
 
                 var ra = statusRank(sa)
