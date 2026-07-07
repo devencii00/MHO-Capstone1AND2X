@@ -1,340 +1,647 @@
 <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
     <div class="flex items-center justify-between mb-3">
-        <h2 class="text-sm font-semibold text-slate-900">Doctor Settings</h2>
+        <h2 class="text-sm font-semibold text-slate-900"></h2>
         <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Doctor</span>
     </div>
     <p class="text-xs text-slate-500 mb-4">
-        Update your profile details, change your password, and optionally upload a signature image.
+   
     </p>
 
-    <div class="grid gap-4 grid-cols-1 lg:grid-cols-3 text-[0.78rem] text-slate-600">
-        <div class="border border-slate-100 rounded-2xl p-4 bg-slate-50/60 lg:col-span-1">
-            <div class="flex items-center justify-between mb-2">
-                <div>
-                    <h3 class="text-xs font-semibold text-slate-900">Profile</h3>
-                    <p class="text-[0.7rem] text-slate-500">Basic information shown in patient-facing records.</p>
-                </div>
-                <x-lucide-circle-user class="w-[18px] h-[18px] text-green-600" />
-            </div>
+    <div id="doctorAccountNotice" class="hidden mb-3 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.75rem] text-slate-700"></div>
+    <div id="doctorAccountError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
 
-            <form id="doctorSettingsProfileForm" class="space-y-3">
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label for="doctor_profile_firstname" class="block text-[0.7rem] text-slate-500 mb-1">First name</label>
-                        <input id="doctor_profile_firstname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.78rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                    </div>
-                    <div>
-                        <label for="doctor_profile_lastname" class="block text-[0.7rem] text-slate-500 mb-1">Last name</label>
-                        <input id="doctor_profile_lastname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.78rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                    </div>
-                </div>
-                <div>
-                    <label for="doctor_profile_middlename" class="block text-[0.7rem] text-slate-500 mb-1">Middle name (optional)</label>
-                    <input id="doctor_profile_middlename" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.78rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                </div>
-                <div>
-                    <label for="doctor_profile_address" class="block text-[0.7rem] text-slate-500 mb-1">Address</label>
-                    <input id="doctor_profile_address" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.78rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                </div>
-                <div>
-                    <label for="doctor_profile_contact" class="block text-[0.7rem] text-slate-500 mb-1">Contact number</label>
-                    <input id="doctor_profile_contact" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.78rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="09xx xxx xxxx">
-                </div>
-                <div class="flex items-center justify-between pt-1">
-                    <p id="doctorProfileNotice" class="text-[0.68rem] text-slate-400"></p>
-                    <button type="button" id="doctor_profile_save" class="inline-flex items-center gap-1 rounded-xl border border-green-500/40 bg-green-50 px-3 py-1.5 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100">
-                        <x-lucide-save class="w-[16px] h-[16px]" />
-                        Save profile
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <div class="border border-slate-100 rounded-2xl p-4 bg-slate-50/60 lg:col-span-1">
-            <div class="flex items-center justify-between mb-2">
-                <div>
-                    <h3 class="text-xs font-semibold text-slate-900">Profile Picture</h3>
-                    <p class="text-[0.7rem] text-slate-500">Optional profile picture.</p>
-                </div>
-                <x-lucide-image class="w-[18px] h-[18px] text-slate-700" />
-            </div>
-
-            <form id="doctorSettingsProfPathForm" class="space-y-3">
-                <div>
-                    <label for="doctor_prof_path_file" class="block text-[0.7rem] text-slate-500 mb-1">Upload profile picture</label>
-                    <input id="doctor_prof_path_file" type="file" accept="image/*" class="block w-full text-[0.78rem] text-slate-700 file:mr-3 file:rounded-lg file:border file:border-slate-200 file:bg-white file:px-3 file:py-1.5 file:text-[0.78rem] file:font-semibold file:text-slate-700 hover:file:bg-slate-50">
-                </div>
-                <div>
-                    <div class="text-[0.7rem] text-slate-500 mb-1">Current picture</div>
-                    <div id="doctor_prof_path_preview" class="flex items-center justify-center h-24 rounded-lg border border-dashed border-slate-300 bg-white text-[0.72rem] text-slate-400">
-                        No picture uploaded yet.
-                    </div>
-                </div>
-                <div class="flex items-center justify-between pt-1">
-                    <p class="text-[0.68rem] text-slate-400"></p>
-                    <button type="button" id="doctor_prof_path_save" class="inline-flex items-center gap-1 rounded-xl border border-green-500/40 bg-green-50 px-3 py-1.5 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100">
-                        <span id="doctorProfPathSaveSpinner" class="hidden w-3.5 h-3.5 border-2 border-green-700/30 border-t-green-700 rounded-full animate-spin"></span>
-                        <x-lucide-save id="doctorProfPathSaveIcon" class="w-[16px] h-[16px]" />
-                        <span id="doctorProfPathSaveLabel">Save picture</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <div class="border border-slate-100 rounded-2xl p-4 bg-slate-50/60 lg:col-span-1">
-            <div class="flex items-center justify-between mb-2">
-                <div>
-                    <h3 class="text-xs font-semibold text-slate-900">Signature</h3>
-                    <p class="text-[0.7rem] text-slate-500">Optional signature image for prescriptions and records.</p>
-                </div>
-                <x-lucide-hand class="w-[18px] h-[18px] text-slate-700" />
-            </div>
-
-            <form id="doctorSettingsSignatureForm" class="space-y-3">
-                <div>
-                    <label for="doctor_signature_file" class="block text-[0.7rem] text-slate-500 mb-1">Upload signature</label>
-                    <input id="doctor_signature_file" type="file" accept="image/*" class="block w-full text-[0.78rem] text-slate-700 file:mr-3 file:rounded-lg file:border file:border-slate-200 file:bg-white file:px-3 file:py-1.5 file:text-[0.78rem] file:font-semibold file:text-slate-700 hover:file:bg-slate-50">
-                </div>
-                <div>
-                    <div class="text-[0.7rem] text-slate-500 mb-1">Current signature</div>
-                    <div id="doctor_signature_preview" class="flex items-center justify-center h-24 rounded-lg border border-dashed border-slate-300 bg-white text-[0.72rem] text-slate-400">
-                        No signature uploaded yet.
-                    </div>
-                </div>
-                <div class="flex items-center justify-between pt-1">
-                    <p class="text-[0.68rem] text-slate-400">Signature is saved to your account for prescriptions and receipts.</p>
-                    <button type="button" id="doctor_signature_save" class="inline-flex items-center gap-1 rounded-xl border border-green-500/40 bg-green-50 px-3 py-1.5 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100">
-                        <span id="doctorSignatureSaveSpinner" class="hidden w-3.5 h-3.5 border-2 border-green-700/30 border-t-green-700 rounded-full animate-spin"></span>
-                        <x-lucide-save id="doctorSignatureSaveIcon" class="w-[16px] h-[16px]" />
-                        <span id="doctorSignatureSaveLabel">Save signature</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <div class="border border-slate-100 rounded-2xl p-4 bg-slate-50/60 lg:col-span-1">
-            <div class="flex items-center justify-between mb-2">
-                <div>
-                    <h3 class="text-xs font-semibold text-slate-900">Account password</h3>
-                    <p class="text-[0.7rem] text-slate-500">Verify your current password before setting a new one.</p>
-                </div>
-                <x-lucide-lock class="w-[18px] h-[18px] text-slate-700" />
-            </div>
-
-            <div id="doctorAccountIdle" class="rounded-2xl border border-slate-200 bg-white p-4">
-                <button type="button" id="doctor_account_start" class="inline-flex items-center gap-2 rounded-xl border border-green-500/40 bg-green-50 px-3 py-2 text-[0.78rem] font-semibold text-green-700 hover:bg-green-100">
-                    <x-lucide-key class="w-[18px] h-[18px]" />
-                    Change password
-                </button>
-            </div>
-
-            <div id="doctorAccountVerifyStep" class="hidden rounded-2xl border border-slate-200 bg-white p-4">
-                <div class="text-[0.72rem] font-semibold text-slate-900 mb-3">Verify current password</div>
-                <div>
-                    <label for="doctor_current_password" class="block text-[0.7rem] text-slate-500 mb-1">Current password</label>
-                    <input id="doctor_current_password" type="password" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.78rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                </div>
-                <div class="mt-3 flex items-center justify-end gap-2">
-                    <button type="button" id="doctor_account_cancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
-                    <button type="button" id="doctor_account_verify" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900 text-white text-[0.78rem] font-semibold hover:bg-slate-800">
-                        <span id="doctorAccountVerifySpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                        <span id="doctorAccountVerifyLabel">Verify</span>
-                    </button>
-                </div>
-            </div>
-
-            <div id="doctorAccountChangeStep" class="hidden rounded-2xl border border-slate-200 bg-white p-4">
-                <div class="text-[0.72rem] font-semibold text-slate-900 mb-3">Set new password</div>
-                <div class="space-y-3">
-                    <div>
-                        <label for="doctor_new_password" class="block text-[0.7rem] text-slate-500 mb-1">New password</label>
-                        <input id="doctor_new_password" type="password" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.78rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                    </div>
-                    <div>
-                        <label for="doctor_confirm_password" class="block text-[0.7rem] text-slate-500 mb-1">Confirm new password</label>
-                        <input id="doctor_confirm_password" type="password" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.78rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                    </div>
-                </div>
-                <div class="mt-3 flex items-center justify-end gap-2">
-                    <button type="button" id="doctor_account_back" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Back</button>
-                    <button type="button" id="doctor_account_save" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700">
-                        <span id="doctorAccountSaveSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                        Save new password
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="mt-5 border border-slate-100 rounded-2xl p-4 bg-slate-50/60">
-        <div class="flex items-center justify-between gap-3">
-            <div>
-                <h3 class="text-xs font-semibold text-slate-900">Manage schedule availability</h3>
-                <p class="text-[0.7rem] text-slate-500">Select time slots to mark yourself available/unavailable.</p>
-            </div>
-            <button type="button" id="doctor_manage_schedule_open" class="inline-flex items-center gap-1 rounded-xl border border-green-500/40 bg-green-50 px-3 py-1.5 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100">
-                <x-lucide-clock class="w-[16px] h-[16px]" />
-                Manage
+    <div class="flex flex-col md:flex-row gap-5">
+        {{-- Side Nav --}}
+        <div class="flex md:flex-col gap-2 shrink-0">
+            <button type="button" id="doctorSettingsTabProfile" class="doctor-settings-tab-btn px-4 py-2.5 rounded-xl text-[0.78rem] font-semibold text-left transition-colors border whitespace-nowrap border-green-500/40 bg-green-50 text-green-700 hover:bg-green-100">
+                <span class="inline-flex items-center gap-2"><x-lucide-user class="w-[16px] h-[16px]" /> Edit Profile</span>
             </button>
+            <button type="button" id="doctorSettingsTabSignature" class="doctor-settings-tab-btn px-4 py-2.5 rounded-xl text-[0.78rem] font-semibold text-left transition-colors border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">
+                <span class="inline-flex items-center gap-2"><x-lucide-pen-line class="w-[16px] h-[16px]" /> Signature</span>
+            </button>
+            <button type="button" id="doctorSettingsTabPassword" class="doctor-settings-tab-btn px-4 py-2.5 rounded-xl text-[0.78rem] font-semibold text-left transition-colors border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">
+                <span class="inline-flex items-center gap-2"><x-lucide-lock class="w-[16px] h-[16px]" /> Change Password</span>
+            </button>
+        </div>
+
+        {{-- Content Area --}}
+        <div class="flex-1 min-w-0">
+            {{-- ===== EDIT PROFILE PANEL ===== --}}
+            <div id="doctorSettingsProfilePanel" class="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <h3 class="text-xs font-semibold text-slate-900">Edit Profile</h3>
+                        <p class="text-[0.7rem] text-slate-500">Update your name, profile picture, and personal details.</p>
+                    </div>
+                    <x-lucide-user class="w-[18px] h-[18px] text-slate-700" />
+                </div>
+
+                <form id="doctorSettingsProfileForm" class="space-y-4">
+                    {{-- Profile picture --}}
+                    <div class="flex items-center gap-4">
+                        <div class="relative w-16 h-16 rounded-full border-2 border-slate-200 overflow-hidden bg-slate-100 flex-shrink-0">
+                            <img id="doctorSettingsProfilePreview" src="" alt="Profile" class="w-full h-full object-cover hidden">
+                            <div id="doctorSettingsProfilePlaceholder" class="w-full h-full flex items-center justify-center text-slate-400">
+                                <x-lucide-user class="w-8 h-8" />
+                            </div>
+                        </div>
+                        <div>
+                            <button type="button" id="doctorSettingsProfileUploadBtn" class="inline-flex items-center gap-2 rounded-xl border border-green-500/40 bg-green-50 px-3 py-1.5 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100">
+                                <x-lucide-camera class="w-[14px] h-[14px]" />
+                                Upload photo
+                            </button>
+                            <input id="doctorSettingsProfileUploadInput" type="file" accept="image/*" class="hidden">
+                            <p class="text-[0.65rem] text-slate-400 mt-1">JPG, PNG. Max 5MB.</p>
+                        </div>
+                    </div>
+
+                    {{-- Name fields --}}
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label for="doctor_settings_lastname" class="block text-[0.7rem] text-slate-500 mb-1">Last name</label>
+                            <input id="doctor_settings_lastname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        </div>
+                        <div>
+                            <label for="doctor_settings_firstname" class="block text-[0.7rem] text-slate-500 mb-1">First name</label>
+                            <input id="doctor_settings_firstname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        </div>
+                        <div>
+                            <label for="doctor_settings_middlename" class="block text-[0.7rem] text-slate-500 mb-1">Middle name <span class="text-slate-400">(optional)</span></label>
+                            <input id="doctor_settings_middlename" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="N/A">
+                        </div>
+                    </div>
+
+                    {{-- Sex + Birthdate --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-[0.7rem] text-slate-500 mb-1">Sex</label>
+                            <div class="flex items-center gap-4 pt-1">
+                                <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                                    <input type="radio" name="doctorSettingsSex" value="Male" class="rounded-full text-green-600 focus:ring-green-500"> Male
+                                </label>
+                                <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                                    <input type="radio" name="doctorSettingsSex" value="Female" class="rounded-full text-green-600 focus:ring-green-500"> Female
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="doctor_settings_birthdate" class="block text-[0.7rem] text-slate-500 mb-1">Birthdate</label>
+                            <input id="doctor_settings_birthdate" type="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        </div>
+                        <div>
+                            <label for="doctor_settings_contact" class="block text-[0.7rem] text-slate-500 mb-1">Contact number</label>
+                            <input id="doctor_settings_contact" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="09xx xxx xxxx">
+                        </div>
+                    </div>
+
+                    <hr class="border-slate-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label for="doctor_settings_prc" class="block text-[0.7rem] text-slate-500 mb-1">PRC License Number</label>
+                            <input id="doctor_settings_prc" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="7-digit number" maxlength="7">
+                        </div>
+                        <div>
+                            <label for="doctor_settings_phic" class="block text-[0.7rem] text-slate-500 mb-1">PHIC Number</label>
+                            <input id="doctor_settings_phic" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="01-234567890-1" maxlength="14">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="doctor_settings_ptr" class="block text-[0.7rem] text-slate-500 mb-1">PTR Number</label>
+                        <input id="doctor_settings_ptr" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    </div>
+                    <hr class="border-slate-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label for="doctor_settings_emergency_contact" class="block text-[0.7rem] text-slate-500 mb-1">Emergency contact (name)</label>
+                            <input id="doctor_settings_emergency_contact" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        </div>
+                        <div>
+                            <label for="doctor_settings_emergency_contact_number" class="block text-[0.7rem] text-slate-500 mb-1">Emergency contact number</label>
+                            <input id="doctor_settings_emergency_contact_number" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
+                        </div>
+                    </div>
+
+                    {{-- Address --}}
+                    <div>
+                        <label for="doctor_settings_address" class="block text-[0.7rem] text-slate-500 mb-1">Address</label>
+                        <input id="doctor_settings_address" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    </div>
+
+                    <div class="flex items-center justify-end pt-1">
+                        <button type="submit" id="doctorSettingsProfileSave" class="inline-flex items-center gap-2 rounded-xl bg-green-600 px-3 py-2 text-[0.78rem] font-semibold text-white hover:bg-green-700 disabled:opacity-60 disabled:hover:bg-green-600">
+                            <span id="doctorSettingsProfileSaveSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                            Save profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {{-- ===== SIGNATURE PANEL ===== --}}
+            <div id="doctorSettingsSignaturePanel" class="hidden rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <h3 class="text-xs font-semibold text-slate-900">Signature</h3>
+                        <p class="text-[0.7rem] text-slate-500">Upload your signature image for use on receipts and documents.</p>
+                    </div>
+                    <x-lucide-pen-line class="w-[18px] h-[18px] text-slate-700" />
+                </div>
+
+                <div class="rounded-xl border border-slate-200 bg-white p-5">
+                    <div class="flex flex-col items-center">
+                        <div id="doctorSettingsSignaturePreviewWrap" class="w-56 h-28 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden mb-3">
+                            <img id="doctorSettingsSignaturePreview" src="" alt="Signature" class="h-full w-full object-contain hidden">
+                            <div id="doctorSettingsSignaturePlaceholder" class="text-[0.72rem] text-slate-400">No signature uploaded</div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button type="button" id="doctorSettingsSignatureUploadBtn" class="inline-flex items-center gap-2 rounded-xl border border-green-500/40 bg-green-50 px-3 py-1.5 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100">
+                                <x-lucide-upload class="w-[14px] h-[14px]" />
+                                Upload signature
+                            </button>
+                            <button type="button" id="doctorSettingsSignatureSave" class="inline-flex items-center gap-2 rounded-xl bg-green-600 px-3 py-1.5 text-[0.72rem] font-semibold text-white hover:bg-green-700 disabled:opacity-60 disabled:hover:bg-green-600">
+                                <span id="doctorSettingsSignatureSaveSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                                Save
+                            </button>
+                        </div>
+                        <input id="doctorSettingsSignatureUploadInput" type="file" accept="image/*" class="hidden">
+                        <p class="text-[0.65rem] text-slate-400 mt-2">Upload a clear image of your signature. JPG, PNG. Max 2MB.</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ===== CHANGE PASSWORD PANEL ===== --}}
+            <div id="doctorSettingsPasswordPanel" class="hidden rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <h3 class="text-xs font-semibold text-slate-900">Account password</h3>
+                        <p class="text-[0.7rem] text-slate-500">Verify your current password before setting a new one.</p>
+                    </div>
+                    <x-lucide-lock class="w-[18px] h-[18px] text-slate-700" />
+                </div>
+
+                <div id="doctorSettingsAccountIdle" class="rounded-2xl border border-slate-200 bg-white p-4">
+                    <button type="button" id="doctorSettings_account_start" class="inline-flex items-center gap-2 rounded-xl border border-green-500/40 bg-green-50 px-3 py-2 text-[0.78rem] font-semibold text-green-700 hover:bg-green-100">
+                        <x-lucide-key class="w-[18px] h-[18px]" />
+                        Change password
+                    </button>
+                </div>
+
+                <div id="doctorSettingsAccountVerifyStep" class="hidden rounded-2xl border border-slate-200 bg-white p-4 mt-3">
+                    <div class="text-[0.72rem] font-semibold text-slate-900 mb-3">Verify current password</div>
+                    <div>
+                        <label for="doctorSettings_current_password" class="block text-[0.7rem] text-slate-500 mb-1">Current password</label>
+                        <input id="doctorSettings_current_password" type="password" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.78rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    </div>
+                    <div class="mt-3 flex items-center justify-end gap-2">
+                        <button type="button" id="doctorSettings_account_cancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+                        <button type="button" id="doctorSettings_account_verify" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-green-700 text-white text-[0.78rem] font-semibold hover:bg-green-600">
+                            <span id="doctorSettingsAccountVerifySpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                            <span id="doctorSettingsAccountVerifyLabel">Verify</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="doctorSettingsAccountChangeStep" class="hidden rounded-2xl border border-slate-200 bg-white p-4 mt-3">
+                    <div class="text-[0.72rem] font-semibold text-slate-900 mb-3">Set new password</div>
+                    <div class="space-y-3">
+                        <div>
+                            <label for="doctorSettings_new_password" class="block text-[0.7rem] text-slate-500 mb-1">New password</label>
+                            <input id="doctorSettings_new_password" type="password" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.78rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        </div>
+                        <div>
+                            <label for="doctorSettings_confirm_password" class="block text-[0.7rem] text-slate-500 mb-1">Confirm new password</label>
+                            <input id="doctorSettings_confirm_password" type="password" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.78rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center justify-end gap-2">
+                        <button type="button" id="doctorSettings_account_back" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Back</button>
+                        <button type="button" id="doctorSettings_account_save" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700">
+                            <span id="doctorSettingsAccountSaveSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                            Save new password
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div id="doctorScheduleAvailabilityOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/40 items-center justify-center p-4">
-    <div class="w-full max-w-2xl rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-100 flex items-start justify-between gap-3">
-            <div>
-                <div class="text-sm font-semibold text-slate-900" id="doctorScheduleAvailabilityTitle">Manage Availability</div>
-                <div class="text-[0.72rem] text-slate-500">Pick slots and save.</div>
+<div id="doctorSettingsConfirmOverlay" class="hidden fixed inset-0 z-[70] bg-slate-900/40 items-center justify-center p-4">
+    <div class="w-full max-w-sm rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] p-4">
+        <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-700">
+                <x-lucide-info class="w-[18px] h-[18px]" />
             </div>
-            <button type="button" id="doctorScheduleAvailabilityClose" class="text-slate-400 hover:text-slate-600">
-                <x-lucide-x class="w-[20px] h-[20px]" />
-            </button>
+            <div class="flex-1">
+                <div class="text-sm font-semibold text-slate-900">Confirm</div>
+                <div id="doctorSettingsConfirmMessage" class="text-[0.78rem] text-slate-600 mt-0.5">Are you sure?</div>
+            </div>
         </div>
-        <div class="p-5">
-            <div id="doctorScheduleAvailabilityError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3 items-end">
-                <div>
-                    <label for="doctorScheduleAvailabilityDayFilter" class="block text-[0.7rem] text-slate-600 mb-1">Filter by day</label>
-                    <select id="doctorScheduleAvailabilityDayFilter" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                        <option value="">All days</option>
-                        <option value="mon">Mon</option>
-                        <option value="tue">Tue</option>
-                        <option value="wed">Wed</option>
-                        <option value="thu">Thu</option>
-                        <option value="fri">Fri</option>
-                        <option value="sat">Sat</option>
-                        <option value="sun">Sun</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="doctorScheduleAvailabilityMode" class="block text-[0.7rem] text-slate-600 mb-1">Action</label>
-                    <select id="doctorScheduleAvailabilityMode" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                        <option value="unavailable">Mark unavailable</option>
-                        <option value="available">Mark available</option>
-                    </select>
-                </div>
-                <div class="flex items-center justify-end gap-2">
-                    <button type="button" id="doctorScheduleAvailabilitySave" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors w-full disabled:opacity-60 disabled:hover:bg-green-600">
-                        <span id="doctorScheduleAvailabilitySpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                        Save
-                    </button>
-                </div>
-            </div>
-
-            <div id="doctorScheduleAvailabilityList" class="max-h-[55vh] overflow-y-auto scrollbar-hidden space-y-3"></div>
+        <div class="mt-4 flex items-center justify-end gap-2">
+            <button type="button" id="doctorSettingsConfirmCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button type="button" id="doctorSettingsConfirmOk" class="px-3 py-2 rounded-xl bg-slate-900 text-white text-[0.78rem] font-semibold hover:bg-slate-800">Confirm</button>
         </div>
     </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var apiBasePath = "{{ request()->getBasePath() }}"
-        function apiUrl(path) {
-            return String(apiBasePath || '') + String(path || '')
+        var currentUserId = null
+        var pendingProfileFile = null
+        var pendingSignatureFile = null
+
+        // ── Tab switching ──
+        var tabProfile = document.getElementById('doctorSettingsTabProfile')
+        var tabSignature = document.getElementById('doctorSettingsTabSignature')
+        var tabPassword = document.getElementById('doctorSettingsTabPassword')
+        var panelProfile = document.getElementById('doctorSettingsProfilePanel')
+        var panelSignature = document.getElementById('doctorSettingsSignaturePanel')
+        var panelPassword = document.getElementById('doctorSettingsPasswordPanel')
+
+        function setActiveSettingsTab(tab) {
+            var btns = [tabProfile, tabSignature, tabPassword]
+            btns.forEach(function (btn) {
+                if (!btn) return
+                btn.classList.remove('bg-green-50', 'text-green-700', 'border-green-500/40', 'bg-white', 'text-slate-700', 'border-slate-200')
+                btn.classList.add('border', 'border-slate-200', 'bg-white', 'text-slate-700', 'hover:bg-slate-50')
+            })
+            var active = null
+            var isProfile = false, isSignature = false, isPassword = false
+            if (tab === 'profile') { active = tabProfile; isProfile = true }
+            else if (tab === 'signature') { active = tabSignature; isSignature = true }
+            else { active = tabPassword; isPassword = true }
+            if (active) {
+                active.classList.remove('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50')
+                active.classList.add('bg-green-50', 'text-green-700', 'border-green-500/40')
+            }
+            if (panelProfile) panelProfile.classList.toggle('hidden', !isProfile)
+            if (panelSignature) panelSignature.classList.toggle('hidden', !isSignature)
+            if (panelPassword) panelPassword.classList.toggle('hidden', !isPassword)
         }
 
-        function fetchAllDoctorSchedules(doctorId, onSuccess, onFailure) {
-            var perPage = 100
-            var page = 1
-            var all = []
+        if (tabProfile) tabProfile.addEventListener('click', function () { setActiveSettingsTab('profile') })
+        if (tabSignature) tabSignature.addEventListener('click', function () { setActiveSettingsTab('signature') })
+        if (tabPassword) tabPassword.addEventListener('click', function () { setActiveSettingsTab('password') })
+        setActiveSettingsTab('profile')
 
-            function fail(message) {
-                if (typeof onFailure === 'function') onFailure(message || 'Failed to load schedules.')
-            }
+        // ── Common helpers ──
+        var accountNotice = document.getElementById('doctorAccountNotice')
+        var accountError = document.getElementById('doctorAccountError')
 
-            function fetchPage() {
-                var url = apiUrl('/api/doctor-schedules') +
-                    '?doctor_id=' + encodeURIComponent(doctorId) +
-                    '&per_page=' + encodeURIComponent(perPage) +
-                    '&page=' + encodeURIComponent(page)
-
-                apiFetch(url, { method: 'GET' })
-                    .then(function (response) { return readResponse(response) })
-                    .then(function (result) {
-                        if (!result.ok || !result.data) {
-                            if (result.status === 401) {
-                                fail('Session expired. Please log in again.')
-                                return
-                            }
-                            var msg = (result.data && result.data.message) ? String(result.data.message) : 'Failed to load schedules.'
-                            if (!result.data && result.raw) {
-                                msg += ' HTTP ' + String(result.status || '')
-                            }
-                            fail(msg)
-                            return
-                        }
-
-                        var payload = result.data
-                        var items = Array.isArray(payload && payload.data) ? payload.data : []
-                        all = all.concat(items)
-
-                        var lastPage = parseInt(payload && payload.last_page ? payload.last_page : 1, 10)
-                        if (isNaN(lastPage) || lastPage < 1) lastPage = 1
-
-                        if (page < lastPage) {
-                            page += 1
-                            fetchPage()
-                            return
-                        }
-
-                        if (typeof onSuccess === 'function') {
-                            try {
-                                onSuccess(all)
-                            } catch (e) {
-                                var renderMsg = 'Failed to render schedules.'
-                                if (e && e.message) renderMsg += ' ' + String(e.message)
-                                fail(renderMsg)
-                            }
-                        }
-                    })
-                    .catch(function (err) {
-                        var msg = 'Network error while loading schedules.'
-                        if (err && err.message) msg += ' ' + String(err.message)
-                        fail(msg)
-                    })
-            }
-
-            fetchPage()
+        function showAccountError(message) {
+            if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
-        var profileFirstName = document.getElementById('doctor_profile_firstname')
-        var profileLastName = document.getElementById('doctor_profile_lastname')
-        var profileMiddleName = document.getElementById('doctor_profile_middlename')
-        var profileAddress = document.getElementById('doctor_profile_address')
-        var profileContact = document.getElementById('doctor_profile_contact')
-        var profileSave = document.getElementById('doctor_profile_save')
-        var profileNotice = document.getElementById('doctorProfileNotice')
+        function showAccountNotice(message) {
+            if (!accountNotice) return
+            accountNotice.textContent = message || ''
+            accountNotice.classList.toggle('hidden', !message)
+        }
 
-        var profPathFile = document.getElementById('doctor_prof_path_file')
-        var profPathPreview = document.getElementById('doctor_prof_path_preview')
-        var profPathSave = document.getElementById('doctor_prof_path_save')
-        var profPathSaveSpinner = document.getElementById('doctorProfPathSaveSpinner')
-        var profPathSaveIcon = document.getElementById('doctorProfPathSaveIcon')
-        var profPathSaveLabel = document.getElementById('doctorProfPathSaveLabel')
+        // ── Confirm overlay ──
+        var confirmOverlay = document.getElementById('doctorSettingsConfirmOverlay')
+        var confirmMessage = document.getElementById('doctorSettingsConfirmMessage')
+        var confirmOk = document.getElementById('doctorSettingsConfirmOk')
+        var confirmCancel = document.getElementById('doctorSettingsConfirmCancel')
+        var confirmResolver = null
+        var confirmCountdownTimer = null
+        var confirmOkOriginalText = null
 
-        var signatureFile = document.getElementById('doctor_signature_file')
-        var signaturePreview = document.getElementById('doctor_signature_preview')
-        var signatureSave = document.getElementById('doctor_signature_save')
-        var signatureSaveSpinner = document.getElementById('doctorSignatureSaveSpinner')
-        var signatureSaveIcon = document.getElementById('doctorSignatureSaveIcon')
-        var signatureSaveLabel = document.getElementById('doctorSignatureSaveLabel')
+        function stopConfirmCountdown() {
+            if (confirmCountdownTimer) {
+                clearInterval(confirmCountdownTimer)
+                confirmCountdownTimer = null
+            }
+            if (confirmOk) {
+                confirmOk.disabled = false
+                confirmOk.classList.remove('opacity-60', 'cursor-not-allowed')
+                if (confirmOkOriginalText != null) {
+                    confirmOk.textContent = confirmOkOriginalText
+                }
+            }
+            confirmOkOriginalText = null
+        }
 
-        var currentPassword = document.getElementById('doctor_current_password')
-        var newPassword = document.getElementById('doctor_new_password')
-        var confirmPassword = document.getElementById('doctor_confirm_password')
-        var accountSave = document.getElementById('doctor_account_save')
-        var accountStart = document.getElementById('doctor_account_start')
-        var accountCancel = document.getElementById('doctor_account_cancel')
-        var accountVerify = document.getElementById('doctor_account_verify')
-        var accountBack = document.getElementById('doctor_account_back')
-        var verifySpinner = document.getElementById('doctorAccountVerifySpinner')
-        var verifyLabel = document.getElementById('doctorAccountVerifyLabel')
-        var saveSpinner = document.getElementById('doctorAccountSaveSpinner')
-        var accountIdle = document.getElementById('doctorAccountIdle')
-        var accountVerifyStep = document.getElementById('doctorAccountVerifyStep')
-        var accountChangeStep = document.getElementById('doctorAccountChangeStep')
+        function closeConfirm(result) {
+            if (confirmOverlay) {
+                confirmOverlay.classList.add('hidden')
+                confirmOverlay.classList.remove('flex')
+            }
+            stopConfirmCountdown()
+            var resolver = confirmResolver
+            confirmResolver = null
+            if (typeof resolver === 'function') resolver(!!result)
+        }
+
+        function confirmAction(message, options) {
+            return new Promise(function (resolve) {
+                if (!confirmOverlay || !confirmMessage || !confirmOk || !confirmCancel) {
+                    resolve(window.confirm(message || 'Are you sure?'))
+                    return
+                }
+                stopConfirmCountdown()
+                confirmMessage.textContent = message || 'Are you sure?'
+                var confirmText = options && options.confirmText ? String(options.confirmText) : 'Confirm'
+                confirmOk.textContent = confirmText
+                confirmOkOriginalText = confirmText
+                confirmResolver = resolve
+                confirmOverlay.classList.remove('hidden')
+                confirmOverlay.classList.add('flex')
+                var countdownSeconds = options && options.countdownSeconds ? parseInt(String(options.countdownSeconds), 10) : 0
+                if (!countdownSeconds || isNaN(countdownSeconds) || countdownSeconds < 1) return
+                confirmOk.disabled = true
+                confirmOk.classList.add('opacity-60', 'cursor-not-allowed')
+                var remaining = countdownSeconds
+                confirmOk.textContent = confirmText + ' (' + remaining + ')'
+                confirmCountdownTimer = setInterval(function () {
+                    remaining -= 1
+                    if (remaining <= 0) { stopConfirmCountdown(); return }
+                    if (confirmOk) confirmOk.textContent = confirmText + ' (' + remaining + ')'
+                }, 1000)
+            })
+        }
+
+        if (confirmOk) confirmOk.addEventListener('click', function () { closeConfirm(true) })
+        if (confirmCancel) confirmCancel.addEventListener('click', function () { closeConfirm(false) })
+        if (confirmOverlay) {
+            confirmOverlay.addEventListener('click', function (e) {
+                if (e.target === confirmOverlay) closeConfirm(false)
+            })
+        }
+
+        // ── Load current user ──
+        function loadCurrentUser() {
+            if (typeof apiFetch !== 'function') return
+            apiFetch("{{ url('/api/user') }}", { method: 'GET' })
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        return { ok: response.ok, status: response.status, data: data }
+                    }).catch(function () {
+                        return { ok: response.ok, status: response.status, data: null }
+                    })
+                })
+                .then(function (result) {
+                    if (!result.ok || !result.data) return
+                    var user = result.data
+                    currentUserId = user.user_id ? String(user.user_id) : null
+                    var fn = document.getElementById('doctor_settings_firstname')
+                    var mn = document.getElementById('doctor_settings_middlename')
+                    var ln = document.getElementById('doctor_settings_lastname')
+                    var bd = document.getElementById('doctor_settings_birthdate')
+                    var sexRadios = document.querySelectorAll('input[name="doctorSettingsSex"]')
+                    var addr = document.getElementById('doctor_settings_address')
+                    var contact = document.getElementById('doctor_settings_contact')
+                    var prc = document.getElementById('doctor_settings_prc')
+                    var phic = document.getElementById('doctor_settings_phic')
+                    var ptr = document.getElementById('doctor_settings_ptr')
+                    var ec = document.getElementById('doctor_settings_emergency_contact')
+                    var ecn = document.getElementById('doctor_settings_emergency_contact_number')
+                    if (fn) fn.value = user.firstname || ''
+                    if (mn) mn.value = user.middlename || ''
+                    if (ln) ln.value = user.lastname || ''
+                    if (bd) bd.value = user.birthdate || ''
+                    if (addr) addr.value = user.address || ''
+                    if (contact) contact.value = user.contact_number || ''
+                    if (prc) prc.value = user.prc_license || ''
+                    if (phic) phic.value = user.philhealth_number || ''
+                    if (ptr) ptr.value = user.ptr_number || ''
+                    if (ec) ec.value = user.emergency_contact || ''
+                    if (ecn) ecn.value = user.emergency_contact_number || ''
+                    if (sexRadios && user.sex) {
+                        sexRadios.forEach(function (r) {
+                            r.checked = r.value === user.sex
+                        })
+                    }
+                    if (user.prof_path_url) {
+                        var preview = document.getElementById('doctorSettingsProfilePreview')
+                        var placeholder = document.getElementById('doctorSettingsProfilePlaceholder')
+                        if (preview) { preview.src = user.prof_path_url; preview.classList.remove('hidden') }
+                        if (placeholder) placeholder.classList.add('hidden')
+                    }
+                    if (user.signature_url) {
+                        var sigPreview = document.getElementById('doctorSettingsSignaturePreview')
+                        var sigPlaceholder = document.getElementById('doctorSettingsSignaturePlaceholder')
+                        if (sigPreview) { sigPreview.src = user.signature_url; sigPreview.classList.remove('hidden') }
+                        if (sigPlaceholder) sigPlaceholder.classList.add('hidden')
+                    }
+                })
+                .catch(function () {})
+        }
+
+        // ── Profile picture upload ──
+        var uploadBtn = document.getElementById('doctorSettingsProfileUploadBtn')
+        var uploadInput = document.getElementById('doctorSettingsProfileUploadInput')
+        var profilePreview = document.getElementById('doctorSettingsProfilePreview')
+        var profilePlaceholder = document.getElementById('doctorSettingsProfilePlaceholder')
+
+        if (uploadBtn && uploadInput) {
+            uploadBtn.addEventListener('click', function () { uploadInput.click() })
+            uploadInput.addEventListener('change', function () {
+                var file = uploadInput.files && uploadInput.files[0]
+                if (!file) return
+                pendingProfileFile = file
+                var reader = new FileReader()
+                reader.onload = function (e) {
+                    if (profilePreview) { profilePreview.src = e.target.result; profilePreview.classList.remove('hidden') }
+                    if (profilePlaceholder) profilePlaceholder.classList.add('hidden')
+                }
+                reader.readAsDataURL(file)
+            })
+        }
+
+        // ── Signature upload ──
+        var sigUploadBtn = document.getElementById('doctorSettingsSignatureUploadBtn')
+        var sigUploadInput = document.getElementById('doctorSettingsSignatureUploadInput')
+        var sigPreview = document.getElementById('doctorSettingsSignaturePreview')
+        var sigPlaceholder = document.getElementById('doctorSettingsSignaturePlaceholder')
+        var sigSave = document.getElementById('doctorSettingsSignatureSave')
+        var sigSaveSpinner = document.getElementById('doctorSettingsSignatureSaveSpinner')
+
+        if (sigUploadBtn && sigUploadInput) {
+            sigUploadBtn.addEventListener('click', function () { sigUploadInput.click() })
+            sigUploadInput.addEventListener('change', function () {
+                var file = sigUploadInput.files && sigUploadInput.files[0]
+                if (!file) return
+                pendingSignatureFile = file
+                var reader = new FileReader()
+                reader.onload = function (e) {
+                    if (sigPreview) { sigPreview.src = e.target.result; sigPreview.classList.remove('hidden') }
+                    if (sigPlaceholder) sigPlaceholder.classList.add('hidden')
+                }
+                reader.readAsDataURL(file)
+            })
+        }
+
+        if (sigSave) {
+            sigSave.addEventListener('click', function () {
+                if (sigSave.disabled || !pendingSignatureFile) {
+                    if (!pendingSignatureFile) showAccountError('Please select a signature image first.')
+                    return
+                }
+                showAccountError('')
+                showAccountNotice('')
+                sigSave.disabled = true
+                if (sigSaveSpinner) sigSaveSpinner.classList.remove('hidden')
+
+                var fd = new FormData()
+                fd.append('signature', pendingSignatureFile)
+
+                apiFetch("{{ url('/api/users/me/signature') }}", {
+                    method: 'POST',
+                    body: fd
+                })
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        return { ok: response.ok, status: response.status, data: data }
+                    }).catch(function () {
+                        return { ok: response.ok, status: response.status, data: null }
+                    })
+                })
+                .then(function (result) {
+                    if (!result.ok) {
+                        showAccountError((result.data && result.data.message) ? result.data.message : 'Unable to upload signature.')
+                        return
+                    }
+                    pendingSignatureFile = null
+                    showAccountNotice('Signature uploaded.')
+                    loadCurrentUser()
+                })
+                .catch(function () {
+                    showAccountError('Network error while uploading signature.')
+                })
+                .finally(function () {
+                    sigSave.disabled = false
+                    if (sigSaveSpinner) sigSaveSpinner.classList.add('hidden')
+                })
+            })
+        }
+
+        // ── Save profile ──
+        var profileForm = document.getElementById('doctorSettingsProfileForm')
+        var profileSave = document.getElementById('doctorSettingsProfileSave')
+        var profileSaveSpinner = document.getElementById('doctorSettingsProfileSaveSpinner')
+
+        function setProfileSubmitting(isSubmitting) {
+            if (profileSave) profileSave.disabled = !!isSubmitting
+            if (profileSaveSpinner) profileSaveSpinner.classList.toggle('hidden', !isSubmitting)
+        }
+
+        function buildProfilePayload() {
+            var fn = document.getElementById('doctor_settings_firstname')
+            var mn = document.getElementById('doctor_settings_middlename')
+            var ln = document.getElementById('doctor_settings_lastname')
+            var bd = document.getElementById('doctor_settings_birthdate')
+            var sexRadios = document.querySelectorAll('input[name="doctorSettingsSex"]')
+            var addr = document.getElementById('doctor_settings_address')
+            var contact = document.getElementById('doctor_settings_contact')
+            var prc = document.getElementById('doctor_settings_prc')
+            var phic = document.getElementById('doctor_settings_phic')
+            var ptr = document.getElementById('doctor_settings_ptr')
+            var ec = document.getElementById('doctor_settings_emergency_contact')
+            var ecn = document.getElementById('doctor_settings_emergency_contact_number')
+            var payload = {
+                firstname: fn ? String(fn.value || '').trim() : '',
+                lastname: ln ? String(ln.value || '').trim() : '',
+                middlename: mn ? String(mn.value || '').trim() : '',
+                address: addr ? String(addr.value || '').trim() : '',
+                contact_number: contact ? String(contact.value || '').trim() : '',
+                prc_license: prc ? String(prc.value || '').trim() : '',
+                philhealth_number: phic ? String(phic.value || '').trim() : '',
+                ptr_number: ptr ? String(ptr.value || '').trim() : '',
+                emergency_contact: ec ? String(ec.value || '').trim() : '',
+                emergency_contact_number: ecn ? String(ecn.value || '').trim() : ''
+            }
+            var birthdate = bd ? String(bd.value || '').trim() : ''
+            if (birthdate) payload.birthdate = birthdate
+            if (sexRadios) {
+                sexRadios.forEach(function (r) {
+                    if (r.checked) payload.sex = r.value
+                })
+            }
+            return payload
+        }
+
+        if (profileForm) {
+            profileForm.addEventListener('submit', function (e) {
+                e.preventDefault()
+                if (profileSave && profileSave.disabled) return
+
+                var namePayload = buildProfilePayload()
+
+                confirmAction('Are you sure you want to update your profile?', { confirmText: 'Update' })
+                    .then(function (confirmed) {
+                        if (!confirmed) return
+
+                        showAccountError('')
+                        showAccountNotice('')
+                        setProfileSubmitting(true)
+
+                        function doSaveName() {
+                            apiFetch("{{ url('/api/users') }}/" + encodeURIComponent(currentUserId), {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(namePayload)
+                            })
+                            .then(function (response) {
+                                return response.json().then(function (data) {
+                                    return { ok: response.ok, status: response.status, data: data }
+                                }).catch(function () {
+                                    return { ok: response.ok, status: response.status, data: null }
+                                })
+                            })
+                            .then(function (result) {
+                                if (!result.ok) {
+                                    var msg = (result.data && result.data.message) ? result.data.message : 'Unable to update profile.'
+                                    showAccountError(msg)
+                                    return
+                                }
+                                showAccountNotice('Profile updated.')
+                                loadCurrentUser()
+                            })
+                            .catch(function () {
+                                showAccountError('Network error while updating profile.')
+                            })
+                            .finally(function () {
+                                setProfileSubmitting(false)
+                            })
+                        }
+
+                        if (pendingProfileFile) {
+                            var fd = new FormData()
+                            fd.append('prof_path', pendingProfileFile)
+                            apiFetch("{{ url('/api/users/me/profile-picture') }}", {
+                                method: 'POST',
+                                body: fd
+                            })
+                            .then(function () {
+                                pendingProfileFile = null
+                                doSaveName()
+                            })
+                            .catch(function () {
+                                showAccountError('Network error while uploading picture.')
+                                setProfileSubmitting(false)
+                            })
+                        } else {
+                            doSaveName()
+                        }
+                    })
+            })
+        }
+
+        // ── Password change ──
+        var currentPassword = document.getElementById('doctorSettings_current_password')
+        var newPassword = document.getElementById('doctorSettings_new_password')
+        var confirmPassword = document.getElementById('doctorSettings_confirm_password')
+        var accountSave = document.getElementById('doctorSettings_account_save')
+        var accountStart = document.getElementById('doctorSettings_account_start')
+        var accountCancel = document.getElementById('doctorSettings_account_cancel')
+        var accountVerify = document.getElementById('doctorSettings_account_verify')
+        var accountBack = document.getElementById('doctorSettings_account_back')
+        var verifySpinner = document.getElementById('doctorSettingsAccountVerifySpinner')
+        var verifyLabel = document.getElementById('doctorSettingsAccountVerifyLabel')
+        var saveSpinner = document.getElementById('doctorSettingsAccountSaveSpinner')
+        var accountIdle = document.getElementById('doctorSettingsAccountIdle')
+        var accountVerifyStep = document.getElementById('doctorSettingsAccountVerifyStep')
+        var accountChangeStep = document.getElementById('doctorSettingsAccountChangeStep')
         var passwordVerifyToken = null
         var cooldownTimer = null
 
@@ -342,17 +649,23 @@
         var passwordTokenExpKey = 'opol_doctor_pw_verify_expires_at'
         var passwordCooldownUntilKey = 'opol_doctor_pw_verify_cooldown_until'
 
-        function safeLocalGet(key) { try { return window.localStorage ? window.localStorage.getItem(key) : null } catch (_) { return null } }
-        function safeLocalSet(key, value) { try { if (window.localStorage) window.localStorage.setItem(key, value) } catch (_) {} }
-        function safeLocalRemove(key) { try { if (window.localStorage) window.localStorage.removeItem(key) } catch (_) {} }
+        function safeLocalGet(key) {
+            try { return window.localStorage ? window.localStorage.getItem(key) : null }
+            catch (_) { return null }
+        }
+        function safeLocalSet(key, value) {
+            try { if (window.localStorage) window.localStorage.setItem(key, value) } catch (_) {}
+        }
+        function safeLocalRemove(key) {
+            try { if (window.localStorage) window.localStorage.removeItem(key) } catch (_) {}
+        }
 
         function persistPasswordToken(token, expiresInSeconds) {
             if (!token) return
             var ms = parseInt(String(expiresInSeconds || 0), 10)
             ms = isNaN(ms) || ms < 1 ? 600 : ms
-            var exp = Date.now() + ms * 1000
             safeLocalSet(passwordTokenKey, String(token))
-            safeLocalSet(passwordTokenExpKey, String(exp))
+            safeLocalSet(passwordTokenExpKey, String(Date.now() + ms * 1000))
         }
 
         function clearPasswordToken() {
@@ -361,627 +674,195 @@
             passwordVerifyToken = null
         }
 
+        function persistCooldown(seconds) {
+            var s = parseInt(String(seconds || 0), 10)
+            if (isNaN(s) || s < 1) return
+            safeLocalSet(passwordCooldownUntilKey, String(Date.now() + s * 1000))
+        }
+
+        function clearCooldown() {
+            safeLocalRemove(passwordCooldownUntilKey)
+        }
+
         function setAccountStep(step) {
             if (accountIdle) accountIdle.classList.toggle('hidden', step !== 'idle')
             if (accountVerifyStep) accountVerifyStep.classList.toggle('hidden', step !== 'verify')
             if (accountChangeStep) accountChangeStep.classList.toggle('hidden', step !== 'change')
         }
 
+        function setVerifySubmitting(isSubmitting) {
+            if (accountVerify) {
+                if (isSubmitting) accountVerify.disabled = true
+                else if (!cooldownTimer) accountVerify.disabled = false
+            }
+            if (verifySpinner) verifySpinner.classList.toggle('hidden', !isSubmitting)
+        }
+
+        function setSaveSubmitting(isSubmitting) {
+            if (accountSave) accountSave.disabled = !!isSubmitting
+            if (saveSpinner) saveSpinner.classList.toggle('hidden', !isSubmitting)
+        }
+
+        function stopCooldown() {
+            if (cooldownTimer) { clearInterval(cooldownTimer); cooldownTimer = null }
+        }
+
+        function startCooldown(seconds) {
+            stopCooldown()
+            var remaining = parseInt(String(seconds || 0), 10)
+            if (!remaining || remaining < 1) return
+            persistCooldown(remaining)
+            if (accountVerify) {
+                accountVerify.disabled = true
+                accountVerify.classList.add('opacity-60', 'cursor-not-allowed')
+                if (verifyLabel) verifyLabel.textContent = 'Try again (' + remaining + ')'
+            }
+            cooldownTimer = setInterval(function () {
+                remaining -= 1
+                if (remaining <= 0) {
+                    stopCooldown(); clearCooldown()
+                    if (accountVerify) {
+                        accountVerify.disabled = false
+                        accountVerify.classList.remove('opacity-60', 'cursor-not-allowed')
+                        if (verifyLabel) verifyLabel.textContent = 'Verify'
+                    }
+                    return
+                }
+                if (accountVerify && verifyLabel) verifyLabel.textContent = 'Try again (' + remaining + ')'
+            }, 1000)
+        }
+
+        function restoreCooldownIfAny() {
+            var raw = safeLocalGet(passwordCooldownUntilKey)
+            if (!raw) return
+            var until = parseInt(String(raw || ''), 10)
+            if (isNaN(until) || until <= 0) { clearCooldown(); return }
+            var remaining = Math.ceil((until - Date.now()) / 1000)
+            if (remaining > 0) startCooldown(remaining)
+            else clearCooldown()
+        }
+
         function restorePasswordTokenIfAny() {
             var token = safeLocalGet(passwordTokenKey)
             var expRaw = safeLocalGet(passwordTokenExpKey)
-            if (!token || !expRaw) {
-                clearPasswordToken()
-                return
-            }
+            if (!token || !expRaw) { clearPasswordToken(); return }
             var exp = parseInt(String(expRaw || ''), 10)
-            if (isNaN(exp) || exp <= Date.now()) {
-                clearPasswordToken()
-                return
-            }
+            if (isNaN(exp) || exp <= Date.now()) { clearPasswordToken(); return }
             passwordVerifyToken = String(token)
             setAccountStep('change')
         }
 
-        var manageScheduleOpen = document.getElementById('doctor_manage_schedule_open')
-        var scheduleAvailabilityOverlay = document.getElementById('doctorScheduleAvailabilityOverlay')
-        var scheduleAvailabilityTitle = document.getElementById('doctorScheduleAvailabilityTitle')
-        var scheduleAvailabilityClose = document.getElementById('doctorScheduleAvailabilityClose')
-        var scheduleAvailabilityError = document.getElementById('doctorScheduleAvailabilityError')
-        var scheduleAvailabilityDayFilter = document.getElementById('doctorScheduleAvailabilityDayFilter')
-        var scheduleAvailabilityMode = document.getElementById('doctorScheduleAvailabilityMode')
-        var scheduleAvailabilityList = document.getElementById('doctorScheduleAvailabilityList')
-        var scheduleAvailabilitySave = document.getElementById('doctorScheduleAvailabilitySave')
-        var scheduleAvailabilitySpinner = document.getElementById('doctorScheduleAvailabilitySpinner')
-
-        var storageKey = 'opol_doctor_settings'
-        var currentDoctorId = null
-        var loadedScheduleSlots = []
-
-        function loadDoctorSettings() {
-            if (typeof apiFetch !== 'function') return
-            apiFetch(apiUrl('/api/user'), { method: 'GET' })
-                .then(function (response) { return response.json().then(function (data) { return { ok: response.ok, data: data } }) })
-                .then(function (result) {
-                    if (!result.ok || !result.data) return
-                    currentDoctorId = result.data.user_id ? String(result.data.user_id) : currentDoctorId
-                    if (profileFirstName) profileFirstName.value = result.data.firstname || ''
-                    if (profileLastName) profileLastName.value = result.data.lastname || ''
-                    if (profileMiddleName) profileMiddleName.value = result.data.middlename || ''
-                    if (profileAddress) profileAddress.value = result.data.address || ''
-                    if (profileContact) profileContact.value = result.data.contact_number || ''
-
-                    var profUrl = result.data.prof_path_url ? String(result.data.prof_path_url) : ''
-                    renderImagePreview(profPathPreview, profUrl, 'Profile Picture', 'No picture uploaded yet.', true)
-                })
-                .catch(function () {})
-        }
-
-        function saveProfile() {
-            if (typeof apiFetch !== 'function') return
-            var fn = profileFirstName ? profileFirstName.value.trim() : ''
-            var ln = profileLastName ? profileLastName.value.trim() : ''
-            if (!fn && !ln) {
-                window.alert('Please enter a first name or last name.')
-                return
-            }
-
-            profileSave.disabled = true
-            apiFetch(apiUrl('/api/users/' + currentDoctorId), {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    firstname: fn,
-                    lastname: ln,
-                    middlename: profileMiddleName ? profileMiddleName.value.trim() : '',
-                    address: profileAddress ? profileAddress.value.trim() : '',
-                    contact_number: profileContact ? profileContact.value.trim() : ''
-                })
-            })
-                .then(function (response) { return response.json().then(function (data) { return { ok: response.ok, data: data } }) })
-                .then(function (result) {
-                    if (!result.ok) {
-                        window.alert(result.data && result.data.message ? result.data.message : 'Failed to save profile.')
-                        return
-                    }
-                    if (profileNotice) {
-                        profileNotice.textContent = 'Profile updated.'
-                        setTimeout(function () { profileNotice.textContent = '' }, 3000)
-                    }
-                })
-                .catch(function () { window.alert('Network error') })
-                .finally(function () { profileSave.disabled = false })
-        }
-
-        function loadServerSignature() {
-            if (typeof apiFetch !== 'function') return
-
-            apiFetch(apiUrl('/api/user'), { method: 'GET' })
-                .then(function (response) { return response.json().then(function (data) { return { ok: response.ok, data: data } }) })
-                .then(function (result) {
-                    if (!result.ok || !result.data) return
-                    currentDoctorId = result.data.user_id ? String(result.data.user_id) : currentDoctorId
-                    var url = result.data.signature_url ? String(result.data.signature_url) : ''
-                    renderImagePreview(signaturePreview, url, 'Signature', 'No signature uploaded yet.', false)
-                })
-                .catch(function () {})
-        }
-
-        function cacheBustedUrl(url) {
-            var raw = String(url || '').trim()
-            if (!raw) return ''
-            if (/^(blob:|data:)/i.test(raw)) return raw
-            return raw + (raw.indexOf('?') === -1 ? '?v=' : '&v=') + String(Date.now())
-        }
-
-        function renderImagePreview(container, imageUrl, altText, emptyText, rounded) {
-            if (!container) return
-            var normalized = String(imageUrl || '').trim()
-            if (!normalized) {
-                container.textContent = emptyText || 'No image uploaded yet.'
-                container.classList.remove('text-slate-700')
-                container.classList.add('text-slate-400')
-                return
-            }
-            var src = cacheBustedUrl(normalized)
-            container.innerHTML = '<img alt="' + String(altText || 'Image') + '" src="' + src + '" class="max-h-20 max-w-full object-contain' + (rounded ? ' rounded-lg' : '') + '">'
-            container.classList.remove('text-slate-400')
-            container.classList.add('text-slate-700')
-            var img = container.querySelector('img')
-            if (img) {
-                img.addEventListener('error', function () {
-                    container.textContent = emptyText || 'No image uploaded yet.'
-                    container.classList.remove('text-slate-700')
-                    container.classList.add('text-slate-400')
-                }, { once: true })
-            }
-        }
-
-        function setUploadButtonState(button, spinner, icon, labelNode, busy, busyLabel, idleLabel) {
-            if (button) button.disabled = !!busy
-            if (spinner) spinner.classList.toggle('hidden', !busy)
-            if (icon) icon.classList.toggle('hidden', !!busy)
-            if (labelNode) labelNode.textContent = busy ? busyLabel : idleLabel
-        }
-
-        function readResponse(response) {
-            return response.text().then(function (text) {
-                var data = null
-                try {
-                    data = text ? JSON.parse(text) : null
-                } catch (e) {
-                    data = null
-                }
-                return { ok: response.ok, status: response.status, data: data, raw: text }
-            })
-        }
-
-        function showScheduleAvailabilityError(message) {
-            if (message && typeof showToast === 'function') showToast(message, 'error')
-        }
-
-        function setScheduleAvailabilitySubmitting(isSubmitting) {
-            if (scheduleAvailabilitySave) scheduleAvailabilitySave.disabled = !!isSubmitting
-            if (scheduleAvailabilitySpinner) scheduleAvailabilitySpinner.classList.toggle('hidden', !isSubmitting)
-        }
-
-        function openScheduleAvailabilityModal() {
-            if (!currentDoctorId) {
-                showScheduleAvailabilityError('Unable to identify the current doctor.')
-                return
-            }
-            loadedScheduleSlots = []
-            showScheduleAvailabilityError('')
-            setScheduleAvailabilitySubmitting(false)
-            if (scheduleAvailabilityTitle) scheduleAvailabilityTitle.textContent = 'Manage Availability'
-            if (scheduleAvailabilityDayFilter) scheduleAvailabilityDayFilter.value = ''
-            if (scheduleAvailabilityMode) scheduleAvailabilityMode.value = 'unavailable'
-            if (scheduleAvailabilityList) scheduleAvailabilityList.innerHTML = 'Loading schedules…'
-
-            if (scheduleAvailabilityOverlay) {
-                scheduleAvailabilityOverlay.classList.remove('hidden')
-                scheduleAvailabilityOverlay.classList.add('flex')
-            }
-
-            loadScheduleAvailabilitySlots()
-        }
-
-        function closeScheduleAvailabilityModal() {
-            if (scheduleAvailabilityOverlay) {
-                scheduleAvailabilityOverlay.classList.add('hidden')
-                scheduleAvailabilityOverlay.classList.remove('flex')
-            }
-            loadedScheduleSlots = []
-            showScheduleAvailabilityError('')
-            setScheduleAvailabilitySubmitting(false)
-        }
-
-        function loadScheduleAvailabilitySlots() {
-            if (!currentDoctorId || typeof apiFetch !== 'function') return
-            if (!scheduleAvailabilityList) return
-
-            scheduleAvailabilityList.innerHTML = 'Loading schedules…'
-            loadedScheduleSlots = []
-
-            fetchAllDoctorSchedules(currentDoctorId, function (all) {
-                loadedScheduleSlots = Array.isArray(all) ? all : []
-                renderDoctorScheduleAvailabilityList()
-            }, function (message) {
-                showScheduleAvailabilityError(message || 'Failed to load schedules.')
-                scheduleAvailabilityList.innerHTML = ''
-            })
-        }
-
-        function renderDoctorScheduleAvailabilityList() {
-            if (!scheduleAvailabilityList) return
-            var dayFilter = scheduleAvailabilityDayFilter ? String(scheduleAvailabilityDayFilter.value || '').toLowerCase() : ''
-            var dayOrder = [
-                { key: 'mon', label: 'Monday' },
-                { key: 'tue', label: 'Tuesday' },
-                { key: 'wed', label: 'Wednesday' },
-                { key: 'thu', label: 'Thursday' },
-                { key: 'fri', label: 'Friday' },
-                { key: 'sat', label: 'Saturday' },
-                { key: 'sun', label: 'Sunday' }
-            ]
-
-            var grouped = {}
-            for (var i = 0; i < dayOrder.length; i++) {
-                grouped[dayOrder[i].key] = []
-            }
-
-            var slots = loadedScheduleSlots || []
-            for (var x = 0; x < slots.length; x++) {
-                var s = slots[x]
-                var key = s && s.day_of_week ? String(s.day_of_week).toLowerCase() : ''
-                if (!key || !grouped[key]) continue
-                if (dayFilter && dayFilter !== key) continue
-                grouped[key].push(s)
-            }
-
-            for (var j = 0; j < dayOrder.length; j++) {
-                var dayKey = dayOrder[j].key
-                grouped[dayKey].sort(function (a, b) {
-                    var sa = String(a.start_time || '').slice(0, 5)
-                    var sb = String(b.start_time || '').slice(0, 5)
-                    if (sa < sb) return -1
-                    if (sa > sb) return 1
-                    return 0
-                })
-            }
-
-            var html = ''
-            for (var k = 0; k < dayOrder.length; k++) {
-                var d = dayOrder[k]
-                var rows = grouped[d.key] || []
-                if (!rows.length) continue
-                html += '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
-                    '<div class="text-[0.72rem] font-semibold text-slate-900 mb-2">' + d.label + '</div>'
-
-                rows.forEach(function (s) {
-                    var start = String(s.start_time || '').slice(0, 5)
-                    var end = String(s.end_time || '').slice(0, 5)
-                    var label = start + '–' + end
-                    var isUnavailable = s.is_available === false
-                    var badgeClass = isUnavailable ? 'text-rose-700 bg-rose-50 border-rose-100' : 'text-emerald-700 bg-emerald-50 border-emerald-100'
-                    var badgeText = isUnavailable ? 'Unavailable' : 'Available'
-
-                    html += '<label class="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2 mb-1">' +
-                        '<div class="flex items-center gap-2">' +
-                            '<input type="checkbox" class="rounded border-slate-300 text-green-600 focus:ring-green-500" data-schedule-id="' + s.schedule_id + '">' +
-                            '<span class="text-[0.78rem] text-slate-700 font-semibold">' + label + '</span>' +
-                        '</div>' +
-                        '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] font-semibold border ' + badgeClass + '">' + badgeText + '</span>' +
-                    '</label>'
-                })
-
-                html += '</div>'
-            }
-
-            if (!html) {
-                html = '<div class="text-[0.78rem] text-slate-500">No schedules found for the selected filter.</div>'
-            }
-
-            scheduleAvailabilityList.innerHTML = html
-        }
-
-        function handlePasswordChange() {
+        function saveAccount() {
             if (!passwordVerifyToken) {
-                window.alert('Please verify your current password first.')
+                showAccountError('Please verify your current password first.')
                 setAccountStep('verify')
                 return
             }
-
-            var next = newPassword ? newPassword.value : ''
-            var confirm = confirmPassword ? confirmPassword.value : ''
-
-            if (!next || !confirm) {
-                window.alert('Please complete all password fields.')
-                return
-            }
-            if (next !== confirm) {
-                window.alert('New password and confirmation do not match.')
-                return
-            }
-
-            var confirmed = window.confirm('Are you sure you want to change your password?')
-            if (!confirmed) return
-
-            if (saveSpinner) saveSpinner.classList.remove('hidden')
-            if (accountSave) accountSave.disabled = true
-
-            apiFetch(apiUrl('/api/users/me/password/change'), {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    token: passwordVerifyToken,
-                    password: next,
-                    password_confirmation: confirm
-                })
-            })
-                .then(function (response) { return response.json().then(function (data) { return { ok: response.ok, data: data } }) })
-                .then(function (result) {
-                    if (!result.ok) {
-                        window.alert(result.data && result.data.message ? result.data.message : 'Failed to update password.')
-                        if (result.data && result.data.code === 'PASSWORD_VERIFY_REQUIRED') {
-                            clearPasswordToken()
-                            setAccountStep('verify')
+            var next = newPassword ? String(newPassword.value || '') : ''
+            var confirm = confirmPassword ? String(confirmPassword.value || '') : ''
+            if (!next || !confirm) { showAccountError('Please enter and confirm your new password.'); return }
+            if (next !== confirm) { showAccountError('New password and confirmation do not match.'); return }
+            if (typeof apiFetch !== 'function') { showAccountError('API client is not available.'); return }
+            showAccountError('')
+            showAccountNotice('')
+            confirmAction('Are you sure you want to change your password?', { confirmText: 'Change', countdownSeconds: 3 })
+                .then(function (confirmed) {
+                    if (!confirmed) return
+                    setSaveSubmitting(true)
+                    apiFetch("{{ url('/api/users/me/password/change') }}", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: passwordVerifyToken, password: next, password_confirmation: confirm })
+                    })
+                    .then(function (response) {
+                        return response.json().then(function (data) { return { ok: response.ok, status: response.status, data: data } }).catch(function () { return { ok: response.ok, status: response.status, data: null } })
+                    })
+                    .then(function (result) {
+                        if (!result.ok) {
+                            var msg = (result.data && result.data.message) ? result.data.message : 'Unable to update password.'
+                            showAccountError(msg)
+                            if (result.data && result.data.code === 'PASSWORD_VERIFY_REQUIRED') { clearPasswordToken(); setAccountStep('verify') }
+                            return
                         }
-                        return
-                    }
-                    clearPasswordToken()
-                    if (currentPassword) currentPassword.value = ''
-                    if (newPassword) newPassword.value = ''
-                    if (confirmPassword) confirmPassword.value = ''
-                    window.alert('Password updated successfully.')
-                    setAccountStep('idle')
-                })
-                .catch(function () { window.alert('Network error') })
-                .finally(function () {
-                    if (saveSpinner) saveSpinner.classList.add('hidden')
-                    if (accountSave) accountSave.disabled = false
+                        clearPasswordToken()
+                        if (currentPassword) currentPassword.value = ''
+                        if (newPassword) newPassword.value = ''
+                        if (confirmPassword) confirmPassword.value = ''
+                        showAccountError('')
+                        showAccountNotice('Password updated.')
+                        setAccountStep('idle')
+                    })
+                    .catch(function () { showAccountError('Network error while updating password.') })
+                    .finally(function () { setSaveSubmitting(false) })
                 })
         }
 
         function verifyCurrentPassword() {
-            var current = currentPassword ? currentPassword.value : ''
-            if (!current) {
-                window.alert('Please enter your current password.')
-                return
-            }
-
-            if (verifySpinner) verifySpinner.classList.remove('hidden')
-            if (accountVerify) accountVerify.disabled = true
-
-            apiFetch(apiUrl('/api/users/me/password/verify'), {
+            if (typeof apiFetch !== 'function') { showAccountError('API client is not available.'); return }
+            var current = currentPassword ? String(currentPassword.value || '') : ''
+            if (!current) { showAccountError('Please enter your current password.'); return }
+            showAccountError('')
+            showAccountNotice('')
+            setVerifySubmitting(true)
+            apiFetch("{{ url('/api/users/me/password/verify') }}", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ current_password: current })
             })
-                .then(function (response) { return response.json().then(function (data) { return { ok: response.ok, data: data } }) })
-                .then(function (result) {
-                    if (!result.ok) {
-                        window.alert(result.data && result.data.message ? result.data.message : 'Verification failed.')
+            .then(function (response) {
+                return response.json().then(function (data) { return { ok: response.ok, status: response.status, data: data } }).catch(function () { return { ok: response.ok, status: response.status, data: null } })
+            })
+            .then(function (result) {
+                if (!result.ok) {
+                    if (result.status === 429) {
+                        var retry = result.data && result.data.retry_after ? parseInt(result.data.retry_after, 10) : 300
+                        showAccountError('Too many attempts. Please try again later.')
+                        startCooldown(retry)
                         return
                     }
-                    passwordVerifyToken = result.data.token
-                    persistPasswordToken(passwordVerifyToken, result.data.expires_in || 600)
-                    if (currentPassword) currentPassword.value = ''
-                    setAccountStep('change')
-                })
-                .catch(function () { window.alert('Network error') })
-                .finally(function () {
-                    if (verifySpinner) verifySpinner.classList.add('hidden')
-                    if (accountVerify) accountVerify.disabled = false
-                })
-        }
-
-        if (profileSave) {
-            profileSave.addEventListener('click', function () {
-                saveProfile()
-                profileSave.classList.add('bg-green-100')
-                setTimeout(function () {
-                    profileSave.classList.remove('bg-green-100')
-                }, 600)
-            })
-        }
-
-        if (profPathSave) {
-            if (profPathFile) {
-                profPathFile.addEventListener('change', function () {
-                    if (!profPathFile.files || !profPathFile.files.length) return
-                    var localUrl = URL.createObjectURL(profPathFile.files[0])
-                    renderImagePreview(profPathPreview, localUrl, 'Profile Picture', 'No picture uploaded yet.', true)
-                })
-            }
-            profPathSave.addEventListener('click', function () {
-                if (!profPathFile || !profPathFile.files || profPathFile.files.length === 0) {
-                    window.alert('Please choose a profile picture first.')
+                    var msg = (result.data && result.data.message) ? result.data.message : 'Verification failed.'
+                    if (result.data && typeof result.data.tries_remaining === 'number') msg += ' Tries remaining: ' + result.data.tries_remaining
+                    showAccountError(msg)
                     return
                 }
-                if (typeof apiFetch !== 'function') {
-                    window.alert('API client is not available.')
-                    return
-                }
-
-                var file = profPathFile.files[0]
-                var formData = new FormData()
-                formData.append('prof_path', file)
-
-                setUploadButtonState(profPathSave, profPathSaveSpinner, profPathSaveIcon, profPathSaveLabel, true, 'Saving...', 'Save picture')
-
-                apiFetch(apiUrl('/api/users/me/profile-picture'), {
-                    method: 'POST',
-                    body: formData
-                })
-                    .then(function (response) {
-                        return response.json().then(function (data) {
-                            return { ok: response.ok, data: data }
-                        }).catch(function () {
-                            return { ok: response.ok, data: null }
-                        })
-                    })
-                    .then(function (result) {
-                        if (!result.ok) {
-                            var validationMessage = result.data && result.data.errors && typeof result.data.errors === 'object'
-                                ? Object.keys(result.data.errors).map(function (key) {
-                                    var list = Array.isArray(result.data.errors[key]) ? result.data.errors[key] : [result.data.errors[key]]
-                                    return list.filter(Boolean).join(' ')
-                                }).filter(Boolean).join(' ')
-                                : ''
-                            var msg = validationMessage || ((result.data && result.data.message) ? String(result.data.message) : 'Unable to upload profile picture.')
-                            window.alert(msg)
-                            loadDoctorSettings()
-                            return
-                        }
-                        var url = result.data && result.data.prof_path_url ? String(result.data.prof_path_url) : ''
-                        renderImagePreview(profPathPreview, url, 'Profile Picture', 'No picture uploaded yet.', true)
-                        loadDoctorSettings()
-                        if (profPathFile) profPathFile.value = ''
-                    })
-                    .catch(function () {
-                        window.alert('Network error while uploading picture.')
-                        loadDoctorSettings()
-                    })
-                    .finally(function () {
-                        setUploadButtonState(profPathSave, profPathSaveSpinner, profPathSaveIcon, profPathSaveLabel, false, 'Saving...', 'Save picture')
-                    })
-            })
-        }
-
-        if (signatureSave) {
-            if (signatureFile) {
-                signatureFile.addEventListener('change', function () {
-                    if (!signatureFile.files || !signatureFile.files.length) return
-                    var localUrl = URL.createObjectURL(signatureFile.files[0])
-                    renderImagePreview(signaturePreview, localUrl, 'Signature', 'No signature uploaded yet.', false)
-                })
-            }
-            signatureSave.addEventListener('click', function () {
-                if (!signatureFile || !signatureFile.files || signatureFile.files.length === 0) {
-                    window.alert('Please choose a signature image first.')
-                    return
-                }
-                if (typeof apiFetch !== 'function') {
-                    window.alert('API client is not available.')
-                    return
-                }
-
-                var file = signatureFile.files[0]
-                var formData = new FormData()
-                formData.append('signature', file)
-
-                setUploadButtonState(signatureSave, signatureSaveSpinner, signatureSaveIcon, signatureSaveLabel, true, 'Saving...', 'Save signature')
-
-                apiFetch(apiUrl('/api/users/me/signature'), {
-                    method: 'POST',
-                    body: formData
-                })
-                    .then(function (response) {
-                        return response.json().then(function (data) {
-                            return { ok: response.ok, data: data }
-                        }).catch(function () {
-                            return { ok: response.ok, data: null }
-                        })
-                    })
-                    .then(function (result) {
-                        if (!result.ok) {
-                            var msg = (result.data && result.data.message) ? String(result.data.message) : 'Unable to upload signature.'
-                            window.alert(msg)
-                            loadServerSignature()
-                            return
-                        }
-                        var url = result.data && result.data.signature_url ? String(result.data.signature_url) : ''
-                        renderImagePreview(signaturePreview, url, 'Signature', 'No signature uploaded yet.', false)
-                        loadServerSignature()
-                        if (signatureFile) signatureFile.value = ''
-                    })
-                    .catch(function () {
-                        window.alert('Network error while uploading signature.')
-                        loadServerSignature()
-                    })
-                    .finally(function () {
-                        setUploadButtonState(signatureSave, signatureSaveSpinner, signatureSaveIcon, signatureSaveLabel, false, 'Saving...', 'Save signature')
-                    })
-            })
-        }
-
-        if (accountSave) {
-            accountSave.addEventListener('click', function () {
-                handlePasswordChange()
-            })
-        }
-
-        if (accountStart) {
-            accountStart.addEventListener('click', function () {
-                clearPasswordToken()
-                setAccountStep('verify')
-            })
-        }
-        if (accountCancel) {
-            accountCancel.addEventListener('click', function () {
-                clearPasswordToken()
+                passwordVerifyToken = result.data && result.data.token ? String(result.data.token) : null
+                if (!passwordVerifyToken) { showAccountError('Verification token missing. Please try again.'); return }
+                var expiresIn = result.data && result.data.expires_in ? parseInt(result.data.expires_in, 10) : 600
+                persistPasswordToken(passwordVerifyToken, expiresIn)
                 if (currentPassword) currentPassword.value = ''
-                setAccountStep('idle')
+                stopCooldown()
+                clearCooldown()
+                if (accountVerify) {
+                    accountVerify.disabled = false
+                    accountVerify.classList.remove('opacity-60', 'cursor-not-allowed')
+                    if (verifyLabel) verifyLabel.textContent = 'Verify'
+                }
+                setAccountStep('change')
             })
+            .catch(function () { showAccountError('Network error while verifying password.') })
+            .finally(function () { setVerifySubmitting(false) })
         }
-        if (accountBack) {
-            accountBack.addEventListener('click', function () {
-                clearPasswordToken()
-                if (newPassword) newPassword.value = ''
-                if (confirmPassword) confirmPassword.value = ''
-                setAccountStep('verify')
-            })
-        }
-        if (accountVerify) {
-            accountVerify.addEventListener('click', function () {
-                verifyCurrentPassword()
-            })
-        }
+
+        if (accountSave) accountSave.addEventListener('click', saveAccount)
+        if (accountStart) accountStart.addEventListener('click', function () {
+            showAccountError(''); showAccountNotice(''); clearPasswordToken(); setAccountStep('verify')
+        })
+        if (accountCancel) accountCancel.addEventListener('click', function () {
+            showAccountError(''); showAccountNotice(''); clearPasswordToken(); stopCooldown(); clearCooldown()
+            if (currentPassword) currentPassword.value = ''
+            setAccountStep('idle')
+        })
+        if (accountBack) accountBack.addEventListener('click', function () {
+            showAccountError(''); showAccountNotice(''); clearPasswordToken()
+            if (newPassword) newPassword.value = ''
+            if (confirmPassword) confirmPassword.value = ''
+            setAccountStep('verify')
+        })
+        if (accountVerify) accountVerify.addEventListener('click', verifyCurrentPassword)
 
         setAccountStep('idle')
+        restoreCooldownIfAny()
         restorePasswordTokenIfAny()
-
-        if (manageScheduleOpen) {
-            manageScheduleOpen.addEventListener('click', function () {
-                openScheduleAvailabilityModal()
-            })
-        }
-        if (scheduleAvailabilityClose) {
-            scheduleAvailabilityClose.addEventListener('click', function () {
-                closeScheduleAvailabilityModal()
-            })
-        }
-        if (scheduleAvailabilityOverlay) {
-            scheduleAvailabilityOverlay.addEventListener('click', function (e) {
-                if (e.target === scheduleAvailabilityOverlay) {
-                    closeScheduleAvailabilityModal()
-                }
-            })
-        }
-        if (scheduleAvailabilityDayFilter) {
-            scheduleAvailabilityDayFilter.addEventListener('change', function () {
-                renderDoctorScheduleAvailabilityList()
-            })
-        }
-        if (scheduleAvailabilitySave) {
-            scheduleAvailabilitySave.addEventListener('click', function () {
-                showScheduleAvailabilityError('')
-                if (!currentDoctorId) {
-                    showScheduleAvailabilityError('Unable to identify the current doctor.')
-                    return
-                }
-                if (!scheduleAvailabilityList) {
-                    showScheduleAvailabilityError('Schedule list not available.')
-                    return
-                }
-
-                var checked = scheduleAvailabilityList.querySelectorAll('input[type="checkbox"][data-schedule-id]:checked')
-                var ids = []
-                checked.forEach(function (c) {
-                    var id = c.getAttribute('data-schedule-id')
-                    if (id) ids.push(parseInt(id, 10))
-                })
-
-                if (!ids.length) {
-                    showScheduleAvailabilityError('Select at least one time slot.')
-                    return
-                }
-
-                var mode = scheduleAvailabilityMode ? String(scheduleAvailabilityMode.value || '') : 'unavailable'
-                var isAvailable = mode === 'available'
-
-                var confirmed = window.confirm('Are you sure you want to save this schedule?')
-                if (!confirmed) return
-
-                setScheduleAvailabilitySubmitting(true)
-                apiFetch(apiUrl('/api/doctor-schedules/bulk-availability'), {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        schedule_ids: ids,
-                        is_available: isAvailable
-                    })
-                })
-                    .then(function (response) { return readResponse(response) })
-                    .then(function (result) {
-                        if (!result.ok) {
-                            var msg = (result.data && result.data.message) ? String(result.data.message) : 'Failed to update availability.'
-                            showScheduleAvailabilityError(msg)
-                            return
-                        }
-                        loadScheduleAvailabilitySlots()
-                    })
-                    .catch(function () {
-                        showScheduleAvailabilityError('Network error while updating availability.')
-                    })
-                    .finally(function () {
-                        setScheduleAvailabilitySubmitting(false)
-                    })
-            })
-        }
-
-        loadDoctorSettings()
-        loadServerSignature()
+        loadCurrentUser()
     })
 </script>

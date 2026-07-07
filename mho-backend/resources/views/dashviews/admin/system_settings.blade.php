@@ -330,25 +330,24 @@
             if (profileSaveSpinner) profileSaveSpinner.classList.toggle('hidden', !isSubmitting)
         }
 
+        function buildProfilePayload() {
+            var fn = document.getElementById('settings_firstname')
+            var mn = document.getElementById('settings_middlename')
+            var ln = document.getElementById('settings_lastname')
+            var payload = {
+                firstname: fn ? String(fn.value || '').trim() : '',
+                lastname: ln ? String(ln.value || '').trim() : '',
+                middlename: mn ? String(mn.value || '').trim() : ''
+            }
+            return payload
+        }
+
         if (profileForm) {
             profileForm.addEventListener('submit', function (e) {
                 e.preventDefault()
                 if (profileSave && profileSave.disabled) return
 
-                var fn = document.getElementById('settings_firstname')
-                var mn = document.getElementById('settings_middlename')
-                var ln = document.getElementById('settings_lastname')
-                var firstname = fn ? String(fn.value || '').trim() : ''
-                var middlename = mn ? String(mn.value || '').trim() : ''
-                var lastname = ln ? String(ln.value || '').trim() : ''
-
-                if (!firstname && !lastname && !middlename && !pendingProfileFile) {
-                    showAccountError('No changes to save.')
-                    return
-                }
-
-                var namePayload = { firstname: firstname, lastname: lastname }
-                if (middlename) namePayload.middlename = middlename
+                var namePayload = buildProfilePayload()
 
                 confirmAction('Are you sure you want to update your profile?', { confirmText: 'Update' })
                     .then(function (confirmed) {
@@ -358,46 +357,7 @@
                         showAccountNotice('')
                         setProfileSubmitting(true)
 
-                        if (pendingProfileFile) {
-                            // Upload profile picture first
-                            var fd = new FormData()
-                            fd.append('prof_path', pendingProfileFile)
-                            apiFetch("{{ url('/api/users/me/profile-picture') }}", {
-                                method: 'POST',
-                                body: fd
-                            })
-                            .then(function () {
-                                // Then update name
-                                return apiFetch("{{ url('/api/users') }}/" + encodeURIComponent(currentUserId), {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify(namePayload)
-                                })
-                            })
-                            .then(function (response) {
-                                return response.json().then(function (data) {
-                                    return { ok: response.ok, status: response.status, data: data }
-                                }).catch(function () {
-                                    return { ok: response.ok, status: response.status, data: null }
-                                })
-                            })
-                            .then(function (result) {
-                                if (!result.ok) {
-                                    var msg = (result.data && result.data.message) ? result.data.message : 'Unable to update profile.'
-                                    showAccountError(msg)
-                                    return
-                                }
-                                pendingProfileFile = null
-                                showAccountNotice('Profile updated.')
-                                loadCurrentUser()
-                            })
-                            .catch(function () {
-                                showAccountError('Network error while updating profile.')
-                            })
-                            .finally(function () {
-                                setProfileSubmitting(false)
-                            })
-                        } else {
+                        function doSaveName() {
                             apiFetch("{{ url('/api/users') }}/" + encodeURIComponent(currentUserId), {
                                 method: 'PUT',
                                 headers: { 'Content-Type': 'application/json' },
@@ -425,6 +385,25 @@
                             .finally(function () {
                                 setProfileSubmitting(false)
                             })
+                        }
+
+                        if (pendingProfileFile) {
+                            var fd = new FormData()
+                            fd.append('prof_path', pendingProfileFile)
+                            apiFetch("{{ url('/api/users/me/profile-picture') }}", {
+                                method: 'POST',
+                                body: fd
+                            })
+                            .then(function () {
+                                pendingProfileFile = null
+                                doSaveName()
+                            })
+                            .catch(function () {
+                                showAccountError('Network error while uploading picture.')
+                                setProfileSubmitting(false)
+                            })
+                        } else {
+                            doSaveName()
                         }
                     })
             })

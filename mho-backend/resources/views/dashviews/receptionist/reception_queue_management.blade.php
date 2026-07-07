@@ -285,6 +285,12 @@
                             data-priority="{{ $priority }}"
                             @if ($queueId)
                                 data-queue-id="{{ $queueId }}"
+                            @endif
+                            @if (optional($queue->appointment)->appointment_id)
+                                data-appointment-id="{{ optional($queue->appointment)->appointment_id }}"
+                            @endif
+                            @if (optional(optional($queue->appointment)->doctor)->user_id)
+                                data-doctor-id="{{ optional(optional($queue->appointment)->doctor)->user_id }}"
                             @endif>
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-500">{{ $queue->queue_code ?? $queue->queue_number }}</td>
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-700">
@@ -296,9 +302,9 @@
                             </td>
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
                                 @if ($doctorName)
-                                    {{ $doctorName }}
+                                    <button type="button" class="rec-queue-change-doctor text-left underline decoration-dotted underline-offset-2 hover:text-green-700 hover:decoration-green-400">{{ $doctorName }}</button>
                                 @else
-                                    <span class="text-[0.7rem] text-slate-400">Doctor</span>
+                                    <button type="button" class="rec-queue-change-doctor text-[0.7rem] text-slate-400 underline decoration-dotted underline-offset-2 hover:text-green-700 hover:decoration-green-400">Assign doctor</button>
                                 @endif
                             </td>
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-500 max-w-[180px]">
@@ -595,7 +601,41 @@
     </div>
 </div>
 
+<div id="recQueueDoctorPickerOverlay" class="hidden fixed inset-0 z-[70] bg-slate-900/40 items-center justify-center p-4">
+    <div class="w-full max-w-lg rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)]">
+        <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+            <div>
+                <div class="text-sm font-semibold text-slate-900">Change Doctor</div>
+                <div id="recQueueDoctorPickerSubtitle" class="text-[0.72rem] text-slate-500">Select an available doctor for this patient.</div>
+            </div>
+            <button id="recQueueDoctorPickerClose" type="button" class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
+                <x-lucide-x class="w-[16px] h-[16px]" />
+            </button>
+        </div>
+        <div id="recQueueDoctorPickerBody" class="px-4 py-3 max-h-72 overflow-y-auto scrollbar-hidden space-y-2">
+            <div class="text-[0.78rem] text-slate-400">No doctors available.</div>
+        </div>
+    </div>
+</div>
+
+@php
+    $queueAvailableDoctors = $doctorPanelItems
+        ->filter(function ($ds) {
+            $spec = strtolower(trim($ds->doctor_specialization ?? ''));
+            return in_array($spec, ['general medicine', 'pediatrics']);
+        })
+        ->map(function ($ds) {
+            return [
+                'id' => $ds->doctor_id,
+                'name' => $ds->doctor_name,
+                'specialization' => $ds->doctor_specialization ?? '',
+            ];
+        })->values()->toArray();
+@endphp
+
 <script>
+    var __queueAvailableDoctors = @json($queueAvailableDoctors);
+
     document.addEventListener('DOMContentLoaded', function () {
         var searchInput = document.getElementById('reception_queue_search')
         var sortSelect = document.getElementById('reception_queue_sort')
@@ -628,6 +668,160 @@
         var configSave = document.getElementById('receptionQueueConfigSave')
         var configQueueId = null
         var callNextDoctorSelect = document.getElementById('receptionCallNextDoctorId')
+
+        // ── Doctor Picker ──
+        var doctorPickerOverlay = document.getElementById('recQueueDoctorPickerOverlay')
+        var doctorPickerBody = document.getElementById('recQueueDoctorPickerBody')
+        var doctorPickerSubtitle = document.getElementById('recQueueDoctorPickerSubtitle')
+        var doctorPickerClose = document.getElementById('recQueueDoctorPickerClose')
+        var pendingQueueAppointmentId = null
+        var pendingQueueRow = null
+
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.rec-queue-change-doctor')
+            if (!btn) return
+            var row = btn.closest('.reception-queue-row')
+            if (!row) return
+            var rowStatus = row.getAttribute('data-status') || ''
+            if (rowStatus !== 'waiting' && rowStatus !== 'serving') {
+                if (typeof showToast === 'function') showToast('Can only change doctor for waiting or serving patients.', 'error')
+                return
+            }
+            var appointmentId = row.getAttribute('data-appointment-id')
+            if (!appointmentId) {
+                if (typeof showToast === 'function') showToast('No appointment linked to this queue entry.', 'error')
+                return
+            }
+            pendingQueueAppointmentId = appointmentId
+            pendingQueueRow = row
+
+            var patientName = row.getAttribute('data-patient') || 'this patient'
+            patientName = patientName.replace(/\b\w/g, function (c) { return c.toUpperCase() })
+            if (doctorPickerSubtitle) doctorPickerSubtitle.textContent = 'Select an available doctor for ' + patientName + '.'
+
+            var doctors = Array.isArray(window.__queueAvailableDoctors) ? window.__queueAvailableDoctors : []
+            var currentDoctorId = row.getAttribute('data-doctor-id') || ''
+
+            if (!doctors.length) {
+                if (doctorPickerBody) doctorPickerBody.innerHTML = '<div class="text-[0.78rem] text-slate-400">No doctors available.</div>'
+            } else {
+                if (doctorPickerBody) {
+                    doctorPickerBody.innerHTML = doctors.map(function (d) {
+                        var isCurrent = String(d.id) === String(currentDoctorId)
+                        var spec = d.specialization ? ('<span class="text-[0.68rem] text-slate-400">' + escapeHtml(d.specialization) + '</span>') : ''
+                        return '<button type="button" class="rec-queue-doctor-option w-full text-left px-3 py-2.5 rounded-xl border ' +
+                            (isCurrent
+                                ? 'border-green-300 bg-green-50 text-green-800 cursor-not-allowed opacity-60'
+                                : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300') +
+                            '" data-doctor-id="' + escapeHtml(String(d.id)) + '"' +
+                            (isCurrent ? ' disabled' : '') +
+                            '>' +
+                            '<div class="font-semibold text-[0.78rem]">' + escapeHtml(d.name) + '</div>' +
+                            (d.specialization ? '<div class="text-[0.68rem] text-slate-400">' + escapeHtml(d.specialization) + '</div>' : '') +
+                            (isCurrent ? '<div class="text-[0.65rem] text-green-600 mt-0.5">Currently assigned</div>' : '') +
+                        '</button>'
+                    }).join('')
+                }
+            }
+
+            if (doctorPickerOverlay && doctorPickerOverlay.classList.contains('hidden')) {
+                doctorPickerOverlay.classList.remove('hidden')
+                doctorPickerOverlay.classList.add('flex')
+            }
+        })
+
+        if (doctorPickerClose) {
+            doctorPickerClose.addEventListener('click', function () {
+                if (doctorPickerOverlay) { doctorPickerOverlay.classList.add('hidden'); doctorPickerOverlay.classList.remove('flex') }
+            })
+        }
+        if (doctorPickerOverlay) {
+            doctorPickerOverlay.addEventListener('click', function (e) {
+                if (e.target === doctorPickerOverlay) { doctorPickerOverlay.classList.add('hidden'); doctorPickerOverlay.classList.remove('flex') }
+            })
+        }
+
+        // Doctor option click via delegation
+        document.addEventListener('click', function (e) {
+            var option = e.target.closest('.rec-queue-doctor-option')
+            if (!option || option.disabled) return
+            var newDoctorId = option.getAttribute('data-doctor-id')
+            var newDoctorName = option.querySelector('.font-semibold') ? option.querySelector('.font-semibold').textContent : 'this doctor'
+
+            if (!pendingQueueAppointmentId || !newDoctorId) return
+            if (doctorPickerOverlay) { doctorPickerOverlay.classList.add('hidden'); doctorPickerOverlay.classList.remove('flex') }
+
+            // Confirm with cooldown
+            if (confirmOverlay && confirmMessage && confirmTitle) {
+                confirmTitle.textContent = 'Change Doctor'
+                confirmMessage.textContent = 'Are you sure you want to change the doctor for this patient to ' + newDoctorName.trim() + '?'
+                confirmOverlay.classList.remove('hidden')
+                confirmOverlay.classList.add('flex')
+
+                var countdown = 3
+                if (confirmOk) {
+                    confirmOk.disabled = true
+                    confirmOk.classList.add('opacity-60', 'cursor-not-allowed')
+                    confirmOk.innerHTML = '<span class="inline-flex items-center gap-2"><span class="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>Confirm (' + countdown + ')</span>'
+                    var timer = setInterval(function () {
+                        countdown--
+                        if (countdown < 1) {
+                            clearInterval(timer)
+                            confirmOk.disabled = false
+                            confirmOk.classList.remove('opacity-60', 'cursor-not-allowed')
+                            confirmOk.textContent = 'Confirm'
+                            return
+                        }
+                        confirmOk.innerHTML = '<span class="inline-flex items-center gap-2"><span class="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>Confirm (' + countdown + ')</span>'
+                    }, 1000)
+                }
+
+                var confirmHandler = function () {
+                    if (confirmOk && confirmOk.disabled) return
+                    if (confirmOverlay) { confirmOverlay.classList.add('hidden'); confirmOverlay.classList.remove('flex') }
+                    if (confirmOk) { confirmOk.disabled = false; confirmOk.classList.remove('opacity-60', 'cursor-not-allowed'); confirmOk.textContent = 'Confirm' }
+                    if (confirmCancel) confirmCancel.removeEventListener('click', cancelHandler)
+                    confirmOk.removeEventListener('click', confirmHandler)
+                    clearInterval(timer)
+
+                    // API call
+                    if (typeof apiFetch !== 'function') {
+                        if (typeof showToast === 'function') showToast('API client unavailable.', 'error')
+                        return
+                    }
+                    apiFetch("{{ url('/api/appointments') }}/" + encodeURIComponent(pendingQueueAppointmentId), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ doctor_id: parseInt(newDoctorId, 10) })
+                    })
+                    .then(function (response) {
+                        return response.json().then(function (d) { return { ok: response.ok, status: response.status, data: d } }).catch(function () { return { ok: response.ok, status: response.status, data: null } })
+                    })
+                    .then(function (result) {
+                        if (!result.ok) {
+                            var msg = (result.data && result.data.message) ? result.data.message : 'Failed to change doctor.'
+                            if (typeof showToast === 'function') showToast(msg, 'error')
+                            return
+                        }
+                        if (typeof showToast === 'function') showToast('Doctor changed successfully.', 'success')
+                        if (typeof refreshFullPage === 'function') refreshFullPage()
+                        else window.location.reload()
+                    })
+                    .catch(function () {
+                        if (typeof showToast === 'function') showToast('Network error while changing doctor.', 'error')
+                    })
+                }
+                var cancelHandler = function () {
+                    if (confirmOverlay) { confirmOverlay.classList.add('hidden'); confirmOverlay.classList.remove('flex') }
+                    if (confirmOk) { confirmOk.disabled = false; confirmOk.classList.remove('opacity-60', 'cursor-not-allowed'); confirmOk.textContent = 'Confirm' }
+                    clearInterval(timer)
+                    confirmOk.removeEventListener('click', confirmHandler)
+                    confirmCancel.removeEventListener('click', cancelHandler)
+                }
+                confirmOk.addEventListener('click', confirmHandler)
+                confirmCancel.addEventListener('click', cancelHandler)
+            }
+        })
 
         var serviceOverlayBackdrop = document.getElementById('receptionServiceOverlayBackdrop')
         var serviceOverlayPanel = document.getElementById('receptionServiceOverlayPanel')

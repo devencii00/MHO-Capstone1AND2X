@@ -394,6 +394,23 @@
         </div>
     </div>
 </div>
+<div id="receptionBookDocPickerOverlay" class="hidden fixed inset-0 z-[70] bg-slate-900/40 items-center justify-center p-4">
+    <div class="w-full max-w-lg rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)]">
+        <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+            <div>
+                <div class="text-sm font-semibold text-slate-900">Change Doctor</div>
+                <div class="text-[0.72rem] text-slate-500">Select an available doctor.</div>
+            </div>
+            <button id="receptionBookDocPickerClose" type="button" class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
+                <x-lucide-x class="w-[16px] h-[16px]" />
+            </button>
+        </div>
+        <div id="receptionBookDocPickerBody" class="px-4 py-3 max-h-72 overflow-y-auto scrollbar-hidden space-y-2">
+            <div class="text-[0.78rem] text-slate-400">No doctors available.</div>
+        </div>
+    </div>
+</div>
+
 <template id="receptionBookAppointmentIconX">
     <x-lucide-x class="w-[18px] h-[18px]" />
 </template>
@@ -3155,13 +3172,18 @@ function updateManageTodayButton() {
                 ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border ' + statusClass + '">' + escapeHtml(statusLabel) + '</span>'
                 : '-'
 
+            var canChangeDoctor = statusKey === 'pending' || statusKey === 'confirmed'
+            var doctorCell = canChangeDoctor
+                ? '<button type="button" class="rec-book-change-doctor underline decoration-dotted underline-offset-2 hover:text-green-700 hover:decoration-green-400 text-left" data-appointment-id="' + escapeHtml(id) + '" data-doctor-id="' + escapeHtml(String(doctor && doctor.user_id != null ? doctor.user_id : '')) + '" data-doctor-name="' + escapeHtml(doctorName) + '">' + escapeHtml(doctorName) + '</button>'
+                : '<span class="text-slate-700">' + escapeHtml(doctorName) + '</span>'
+
             return (
                 '<tr data-appointment-id="' + escapeHtml(id) + '">' +
                     '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.date || '-') + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.time ? formatTime12h(when.time) : '-') + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(patientName) + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 min-w-[14rem] whitespace-nowrap">' + escapeHtml(serviceText) + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(doctorName) + '</td>' +
+                    '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + doctorCell + '</td>' +
                     '<td class="px-3 py-2 whitespace-nowrap">' + statusDisplay + '</td>' +
                     '<td class="px-3 py-2 text-right whitespace-nowrap">' +
                         '<button type="button" class="manage-see-history-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300" data-patient-id="' + escapeHtml(patient && patient.user_id != null ? patient.user_id : '') + '" data-patient-name="' + escapeHtml(patientName) + '">See Details</button>' +
@@ -3782,6 +3804,121 @@ function updateManageTodayButton() {
             if (manageServiceSearch.contains(e.target) || manageServiceResults.contains(e.target)) return
             manageServiceResults.classList.add('hidden')
         })
+
+        // ── Doctor column clickable ──
+        var recBookDocPickerOverlay = document.getElementById('receptionBookDocPickerOverlay')
+        var recBookDocPickerBody = document.getElementById('receptionBookDocPickerBody')
+        var recBookDocPickerClose = document.getElementById('receptionBookDocPickerClose')
+        var recBookPendingDoctorId = null
+        var recBookPendingAppointmentId = null
+
+        // Open doctor picker
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.rec-book-change-doctor')
+            if (!btn) return
+            var appointmentId = btn.getAttribute('data-appointment-id')
+            var currentDoctorId = btn.getAttribute('data-doctor-id') || ''
+            if (!appointmentId) return
+            recBookPendingAppointmentId = appointmentId
+
+            var todayKey = dayKeyFromDate(localDateIso())
+            var allDoctors = (typeof doctors !== 'undefined' && Array.isArray(doctors))
+                ? doctors.filter(function (d) {
+                    var spec = String(d.specialization || '').trim().toLowerCase()
+                    var allowedSpecs = ['general surgeon', 'obstetrician-gynecologist', 'obstetrician - gynecologist', 'internal medicine']
+                    if (allowedSpecs.indexOf(spec) === -1) return false
+                    var schedules = Array.isArray(d.doctor_schedules) ? d.doctor_schedules : []
+                    return schedules.some(function (s) {
+                        return normalizeDayKey(s.day_of_week) === todayKey
+                    })
+                })
+                : []
+            if (recBookDocPickerBody) {
+                if (!allDoctors.length) {
+                    recBookDocPickerBody.innerHTML = '<div class="text-[0.78rem] text-slate-400">No doctors available.</div>'
+                } else {
+                    recBookDocPickerBody.innerHTML = allDoctors.map(function (d) {
+                        var isCurrent = String(d.user_id) === String(currentDoctorId)
+                        return '<button type="button" data-doc-id="' + escapeHtml(String(d.user_id)) + '"' +
+                            (isCurrent ? ' disabled' : '') +
+                            ' class="rec-book-pick-doctor w-full text-left px-3 py-2.5 rounded-xl border ' +
+                            (isCurrent ? 'border-green-300 bg-green-50 text-green-800 cursor-not-allowed opacity-60' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300') +
+                            '">' +
+                            '<div class="font-semibold text-[0.78rem]">' + escapeHtml(doctorDisplayName(d)) + '</div>' +
+                            '<div class="text-[0.68rem] text-slate-400">' + escapeHtml(doctorScheduleSummary(d)) + '</div>' +
+                            (isCurrent ? '<div class="text-[0.65rem] text-green-600 mt-0.5">Currently assigned</div>' : '') +
+                        '</button>'
+                    }).join('')
+                }
+            }
+            if (recBookDocPickerOverlay) {
+                recBookDocPickerOverlay.classList.remove('hidden')
+                recBookDocPickerOverlay.classList.add('flex')
+            }
+        })
+
+        if (recBookDocPickerClose) {
+            recBookDocPickerClose.addEventListener('click', function () {
+                if (recBookDocPickerOverlay) { recBookDocPickerOverlay.classList.add('hidden'); recBookDocPickerOverlay.classList.remove('flex') }
+            })
+        }
+        if (recBookDocPickerOverlay) {
+            recBookDocPickerOverlay.addEventListener('click', function (e) {
+                if (e.target === recBookDocPickerOverlay) { recBookDocPickerOverlay.classList.add('hidden'); recBookDocPickerOverlay.classList.remove('flex') }
+            })
+        }
+
+        // Doctor selected from picker → open confirm overlay via confirmAction
+        document.addEventListener('click', function (e) {
+            var opt = e.target.closest('.rec-book-pick-doctor')
+            if (!opt || opt.disabled) return
+            var newDocId = opt.getAttribute('data-doc-id')
+            if (!recBookPendingAppointmentId || !newDocId) return
+            recBookPendingDoctorId = newDocId
+
+            if (recBookDocPickerOverlay) { recBookDocPickerOverlay.classList.add('hidden'); recBookDocPickerOverlay.classList.remove('flex') }
+
+            confirmAction('Are you sure you want to change the doctor for this patient?', { okText: 'Confirm', delayMs: 3000 })
+                .then(function (confirmed) {
+                    if (!confirmed) {
+                        recBookPendingDoctorId = null
+                        return
+                    }
+                    recBookDoChangeDoctor()
+                })
+        })
+
+        // Confirm action (overlay is closed by closeConfirm via confirmAction)
+        function recBookDoChangeDoctor() {
+            if (!recBookPendingAppointmentId || !recBookPendingDoctorId) return
+
+            if (typeof apiFetch !== 'function') {
+                if (typeof showToast === 'function') showToast('API client unavailable.', 'error')
+                return
+            }
+            apiFetch("{{ url('/api/appointments') }}/" + encodeURIComponent(recBookPendingAppointmentId), {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ doctor_id: parseInt(recBookPendingDoctorId, 10) })
+            })
+            .then(function (response) {
+                return response.json().then(function (d) { return { ok: response.ok, status: response.status, data: d } }).catch(function () { return { ok: response.ok, status: response.status, data: null } })
+            })
+            .then(function (result) {
+                if (!result.ok) {
+                    var msg = (result.data && result.data.message) ? result.data.message : 'Failed to change doctor.'
+                    if (typeof showToast === 'function') showToast(msg, 'error')
+                    return
+                }
+                if (typeof showToast === 'function') showToast('Doctor changed successfully.', 'success')
+                if (typeof loadManageAppointments === 'function') loadManageAppointments()
+            })
+            .catch(function () {
+                if (typeof showToast === 'function') showToast('Network error while changing doctor.', 'error')
+            })
+        }
+
+
 
         loadManageAppointments()
 

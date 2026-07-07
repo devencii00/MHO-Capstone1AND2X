@@ -90,17 +90,14 @@
                                     <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Date</th>
                                     <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Reference</th>
                                     <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Patient</th>
-                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Service Type</th>
-                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Gross</th>
-                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Discount</th>
+                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Type</th>
                                     <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Net</th>
-                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Mode</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100" id="receptionTodaysTransactionsTableBody">
                             
                                 <tr>
-                                    <td colspan="8" class="px-4 py-8 text-center text-slate-400">
+                                    <td colspan="5" class="px-4 py-8 text-center text-slate-400">
                                         No transactions recorded today.
                                     </td>
                                 </tr>
@@ -556,20 +553,18 @@ if (!next.length) {
                         var dateStr = txDatePart(tx)
                         var ref = tx.transaction_reference || tx.reference_number || tx.invoice_number || '-'
                         var patient = txPatientName(tx)
-                        var services = txServiceSummary(tx)
+                        var appt = tx && tx.appointment ? tx.appointment : null
+                        var rawType = appt && appt.appointment_type ? String(appt.appointment_type).toLowerCase().trim() : ''
+                        var typeLabel = (rawType === 'walk_in' || rawType === 'walkin') ? 'Walk-in' : 'Scheduled'
                         var gross = tx.amount || 0
                         var disc = tx.discount_amount || 0
                         var net = parseFloat(gross) - parseFloat(disc)
-                        var mode = tx.payment_mode || '-'
-                        html += '<tr>' +
+                        html += '<tr class="cursor-pointer hover:bg-green-50/50" onclick="window.location.href=\'{{ route('dashboard', ['role' => 'receptionist', 'section' => 'record-payment']) }}\'">' +
                             '<td class="px-4 py-2">' + escapeHtml(dateStr) + '</td>' +
                             '<td class="px-4 py-2">' + escapeHtml(ref) + '</td>' +
                             '<td class="px-4 py-2">' + escapeHtml(patient) + '</td>' +
-                            '<td class="px-4 py-2">' + escapeHtml(services) + '</td>' +
-                            '<td class="px-4 py-2 text-right">₱' + escapeHtml(Number(gross).toFixed(2)) + '</td>' +
-                            '<td class="px-4 py-2 text-right">₱' + escapeHtml(Number(disc).toFixed(2)) + '</td>' +
-                            '<td class="px-4 py-2 text-right">₱' + escapeHtml(net.toFixed(2)) + '</td>' +
-                            '<td class="px-4 py-2">' + escapeHtml(mode) + '</td>' +
+                            '<td class="px-4 py-2"><span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border ' + (typeLabel === 'Walk-in' ? 'bg-sky-50 text-sky-700 border-sky-100' : 'bg-purple-50 text-purple-700 border-purple-100') + '">' + escapeHtml(typeLabel) + '</span></td>' +
+                            '<td class="px-4 py-2 text-right font-medium text-slate-700">₱' + escapeHtml(net.toFixed(2)) + '</td>' +
                         '</tr>'
                     })
                     txTableBody.innerHTML = html
@@ -607,7 +602,7 @@ if (!next.length) {
                     var mm = String(now.getMonth() + 1).padStart(2, '0')
                     var dd = String(now.getDate()).padStart(2, '0')
                     var today = yyyy + '-' + mm + '-' + dd
-                    var url = "{{ url('/api/transactions') }}" + '?per_page=200&start_date=' + encodeURIComponent(today) + '&end_date=' + encodeURIComponent(today)
+                    var url = "{{ url('/api/transactions') }}" + '?per_page=100&start_date=' + encodeURIComponent(today) + '&end_date=' + encodeURIComponent(today)
 
                     apiFetch(url, { method: 'GET' })
                         .then(function (response) {
@@ -615,7 +610,7 @@ if (!next.length) {
                         })
                         .then(function (result) {
                             if (!result.ok || !result.data) {
-                                if (txTableBody) txTableBody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-slate-400">Unable to load transactions.</td></tr>'
+                                if (txTableBody) txTableBody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">Unable to load transactions.</td></tr>'
                                 return
                             }
                             transactions = Array.isArray(result.data.data) ? result.data.data.slice() : (Array.isArray(result.data) ? result.data.slice() : [])
@@ -623,7 +618,7 @@ if (!next.length) {
                             renderTransactions()
                         })
                         .catch(function () {
-                            if (txTableBody) txTableBody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-slate-400">Unable to load transactions.</td></tr>'
+                            if (txTableBody) txTableBody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">Unable to load transactions.</td></tr>'
                         })
                 }
 
