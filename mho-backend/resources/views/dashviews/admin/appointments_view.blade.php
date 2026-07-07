@@ -78,7 +78,7 @@
 
 <!-- Appointment History Modal -->
 <div id="adminApptHistoryOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/40 items-center justify-center p-4">
-    <div class="w-full max-w-4xl max-h-[85vh] rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] flex overflow-hidden">
+    <div class="w-full max-w-4xl h-[90px] max-h-none rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] flex overflow-hidden">
         <!-- History list (left) -->
         <div class="w-1/2 border-r border-slate-200 flex flex-col min-h-0">
             <div class="px-4 py-3 border-b border-slate-100 shrink-0 flex items-center justify-between">

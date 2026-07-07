@@ -4,7 +4,7 @@
     Walk-in
 </button>
 <button id="receptionWalkInTabGuest" type="button" class="px-4 py-3 text-xs font-semibold text-slate-900 bg-white hover:bg-slate-50 border-l border-slate-200 rounded-tr-[18px]">
-    Guest walk-in
+    History
 </button>
     </div>
 
@@ -19,94 +19,114 @@
     </div>
 
     <div id="receptionWalkInPanelGuest" class="hidden p-5 pt-4">
-    <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-        <div class="flex items-center justify-between mb-2">
-            <div>
-                <h3 class="text-xs font-semibold text-slate-900">Walk-in without account</h3>
-                <p class="text-[0.72rem] text-slate-500">Creates a patient account + walk-in appointment + queue entry.</p>
+    <div class="px-4 py-3 mb-3 flex items-center justify-between">
+        <div>
+            <h3 class="text-xs font-semibold text-slate-900">Today's Walk-In Appointments</h3>
+            <div class="text-[0.72rem] text-slate-500">Showing walk-in records for today.</div>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="relative">
+                <input id="receptionWalkInHistorySearch" type="text" class="w-48 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search patient or doctor">
             </div>
-            <div class="flex items-center gap-2">
-                <button id="receptionGuestLinkBtn" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-[0.72rem] font-semibold text-slate-700 hover:bg-slate-50">
-                    <x-lucide-qr-code class="w-[18px] h-[18px]" />
-                    Public Link / QR
+            <div class="relative">
+                <input id="receptionWalkInHistoryServiceSearch" type="text" class="w-36 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="All services" autocomplete="off">
+                <input id="receptionWalkInHistoryServiceId" type="hidden">
+                <div id="receptionWalkInHistoryServiceResults" class="hidden absolute left-0 right-0 top-full mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-sm max-h-64 overflow-y-auto overscroll-contain z-50"></div>
+            </div>
+            <select id="receptionWalkInHistorySort" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                <option value="latest">Latest first</option>
+                <option value="oldest">Oldest first</option>
+            </select>
+            <select id="receptionWalkInHistoryStatus" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                <option value="">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="no_show">No-show</option>
+            </select>
+            <button id="receptionWalkInHistoryRefresh" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-600 text-white text-[0.72rem] font-semibold hover:bg-green-700">Refresh</button>
+        </div>
+    </div>
+    <div id="receptionWalkInHistoryError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
+    <div class="rounded-xl border border-slate-200 bg-white overflow-hidden">
+        <div class="overflow-x-auto overflow-y-auto scrollbar-hidden" style="height:470px;">
+            <table class="text-xs" style="min-width:720px;width:100%;table-layout:auto;">
+                <thead class="bg-slate-50 text-slate-600 sticky top-0">
+                    <tr>
+                        <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Time</th>
+                        <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Patient</th>
+                        <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Service</th>
+                        <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Doctor</th>
+                        <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Status</th>
+                        <th class="text-right px-3 py-2 font-semibold whitespace-nowrap">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="receptionWalkInHistoryTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+            </table>
+        </div>
+        <div id="receptionWalkInHistoryMeta" class="px-4 py-2 text-[0.72rem] text-slate-500 border-t border-slate-100 bg-slate-50">Loading today's walk-ins…</div>
+        <div id="receptionWalkInPagination" class="px-4 py-2 border-t border-slate-50 bg-white flex items-center justify-center gap-1"></div>
+    </div>
+    </div>
+
+<!-- Patient History Modal -->
+<div id="receptionWalkInHistoryOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/40 items-center justify-center p-4">
+    <div class="w-full max-w-4xl h-[90vh] max-h-none rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] flex overflow-hidden">
+        <!-- History list (left) -->
+        <div class="w-1/2 border-r border-slate-200 flex flex-col min-h-0">
+            <div class="px-4 py-3 border-b border-slate-100 shrink-0 flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-semibold text-slate-900">Patient History</div>
+                    <div id="receptionWalkInHistorySubtitle" class="text-[0.72rem] text-slate-500">Loading…</div>
+                </div>
+                <button type="button" id="receptionWalkInHistoryClose" class="text-slate-400 hover:text-slate-600">
+                    <x-lucide-x class="w-[20px] h-[20px]" />
                 </button>
-                <span class="text-[0.68rem] text-slate-400 uppercase tracking-widest">Guest</span>
+            </div>
+            <div class="px-4 py-2 border-b border-slate-100 shrink-0 grid grid-cols-3 gap-2">
+                <div>
+                    <label class="block text-[0.6rem] text-slate-500 mb-0.5">Date</label>
+                    <input id="receptionWalkInHistDate" type="date" class="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[0.7rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                </div>
+                <div>
+                    <label class="block text-[0.6rem] text-slate-500 mb-0.5">Status</label>
+                    <select id="receptionWalkInHistStatus" class="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[0.7rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        <option value="">All</option>
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                        <option value="no_show">No-show</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[0.6rem] text-slate-500 mb-0.5">Type</label>
+                    <select id="receptionWalkInHistType" class="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[0.7rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        <option value="">All</option>
+                        <option value="walk_in">Walk In</option>
+                        <option value="scheduled">Scheduled</option>
+                    </select>
+                </div>
+            </div>
+            <div id="receptionWalkInHistBody" class="flex-1 overflow-y-auto p-3 space-y-2">
+                <div class="text-center text-[0.78rem] text-slate-400 py-8">Loading history…</div>
             </div>
         </div>
-
-        <div id="receptionGuestWalkInError" class="hidden mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
-        <div id="receptionGuestWalkInSuccess" class="hidden mb-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
-        <div id="receptionGuestWalkInCreds" class="hidden mb-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.75rem] text-slate-700"></div>
-
-       <form id="receptionGuestWalkInForm" class="grid gap-3 grid-cols-1 md:grid-cols-4 items-start">
-            <div>
-                <label for="reception_guest_firstname" class="block text-[0.7rem] text-slate-600 mb-1">First name</label>
-                <input id="reception_guest_firstname" type="text" required class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="First name">
+        <!-- Detail panel (right) -->
+        <div id="receptionWalkInHistDetailPanel" class="w-1/2 flex flex-col min-h-0 bg-slate-50/50">
+            <div class="px-4 py-3 border-b border-slate-200 shrink-0 flex items-center justify-between bg-white">
+                <div class="text-sm font-semibold text-slate-900">Appointment Details</div>
             </div>
-            <div>
-                <label for="reception_guest_middlename" class="block text-[0.7rem] text-slate-600 mb-1">Middle name (optional)</label>
-                <input id="reception_guest_middlename" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Middle name">
+            <div id="receptionWalkInHistDetailBody" class="flex-1 overflow-y-auto p-4">
+                <div class="text-center text-[0.78rem] text-slate-400 py-8">Select an appointment to view details.</div>
             </div>
-            <div>
-                <label for="reception_guest_lastname" class="block text-[0.7rem] text-slate-600 mb-1">Last name</label>
-                <input id="reception_guest_lastname" type="text" required class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Last name">
-            </div>
-            <div>
-                <label for="reception_guest_contact" class="block text-[0.7rem] text-slate-600 mb-1">Contact number (optional)</label>
-                <input id="reception_guest_contact" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Mobile number">
-            </div>
-            <div class="min-w-0 md:col-span-2">
-                <label for="reception_guest_service_ids" class="block text-[0.7rem] text-slate-600 mb-1">Services</label>
-                <div class="mb-1 text-[0.7rem] text-slate-500">&nbsp;</div>
-                <div class="relative">
-                    <input id="reception_guest_service_search" type="text" readonly class="w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 pr-24 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Select service">
-                    <input id="reception_guest_service_ids" type="hidden">
-                    <button id="reception_guest_service_picker_btn" type="button" class="absolute inset-y-1 right-1 inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-100">
-                        Browse
-                    </button>
-                </div>
-                <div id="receptionGuestSelectedServices" class="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.78rem] text-slate-700 max-h-24 overflow-y-auto overscroll-contain"></div>
-            </div>
-            <div class="min-w-0 md:col-span-2">
-                <label for="reception_guest_doctor_id" class="block text-[0.7rem] text-slate-600 mb-1">Doctor</label>
-                <div class="mb-1 text-[0.7rem] text-slate-500">&nbsp;</div>
-                <div class="relative">
-                    <input id="reception_guest_doctor_search" type="text" readonly class="w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 pr-24 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none disabled:cursor-not-allowed disabled:bg-slate-100" placeholder="Select doctor" disabled>
-                    <input id="reception_guest_doctor_id" type="hidden" required>
-                    <button id="reception_guest_doctor_picker_btn" type="button" class="absolute inset-y-1 right-1 inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60" disabled>
-                        Browse
-                    </button>
-                </div>
-                
-                <div id="receptionGuestDoctorPreview" class="hidden mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.78rem] text-slate-700 break-words"></div>
-            </div>
-            <div class="md:col-span-2">
-                <label for="reception_guest_reason" class="block text-[0.7rem] text-slate-600 mb-1">Reason (optional)</label>
-                <input id="reception_guest_reason" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Reason for visit">
-            </div>
-            <div>
-                <label for="reception_guest_priority_level" class="block text-[0.7rem] text-slate-600 mb-1">Priority level (optional)</label>
-                <select id="reception_guest_priority_level" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                    <option value="">Select priority</option>
-                    <option value="1">1 : Emergency</option>
-                    <option value="2">2 : PWD</option>
-                    <option value="3">3 : Pregnant</option>
-                    <option value="4">4 : Senior</option>
-                    <option value="5">5 : General</option>
-                </select>
-            </div>
-<div class="flex items-end self-end">
-    <button id="receptionGuestWalkInSubmit" type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 disabled:hover:bg-green-600">
-        <span id="receptionGuestWalkInSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-        <span id="receptionGuestWalkInSubmitLabel">Create guest walk-in</span>
-    </button>
+        </div>
+    </div>
 </div>
-        </form>
-    </div>
-    </div>
 
     <div id="receptionWalkInPanelAccount" class="p-5 pt-4">
-    <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+    <div id="receptionWalkInAccountFormWrapper" class="rounded-2xl   p-4">
         <div class="flex items-center justify-between mb-2">
             <div>
                 <h3 class="text-xs font-semibold text-slate-900">Walk-in with account</h3>
@@ -193,86 +213,93 @@
         </form>
     </div>
 
-
-    <div class="mt-4 rounded-2xl border border-slate-100 bg-white overflow-hidden">
-        <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-100">
-            <div>
-                <h3 class="text-xs font-semibold text-slate-900">Walk-in appointments history</h3>
-                <p class="text-[0.72rem] text-slate-500">View walk-in appointment records and statuses.</p>
-            </div>
-            <button id="receptionWalkInHistoryToggle" type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.75rem] font-semibold text-slate-700 hover:bg-slate-50">
-                Show history
-            </button>
-        </div>
-
-        <div id="receptionWalkInHistoryPanel" class="hidden p-4 border-t border-slate-100 bg-slate-50/40">
-            <div id="receptionWalkInHistoryError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
-
-            <div class="flex items-center justify-between mb-3 gap-3">
-                <div class="text-[0.72rem] text-slate-500">Same filters as manage appointment, but view-only for walk-ins.</div>
-                <button id="receptionWalkInHistoryTodayOnlyBtn" type="button" class="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.75rem] font-semibold text-slate-700">
-                    Show today only
-                </button>
-            </div>
-
-            <div class="grid gap-3 grid-cols-1 md:grid-cols-5 items-start mb-4">
-                <div class="md:col-span-2 min-w-0">
-                    <label for="receptionWalkInHistorySearch" class="block text-[0.7rem] text-slate-600 mb-1">Search</label>
-                    <input id="receptionWalkInHistorySearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search by patient or doctor">
-                </div>
-                <div class="min-w-0">
-                    <label for="receptionWalkInHistoryServiceSearch" class="block text-[0.7rem] text-slate-600 mb-1">Service</label>
-                    <div class="relative">
-                        <input id="receptionWalkInHistoryServiceSearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="All services" autocomplete="off">
-                        <input id="receptionWalkInHistoryServiceId" type="hidden">
-                        <div id="receptionWalkInHistoryServiceResults" class="hidden absolute left-0 right-0 top-full mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-sm max-h-64 overflow-y-auto overscroll-contain z-50"></div>
-                    </div>
-                </div>
-                <div class="min-w-0">
-                    <label for="receptionWalkInHistorySort" class="block text-[0.7rem] text-slate-600 mb-1">Sort by date</label>
-                    <select id="receptionWalkInHistorySort" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                        <option value="latest">Latest first</option>
-                        <option value="oldest">Oldest first</option>
-                    </select>
-                </div>
-                <div class="min-w-0">
-                    <label for="receptionWalkInHistoryStatus" class="block text-[0.7rem] text-slate-600 mb-1">Status</label>
-                    <select id="receptionWalkInHistoryStatus" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                        <option value="">All statuses</option>
-                        <option value="pending">Pending</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                        <option value="no_show">No-show</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="rounded-2xl border border-slate-200 overflow-hidden bg-white">
-                <div class="overflow-x-auto overflow-y-auto scrollbar-hidden h-[300px]">
-                    <table class="text-xs" style="min-width:780px;width:100%;table-layout:auto;">
-                        <thead class="bg-slate-50 text-slate-600 sticky top-0">
-                            <tr>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Date</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Time</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Patient</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Age</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Contact</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Service</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Doctor</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="receptionWalkInHistoryTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
-                    </table>
-                </div>
-                <div id="receptionWalkInHistoryTableFooter" class="px-3 py-2 text-[0.72rem] text-slate-500 bg-white border-t border-slate-100 flex items-center justify-between">
-                    <div id="receptionWalkInHistoryMeta">History is hidden.</div>
-                    <button id="receptionWalkInHistoryRefresh" type="button" class="text-green-700 font-semibold hover:text-green-800">Refresh</button>
-                </div>
-            </div>
-        </div>
+    <div class="mt-3 flex items-center gap-3 px-1">
+        <label class="relative inline-flex items-center cursor-pointer">
+            <input id="receptionWalkInGuestToggle" type="checkbox" class="sr-only peer">
+            <div class="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:bg-green-500 peer-focus:ring-2 peer-focus:ring-green-200 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+        </label>
+        <span class="text-xs font-medium text-slate-700">Guest Walk-In</span>
     </div>
+
+    <div id="receptionWalkInGuestForm" class="hidden mt-3 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+        <div class="flex items-center justify-between mb-2">
+            <div>
+                <h3 class="text-xs font-semibold text-slate-900">Walk-in without account</h3>
+                <p class="text-[0.72rem] text-slate-500">Creates a patient account + walk-in appointment + queue entry.</p>
+            </div>
+            <span class="text-[0.68rem] text-slate-400 uppercase tracking-widest">Guest</span>
+        </div>
+
+        <div id="receptionGuestWalkInError" class="hidden mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
+        <div id="receptionGuestWalkInSuccess" class="hidden mb-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
+        <div id="receptionGuestWalkInCreds" class="hidden mb-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.75rem] text-slate-700"></div>
+
+       <form id="receptionGuestWalkInForm" class="grid gap-3 grid-cols-1 md:grid-cols-4 items-start">
+            <div>
+                <label for="reception_guest_firstname" class="block text-[0.7rem] text-slate-600 mb-1">First name</label>
+                <input id="reception_guest_firstname" type="text" required class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="First name">
+            </div>
+            <div>
+                <label for="reception_guest_middlename" class="block text-[0.7rem] text-slate-600 mb-1">Middle name (optional)</label>
+                <input id="reception_guest_middlename" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Middle name">
+            </div>
+            <div>
+                <label for="reception_guest_lastname" class="block text-[0.7rem] text-slate-600 mb-1">Last name</label>
+                <input id="reception_guest_lastname" type="text" required class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Last name">
+            </div>
+            <div>
+                <label for="reception_guest_contact" class="block text-[0.7rem] text-slate-600 mb-1">Contact number (optional)</label>
+                <input id="reception_guest_contact" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Mobile number">
+            </div>
+            <div class="min-w-0 md:col-span-2">
+                <label for="reception_guest_service_ids" class="block text-[0.7rem] text-slate-600 mb-1">Services</label>
+                <div class="mb-1 text-[0.7rem] text-slate-500">&nbsp;</div>
+                <div class="relative">
+                    <input id="reception_guest_service_search" type="text" readonly class="w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 pr-24 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Select service">
+                    <input id="reception_guest_service_ids" type="hidden">
+                    <button id="reception_guest_service_picker_btn" type="button" class="absolute inset-y-1 right-1 inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-100">
+                        Browse
+                    </button>
+                </div>
+                <div id="receptionGuestSelectedServices" class="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.78rem] text-slate-700 max-h-24 overflow-y-auto overscroll-contain"></div>
+            </div>
+            <div class="min-w-0 md:col-span-2">
+                <label for="reception_guest_doctor_id" class="block text-[0.7rem] text-slate-600 mb-1">Doctor</label>
+                <div class="mb-1 text-[0.7rem] text-slate-500">&nbsp;</div>
+                <div class="relative">
+                    <input id="reception_guest_doctor_search" type="text" readonly class="w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 pr-24 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none disabled:cursor-not-allowed disabled:bg-slate-100" placeholder="Select doctor" disabled>
+                    <input id="reception_guest_doctor_id" type="hidden" required>
+                    <button id="reception_guest_doctor_picker_btn" type="button" class="absolute inset-y-1 right-1 inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60" disabled>
+                        Browse
+                    </button>
+                </div>
+                
+                <div id="receptionGuestDoctorPreview" class="hidden mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.78rem] text-slate-700 break-words"></div>
+            </div>
+            <div class="md:col-span-2">
+                <label for="reception_guest_reason" class="block text-[0.7rem] text-slate-600 mb-1">Reason (optional)</label>
+                <input id="reception_guest_reason" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Reason for visit">
+            </div>
+            <div>
+                <label for="reception_guest_priority_level" class="block text-[0.7rem] text-slate-600 mb-1">Priority level (optional)</label>
+                <select id="reception_guest_priority_level" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    <option value="">Select priority</option>
+                    <option value="1">1 : Emergency</option>
+                    <option value="2">2 : PWD</option>
+                    <option value="3">3 : Pregnant</option>
+                    <option value="4">4 : Senior</option>
+                    <option value="5">5 : General</option>
+                </select>
+            </div>
+<div class="flex items-end self-end">
+    <button id="receptionGuestWalkInSubmit" type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 disabled:hover:bg-green-600">
+        <span id="receptionGuestWalkInSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+        <span id="receptionGuestWalkInSubmitLabel">Create guest walk-in</span>
+    </button>
+</div>
+        </form>
+    </div>
+
     </div>
 </div>
 
@@ -504,13 +531,13 @@ function setWalkInTab(tab) {
     if (panelGuest) panelGuest.classList.toggle('hidden', isAccount)
 
     if (headerTitle) {
-        headerTitle.textContent = isAccount ? 'Create walk-in' : 'Create Guest walk-in'
-    }
-    if (headerDesc) {
-        headerDesc.textContent = isAccount
-            ? 'Register a walk-in based on personal information or an existing patient.'
-            : 'Register a guest walk-in based on personal information.'
-    }
+            headerTitle.textContent = isAccount ? 'Create walk-in' : 'Walk-in history'
+        }
+        if (headerDesc) {
+            headerDesc.textContent = isAccount
+                ? 'Register a walk-in for an existing patient or as a guest.'
+                : 'View walk-in appointment records and statuses.'
+        }
 
     if (tabAccountBtn) {
         // Active tab (Account)
@@ -549,10 +576,7 @@ function setWalkInTab(tab) {
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var toggleBtn = document.getElementById('receptionWalkInHistoryToggle')
-        var panel = document.getElementById('receptionWalkInHistoryPanel')
         var errorBox = document.getElementById('receptionWalkInHistoryError')
-        var todayOnlyBtn = document.getElementById('receptionWalkInHistoryTodayOnlyBtn')
         var searchInput = document.getElementById('receptionWalkInHistorySearch')
         var serviceSearch = document.getElementById('receptionWalkInHistoryServiceSearch')
         var serviceIdInput = document.getElementById('receptionWalkInHistoryServiceId')
@@ -560,14 +584,14 @@ function setWalkInTab(tab) {
         var sortSelect = document.getElementById('receptionWalkInHistorySort')
         var statusSelect = document.getElementById('receptionWalkInHistoryStatus')
         var tableBody = document.getElementById('receptionWalkInHistoryTableBody')
-        var metaBox = document.getElementById('receptionWalkInHistoryMeta')
         var refreshBtn = document.getElementById('receptionWalkInHistoryRefresh')
-        var isOpen = false
-        var showTodayOnly = false
         var searchTimer = null
         var services = []
         var servicesLoaded = false
         var servicesLoading = false
+        var walkinCurrentPage = 1
+        var walkinPerPage = 10
+        var walkinVisibleCount = 5
 
         function normalizeText(value) {
             return String(value || '').trim().toLowerCase()
@@ -660,58 +684,74 @@ function setWalkInTab(tab) {
             errorBox.classList.toggle('hidden', !message)
         }
 
-        function updateToggleButton() {
-            if (!toggleBtn) return
-            toggleBtn.textContent = isOpen ? 'Hide history' : 'Show history'
-        }
-
-        function updateTodayButton() {
-            if (!todayOnlyBtn) return
-            if (showTodayOnly) {
-                todayOnlyBtn.textContent = 'Showing today only'
-                todayOnlyBtn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200')
-                todayOnlyBtn.classList.add('bg-green-600', 'text-white', 'border-green-600')
-            } else {
-                todayOnlyBtn.textContent = 'Show today only'
-                todayOnlyBtn.classList.add('bg-white', 'text-slate-700', 'border-slate-200')
-                todayOnlyBtn.classList.remove('bg-green-600', 'text-white', 'border-green-600')
-            }
-        }
-
         function renderRows(rows) {
             if (!tableBody) return
             var list = Array.isArray(rows) ? rows : []
             if (!list.length) {
-                tableBody.innerHTML = '<tr><td colspan="8" class="px-3 py-6 text-center text-[0.78rem] text-slate-500">No walk-in appointments found.</td></tr>'
+                tableBody.innerHTML = '<tr><td colspan="6" class="px-3 py-6 text-center text-[0.78rem] text-slate-500">No walk-in appointments found.</td></tr>'
+                var pag = document.getElementById('receptionWalkInPagination')
+                if (pag) pag.innerHTML = ''
                 return
             }
+            var totalPages = Math.ceil(list.length / walkinPerPage)
+            if (walkinCurrentPage > totalPages) walkinCurrentPage = totalPages
+            var start = (walkinCurrentPage - 1) * walkinPerPage
+            var end = Math.min(start + walkinPerPage, list.length)
+            var pageSlice = list.slice(start, end)
 
-            tableBody.innerHTML = list.map(function (appt) {
+            tableBody.innerHTML = pageSlice.map(function (appt) {
                 var when = safeIsoParts(appt && appt.appointment_datetime ? appt.appointment_datetime : '')
                 var patient = appt && appt.patient ? appt.patient : null
                 var doctor = appt && appt.doctor ? appt.doctor : null
                 var patientName = personName(patient, 'Patient #' + String(patient && patient.user_id != null ? patient.user_id : ''))
                 var doctorName = personName(doctor, 'Doctor #' + String(doctor && doctor.user_id != null ? doctor.user_id : ''))
-                var age = ageFromBirthdate(patient && patient.birthdate ? patient.birthdate : '')
-                var contact = patient && patient.contact_number ? String(patient.contact_number) : '-'
                 var status = statusText(appt)
 
                 return '' +
                     '<tr>' +
-                        '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.date || '-') + '</td>' +
                         '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(formatTime12h(when.time)) + '</td>' +
                         '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(patientName) + '</td>' +
-                        '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(age || '-') + '</td>' +
-                        '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(contact) + '</td>' +
                         '<td class="px-3 py-2 text-slate-700 min-w-[14rem] whitespace-nowrap">' + escapeHtml(serviceSummary(appt)) + '</td>' +
                         '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(doctorName) + '</td>' +
                         '<td class="px-3 py-2 whitespace-nowrap"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border ' + statusBadgeClass(appt) + '">' + escapeHtml(status) + '</span></td>' +
+                        '<td class="text-right px-3 py-2 whitespace-nowrap">' +
+                            '<button type="button" class="walkin-see-history-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300" data-patient-id="' + escapeHtml(patient && patient.user_id != null ? patient.user_id : '') + '" data-patient-name="' + escapeHtml(patientName) + '">See History</button>' +
+                        '</td>' +
                     '</tr>'
             }).join('')
+            renderWalkinPagination(list.length, totalPages)
         }
 
-        function setMeta(text) {
-            if (metaBox) metaBox.textContent = text || ''
+        function renderWalkinPagination(total, totalPages) {
+            var pag = document.getElementById('receptionWalkInPagination')
+            if (!pag) return
+            if (total === 0) { pag.innerHTML = ''; return }
+            var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border '
+            var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer'
+            var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default'
+            var btnActive = btnBase + 'bg-green-600 text-white border-green-600'
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+            html += '<button type="button" class="' + (walkinCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-walkin-page="prev"' + (walkinCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            var ws = Math.max(1, walkinCurrentPage - Math.floor(walkinVisibleCount / 2))
+            var we = Math.min(ws + walkinVisibleCount - 1, totalPages)
+            if (we - ws + 1 < walkinVisibleCount) ws = Math.max(1, we - walkinVisibleCount + 1)
+            for (var i = ws; i <= we; i++) {
+                html += '<button type="button" class="' + (i === walkinCurrentPage ? btnActive : btnInactive) + '" data-walkin-page="' + i + '">' + i + '</button>'
+            }
+            if (we < totalPages) { html += '<button type="button" class="' + btnInactive + '" data-walkin-page="next-window" title="Next set">…</button>' }
+            html += '<button type="button" class="' + (walkinCurrentPage === totalPages ? btnDisabled : btnInactive) + '" data-walkin-page="next"' + (walkinCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            pag.innerHTML = html
+            pag.querySelectorAll('button[data-walkin-page]').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    var p = b.getAttribute('data-walkin-page')
+                    if (p === 'prev' && walkinCurrentPage > 1) { walkinCurrentPage-- }
+                    else if (p === 'next' && walkinCurrentPage < totalPages) { walkinCurrentPage++ }
+                    else if (p === 'next-window') { walkinCurrentPage = Math.min(we + 1, totalPages) }
+                    else if (p !== 'prev' && p !== 'next') { walkinCurrentPage = parseInt(p, 10) }
+                    else return
+                    if (typeof loadHistory === 'function') loadHistory()
+                })
+            })
         }
 
         function wordPrefixMatch(value, query) {
@@ -777,27 +817,19 @@ function setWalkInTab(tab) {
         }
 
         function loadHistory() {
-            if (!isOpen || typeof apiFetch !== 'function') return
+            if (typeof apiFetch !== 'function') return
             showError('')
             renderRows([])
-            setMeta('Loading walk-in history…')
+            var metaBox = document.getElementById('receptionWalkInHistoryMeta')
+            if (metaBox) metaBox.textContent = 'Loading walk-in history…'
 
             var url = "{{ url('/api/appointments') }}" + '?per_page=100&appointment_type=walk_in'
             var order = sortSelect && sortSelect.value === 'oldest' ? 'oldest' : 'latest'
             url += '&order=' + encodeURIComponent(order)
 
-            var now = new Date()
-            var startIso = ''
-            var endIso = ''
-            if (showTodayOnly) {
-                startIso = formatLocalDateIso(now)
-                endIso = startIso
-            } else {
-                startIso = formatLocalDateIso(new Date(now.getFullYear(), now.getMonth(), 1))
-                endIso = formatLocalDateIso(new Date(now.getFullYear(), now.getMonth() + 1, 0))
-            }
-            url += '&start_date=' + encodeURIComponent(startIso)
-            url += '&end_date=' + encodeURIComponent(endIso)
+            var todayIso = formatLocalDateIso(new Date())
+            url += '&start_date=' + encodeURIComponent(todayIso)
+            url += '&end_date=' + encodeURIComponent(todayIso)
 
             var search = searchInput ? normalizeText(searchInput.value) : ''
             if (search) url += '&search=' + encodeURIComponent(search)
@@ -820,7 +852,8 @@ function setWalkInTab(tab) {
                     if (!result.ok) {
                         showError((result.data && result.data.message) ? String(result.data.message) : 'Failed to load walk-in history.')
                         renderRows([])
-                        setMeta('No walk-in history loaded.')
+                        var metaBox = document.getElementById('receptionWalkInHistoryMeta')
+                        if (metaBox) metaBox.textContent = 'No walk-in history loaded.'
                         return
                     }
 
@@ -852,51 +885,231 @@ function setWalkInTab(tab) {
                         return 0
                     })
 
-                    renderRows(rows)
-                    if (showTodayOnly) {
-                        setMeta('Showing ' + String(rows.length) + ' walk-in appointments for ' + startIso + '.')
-                    } else {
-                        setMeta('Showing ' + String(rows.length) + ' walk-in appointments for ' + startIso.slice(0, 7) + '.')
+                    // Keep only latest appointment per patient
+                    var seen = {}
+                    var latestPerPatient = []
+                    rows.forEach(function (appt) {
+                        var pid = appt && appt.patient && appt.patient.user_id
+                        if (pid == null) { latestPerPatient.push(appt); return }
+                        var existing = seen[pid]
+                        var currentDate = appt && appt.appointment_datetime ? String(appt.appointment_datetime) : ''
+                        var existingDate = existing && existing.appointment_datetime ? String(existing.appointment_datetime) : ''
+                        if (!existing || currentDate > existingDate) {
+                            seen[pid] = appt
+                        }
+                    })
+                    // Put the latest-per-patient entries into an array
+                    var deduped = []
+                    for (var key in seen) {
+                        if (seen.hasOwnProperty(key)) deduped.push(seen[key])
                     }
+                    // Also include appts without a patient
+                    rows.forEach(function (appt) {
+                        var pid = appt && appt.patient && appt.patient.user_id
+                        if (pid == null) deduped.push(appt)
+                    })
+
+                    renderRows(deduped)
+                    var metaBox = document.getElementById('receptionWalkInHistoryMeta')
+                    metaBox.textContent = 'Showing ' + String(deduped.length) + ' walk-in(s) for today.'
                 })
                 .catch(function () {
                     showError('Network error while loading walk-in history.')
                     renderRows([])
-                    setMeta('No walk-in history loaded.')
+                    var metaBox = document.getElementById('receptionWalkInHistoryMeta')
+                    if (metaBox) metaBox.textContent = 'No walk-in history loaded.'
                 })
         }
 
-        function setOpen(nextOpen) {
-            isOpen = !!nextOpen
-            if (panel) panel.classList.toggle('hidden', !isOpen)
-            updateToggleButton()
-            if (isOpen) {
-                loadHistory()
-            } else {
-                showError('')
-                setMeta('History is hidden.')
+        // ── Patient history modal functions ──
+
+        var historyPatientId = null
+        var historyAppointments = []
+
+        function openWalkinHistoryModal(patientId, patientName) {
+            historyPatientId = patientId
+            var subtitle = document.getElementById('receptionWalkInHistorySubtitle')
+            if (subtitle) subtitle.textContent = patientName || 'Patient #' + patientId
+            var body = document.getElementById('receptionWalkInHistBody')
+            if (body) body.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading history…</div>'
+            var detailBody = document.getElementById('receptionWalkInHistDetailBody')
+            if (detailBody) detailBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select an appointment to view details.</div>'
+            var dateFilter = document.getElementById('receptionWalkInHistDate')
+            if (dateFilter) dateFilter.value = ''
+            var statusFilter = document.getElementById('receptionWalkInHistStatus')
+            if (statusFilter) statusFilter.value = ''
+            var typeFilter = document.getElementById('receptionWalkInHistType')
+            if (typeFilter) typeFilter.value = ''
+            var overlay = document.getElementById('receptionWalkInHistoryOverlay')
+            if (overlay) {
+                overlay.classList.remove('hidden')
+                overlay.classList.add('flex')
             }
+            loadWalkinPatientHistory(patientId)
         }
 
-        updateToggleButton()
-        updateTodayButton()
+        function closeWalkinHistoryModal() {
+            var overlay = document.getElementById('receptionWalkInHistoryOverlay')
+            if (overlay) {
+                overlay.classList.add('hidden')
+                overlay.classList.remove('flex')
+            }
+            historyPatientId = null
+            historyAppointments = []
+        }
 
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', function () {
-                setOpen(!isOpen)
+        function loadWalkinPatientHistory(patientId) {
+            if (!patientId) return
+            apiFetch("{{ url('/api/appointments') }}?per_page=100&patient_id=" + patientId, { method: 'GET' })
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        return { ok: response.ok, data: data }
+                    }).catch(function () { return { ok: false, data: null } })
+                })
+                .then(function (result) {
+                    if (!result.ok) {
+                        var body = document.getElementById('receptionWalkInHistBody')
+                        if (body) body.innerHTML = '<div class="text-center text-[0.78rem] text-red-500 py-8">Failed to load history.</div>'
+                        return
+                    }
+                    historyAppointments = Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    var subtitle = document.getElementById('receptionWalkInHistorySubtitle')
+                    if (subtitle) {
+                        var first = historyAppointments[0]
+                        var label = first && first.patient ? personName(first.patient) : ('Patient #' + patientId)
+                        subtitle.textContent = label + ' - ' + historyAppointments.length + ' appointment(s)'
+                    }
+                    renderWalkinPatientHistory()
+                })
+                .catch(function () {
+                    var body = document.getElementById('receptionWalkInHistBody')
+                    if (body) body.innerHTML = '<div class="text-center text-[0.78rem] text-red-500 py-8">Network error loading history.</div>'
+                })
+        }
+
+        function renderWalkinPatientHistory() {
+            var body = document.getElementById('receptionWalkInHistBody')
+            if (!body) return
+            var filtered = historyAppointments.slice()
+
+            var selDate = document.getElementById('receptionWalkInHistDate')
+            var selStatus = document.getElementById('receptionWalkInHistStatus')
+            var selType = document.getElementById('receptionWalkInHistType')
+            var dateVal = selDate ? selDate.value : ''
+            var statusVal = selStatus ? selStatus.value : ''
+            var typeVal = selType ? selType.value : ''
+
+            if (dateVal) filtered = filtered.filter(function (a) { return (a.appointment_datetime || '').slice(0, 10) === dateVal })
+            if (statusVal) filtered = filtered.filter(function (a) { return String(a.status || '') === statusVal })
+            if (typeVal) filtered = filtered.filter(function (a) { return String(a.appointment_type || '') === typeVal })
+
+            filtered.sort(function (a, b) {
+                return ((b.appointment_datetime || '') > (a.appointment_datetime || '')) ? 1 : -1
+            })
+
+            if (!filtered.length) {
+                body.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No matching appointments found.</div>'
+                return
+            }
+
+            var html = ''
+            filtered.forEach(function (a) {
+                var dt = a.appointment_datetime ? String(a.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
+                var doctor = a.doctor ? personName(a.doctor, '-') : '-'
+                var typeLabel = a.appointment_type ? String(a.appointment_type).replace(/_/g, ' ') : '-'
+                html += '<div class="rounded-xl border border-slate-200 bg-white p-3 hover:border-green-200 transition-colors cursor-pointer walkin-history-row" data-appointment-id="' + a.appointment_id + '">' +
+                    '<div class="flex items-center justify-between mb-1">' +
+                        '<span class="text-[0.78rem] font-semibold text-slate-800">' + escapeHtml(dt) + '</span>' +
+                        '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border ' + statusBadgeClass(a) + '">' + escapeHtml(statusText(a)) + '</span>' +
+                    '</div>' +
+                    '<div class="text-[0.72rem] text-slate-500 mb-2">' + escapeHtml(doctor) + ' · ' + escapeHtml(typeLabel) + '</div>' +
+                    '<button type="button" class="text-[0.7rem] font-semibold text-green-700 hover:text-green-800 walkin-history-details" data-appointment-id="' + a.appointment_id + '">View Details →</button>' +
+                '</div>'
+            })
+            body.innerHTML = html
+
+            body.querySelectorAll('.walkin-history-details').forEach(function (btn) {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation()
+                    var apptId = this.getAttribute('data-appointment-id')
+                    var found = historyAppointments.find(function (a) { return String(a.appointment_id) === apptId })
+                    if (found) renderWalkinAppointmentDetail(found)
+                })
+            })
+            body.querySelectorAll('.walkin-history-row').forEach(function (row) {
+                row.addEventListener('click', function () {
+                    var apptId = this.getAttribute('data-appointment-id')
+                    var found = historyAppointments.find(function (a) { return String(a.appointment_id) === apptId })
+                    if (found) renderWalkinAppointmentDetail(found)
+                })
             })
         }
 
-        if (todayOnlyBtn) {
-            todayOnlyBtn.addEventListener('click', function () {
-                showTodayOnly = !showTodayOnly
-                updateTodayButton()
-                loadHistory()
-            })
+        function renderWalkinAppointmentDetail(appt) {
+            var detailBody = document.getElementById('receptionWalkInHistDetailBody')
+            if (!detailBody) return
+            var dt = appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
+            var tx = appt.transaction || null
+            var services = Array.isArray(appt.services) ? appt.services : []
+            var serviceNames = services.length ? services.map(function (s) { return s.service_name || s.name || '' }).filter(Boolean).join(', ') : '-'
+            var amount = tx ? (tx.amount || 0) : 0
+            var discountAmount = tx ? (tx.discount_amount || 0) : 0
+            var discountType = tx ? (tx.discount_type || 'none') : 'none'
+            var net = parseFloat(amount) - parseFloat(discountAmount)
+            var diagnosis = tx ? (tx.diagnosis || '-') : '-'
+            var treatment = tx ? (tx.treatment_notes || '-') : '-'
+            var doctorName = appt.doctor ? personName(appt.doctor, '-') : '-'
+            var typeLabel = appt.appointment_type ? String(appt.appointment_type).replace(/_/g, ' ') : '-'
+            var reason = appt.reason_for_visit ? escapeHtml(appt.reason_for_visit) : '<span class="text-slate-400">-</span>'
+
+            var html = '<div class="space-y-3">' +
+                '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
+                    '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Appointment</div>' +
+                    '<div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[0.78rem]">' +
+                        '<div class="text-slate-500">Date & Time</div>' +
+                        '<div class="text-slate-800 font-medium">' + escapeHtml(dt) + '</div>' +
+                        '<div class="text-slate-500">Doctor</div>' +
+                        '<div class="text-slate-800 font-medium">' + escapeHtml(doctorName) + '</div>' +
+                        '<div class="text-slate-500">Type</div>' +
+                        '<div class="text-slate-800 font-medium">' + escapeHtml(typeLabel) + '</div>' +
+                        '<div class="text-slate-500">Status</div>' +
+                        '<div><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border ' + statusBadgeClass(appt) + '">' + escapeHtml(statusText(appt)) + '</span></div>' +
+                        '<div class="text-slate-500">Reason</div>' +
+                        '<div class="text-slate-800">' + reason + '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
+                    '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Services & Payment</div>' +
+                    '<div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[0.78rem]">' +
+                        '<div class="text-slate-500">Services</div>' +
+                        '<div class="text-slate-800">' + escapeHtml(serviceNames) + (services.length && services[0] && services[0].description ? ' — <span class="text-slate-500">' + escapeHtml(services[0].description) + '</span>' : '') + '</div>' +
+                        '<div class="text-slate-500">Gross Amount</div>' +
+                        '<div class="text-slate-800 font-medium">₱' + escapeHtml(Number(amount).toFixed(2)) + '</div>' +
+                        '<div class="text-slate-500">Discount (' + escapeHtml(discountType !== 'none' ? discountType.toUpperCase() : 'None') + ')</div>' +
+                        '<div class="text-slate-800">−₱' + escapeHtml(Number(discountAmount).toFixed(2)) + '</div>' +
+                        '<div class="text-slate-500 font-semibold">Net</div>' +
+                        '<div class="text-slate-800 font-bold text-green-700">₱' + escapeHtml(net.toFixed(2)) + '</div>' +
+                        '<div class="text-slate-500">Payment Mode</div>' +
+                        '<div class="text-slate-800">' + (tx ? escapeHtml(tx.payment_mode || '-') : '-') + '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
+                    '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Diagnosis & Treatment</div>' +
+                    '<div class="text-[0.78rem] space-y-2">' +
+                        '<div><span class="text-slate-500">Diagnosis:</span><br><span class="text-slate-800">' + escapeHtml(diagnosis) + '</span></div>' +
+                        '<div><span class="text-slate-500">Treatment Notes:</span><br><span class="text-slate-800">' + escapeHtml(treatment) + '</span></div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>'
+            detailBody.innerHTML = html
         }
+
+        loadServices()
+        loadHistory()
 
         if (refreshBtn) {
-            refreshBtn.addEventListener('click', function () {
+            refreshBtn.addEventListener('click', function (e) {
+                e.preventDefault()
                 loadHistory()
             })
         }
@@ -957,6 +1170,36 @@ function setWalkInTab(tab) {
             if (serviceSearch.contains(e.target) || serviceResults.contains(e.target)) return
             serviceResults.classList.add('hidden')
         })
+
+        // ── See History button delegation ──
+        tableBody.addEventListener('click', function (e) {
+            var btn = e.target.closest('.walkin-see-history-btn')
+            if (btn) {
+                var pid = btn.getAttribute('data-patient-id')
+                var pname = btn.getAttribute('data-patient-name')
+                if (pid) openWalkinHistoryModal(pid, pname)
+            }
+        })
+
+        // ── Modal close ──
+        var histOverlay = document.getElementById('receptionWalkInHistoryOverlay')
+        var histClose = document.getElementById('receptionWalkInHistoryClose')
+        if (histOverlay) {
+            histOverlay.addEventListener('click', function (e) {
+                if (e.target === histOverlay) closeWalkinHistoryModal()
+            })
+        }
+        if (histClose) {
+            histClose.addEventListener('click', closeWalkinHistoryModal)
+        }
+
+        // ── Modal filter listeners ──
+        var histDate = document.getElementById('receptionWalkInHistDate')
+        var histStatus = document.getElementById('receptionWalkInHistStatus')
+        var histType = document.getElementById('receptionWalkInHistType')
+        if (histDate) histDate.addEventListener('change', renderWalkinPatientHistory)
+        if (histStatus) histStatus.addEventListener('change', renderWalkinPatientHistory)
+        if (histType) histType.addEventListener('change', renderWalkinPatientHistory)
     })
 </script>
 
@@ -4326,6 +4569,21 @@ function setWalkInTab(tab) {
         syncTypeToggleUI()
         applyAppointmentTypeUI()
         syncSelectionTriggers()
+
+        var guestToggle = document.getElementById('receptionWalkInGuestToggle')
+        var guestForm = document.getElementById('receptionWalkInGuestForm')
+        var accountFormWrapper = document.getElementById('receptionWalkInAccountFormWrapper')
+        if (guestToggle && guestForm && accountFormWrapper) {
+            guestToggle.addEventListener('change', function () {
+                if (guestToggle.checked) {
+                    accountFormWrapper.classList.add('hidden')
+                    guestForm.classList.remove('hidden')
+                } else {
+                    accountFormWrapper.classList.remove('hidden')
+                    guestForm.classList.add('hidden')
+                }
+            })
+        }
 
         if (form) {
             form.addEventListener('submit', function (e) {

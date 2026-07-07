@@ -171,17 +171,16 @@
         </div>
 <div class="w-full" style="display:grid;">
 <div class="rounded-2xl border border-slate-200 overflow-hidden">
- <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[300px]">
+ <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[470px]">
         <table class="text-xs" style="min-width:700px;width:100%;table-layout:auto;">
             <thead class="bg-slate-50 text-slate-600 sticky top-0">
                 <tr>
                     <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Date</th>
                     <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Time</th>
                     <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Patient</th>
-                    <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Age</th>
-                    <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Contact</th>
                     <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Service</th>
                     <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Doctor</th>
+                    <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Status</th>
                     <th class="text-right px-3 py-2 font-semibold whitespace-nowrap">Actions</th>
                 </tr>
             </thead>
@@ -192,9 +191,78 @@
         <div id="receptionManageAppointmentMeta">Showing latest 10 booked appointments.</div>
         <button id="receptionManageAppointmentRefresh" type="button" class="text-green-700 font-semibold hover:text-green-800">Refresh</button>
     </div>
+    <div id="receptionManagePagination" class="px-3 py-2 bg-white border-t border-slate-50 flex items-center justify-center gap-1"></div>
 </div>
 
         <pre id="receptionManageAppointmentResult" class="hidden mt-3 text-[0.68rem] text-slate-600 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 overflow-x-auto"></pre>
+    </div>
+</div>
+
+<!-- Manage Patient History Modal -->
+<div id="managePatientHistoryOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/40 items-center justify-center p-4">
+    <div class="w-full max-w-4xl h-[90vh] max-h-none rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] flex overflow-hidden">
+        <!-- History list (left) -->
+        <div class="w-1/2 border-r border-slate-200 flex flex-col min-h-0">
+            <div class="px-4 py-3 border-b border-slate-100 shrink-0 flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-semibold text-slate-900">Patient History</div>
+                    <div id="managePatientHistSubtitle" class="text-[0.72rem] text-slate-500">Loading…</div>
+                </div>
+                <button type="button" id="managePatientHistClose" class="text-slate-400 hover:text-slate-600">
+                    <x-lucide-x class="w-[20px] h-[20px]" />
+                </button>
+            </div>
+            <div class="px-4 py-2 border-b border-slate-100 shrink-0 grid grid-cols-3 gap-2">
+                <div>
+                    <label class="block text-[0.6rem] text-slate-500 mb-0.5">Date</label>
+                    <input id="managePatientHistDate" type="date" class="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[0.7rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                </div>
+                <div>
+                    <label class="block text-[0.6rem] text-slate-500 mb-0.5">Status</label>
+                    <select id="managePatientHistStatus" class="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[0.7rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        <option value="">All</option>
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                        <option value="no_show">No-show</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[0.6rem] text-slate-500 mb-0.5">Type</label>
+                    <select id="managePatientHistType" class="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[0.7rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        <option value="">All</option>
+                        <option value="walk_in">Walk In</option>
+                        <option value="scheduled">Scheduled</option>
+                    </select>
+                </div>
+            </div>
+            <div id="managePatientHistBody" class="flex-1 overflow-y-auto p-3 space-y-2">
+                <div class="text-center text-[0.78rem] text-slate-400 py-8">Loading history…</div>
+            </div>
+        </div>
+        <!-- Detail panel (right) with status actions -->
+        <div id="managePatientHistDetailPanel" class="w-1/2 flex flex-col min-h-0 bg-slate-50/50">
+            <div class="px-4 py-3 border-b border-slate-200 shrink-0 flex items-center justify-between bg-white">
+                <div class="text-sm font-semibold text-slate-900">Appointment Details</div>
+            </div>
+            <div id="managePatientHistDetailBody" class="flex-1 overflow-y-auto p-4">
+                <div class="text-center text-[0.78rem] text-slate-400 py-8">Select an appointment to view details.</div>
+            </div>
+            <div class="px-4 py-3 border-t border-slate-200 shrink-0 bg-white flex items-center gap-3">
+                <div class="flex-1">
+                    <label class="block text-[0.6rem] text-slate-500 mb-0.5">Change Status</label>
+                    <select id="managePatientHistStatusSelect" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.78rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" disabled>
+                        <option value="">Select status</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                        <option value="no_show">No-show</option>
+                    </select>
+                </div>
+                <button id="managePatientHistUpdateBtn" type="button" class="shrink-0 self-end px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed" disabled>Update Status</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -2814,6 +2882,22 @@ function setAppointmentTab(tab) {
         var manageServices = []
         var manageServicesLoaded = false
         var manageServicesLoading = false
+        var manageCurrentPage = 1
+        var managePerPage = 10
+        var manageVisibleCount = 5
+
+        var manageHistOverlay = document.getElementById('managePatientHistoryOverlay')
+        var manageHistClose = document.getElementById('managePatientHistClose')
+        var manageHistSubtitle = document.getElementById('managePatientHistSubtitle')
+        var manageHistBody = document.getElementById('managePatientHistBody')
+        var manageHistDetailBody = document.getElementById('managePatientHistDetailBody')
+        var manageHistDate = document.getElementById('managePatientHistDate')
+        var manageHistStatus = document.getElementById('managePatientHistStatus')
+        var manageHistType = document.getElementById('managePatientHistType')
+        var manageHistStatusSelect = document.getElementById('managePatientHistStatusSelect')
+        var manageHistUpdateBtn = document.getElementById('managePatientHistUpdateBtn')
+        var manageHistoryPatientId = ''
+        var manageHistoryAppointments = []
 
         var confirmOverlay = document.getElementById('receptionBookConfirmOverlay')
         var confirmMessage = document.getElementById('receptionBookConfirmMessage')
@@ -3026,6 +3110,12 @@ function updateManageTodayButton() {
             return names.join(', ')
         }
 
+        function personName(person, fallback) {
+            var parts = person ? [person.firstname, person.middlename, person.lastname] : []
+            var name = parts.filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
+            return name || fallback || '-'
+        }
+
         function manageStatusLabel(appt) {
             var status = appt && appt.status ? String(appt.status) : ''
             if (!status) return ''
@@ -3036,55 +3126,231 @@ function updateManageTodayButton() {
         }
 
         function manageRowHtml(appt) {
-            var id = appt && appt.appointment_id != null ? appt.appointment_id : ''
-            var when = safeIsoParts(appt && appt.appointment_datetime ? appt.appointment_datetime : '')
-            var p = appt ? appt.patient : null
-            var d = appt ? appt.doctor : null
-            var patientName = patientFullName(p) || ('Patient #' + (p && p.user_id != null ? p.user_id : ''))
-            var doctorName = patientFullName(d) || ('Doctor #' + (d && d.user_id != null ? d.user_id : ''))
-            var age = ageFromBirthdate(p && p.birthdate ? p.birthdate : '')
-            var contact = p && p.contact_number ? String(p.contact_number) : '-'
+            if (!appt) return ''
+            var id = appt.id || appt.appointment_id || ''
+            var patient = appt.patient || {}
+            var patientName = personName(patient, 'Patient #' + String(patient && patient.user_id != null ? patient.user_id : ''))
+            var doctor = appt.doctor || {}
+            var doctorName = personName(doctor, 'Doctor #' + String(doctor && doctor.user_id != null ? doctor.user_id : ''))
+            var when = safeIsoParts(appt && appt.appointment_datetime ? String(appt.appointment_datetime) : '')
+            if (!when) when = { date: '-', time: '-' }
             var serviceText = serviceSummary(appt)
             var statusLabel = manageStatusLabel(appt)
-            var statusBadge = statusLabel
-                ? ('<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border border-slate-200 bg-slate-50 text-slate-700">' + escapeHtml(statusLabel) + '</span>')
-                : ''
 
             var statusKey = String(appt && appt.status ? appt.status : '').toLowerCase()
-            var canAct = statusKey === 'pending' || statusKey === 'confirmed'
-            var canCheckIn = statusKey === 'confirmed' && !(appt && appt.check_in_time)
-            var canCancel = statusKey === 'pending' || statusKey === 'confirmed'
-
-            var actions = ''
-            if (canAct) {
-                if (canCheckIn) {
-                    actions += '<button type="button" data-action="check_in" data-id="' + escapeHtml(id) + '" class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-semibold">Check-in</button>'
-                }
-                if (canCancel) {
-                    actions += '<button type="button" data-action="cancel" data-id="' + escapeHtml(id) + '" class="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 font-semibold">Cancel</button>'
-                }
-            }
-
-            if (!actions) {
-                actions = '<span class="text-slate-400">-</span>'
+            var isCheckedIn = statusKey === 'confirmed' && (appt && appt.check_in_time)
+            var statusClass = ''
+            if (isCheckedIn || statusKey === 'completed') {
+                statusClass = 'border-emerald-200 bg-emerald-50 text-emerald-700'
+            } else if (statusKey === 'cancelled') {
+                statusClass = 'border-rose-200 bg-rose-50 text-rose-700'
+            } else if (statusKey === 'no_show') {
+                statusClass = 'border-slate-200 bg-slate-100 text-slate-600'
+            } else if (statusKey === 'pending') {
+                statusClass = 'border-amber-200 bg-amber-50 text-amber-700'
             } else {
-                actions = '<div class="inline-flex items-center gap-1">' + actions + '</div>'
+                statusClass = 'border-green-200 bg-green-50 text-green-700'
             }
+            var statusDisplay = statusLabel
+                ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border ' + statusClass + '">' + escapeHtml(statusLabel) + '</span>'
+                : '-'
 
             return (
                 '<tr data-appointment-id="' + escapeHtml(id) + '">' +
-                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.date || '-') + statusBadge + '</td>' +
+                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.date || '-') + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.time ? formatTime12h(when.time) : '-') + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(patientName) + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(age || '-') + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(contact) + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 min-w-[14rem] whitespace-nowrap">' + escapeHtml(serviceText) + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(doctorName) + '</td>' +
+                    '<td class="px-3 py-2 whitespace-nowrap">' + statusDisplay + '</td>' +
                     '<td class="px-3 py-2 text-right whitespace-nowrap">' +
-                        actions +
+                        '<button type="button" class="manage-see-history-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300" data-patient-id="' + escapeHtml(patient && patient.user_id != null ? patient.user_id : '') + '" data-patient-name="' + escapeHtml(patientName) + '">See Details</button>' +
                     '</td>' +
                 '</tr>'
             )
+        }
+
+        function openManageHistoryModal(patientId, patientName) {
+            manageHistoryPatientId = patientId
+            if (manageHistSubtitle) manageHistSubtitle.textContent = patientName || 'Loading…'
+            if (manageHistBody) manageHistBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading history…</div>'
+            if (manageHistDetailBody) manageHistDetailBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select an appointment to view details.</div>'
+            if (manageHistDate) manageHistDate.value = ''
+            if (manageHistStatus) manageHistStatus.value = ''
+            if (manageHistType) manageHistType.value = ''
+            if (manageHistStatusSelect) { manageHistStatusSelect.value = ''; manageHistStatusSelect.disabled = true }
+            if (manageHistUpdateBtn) { manageHistUpdateBtn.disabled = true }
+            if (manageHistOverlay) {
+                manageHistOverlay.classList.remove('hidden')
+                manageHistOverlay.classList.add('flex')
+            }
+            loadManagePatientHistory(patientId)
+        }
+
+        function closeManageHistoryModal() {
+            if (manageHistOverlay) {
+                manageHistOverlay.classList.add('hidden')
+                manageHistOverlay.classList.remove('flex')
+            }
+            manageHistoryPatientId = ''
+            manageHistoryAppointments = []
+        }
+
+        function loadManagePatientHistory(patientId) {
+            if (!patientId || typeof apiFetch !== 'function') return
+            if (manageHistBody) manageHistBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading history…</div>'
+            apiFetch("{{ url('/api/appointments') }}?per_page=200&patient_id=" + encodeURIComponent(patientId), { method: 'GET' })
+                .then(function (response) { return readResponse(response) })
+                .then(function (result) {
+                    if (!result || !result.ok || !result.data) {
+                        if (manageHistBody) manageHistBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Failed to load history.</div>'
+                        return
+                    }
+                    var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    manageHistoryAppointments = Array.isArray(raw) ? raw.slice() : []
+                    if (manageHistSubtitle) {
+                        manageHistSubtitle.textContent = (manageHistSubtitle.textContent || '') + ' (' + String(manageHistoryAppointments.length) + ' records)'
+                    }
+                    renderManagePatientHistory()
+                })
+                .catch(function () {
+                    if (manageHistBody) manageHistBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Network error.</div>'
+                })
+        }
+
+        function renderManagePatientHistory() {
+            if (!manageHistBody) return
+            var list = Array.isArray(manageHistoryAppointments) ? manageHistoryAppointments.slice() : []
+
+            // Apply modal filters
+            var filterDate = manageHistDate ? String(manageHistDate.value).trim() : ''
+            var filterStatus = manageHistStatus ? manageHistStatus.value : ''
+            var filterType = manageHistType ? manageHistType.value : ''
+
+            if (filterDate) {
+                list = list.filter(function (a) {
+                    var d = a && a.appointment_datetime ? String(a.appointment_datetime).slice(0, 10) : ''
+                    return d === filterDate
+                })
+            }
+            if (filterStatus) {
+                list = list.filter(function (a) {
+                    return String(a && a.status ? a.status : '').toLowerCase() === filterStatus
+                })
+            }
+            if (filterType) {
+                list = list.filter(function (a) {
+                    return String(a && a.appointment_type ? a.appointment_type : '').toLowerCase() === filterType
+                })
+            }
+
+            // Sort by date descending
+            list.sort(function (a, b) {
+                var da = a && a.appointment_datetime ? String(a.appointment_datetime) : ''
+                var db = b && b.appointment_datetime ? String(b.appointment_datetime) : ''
+                if (da < db) return 1; if (da > db) return -1; return 0
+            })
+
+            if (list.length === 0) {
+                manageHistBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No records found.</div>'
+                return
+            }
+
+            manageHistBody.innerHTML = list.map(function (a) {
+                var aid = a.id || a.appointment_id || ''
+                var w = safeIsoParts(a && a.appointment_datetime ? String(a.appointment_datetime) : '')
+                var d = w ? (w.date || '') : ''
+                var t = w ? (w.time ? formatTime12h(w.time) : '') : ''
+                var srv = serviceSummary(a)
+                var stLabel = manageStatusLabel(a)
+                var stKey = String(a && a.status ? a.status : '').toLowerCase()
+                var isCI = stKey === 'confirmed' && (a && a.check_in_time)
+                var sc = ''
+                if (isCI || stKey === 'completed') sc = 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                else if (stKey === 'cancelled') sc = 'border-rose-200 bg-rose-50 text-rose-700'
+                else if (stKey === 'no_show') sc = 'border-slate-200 bg-slate-100 text-slate-600'
+                else if (stKey === 'pending') sc = 'border-amber-200 bg-amber-50 text-amber-700'
+                else sc = 'border-green-200 bg-green-50 text-green-700'
+
+                return (
+                    '<button type="button" class="manage-hist-item-btn w-full text-left rounded-xl border border-slate-200 bg-white px-3 py-2 hover:border-green-300 hover:shadow-sm transition-all cursor-pointer active-appt-item" data-appointment-id="' + escapeHtml(aid) + '">' +
+                        '<div class="flex items-center justify-between gap-2">' +
+                            '<div class="text-[0.78rem] font-semibold text-slate-800 truncate">' + escapeHtml(d) + ' ' + escapeHtml(t) + '</div>' +
+                            '<span class="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[0.62rem] border ' + sc + '">' + escapeHtml(stLabel || '-') + '</span>' +
+                        '</div>' +
+                        '<div class="text-[0.7rem] text-slate-500 mt-0.5 truncate">' + escapeHtml(srv) + '</div>' +
+                    '</button>'
+                )
+            }).join('')
+        }
+
+        function renderManageApptDetail(appt) {
+            if (!appt || !manageHistDetailBody) {
+                if (manageHistDetailBody) manageHistDetailBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No appointment selected.</div>'
+                if (manageHistStatusSelect) { manageHistStatusSelect.value = ''; manageHistStatusSelect.disabled = true }
+                if (manageHistUpdateBtn) manageHistUpdateBtn.disabled = true
+                return
+            }
+
+            var patient = appt.patient || {}
+            var doctor = appt.doctor || {}
+            var when = safeIsoParts(appt && appt.appointment_datetime ? String(appt.appointment_datetime) : '')
+            var patientName = personName(patient, 'N/A')
+            var doctorName = personName(doctor, 'N/A')
+            var srv = serviceSummary(appt)
+            var stLabel = manageStatusLabel(appt)
+            var serviceDesc = ''
+            if (appt && appt.service && appt.service.description) {
+                serviceDesc = appt.service.description
+            } else if (appt && Array.isArray(appt.services) && appt.services.length && appt.services[0].description) {
+                serviceDesc = appt.services[0].description
+            }
+
+            manageHistDetailBody.innerHTML =
+                '<div class="space-y-3 text-[0.78rem]">' +
+                    '<div class="grid grid-cols-2 gap-3">' +
+                        '<div><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Patient</span><span class="font-medium text-slate-800">' + escapeHtml(patientName) + '</span></div>' +
+                        '<div><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Doctor</span><span class="font-medium text-slate-800">' + escapeHtml(doctorName) + '</span></div>' +
+                        '<div><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Date</span><span class="font-medium text-slate-800">' + escapeHtml(when ? (when.date || '') : '') + '</span></div>' +
+                        '<div><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Time</span><span class="font-medium text-slate-800">' + escapeHtml(when && when.time ? formatTime12h(when.time) : '') + '</span></div>' +
+                        '<div class="col-span-2"><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Service</span><span class="font-medium text-slate-800">' + escapeHtml(srv) + (serviceDesc ? ' — <span class="text-slate-500 font-normal">' + escapeHtml(serviceDesc) + '</span>' : '') + '</span></div>' +
+                        '<div class="col-span-2"><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Status</span><span class="font-medium text-slate-800">' + escapeHtml(stLabel || '-') + '</span></div>' +
+                    '</div>' +
+                '</div>'
+
+            // Enable status dropdown
+            var currentStatus = String(appt && appt.status ? appt.status : '').toLowerCase()
+            if (manageHistStatusSelect) {
+                manageHistStatusSelect.disabled = false
+                manageHistStatusSelect.value = currentStatus
+            }
+            if (manageHistUpdateBtn) {
+                manageHistUpdateBtn.disabled = false
+                manageHistUpdateBtn.setAttribute('data-appointment-id', appt.id || appt.appointment_id || '')
+            }
+        }
+
+        function updateManageApptStatus(appointmentId, newStatus) {
+            if (!appointmentId || !newStatus || typeof apiFetch !== 'function') return
+            if (manageHistUpdateBtn) {
+                manageHistUpdateBtn.disabled = true
+                manageHistUpdateBtn.textContent = 'Updating…'
+            }
+            apiFetch("{{ url('/api/appointments') }}/" + encodeURIComponent(appointmentId) + "/status", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(function () {
+                if (manageHistUpdateBtn) { manageHistUpdateBtn.disabled = false; manageHistUpdateBtn.textContent = 'Update Status' }
+                // Refresh both the modal list and the underlying table
+                if (manageHistoryPatientId) loadManagePatientHistory(manageHistoryPatientId)
+                loadManageAppointments()
+            })
+            .catch(function () {
+                if (manageHistUpdateBtn) { manageHistUpdateBtn.disabled = false; manageHistUpdateBtn.textContent = 'Update Status' }
+                showManageError('Failed to update status.')
+            })
         }
 
         function applyManageRowUpdate(appt) {
@@ -3147,10 +3413,52 @@ function updateManageTodayButton() {
             if (!manageTableBody) return
             var rows = Array.isArray(list) ? list : []
             if (!rows.length) {
-                manageTableBody.innerHTML = '<tr><td colspan="8" class="px-3 py-6 text-center text-[0.78rem] text-slate-500">No appointments found.</td></tr>'
+                manageTableBody.innerHTML = '<tr><td colspan="7" class="px-3 py-6 text-center text-[0.78rem] text-slate-500">No appointments found.</td></tr>'
+                var pag = document.getElementById('receptionManagePagination')
+                if (pag) pag.innerHTML = ''
                 return
             }
-            manageTableBody.innerHTML = rows.map(manageRowHtml).join('')
+            var totalPages = Math.ceil(rows.length / managePerPage)
+            if (manageCurrentPage > totalPages) manageCurrentPage = totalPages
+            var start = (manageCurrentPage - 1) * managePerPage
+            var end = Math.min(start + managePerPage, rows.length)
+            var pageSlice = rows.slice(start, end)
+            manageTableBody.innerHTML = pageSlice.map(manageRowHtml).join('')
+            renderManagePagination(rows.length, totalPages)
+        }
+
+        function renderManagePagination(total, totalPages) {
+            var pag = document.getElementById('receptionManagePagination')
+            if (!pag) return
+            if (total === 0) { pag.innerHTML = ''; return }
+            var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border '
+            var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer'
+            var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default'
+            var btnActive = btnBase + 'bg-green-600 text-white border-green-600'
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+            html += '<button type="button" class="' + (manageCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-manage-page="prev"' + (manageCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            var ws = Math.max(1, manageCurrentPage - Math.floor(manageVisibleCount / 2))
+            var we = Math.min(ws + manageVisibleCount - 1, totalPages)
+            if (we - ws + 1 < manageVisibleCount) ws = Math.max(1, we - manageVisibleCount + 1)
+            for (var i = ws; i <= we; i++) {
+                html += '<button type="button" class="' + (i === manageCurrentPage ? btnActive : btnInactive) + '" data-manage-page="' + i + '">' + i + '</button>'
+            }
+            if (we < totalPages) { html += '<button type="button" class="' + btnInactive + '" data-manage-page="next-window" title="Next set">…</button>' }
+            html += '<button type="button" class="' + (manageCurrentPage === totalPages ? btnDisabled : btnInactive) + '" data-manage-page="next"' + (manageCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            pag.innerHTML = html
+            pag.querySelectorAll('button[data-manage-page]').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    var p = b.getAttribute('data-manage-page')
+                    if (p === 'prev' && manageCurrentPage > 1) { manageCurrentPage-- }
+                    else if (p === 'next' && manageCurrentPage < totalPages) { manageCurrentPage++ }
+                    else if (p === 'next-window') { manageCurrentPage = Math.min(we + 1, totalPages) }
+                    else if (p !== 'prev' && p !== 'next') { manageCurrentPage = parseInt(p, 10) }
+                    else return
+                    // Re-run the full load to preserve filters
+                    var fn = typeof loadManageAppointments === 'function' ? loadManageAppointments : null
+                    if (fn) fn()
+                })
+            })
         }
 
         function loadManageAppointments() {
@@ -3225,6 +3533,33 @@ function updateManageTodayButton() {
                         if (da < db) return 1
                         if (da > db) return -1
                         return 0
+                    })
+
+                    // Deduplicate: keep only latest appointment per patient
+                    var manageSeen = {}
+                    var manageDeduped = []
+                    rows.forEach(function (appt) {
+                        var pid = appt && appt.patient && appt.patient.user_id
+                        if (pid == null) { manageDeduped.push(appt); return }
+                        var existing = manageSeen[pid]
+                        var currentDate = appt && appt.appointment_datetime ? String(appt.appointment_datetime) : ''
+                        var existingDate = existing && existing.appointment_datetime ? String(existing.appointment_datetime) : ''
+                        if (!existing || currentDate > existingDate) {
+                            manageSeen[pid] = appt
+                        }
+                    })
+                    for (var mk in manageSeen) {
+                        if (manageSeen.hasOwnProperty(mk)) manageDeduped.push(manageSeen[mk])
+                    }
+                    rows = manageDeduped
+                    // Re-sort deduped
+                    rows.sort(function (a, b) {
+                        var da = a && a.appointment_datetime ? String(a.appointment_datetime) : ''
+                        var db = b && b.appointment_datetime ? String(b.appointment_datetime) : ''
+                        if (order === 'oldest') {
+                            if (da < db) return -1; if (da > db) return 1; return 0
+                        }
+                        if (da < db) return 1; if (da > db) return -1; return 0
                     })
 
                     renderManageAppointments(rows)
@@ -3387,6 +3722,58 @@ function updateManageTodayButton() {
                     .finally(function () {
                         setManageSubmitting(false)
                     })
+            })
+        }
+
+        // See Details
+        if (manageTableBody) {
+            manageTableBody.addEventListener('click', function (e) {
+                var btn = e.target.closest('.manage-see-history-btn')
+                if (btn) {
+                    var pid = btn.getAttribute('data-patient-id')
+                    var pname = btn.getAttribute('data-patient-name')
+                    if (pid) openManageHistoryModal(pid, pname)
+                }
+            })
+        }
+
+        if (manageHistOverlay) {
+            manageHistOverlay.addEventListener('click', function (e) {
+                if (e.target === manageHistOverlay) closeManageHistoryModal()
+            })
+        }
+        if (manageHistClose) {
+            manageHistClose.addEventListener('click', closeManageHistoryModal)
+        }
+
+        if (manageHistDate) manageHistDate.addEventListener('change', renderManagePatientHistory)
+        if (manageHistStatus) manageHistStatus.addEventListener('change', renderManagePatientHistory)
+        if (manageHistType) manageHistType.addEventListener('change', renderManagePatientHistory)
+
+        if (manageHistBody) {
+            manageHistBody.addEventListener('click', function (e) {
+                var item = e.target.closest('.manage-hist-item-btn')
+                if (item) {
+                    var aid = item.getAttribute('data-appointment-id')
+                    var appt = manageHistoryAppointments.find(function (a) {
+                        return String(a.id || a.appointment_id || '') === aid
+                    })
+                    if (appt) {
+                        // Highlight selected
+                        var allItems = manageHistBody.querySelectorAll('.manage-hist-item-btn')
+                        allItems.forEach(function (el) { el.classList.remove('border-green-400', 'bg-green-50') })
+                        item.classList.add('border-green-400', 'bg-green-50')
+                        renderManageApptDetail(appt)
+                    }
+                }
+            })
+        }
+
+        if (manageHistUpdateBtn) {
+            manageHistUpdateBtn.addEventListener('click', function () {
+                var aid = manageHistUpdateBtn.getAttribute('data-appointment-id')
+                var newStatus = manageHistStatusSelect ? manageHistStatusSelect.value : ''
+                if (aid && newStatus) updateManageApptStatus(aid, newStatus)
             })
         }
 
