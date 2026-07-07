@@ -20,9 +20,16 @@ return new class extends Migration
             $table->decimal('amount', 10, 2)->nullable();
             $table->decimal('discount_amount', 10, 2)->default(0);
             $table->enum('discount_type', ['none', 'senior', 'pwd'])->default('none');
+            
+            $table->decimal('money_paid', 10, 2)->nullable();
+            $table->decimal('money_change', 10, 2)->nullable();
 
+            
             $table->enum('payment_mode', ['cash'])->nullable();
             $table->enum('payment_status', ['pending', 'paid', 'failed'])->default('pending');
+
+            $table->decimal('money_paid', 10, 2)->nullable();
+            $table->decimal('money_change', 10, 2)->nullable();
 
             $table->string('reference_number')->nullable();
             $table->string('receipt_path')->nullable();

@@ -93,9 +93,9 @@
                     Call next
                 </span>
             </button>
-            <button id="receptionRefreshQueueButton" type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-[0.8rem] font-semibold hover:bg-slate-800 transition-colors border border-slate-200">
+            <button id="receptionRefreshQueueButton" type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 text-white text-[0.8rem] font-semibold hover:bg-orange-700 transition-colors border border-orange-200">
                 <x-lucide-refresh-cw class="w-[18px] h-[18px]" />
-                Qeueu requests
+                Refresh
             </button>
             <a href="{{ route('queue.display', ['date' => now()->toDateString()]) }}" target="_blank" id="receptionPublicQueueLinkButton" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-slate-800 text-[0.8rem] font-semibold hover:bg-slate-50 transition-colors border border-slate-200">
                 <x-lucide-link class="w-[18px] h-[18px]" />
@@ -213,7 +213,7 @@
             </div>
         </div>
 
-      <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[470px]">
+      <div class="overflow-x-auto scrollbar-hidden mb-4 h-[470px]">
             <table class="min-w-full text-left text-xs text-slate-600">
                 <thead>
                     <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
@@ -227,8 +227,8 @@
                         <th class="py-2 pr-4 font-semibold text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @forelse ($tableQueueItems as $queue)
+                <tbody id="receptionQueueTableBody">
+                    @forelse ($tableQueueItems as $qi => $queue)
                         @php
                             $patientName = optional(optional($queue->appointment)->patient)->personalInformation->full_name ?? '';
                             $doctorName = optional(optional($queue->appointment)->doctor)->personalInformation->full_name ?? '';
@@ -274,7 +274,8 @@
                                  default => 'bg-slate-50 text-slate-700 border-slate-100',
                              };
                         @endphp
-                        <tr class="border-b border-slate-50 last:border-0 reception-queue-row"
+                        <tr class="reception-queue-row"
+                            data-qi="{{ $qi }}"
                             data-queue-number="{{ $queue->queue_number }}"
                             data-queue-code="{{ $queue->queue_code }}"
                             data-patient="{{ strtolower($patientName) }}"
@@ -333,8 +334,18 @@
                             </td>
                             <td class="py-2 pr-4 text-[0.78rem] text-right text-slate-500">
                                 @if ($queueId ?? null)
-                                    @if (in_array(strtolower($statusName), ['done', 'cancelled', 'no_show', 'skipped'], true))
-                                        <span class="text-[0.7rem] text-slate-400">-</span>
+                                    @if (in_array(strtolower($statusName), ['done', 'cancelled', 'no_show', 'skipped', 'consulted'], true))
+                                        <span class="inline-flex items-center gap-1.5 text-[0.7rem] text-slate-400">
+                                            @if (strtolower($statusName) === 'consulted')
+                                                <span class="inline-flex items-center gap-1.5 rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-[0.68rem] font-medium text-green-700">
+                                                    <x-lucide-lock class="w-3 h-3" />
+                                                    Waiting for payment
+                                                </span>
+                                            @else
+                                                <x-lucide-lock class="w-3 h-3" />
+                                                <span class="text-slate-400">{{ ucfirst(str_replace('_', ' ', $statusName)) }}</span>
+                                            @endif
+                                        </span>
                                     @else
                                         <div class="inline-flex items-center gap-1.5">
                                             <div class="relative reception-status-dropdown-container">
@@ -370,12 +381,6 @@
                                                 <x-lucide-settings class="w-[14px] h-[14px]" />
                                                 Config
                                             </button>
-
-                                            @if (strtolower($statusName) === 'consulted')
-                                                <span class="inline-flex items-center rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-[0.68rem] font-medium text-green-700">
-                                                    Waiting for payment
-                                                </span>
-                                            @endif
                                         </div>
                                     @endif
                                 @else
@@ -393,6 +398,7 @@
                 </tbody>
             </table>
         </div>
+        <div id="receptionQueuePagination" class="px-4 py-2 border-t border-slate-50 bg-white flex items-center justify-center gap-1"></div>
     </div>
 </div>
 
@@ -553,8 +559,9 @@
                 <button id="receptionConfigConfirmCancel" type="button" class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-[0.7rem] font-semibold hover:bg-slate-200 border border-slate-200">
                     Cancel
                 </button>
-                <button id="receptionConfigConfirmOk" type="button" class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-green-600 text-white text-[0.7rem] font-semibold hover:bg-green-700">
-                    Confirm
+                <button id="receptionConfigConfirmOk" type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-green-600 text-white text-[0.7rem] font-semibold hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed">
+                    <span id="receptionConfigConfirmOkSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                    <span id="receptionConfigConfirmOkLabel">Confirm</span>
                 </button>
             </div>
         </div>
@@ -568,26 +575,6 @@
             <div id="receptionServiceOverlayMeta" class="text-[0.68rem] text-slate-500 mt-0.5"></div>
         </div>
         <div id="receptionServiceOverlayBody" class="px-3 py-2.5 max-h-56 overflow-y-auto text-[0.75rem] text-slate-700"></div>
-    </div>
-</div>
-
-<div id="receptionQueueRequestsOverlay" class="hidden fixed inset-0 z-[66] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="w-full max-w-3xl rounded-2xl bg-white border border-slate-200 shadow-[0_20px_80px_rgba(15,23,42,0.35)] overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
-            <div class="min-w-0">
-                <div class="text-sm font-semibold text-slate-900">Guest walk-in queue requests</div>
-                <div class="text-[0.78rem] text-slate-500">Track today&apos;s queue requests.</div>
-            </div>
-            <button id="receptionQueueRequestsClose" type="button" class="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
-                <x-lucide-x class="w-[20px] h-[20px]" />
-            </button>
-        </div>
-        <div class="px-5 py-4">
-            <div id="receptionQueueRequestsError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
-            <div id="receptionQueueRequestsList" class="space-y-3 max-h-[65vh] overflow-y-auto">
-                <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-[0.78rem] text-slate-500">Loading queue requests…</div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -647,10 +634,6 @@
         var serviceOverlayTitle = document.getElementById('receptionServiceOverlayTitle')
         var serviceOverlayMeta = document.getElementById('receptionServiceOverlayMeta')
         var serviceOverlayBody = document.getElementById('receptionServiceOverlayBody')
-        var queueRequestsOverlay = document.getElementById('receptionQueueRequestsOverlay')
-        var queueRequestsClose = document.getElementById('receptionQueueRequestsClose')
-        var queueRequestsError = document.getElementById('receptionQueueRequestsError')
-        var queueRequestsList = document.getElementById('receptionQueueRequestsList')
 
         function confirmAction(title, message) {
             return new Promise(function (resolve) {
@@ -689,7 +672,7 @@
         }
 
         function closeQueueConfig() {
-            var overlay = configOverlay || document.getElementById('receptionQueueConfigOverlay')
+            var overlay = document.getElementById('receptionQueueConfigOverlay')
             if (!overlay) return
             overlay.classList.add('hidden')
             overlay.style.left = ''
@@ -723,17 +706,15 @@
             if (configMoveSteps) configMoveSteps.value = '1'
             showConfigError('')
 
-            // Position under the trigger button, right-aligned, with viewport edge detection
+            // Position under the trigger button, always below
             if (triggerButton) {
                 var rect = triggerButton.getBoundingClientRect()
                 var overlayWidth = 280
-                var overlayHeight = overlay.offsetHeight || 260
-                var left = Math.max(8, Math.min(rect.right - overlayWidth, (window.innerWidth || 0) - overlayWidth - 8))
-                var top = rect.bottom + 4
-                if (top + overlayHeight + 8 > (window.innerHeight || 0)) {
-                    top = Math.max(8, rect.top - overlayHeight - 4)
+                var left = Math.max(8, rect.right - overlayWidth)
+                if (left + overlayWidth + 8 > (window.innerWidth || 0)) {
+                    left = Math.max(8, (window.innerWidth || 0) - overlayWidth - 8)
                 }
-                if (top < 8) top = 8
+                var top = rect.bottom + 4
                 overlay.style.left = String(left) + 'px'
                 overlay.style.top = String(top) + 'px'
                 overlay.classList.remove('hidden')
@@ -782,6 +763,25 @@
             closeQueueConfig()
         })
 
+        // Config button click — event delegation (handles DOM refreshes)
+        document.addEventListener('click', function (e) {
+            var btn = e.target && e.target.closest ? e.target.closest('.reception-queue-config') : null
+            if (!btn) return
+            var queueId = btn.getAttribute('data-queue-id')
+            if (!queueId) return
+            var priority = btn.getAttribute('data-priority-level') || '5'
+            var row = btn.closest ? btn.closest('tr.reception-queue-row') : null
+            var code = row ? (row.getAttribute('data-queue-code') || row.getAttribute('data-queue-number') || queueId) : queueId
+
+            // Toggle: if already open for this queueId, close it
+            var overlay = document.getElementById('receptionQueueConfigOverlay')
+            if (configQueueId === queueId && overlay && !overlay.classList.contains('hidden')) {
+                closeQueueConfig()
+                return
+            }
+            openQueueConfig(queueId, priority, 'Queue #' + String(code), btn)
+        })
+
         // Close config overlay on scroll (handles scrollable containers + window scroll)
         document.addEventListener('scroll', function () {
             var overlay = document.getElementById('receptionQueueConfigOverlay')
@@ -805,152 +805,6 @@
         function closeServiceOverlay() {
             if (serviceOverlayBackdrop) serviceOverlayBackdrop.classList.add('hidden')
             if (serviceOverlayPanel) serviceOverlayPanel.classList.add('hidden')
-        }
-
-        function showQueueRequestsError(message) {
-            if (!queueRequestsError) return
-            queueRequestsError.textContent = message || ''
-            queueRequestsError.classList.toggle('hidden', !message)
-        }
-
-        function closeQueueRequests() {
-            if (queueRequestsOverlay) queueRequestsOverlay.classList.add('hidden')
-            showQueueRequestsError('')
-        }
-
-        function guestRequestPatientType(level) {
-            var value = parseInt(level, 10)
-            if (value === 1) return 'Emergency'
-            if (value === 2) return 'PWD'
-            if (value === 3) return 'Pregnant'
-            if (value === 4) return 'Senior'
-            return 'General'
-        }
-
-        function guestRequestStatusMeta(item) {
-            var status = normalizeText(item && item.status ? item.status : 'pending')
-            if (status === 'cancelled') {
-                return {
-                    label: 'Rejected',
-                    badgeClass: 'border-slate-200 bg-slate-100 text-slate-600',
-                    cardClass: 'bg-slate-50/50',
-                    showActions: false
-                }
-            }
-
-            return {
-                label: 'Pending',
-                badgeClass: 'border-amber-200 bg-amber-50 text-amber-700',
-                cardClass: 'bg-slate-50/70',
-                showActions: true
-            }
-        }
-
-        function renderQueueRequests(items) {
-            if (!queueRequestsList) return
-            var list = Array.isArray(items) ? items : []
-            if (!list.length) {
-                queueRequestsList.innerHTML = '<div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-[0.78rem] text-slate-500">No guest walk-in queue requests found.</div>'
-                return
-            }
-
-            queueRequestsList.innerHTML = list.map(function (item) {
-                var patient = item && item.patient ? item.patient : null
-                var doctor = item && item.doctor ? item.doctor : null
-                var services = item && Array.isArray(item.services) ? item.services : []
-                var patientName = patient && [patient.firstname, patient.middlename, patient.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
-                var doctorName = doctor && [doctor.firstname, doctor.middlename, doctor.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
-                var serviceNames = services.map(function (service) { return service && service.service_name ? String(service.service_name) : '' }).filter(Boolean)
-                var typeLabel = guestRequestPatientType(item && item.priority_level != null ? item.priority_level : 5)
-                var appointmentId = item && item.appointment_id != null ? String(item.appointment_id) : ''
-                var statusMeta = guestRequestStatusMeta(item)
-                var actionsHtml = statusMeta.showActions
-                    ? (
-                        '<div class="mt-3 flex items-center justify-end gap-2">' +
-                            '<button type="button" class="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-3 py-1.5 text-[0.72rem] font-semibold text-rose-700 hover:bg-rose-50 reception-queue-request-action" data-appointment-id="' + escapeHtml(appointmentId) + '" data-action="reject">Reject</button>' +
-                            '<button type="button" class="inline-flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-[0.72rem] font-semibold text-white hover:bg-green-700 reception-queue-request-action" data-appointment-id="' + escapeHtml(appointmentId) + '" data-action="accept">Accept</button>' +
-                        '</div>'
-                    )
-                    : (
-                        '<div class="mt-3 text-right text-[0.7rem] text-slate-500">Rejected requests remain visible here until the day changes.</div>'
-                    )
-
-                return '' +
-                    '<div class="rounded-2xl border border-slate-200 ' + statusMeta.cardClass + ' px-4 py-4">' +
-                        '<div class="flex items-start justify-between gap-3">' +
-                            '<div class="min-w-0">' +
-                                '<div class="text-[0.78rem] font-semibold text-slate-900">' + escapeHtml(patientName || ('Patient #' + appointmentId)) + '</div>' +
-                                '<div class="mt-1 text-[0.72rem] text-slate-500">Doctor: ' + escapeHtml(doctorName || 'Doctor not assigned') + '</div>' +
-                                '<div class="mt-1 text-[0.72rem] text-slate-500">Services: ' + escapeHtml(serviceNames.join(', ') || 'No services listed') + '</div>' +
-                                '<div class="mt-1 text-[0.72rem] text-slate-500">Patient type: ' + escapeHtml(typeLabel) + '</div>' +
-                            '</div>' +
-                            '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] font-semibold border ' + statusMeta.badgeClass + '">' + escapeHtml(statusMeta.label) + '</span>' +
-                        '</div>' +
-                        actionsHtml +
-                    '</div>'
-            }).join('')
-        }
-
-        function loadQueueRequests() {
-            if (typeof apiFetch !== 'function') {
-                showQueueRequestsError('API client is not available.')
-                return
-            }
-            showQueueRequestsError('')
-            if (queueRequestsList) {
-                queueRequestsList.innerHTML = '<div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-[0.78rem] text-slate-500">Loading queue requests…</div>'
-            }
-
-            apiFetch("{{ url('/api/queues/guest-requests') }}", { method: 'GET' })
-                .then(function (response) {
-                    return response.json().then(function (data) {
-                        return { ok: response.ok, data: data }
-                    }).catch(function () {
-                        return { ok: response.ok, data: [] }
-                    })
-                })
-                .then(function (result) {
-                    if (!result.ok) {
-                        showQueueRequestsError('Failed to load guest queue requests.')
-                        renderQueueRequests([])
-                        return
-                    }
-                    renderQueueRequests(result.data)
-                })
-                .catch(function () {
-                    showQueueRequestsError('Network error while loading guest queue requests.')
-                    renderQueueRequests([])
-                })
-        }
-
-        function processQueueRequest(appointmentId, action) {
-            if (!appointmentId || !action || typeof apiFetch !== 'function') return
-            apiFetch("{{ url('/api/queues/guest-requests') }}/" + encodeURIComponent(String(appointmentId)), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ action: action })
-            })
-                .then(function (response) {
-                    return response.json().then(function (data) {
-                        return { ok: response.ok, data: data }
-                    }).catch(function () {
-                        return { ok: response.ok, data: null }
-                    })
-                })
-                .then(function (result) {
-                    if (!result.ok) {
-                        showQueueRequestsError((result.data && result.data.message) ? result.data.message : 'Failed to process guest queue request.')
-                        return
-                    }
-
-                    showQueueSuccess((result.data && result.data.message) ? result.data.message : 'Guest queue request processed.')
-                    loadQueueRequests()
-                })
-                .catch(function () {
-                    showQueueRequestsError('Network error while processing guest queue request.')
-                })
         }
 
         function openServiceOverlay(trigger, title, meta, services) {
@@ -1143,33 +997,6 @@
                 if (e.target === serviceOverlayBackdrop) closeServiceOverlay()
             })
         }
-        if (queueRequestsClose) {
-            queueRequestsClose.addEventListener('click', closeQueueRequests)
-        }
-        if (queueRequestsOverlay) {
-            queueRequestsOverlay.addEventListener('click', function (e) {
-                if (e.target === queueRequestsOverlay) closeQueueRequests()
-            })
-        }
-        if (queueRequestsList) {
-            queueRequestsList.addEventListener('click', function (e) {
-                var button = e.target && e.target.closest ? e.target.closest('.reception-queue-request-action') : null
-                if (!button) return
-                var appointmentId = button.getAttribute('data-appointment-id') || ''
-                var action = button.getAttribute('data-action') || ''
-                if (!appointmentId || !action) return
-
-                var promptTitle = action === 'accept' ? 'Accept queue request' : 'Reject queue request'
-                var promptMessage = action === 'accept'
-                    ? 'Are you sure you want to accept this guest queue request and add it to the queue?'
-                    : 'Are you sure you want to reject this guest queue request?'
-
-                confirmAction(promptTitle, promptMessage).then(function (confirmed) {
-                    if (!confirmed) return
-                    processQueueRequest(appointmentId, action)
-                })
-            })
-        }
         document.querySelectorAll('.reception-service-overlay-trigger').forEach(function (button) {
             button.addEventListener('click', function () {
                 var raw = button.getAttribute('data-services') || '[]'
@@ -1356,22 +1183,7 @@
             })
         }
 
-        document.querySelectorAll('.reception-queue-config').forEach(function (button) {
-            button.addEventListener('click', function () {
-                var queueId = button.getAttribute('data-queue-id')
-                if (!queueId) return
-                var priority = button.getAttribute('data-priority-level') || '5'
-                var row = button.closest ? button.closest('tr.reception-queue-row') : null
-                var code = row ? (row.getAttribute('data-queue-code') || row.getAttribute('data-queue-number') || queueId) : queueId
-
-                // Toggle: if already open for this queueId, close it
-                if (configQueueId === queueId && configOverlay && !configOverlay.classList.contains('hidden')) {
-                    closeQueueConfig()
-                    return
-                }
-                openQueueConfig(queueId, priority, 'Queue #' + String(code), button)
-            })
-        })
+        // Config button clicks handled via event delegation (see document click handler below)
 
         var configFormContent = document.getElementById('receptionConfigFormContent')
         var configConfirmContent = document.getElementById('receptionConfigConfirmContent')
@@ -1412,10 +1224,42 @@
                 hideConfigConfirm()
             })
         }
+        var configConfirmOkBtn = document.getElementById('receptionConfigConfirmOk')
+        var configConfirmOkSpinner = document.getElementById('receptionConfigConfirmOkSpinner')
+        var configConfirmOkLabel = document.getElementById('receptionConfigConfirmOkLabel')
+        var configSaving = false
+
         if (configConfirmOk) {
             configConfirmOk.addEventListener('click', function () {
-                if (!configPriority) return
-                saveAndReload(configPriority.value)
+                if (!configPriority || configSaving) return
+                configSaving = true
+                configConfirmOk.disabled = true
+                if (configConfirmOkSpinner) configConfirmOkSpinner.classList.remove('hidden')
+                if (configConfirmOkLabel) configConfirmOkLabel.textContent = 'Saving...'
+
+                var level = configPriority.value
+                updateQueuePriority(level).then(function (ok) {
+                    if (ok) {
+                        // Close config overlay first
+                        closeQueueConfig()
+                        hideConfigConfirm()
+                        // Show toast
+                        if (typeof showToast === 'function') showToast('Priority changed successfully', 'success')
+                        // Refresh page content after a brief delay for toast visibility
+                        setTimeout(function () { refreshFullPage() }, 600)
+                    } else {
+                        // Error already shown via showConfigError - re-enable button
+                        configSaving = false
+                        configConfirmOk.disabled = false
+                        if (configConfirmOkSpinner) configConfirmOkSpinner.classList.add('hidden')
+                        if (configConfirmOkLabel) configConfirmOkLabel.textContent = 'Confirm'
+                    }
+                }).catch(function () {
+                    configSaving = false
+                    configConfirmOk.disabled = false
+                    if (configConfirmOkSpinner) configConfirmOkSpinner.classList.add('hidden')
+                    if (configConfirmOkLabel) configConfirmOkLabel.textContent = 'Confirm'
+                })
             })
         }
 
@@ -1477,25 +1321,39 @@
             if (e.key === 'Escape') {
                 closeQueueConfig()
                 closeServiceOverlay()
-                closeQueueRequests()
             }
         })
 
-        // Status dropdown toggle
+        // Status dropdown toggle + status item clicks (event delegation)
         document.addEventListener('click', function (e) {
+            // Handle status dropdown trigger toggle
             var trigger = e.target && e.target.closest ? e.target.closest('.reception-status-dropdown-trigger') : null
             if (trigger) {
                 var container = trigger.closest('.reception-status-dropdown-container')
                 if (container) {
                     var menu = container.querySelector('.reception-status-dropdown-menu')
                     if (menu) {
-                        // Close all other dropdowns
                         document.querySelectorAll('.reception-status-dropdown-menu').forEach(function (m) {
                             if (m !== menu) m.classList.add('hidden')
                         })
                         menu.classList.toggle('hidden')
                     }
                 }
+                return
+            }
+            // Handle status option click inside dropdown
+            var statusBtn = e.target && e.target.closest ? e.target.closest('.reception-queue-status') : null
+            if (statusBtn) {
+                e.stopPropagation()
+                var queueId = statusBtn.getAttribute('data-queue-id')
+                var status = statusBtn.getAttribute('data-status')
+                if (!queueId || !status) return
+                var container = statusBtn.closest('.reception-status-dropdown-container')
+                if (container) {
+                    var menu = container.querySelector('.reception-status-dropdown-menu')
+                    if (menu) menu.classList.add('hidden')
+                }
+                updateQueueStatus(queueId, status, 'Queue status updated to ' + String(status).replace(/_/g, ' ') + '.')
                 return
             }
             // Close dropdowns on outside click
@@ -1556,29 +1414,12 @@
                 })
         }
 
-        document.querySelectorAll('.reception-queue-status').forEach(function (button) {
-            button.addEventListener('click', function (e) {
-                e.stopPropagation()
-                var queueId = button.getAttribute('data-queue-id')
-                var status = button.getAttribute('data-status')
-                if (!queueId || !status) return
-
-                // Close the dropdown menu after clicking
-                var container = button.closest('.reception-status-dropdown-container')
-                if (container) {
-                    var menu = container.querySelector('.reception-status-dropdown-menu')
-                    if (menu) menu.classList.add('hidden')
-                }
-
-                updateQueueStatus(queueId, status, 'Queue status updated to ' + String(status).replace(/_/g, ' ') + '.')
-            })
-        })
+        // Status item clicks handled via event delegation above
 
         var refreshButton = document.getElementById('receptionRefreshQueueButton')
         if (refreshButton) {
             refreshButton.addEventListener('click', function () {
-                if (queueRequestsOverlay) queueRequestsOverlay.classList.remove('hidden')
-                loadQueueRequests()
+                refreshFullPage()
             })
         }
 
@@ -1838,6 +1679,57 @@
                 closeOverlay()
             }
         })
+
+        // ── Queue table pagination ──
+        initQueuePagination()
+        function initQueuePagination() {
+            var perPage = 10
+            var currentPage = 1
+            var container = document.getElementById('receptionQueuePagination')
+            var rows = Array.prototype.slice.call(document.querySelectorAll('#receptionQueueTableBody tr.reception-queue-row'))
+
+            function renderQueuePagination() {
+                if (!container) return
+                var total = rows.length
+                var totalPages = Math.max(1, Math.ceil(total / perPage))
+                if (currentPage > totalPages) currentPage = totalPages
+                if (currentPage < 1) currentPage = 1
+
+                // Show/hide rows
+                rows.forEach(function (row, idx) {
+                    var page = Math.floor(idx / perPage) + 1
+                    row.style.display = (page === currentPage) ? '' : 'none'
+                })
+
+                // Build pagination HTML — same pattern as recRenderPagination
+                var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border '
+                var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer'
+                var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default'
+                var btnActive = btnBase + 'bg-green-600 text-white border-green-600'
+                var visibleCount = 5
+                var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+                html += '<button type="button" class="' + (currentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (currentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+                var ws = currentPage
+                var we = Math.min(ws + visibleCount - 1, totalPages)
+                for (var i = ws; i <= we; i++) {
+                    html += '<button type="button" class="' + (i === currentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
+                }
+                if (we < totalPages) { html += '<button type="button" class="' + btnInactive + '" data-page="next-window" title="Next set">…</button>' }
+                html += '<button type="button" class="' + (currentPage === totalPages ? btnDisabled : btnInactive) + '" data-page="next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+                container.innerHTML = html
+                container.querySelectorAll('button[data-page]').forEach(function (b) {
+                    b.addEventListener('click', function () {
+                        var p = b.getAttribute('data-page')
+                        if (p === 'prev' && currentPage > 1) { currentPage--; renderQueuePagination() }
+                        else if (p === 'next' && currentPage < totalPages) { currentPage++; renderQueuePagination() }
+                        else if (p === 'next-window') { var ns = Math.min(we + 1, totalPages); currentPage = ns; renderQueuePagination() }
+                        else if (p !== 'prev' && p !== 'next') { currentPage = parseInt(p, 10); renderQueuePagination() }
+                    })
+                })
+            }
+
+            renderQueuePagination()
+        }
 
         // ── Helper: silently refresh entire main content via page loader fetch ──
         function refreshFullPage() {

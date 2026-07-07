@@ -740,6 +740,14 @@ class AppointmentController extends Controller
             if ($serviceIds !== null) {
                 $appointment->services()->sync(array_map(fn ($v) => (int) $v, $serviceIds));
             }
+
+            // Auto-update linked queue to "consulted" when appointment is marked as consulted
+            if (array_key_exists('status', $data) && $data['status'] === 'consulted') {
+                Queue::query()
+                    ->where('appointment_id', (int) $appointment->appointment_id)
+                    ->whereNotIn('status', ['done', 'cancelled', 'no_show', 'skipped', 'consulted'])
+                    ->update(['status' => 'consulted']);
+            }
         });
 
         $appointment->refresh();

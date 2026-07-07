@@ -28,11 +28,15 @@ class Transaction extends Model
         'visit_datetime',
         'diagnosis',
         'treatment_notes',
+        'money_paid',
+        'money_change',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
+        'money_paid' => 'decimal:2',
+        'money_change' => 'decimal:2',
         'transaction_datetime' => 'datetime',
         'visit_datetime' => 'datetime',
     ];

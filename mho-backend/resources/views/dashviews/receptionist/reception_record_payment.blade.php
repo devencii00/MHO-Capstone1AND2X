@@ -21,20 +21,37 @@
         <div id="receptionPaymentSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
 
         <form id="receptionPaymentForm" class="grid gap-3 grid-cols-1 md:grid-cols-4 items-end mb-4">
-            <div class="md:col-span-2 min-w-0">
-                <label for="reception_payment_appointment_search" class="block text-[0.7rem] text-slate-600 mb-1">Appointment</label>
+            <div class="min-w-0">
+                <label for="reception_payment_appointment_id" class="block text-[0.7rem] text-slate-600 mb-1">Appointment</label>
                 <div class="relative">
-                    <input id="reception_payment_appointment_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Type patient full name or appointment ID">
+                    <input id="reception_payment_appointment_display" type="text" readonly class="w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 pr-24 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Select appointment">
                     <input id="reception_payment_appointment_id" type="hidden" required>
-                    <div id="receptionPaymentAppointmentResults" class="hidden absolute left-0 right-0 top-full mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-sm max-h-64 overflow-y-auto overscroll-contain z-50"></div>
+                    <button id="receptionPaymentBrowseBtn" type="button" class="absolute inset-y-1 right-1 inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-100">
+                        Browse
+                    </button>
                 </div>
             </div>
-            <div class="md:col-span-2">
-                <label class="block text-[0.7rem] text-slate-600 mb-1">Reference number</label>
-                <div id="receptionPaymentReferenceDisplay" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">Auto-generated on save</div>
-            </div>
 
-            <div id="receptionPaymentAppointmentPreview" class="hidden md:col-span-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.78rem] text-slate-700"></div>
+            <div id="receptionPaymentAppointmentPreview" class="hidden md:col-span-4 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[0.72rem] font-semibold text-slate-800 uppercase tracking-wider">Appointment Summary</span>
+                    <span id="receptionPaymentApptTypeBadge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.65rem] font-medium bg-blue-50 text-blue-700 border border-blue-200"></span>
+                </div>
+                <div class="grid grid-cols-3 gap-3 text-[0.78rem]">
+                    <div>
+                        <span class="block text-[0.65rem] text-slate-500">Patient</span>
+                        <span id="receptionPaymentSummaryPatient" class="font-semibold text-slate-800"></span>
+                    </div>
+                    <div>
+                        <span class="block text-[0.65rem] text-slate-500">Doctor</span>
+                        <span id="receptionPaymentSummaryDoctor" class="font-semibold text-slate-800"></span>
+                    </div>
+                    <div>
+                        <span class="block text-[0.65rem] text-slate-500">Subtotal Fees</span>
+                        <span id="receptionPaymentSummarySubtotal" class="font-semibold text-green-700"></span>
+                    </div>
+                </div>
+            </div>
 
             <div class="md:col-span-2">
                 <label class="block text-[0.7rem] text-slate-600 mb-1">Services in appointment</label>
@@ -47,6 +64,16 @@
             <div>
                 <label class="block text-[0.7rem] text-slate-600 mb-1">Net amount</label>
                 <div id="receptionPaymentNetAmountDisplay" class="w-full rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">PHP 0.00</div>
+            </div>
+
+            <div class="md:col-span-4 border-t border-slate-200 pt-3 mt-1">
+                <div class="text-[0.65rem] font-semibold text-slate-500 uppercase tracking-wider mb-2">Patient Payment</div>
+                <div class="grid gap-3 grid-cols-1 md:grid-cols-2">
+                    <div>
+                        <label for="reception_payment_money_paid" class="block text-[0.7rem] text-slate-600 mb-1">Money paid</label>
+                        <input id="reception_payment_money_paid" type="number" step="0.01" min="0" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="0.00">
+                    </div>
+                </div>
             </div>
 
             <div class="md:col-span-4">
@@ -73,10 +100,6 @@
                 <label class="block text-[0.7rem] text-slate-600 mb-1">Payment mode</label>
                 <div class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">Cash</div>
             </div>
-            <div>
-                <label class="block text-[0.7rem] text-slate-600 mb-1">Payment status</label>
-                <div class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">Paid (auto)</div>
-            </div>
 
             <div class="md:col-span-4 flex justify-end">
                 <button id="receptionPaymentSubmit" type="submit" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 disabled:hover:bg-green-600">
@@ -85,6 +108,45 @@
                 </button>
             </div>
         </form>
+    </div>
+
+    <!-- Appointment Selection Modal -->
+    <div id="receptionPaymentAppointmentModal" class="hidden fixed inset-0 z-[70] bg-slate-900/50 backdrop-blur-sm items-center justify-center p-4">
+        <div class="w-full max-w-4xl h-[80vh] rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] overflow-hidden flex flex-col">
+            <div class="px-5 py-4 border-b border-slate-200 shrink-0 flex items-center justify-between bg-white">
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-900">Select Today's Appointment</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Choose an appointment to record payment for.</p>
+                </div>
+                <button id="receptionPaymentApptModalClose" type="button" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+                    <x-lucide-x class="w-4 h-4" />
+                </button>
+            </div>
+            <div class="flex flex-1 min-h-0">
+                <!-- Left panel: list of today's appointments -->
+                <div class="w-1/2 border-r border-slate-200 flex flex-col min-h-0">
+                    <div class="px-4 py-2 border-b border-slate-100 shrink-0 bg-slate-50/50">
+                        <input id="receptionPaymentApptSearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search today's appointments...">
+                    </div>
+                    <div id="receptionPaymentApptList" class="flex-1 overflow-y-auto p-2 space-y-1">
+                        <div class="text-center text-[0.78rem] text-slate-400 py-8">Loading today's appointments...</div>
+                    </div>
+                </div>
+                <!-- Right panel: details of selected appointment -->
+                <div class="w-1/2 flex flex-col min-h-0 bg-slate-50/30">
+                    <div class="px-4 py-3 border-b border-slate-200 shrink-0 bg-white">
+                        <div class="text-sm font-semibold text-slate-900">Appointment Details</div>
+                    </div>
+                    <div id="receptionPaymentApptDetail" class="flex-1 overflow-y-auto p-4">
+                        <div class="text-center text-[0.78rem] text-slate-400 py-8">Select an appointment from the list.</div>
+                    </div>
+                    <div class="px-4 py-3 border-t border-slate-200 shrink-0 bg-white flex items-center justify-end gap-2.5">
+                        <button type="button" id="receptionPaymentApptModalCancel" class="px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
+                        <button type="button" id="receptionPaymentApptModalSelect" class="px-5 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed" disabled>Select Appointment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="receptionBillingPanelTransactions" class="hidden p-5">
@@ -126,96 +188,115 @@
 
         <div class="w-full" style="display:grid;">
             <div class="rounded-2xl border border-slate-200 overflow-hidden">
-               <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[300px]">
-                    <table class="text-xs" style="min-width:980px;width:100%;table-layout:auto;">
+               <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[470px]">
+                    <table class="text-xs" style="min-width:700px;width:100%;table-layout:auto;">
                         <thead class="bg-slate-50 text-slate-600 sticky top-0">
                             <tr>
                                 <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Date</th>
                                 <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Reference</th>
                                 <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Patient</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Service</th>
                                 <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Type</th>
-                                <th class="text-right px-3 py-2 font-semibold whitespace-nowrap">Gross</th>
-                                <th class="text-right px-3 py-2 font-semibold whitespace-nowrap">Discount</th>
                                 <th class="text-right px-3 py-2 font-semibold whitespace-nowrap">Net</th>
-                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Mode</th>
+                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Status</th>
+                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Action</th>
                             </tr>
                         </thead>
                         <tbody id="receptionTransactionsTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
                     </table>
                 </div>
-                <div id="receptionTransactionsTableFooter" class="px-3 py-2 text-[0.72rem] text-slate-500 bg-white border-t border-slate-100 flex items-center justify-between">
-                    <div id="receptionTransactionsMeta">Showing transactions.</div>
+                <div id="receptionTransactionsPagination" class="flex items-center justify-center gap-1.5 px-3 py-2 bg-white border-t border-slate-100"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Transaction History Modal -->
+<div id="receptionTxHistoryOverlay" class="hidden fixed inset-0 z-[70] bg-slate-900/40 items-center justify-center p-4">
+    <div class="w-full max-w-4xl h-[90vh] max-h-none rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] flex overflow-hidden">
+        <!-- History list (left) -->
+        <div class="w-1/2 border-r border-slate-200 flex flex-col min-h-0">
+            <div class="px-4 py-3 border-b border-slate-100 shrink-0 flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-semibold text-slate-900">Transaction History</div>
+                    <div id="receptionTxHistorySubtitle" class="text-[0.72rem] text-slate-500">Loading…</div>
                 </div>
+                <button type="button" id="receptionTxHistoryClose" class="text-slate-400 hover:text-slate-600">
+                    <x-lucide-x class="w-[20px] h-[20px]" />
+                </button>
+            </div>
+            <div id="receptionTxHistoryBody" class="flex-1 overflow-y-auto p-3 space-y-2">
+                <div class="text-center text-[0.78rem] text-slate-400 py-8">Loading history…</div>
+            </div>
+        </div>
+        <!-- Detail panel (right) -->
+        <div class="w-1/2 flex flex-col min-h-0 bg-slate-50/50">
+            <div class="px-4 py-3 border-b border-slate-200 shrink-0 flex items-center justify-between bg-white">
+                <div class="text-sm font-semibold text-slate-900">Transaction Details</div>
+            </div>
+            <div id="receptionTxHistoryDetailBody" class="flex-1 overflow-y-auto p-4">
+                <div class="text-center text-[0.78rem] text-slate-400 py-8">Select a transaction to view details.</div>
             </div>
         </div>
     </div>
 </div>
 <div id="receptionPaymentReviewOverlay" class="hidden fixed inset-0 z-[80] bg-slate-900/50 backdrop-blur-sm items-center justify-center p-4 transition-all duration-200">
     <div class="w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-slate-100 overflow-hidden">
-        <!-- Header section with icon and title - refined spacing -->
+        <!-- Header -->
         <div class="px-5 pt-5 pb-3 border-b border-slate-100 bg-gradient-to-r from-white to-slate-50/50">
             <div class="flex items-start gap-3">
                 <div class="w-10 h-10 rounded-full bg-green-50 border border-green-200 flex items-center justify-center text-green-600 shadow-sm flex-shrink-0">
-                    <x-lucide-info class="w-5 h-5" />
+                    <x-lucide-receipt class="w-5 h-5" />
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h3 class="text-base font-semibold text-slate-800 tracking-tight">Review Payment Details</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Please verify all payment information before confirming</p>
+                    <h3 id="receptionPaymentReviewTitle" class="text-base font-semibold text-slate-800 tracking-tight">Review Payment Details</h3>
+                    <p id="receptionPaymentReviewSubtitle" class="text-xs text-slate-500 mt-0.5">Please verify all payment information before confirming</p>
                 </div>
             </div>
         </div>
 
-        <!-- Content area - improved typography and visual hierarchy -->
+        <!-- Receipt content area -->
         <div class="px-5 py-4 bg-white">
-            <div id="receptionPaymentReviewContent" class="bg-slate-50/80 rounded-xl border border-slate-100 p-4 text-sm text-slate-700 leading-relaxed space-y-3">
-                <!-- Dynamic content will be injected here -->
-                <div class="flex items-start gap-2.5">
-                    <x-lucide-receipt class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
-                    <div class="flex flex-wrap items-baseline gap-1">
-                        <span class="font-medium text-slate-800">Invoice #:</span>
-                        <span class="text-slate-600">-</span>
-                    </div>
-                </div>
-                <div class="flex items-start gap-2.5">
-                    <x-lucide-dollar-sign class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
-                    <div class="flex flex-wrap items-baseline gap-1">
-                        <span class="font-medium text-slate-800">Amount:</span>
-                        <span class="text-slate-600">-</span>
-                    </div>
-                </div>
-                <div class="flex items-start gap-2.5">
-                    <x-lucide-credit-card class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
-                    <div class="flex flex-wrap items-baseline gap-1">
-                        <span class="font-medium text-slate-800">Payment Method:</span>
-                        <span class="text-slate-600">-</span>
-                    </div>
-                </div>
-                <div class="flex items-start gap-2.5">
-                    <x-lucide-calendar class="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
-                    <div class="flex flex-wrap items-baseline gap-1">
-                        <span class="font-medium text-slate-800">Date:</span>
-                        <span class="text-slate-600">-</span>
-                    </div>
-                </div>
-                <div class="mt-3 pt-2 border-t border-slate-200 text-xs text-amber-600 bg-amber-50/50 -mx-2 px-2 py-1.5 rounded-md flex items-center gap-2">
-                    <x-lucide-alert-circle class="w-3.5 h-3.5 flex-shrink-0" />
-                    <span>Please verify all payment details before confirming. This transaction will be recorded.</span>
-                </div>
+            <div id="receptionPaymentReviewContent" class="bg-white rounded-xl border-2 border-slate-200 p-5 text-sm text-slate-700 font-mono leading-relaxed">
+                <!-- Dynamic receipt content will be injected here -->
+                <div class="text-center text-slate-400 py-4">Loading receipt data...</div>
             </div>
         </div>
 
-        <!-- Footer buttons - improved hierarchy -->
-        <div class="px-5 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-end gap-2.5">
-            <button type="button" id="receptionPaymentReviewCancel" class="px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-slate-200 focus:ring-offset-1">
-                Cancel
-            </button>
-            <button type="button" id="receptionPaymentReviewConfirm" class="px-5 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 shadow-sm transition-all duration-150">
-                Confirm Payment
-            </button>
+        <!-- Footer buttons -->
+        <div id="receptionPaymentReviewFooter" class="px-5 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+            <button type="button" id="receptionPaymentReviewCancel" class="px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all duration-150">Cancel</button>
+            <button type="button" id="receptionPaymentReviewConfirm" class="px-5 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 shadow-sm transition-all duration-150">Confirm Payment</button>
+            <button type="button" id="receptionPaymentPrintBtn" class="hidden px-5 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 shadow-sm transition-all duration-150">Print</button>
         </div>
     </div>
 </div>
+
+<style>
+    @media print {
+        body * { visibility: hidden; }
+        #receptionPaymentReviewOverlay,
+        #receptionPaymentReviewOverlay * { visibility: visible; }
+        #receptionPaymentReviewOverlay {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            z-index: 9999 !important;
+            background: white !important;
+            backdrop-filter: none !important;
+            display: flex !important;
+            align-items: flex-start !important;
+            justify-content: center !important;
+            padding: 0.5in !important;
+        }
+        #receptionPaymentReviewOverlay .rounded-2xl {
+            box-shadow: none !important;
+            border: 1px solid #ccc !important;
+        }
+        #receptionPaymentReviewOverlay #receptionPaymentReviewFooter { display: none !important; }
+        #receptionPaymentReviewOverlay #receptionPaymentReviewContent {
+            border-color: #ccc !important;
+        }
+    }
+</style>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -231,26 +312,39 @@
         var paymentSubmitSpinner = document.getElementById('receptionPaymentSubmitSpinner')
         var paymentSubmitLabel = document.getElementById('receptionPaymentSubmitLabel')
 
-        var appointmentSearch = document.getElementById('reception_payment_appointment_search')
+        var appointmentDisplay = document.getElementById('reception_payment_appointment_display')
         var appointmentIdInput = document.getElementById('reception_payment_appointment_id')
-        var appointmentResults = document.getElementById('receptionPaymentAppointmentResults')
         var appointmentPreview = document.getElementById('receptionPaymentAppointmentPreview')
         var servicesDisplay = document.getElementById('receptionPaymentServicesDisplay')
         var amountDisplay = document.getElementById('receptionPaymentAmountDisplay')
         var discountDisplay = document.getElementById('receptionPaymentDiscountAmountDisplay')
         var netDisplay = document.getElementById('receptionPaymentNetAmountDisplay')
-        var referenceDisplay = document.getElementById('receptionPaymentReferenceDisplay')
+        var moneyPaidInput = document.getElementById('reception_payment_money_paid')
         var discountToggle = document.getElementById('receptionPaymentToggleDiscount')
         var discountWrap = document.getElementById('receptionPaymentDiscountWrap')
         var discountTypeSelect = document.getElementById('reception_payment_discount_type')
 
         var reviewOverlay = document.getElementById('receptionPaymentReviewOverlay')
         var reviewContent = document.getElementById('receptionPaymentReviewContent')
+        var reviewTitle = document.getElementById('receptionPaymentReviewTitle')
+        var reviewSubtitle = document.getElementById('receptionPaymentReviewSubtitle')
         var reviewCancel = document.getElementById('receptionPaymentReviewCancel')
         var reviewConfirm = document.getElementById('receptionPaymentReviewConfirm')
+        var reviewPrintBtn = document.getElementById('receptionPaymentPrintBtn')
         var reviewConfirmDefaultHtml = reviewConfirm ? reviewConfirm.innerHTML : ''
         var reviewResolver = null
         var reviewDelayTimer = null
+
+        var apptModal = document.getElementById('receptionPaymentAppointmentModal')
+        var apptModalClose = document.getElementById('receptionPaymentApptModalClose')
+        var apptModalCancel = document.getElementById('receptionPaymentApptModalCancel')
+        var apptModalSelect = document.getElementById('receptionPaymentApptModalSelect')
+        var apptModalSearch = document.getElementById('receptionPaymentApptSearch')
+        var apptList = document.getElementById('receptionPaymentApptList')
+        var apptDetail = document.getElementById('receptionPaymentApptDetail')
+        var browseBtn = document.getElementById('receptionPaymentBrowseBtn')
+        var todayAppointments = []
+        var apptModalSelectedAppt = null
 
         var txError = document.getElementById('receptionTransactionsError')
         var txSearch = document.getElementById('receptionTransactionsSearch')
@@ -260,11 +354,16 @@
         var txSort = document.getElementById('receptionTransactionsSort')
         var txRefresh = document.getElementById('receptionTransactionsRefresh')
         var txTableBody = document.getElementById('receptionTransactionsTableBody')
-        var txMeta = document.getElementById('receptionTransactionsMeta')
+        var txPagination = document.getElementById('receptionTransactionsPagination')
+
+        var txAllRows = []
+        var txCurrentPage = 1
+        var txPerPage = 15
+        var txVisibleCount = 5
+        var txSortOrder = 'latest'
         var txTodayBtn = document.getElementById('receptionTransactionsTodayOnlyBtn')
 
         var selectedAppointment = null
-        var appointmentSearchTimer = null
         var transactionsSearchTimer = null
         var showDiscount = false
         var txTodayOnly = false
@@ -389,6 +488,14 @@
             }).filter(function (x) { return x.name !== '' })
         }
 
+        function appointmentServicesHtml(appt) {
+            var svcs = servicesFromAppointment(appt)
+            if (!svcs.length) return ''
+            return svcs.map(function (s) {
+                return '<div style="display:flex;justify-content:space-between;font-size:0.72rem;padding:1px 0;"><span>' + escapeHtml(s.name) + '</span><span>' + escapeHtml(money(s.price)) + '</span></div>'
+            }).join('')
+        }
+
         function originalAmount(appt) {
             return servicesFromAppointment(appt).reduce(function (sum, s) { return sum + (parseFloat(s.price) || 0) }, 0)
         }
@@ -417,12 +524,13 @@
         function resetAppointmentSelection() {
             selectedAppointment = null
             if (appointmentIdInput) appointmentIdInput.value = ''
+            if (appointmentDisplay) appointmentDisplay.value = ''
             if (appointmentPreview) {
                 appointmentPreview.textContent = ''
                 appointmentPreview.classList.add('hidden')
             }
             if (servicesDisplay) servicesDisplay.textContent = 'Select an appointment first'
-            if (referenceDisplay) referenceDisplay.textContent = 'Auto-generated on save'
+            if (moneyPaidInput) moneyPaidInput.value = ''
             refreshTotalsUI()
         }
 
@@ -436,12 +544,8 @@
                 return
             }
 
-            if (appointmentSearch) {
-                appointmentSearch.value = '#' + String(appt.appointment_id) + ' - ' + appointmentPatientName(appt)
-            }
-            if (appointmentResults) {
-                appointmentResults.innerHTML = ''
-                appointmentResults.classList.add('hidden')
+            if (appointmentDisplay) {
+                appointmentDisplay.value = '#' + String(appt.appointment_id) + ' - ' + appointmentPatientName(appt)
             }
 
             var serviceRows = servicesFromAppointment(appt)
@@ -455,80 +559,20 @@
                 }
             }
 
-            var when = appt && appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
+            var gross = originalAmount(appt)
             if (appointmentPreview) {
-                appointmentPreview.textContent = 'Patient: ' + appointmentPatientName(appt) + ' • Doctor: ' + appointmentDoctorName(appt) + ' • Date/Time: ' + when + ' • Type: ' + appointmentTypeLabel(appt)
+                var patientEl = document.getElementById('receptionPaymentSummaryPatient')
+                var doctorEl = document.getElementById('receptionPaymentSummaryDoctor')
+                var subtotalEl = document.getElementById('receptionPaymentSummarySubtotal')
+                var typeBadge = document.getElementById('receptionPaymentApptTypeBadge')
+                if (patientEl) patientEl.textContent = appointmentPatientName(appt)
+                if (doctorEl) doctorEl.textContent = appointmentDoctorName(appt)
+                if (subtotalEl) subtotalEl.textContent = money(gross)
+                if (typeBadge) typeBadge.textContent = appointmentTypeLabel(appt)
                 appointmentPreview.classList.remove('hidden')
             }
 
             refreshTotalsUI()
-        }
-
-        function renderAppointmentResults(items, q) {
-            if (!appointmentResults) return
-            var query = normalizeText(q || '')
-            var list = (Array.isArray(items) ? items : []).filter(function (appt) {
-                var type = normalizeAppointmentType(appt && appt.appointment_type ? appt.appointment_type : '')
-                if (type !== 'scheduled' && type !== 'walk_in') return false
-
-                var status = String(appt && appt.status ? appt.status : '').toLowerCase()
-                if (status === 'completed' || status === 'cancelled' || status === 'no_show') return false
-
-                var patient = appointmentPatientName(appt)
-                var doctor = appointmentDoctorName(appt)
-                var idText = String(appt && appt.appointment_id != null ? appt.appointment_id : '')
-                var full = normalizeText(patient + ' ' + doctor + ' #' + idText)
-                if (!query) return true
-                return full.indexOf(query) !== -1 || wordPrefixMatch(patient, query) || idText.indexOf(query) === 0
-            }).slice(0, 15)
-
-            if (!list.length) {
-                appointmentResults.innerHTML = '<div class="px-3 py-2 text-[0.75rem] text-slate-500">No appointments found.</div>'
-                appointmentResults.classList.remove('hidden')
-                return
-            }
-
-            appointmentResults.innerHTML = list.map(function (appt) {
-                var id = appt && appt.appointment_id != null ? appt.appointment_id : ''
-                var patient = appointmentPatientName(appt)
-                var when = appt && appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
-                var type = appointmentTypeLabel(appt)
-                return '<button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50 border-b border-slate-100 last:border-0">' +
-                    '<div class="text-[0.78rem] text-slate-800 font-semibold">#' + escapeHtml(id) + ' - ' + escapeHtml(patient) + '</div>' +
-                    '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(when + ' • ' + type) + '</div>' +
-                '</button>'
-            }).join('')
-            appointmentResults.classList.remove('hidden')
-
-            var buttons = appointmentResults.querySelectorAll('button')
-            Array.prototype.forEach.call(buttons, function (btn, idx) {
-                btn.addEventListener('click', function () {
-                    setAppointmentSelection(list[idx])
-                })
-            })
-        }
-
-        function searchAppointments(query) {
-            if (typeof apiFetch !== 'function') return
-            var q = String(query || '').trim()
-            var url = "{{ url('/api/appointments') }}" + '?per_page=100&order=latest&today_only=1'
-            if (q) url += '&search=' + encodeURIComponent(q)
-
-            apiFetch(url, { method: 'GET' })
-                .then(function (response) {
-                    return response.json().then(function (data) { return { ok: response.ok, data: data } }).catch(function () { return { ok: response.ok, data: null } })
-                })
-                .then(function (result) {
-                    if (!result.ok || !result.data) {
-                        renderAppointmentResults([], q)
-                        return
-                    }
-                    var list = Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
-                    renderAppointmentResults(list, q)
-                })
-                .catch(function () {
-                    renderAppointmentResults([], q)
-                })
         }
 
         function setPaymentSubmitting(isSubmitting) {
@@ -536,6 +580,54 @@
             if (paymentSubmitSpinner) paymentSubmitSpinner.classList.toggle('hidden', !isSubmitting)
             if (paymentSubmitLabel) paymentSubmitLabel.textContent = isSubmitting ? 'Saving...' : 'Record payment'
         }
+
+        function formatReceiptHtml(details, isFinalized) {
+            var patient = details['Patient'] || '-'
+            var doctor = details['Doctor'] || '-'
+            var servicesHtml = details['Services'] || ''
+            var gross = details['Gross Amount'] || 'PHP 0.00'
+            var discType = details['Discount Type'] || 'none'
+            var discAmt = details['Discount Amount'] || 'PHP 0.00'
+            var net = details['Net Amount'] || 'PHP 0.00'
+            var mode = details['Payment Mode'] || 'cash'
+            var txnDate = details['Transaction Date'] || '-'
+            var paid = details['Paid'] || 'PHP 0.00'
+            var change = details['Change'] || 'PHP 0.00'
+            var title = isFinalized ? 'OFFICIAL RECEIPT' : 'PAYMENT REVIEW'
+            var separator = '─'.repeat(40)
+
+            var html = ''
+            html += '<div style="text-align:center;font-weight:700;font-size:1rem;margin-bottom:8px;">' + escapeHtml(title) + '</div>'
+            html += '<div style="text-align:center;font-size:0.72rem;color:#888;margin-bottom:12px;">Opol Municipal Health Office</div>'
+            html += '<div style="border-top:2px dashed #aaa;margin:8px 0;"></div>'
+            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Patient:</span><span style="font-weight:600;">' + escapeHtml(patient) + '</span></div>'
+            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Doctor:</span><span style="font-weight:600;">' + escapeHtml(doctor) + '</span></div>'
+            if (servicesHtml) {
+                html += '<div style="border-top:1px dashed #ccc;margin:6px 0;"></div>'
+                html += '<div style="font-size:0.72rem;color:#555;margin-bottom:2px;">Services:</div>'
+                html += servicesHtml
+            }
+            html += '<div style="border-top:1px dashed #ccc;margin:6px 0;"></div>'
+            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Gross Amount:</span><span>' + escapeHtml(gross) + '</span></div>'
+            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Discount Type:</span><span>' + escapeHtml(discType) + '</span></div>'
+            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Discount Amount:</span><span>' + escapeHtml(discAmt) + '</span></div>'
+            html += '<div style="border-top:1px dashed #ccc;margin:6px 0;"></div>'
+            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;font-weight:700;"><span>Net Amount:</span><span>' + escapeHtml(net) + '</span></div>'
+            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Payment Mode:</span><span>' + escapeHtml(mode) + '</span></div>'
+            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Transaction Date:</span><span>' + escapeHtml(txnDate) + '</span></div>'
+            html += '<div style="border-top:2px dashed #aaa;margin:8px 0;"></div>'
+            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;font-size:1.05rem;"><span>Paid:</span><span style="font-weight:700;">' + escapeHtml(paid) + '</span></div>'
+            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Change:</span><span style="font-weight:600;">' + escapeHtml(change) + '</span></div>'
+            html += '<div style="border-top:2px dashed #aaa;margin:8px 0;"></div>'
+            if (isFinalized) {
+                html += '<div style="text-align:center;font-size:0.68rem;color:#888;margin-top:4px;">Thank you for your payment!</div>'
+            } else {
+                html += '<div style="text-align:center;font-size:0.68rem;color:#e67e22;margin-top:4px;">Please verify before confirming.</div>'
+            }
+            return html
+        }
+
+        var reviewConfirming = false
 
         function closeReview(result) {
             if (reviewOverlay) {
@@ -548,8 +640,12 @@
             }
             if (reviewConfirm) {
                 reviewConfirm.disabled = false
-                reviewConfirm.innerHTML = reviewConfirmDefaultHtml || 'Confirm'
+                reviewConfirm.innerHTML = reviewConfirmDefaultHtml || 'Confirm Payment'
             }
+            if (reviewPrintBtn) reviewPrintBtn.classList.add('hidden')
+            if (reviewCancel) reviewCancel.classList.remove('hidden')
+            reviewConfirm.classList.remove('hidden')
+            reviewConfirming = false
             var resolver = reviewResolver
             reviewResolver = null
             if (typeof resolver === 'function') resolver(!!result)
@@ -561,22 +657,179 @@
                     resolve(window.confirm('Please review payment details before submitting.'))
                     return
                 }
-                var rows = Object.keys(details || {}).map(function (key) {
-                    return '<li><strong class="font-semibold text-slate-800">' + escapeHtml(key) + ':</strong> ' + escapeHtml(details[key]) + '</li>'
-                })
-                reviewContent.innerHTML = '<ul class="space-y-1">' + rows.join('') + '</ul>'
+
+                if (reviewTitle) reviewTitle.textContent = 'Review Payment Details'
+                if (reviewSubtitle) reviewSubtitle.textContent = 'Please verify all payment information before confirming'
+                reviewPrintBtn.classList.add('hidden')
+                reviewCancel.classList.remove('hidden')
+                reviewConfirm.classList.remove('hidden')
+                reviewConfirm.disabled = true
+                reviewConfirming = false
+                reviewConfirm.innerHTML = reviewConfirmDefaultHtml || 'Confirm Payment'
+
+                reviewContent.innerHTML = formatReceiptHtml(details, false)
                 reviewResolver = resolve
                 reviewOverlay.classList.remove('hidden')
                 reviewOverlay.classList.add('flex')
 
+                // 3-second countdown on the confirm button
+                var countdown = 3
                 reviewConfirm.disabled = true
-                reviewConfirm.innerHTML = '<span class="inline-flex items-center gap-2"><span class="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span><span>Confirm</span></span>'
-                reviewDelayTimer = setTimeout(function () {
-                    reviewConfirm.disabled = false
-                    reviewConfirm.innerHTML = reviewConfirmDefaultHtml || 'Confirm'
-                    reviewDelayTimer = null
-                }, 3000)
+                reviewConfirm.innerHTML = '<span class="inline-flex items-center gap-2"><span class="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span><span>' + String(countdown) + '</span></span>'
+                reviewDelayTimer = setInterval(function () {
+                    countdown--
+                    if (countdown > 0) {
+                        reviewConfirm.innerHTML = '<span class="inline-flex items-center gap-2"><span class="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span><span>' + String(countdown) + '</span></span>'
+                    } else {
+                        clearInterval(reviewDelayTimer)
+                        reviewDelayTimer = null
+                        reviewConfirm.disabled = false
+                        reviewConfirm.innerHTML = reviewConfirmDefaultHtml || 'Confirm Payment'
+                    }
+                }, 1000)
             })
+        }
+
+        function showReceipt(details) {
+            if (!reviewOverlay || !reviewContent) return
+            if (reviewTitle) reviewTitle.textContent = 'Payment Receipt'
+            if (reviewSubtitle) reviewSubtitle.textContent = 'Payment has been recorded successfully'
+            reviewConfirm.classList.add('hidden')
+            reviewCancel.classList.add('hidden')
+            reviewPrintBtn.classList.remove('hidden')
+            reviewContent.innerHTML = formatReceiptHtml(details, true)
+            reviewOverlay.classList.remove('hidden')
+            reviewOverlay.classList.add('flex')
+        }
+
+        // ── Appointment Modal Functions ──
+
+        function loadTodayAppointments(query) {
+            if (typeof apiFetch !== 'function') return
+            if (apptList) apptList.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading appointments...</div>'
+            var url = "{{ url('/api/appointments') }}" + '?per_page=200&order=latest&today_only=1&status=consulted'
+            var q = String(query || '').trim()
+            if (q) url += '&search=' + encodeURIComponent(q)
+            apiFetch(url, { method: 'GET' })
+                .then(function (response) {
+                    return response.json().then(function (data) { return { ok: response.ok, data: data } }).catch(function () { return { ok: response.ok, data: null } })
+                })
+                .then(function (result) {
+                    if (!result.ok || !result.data) {
+                        if (apptList) apptList.innerHTML = '<div class="text-center text-[0.78rem] text-red-500 py-8">Failed to load appointments.</div>'
+                        return
+                    }
+                    var list = Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    todayAppointments = list
+                    renderApptList(list)
+                })
+                .catch(function () {
+                    if (apptList) apptList.innerHTML = '<div class="text-center text-[0.78rem] text-red-500 py-8">Network error loading appointments.</div>'
+                })
+        }
+
+        function renderApptList(list) {
+            if (!apptList) return
+            if (!list.length) {
+                apptList.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No appointments found for today.</div>'
+                return
+            }
+            apptList.innerHTML = list.map(function (appt, idx) {
+                var id = appt && appt.appointment_id != null ? appt.appointment_id : ''
+                var patient = appointmentPatientName(appt)
+                var when = appt && appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
+                var type = appointmentTypeLabel(appt)
+                var timeOnly = when.slice(11, 16)
+                return '<button type="button" class="appt-list-item w-full text-left px-3 py-2 rounded-lg hover:bg-green-50 border border-transparent hover:border-green-200 transition-colors" data-index="' + idx + '">' +
+                    '<div class="text-[0.78rem] text-slate-800 font-semibold">' + escapeHtml(patient) + '</div>' +
+                    '<div class="text-[0.7rem] text-slate-500">' + escapeHtml(timeOnly + ' • ' + type) + '</div>' +
+                '</button>'
+            }).join('')
+
+            apptList.querySelectorAll('.appt-list-item').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var idx = parseInt(btn.getAttribute('data-index'), 10)
+                    var appt = list[idx]
+                    if (appt) {
+                        selectApptModalItem(idx)
+                    }
+                })
+            })
+        }
+
+        function selectApptModalItem(index) {
+            var appt = todayAppointments[index]
+            if (!appt) return
+            apptModalSelectedAppt = appt
+            // Update left panel selection highlight
+            apptList.querySelectorAll('.appt-list-item').forEach(function (el, i) {
+                if (i === index) {
+                    el.classList.add('bg-green-100', 'border-green-300')
+                    el.classList.remove('hover:bg-green-50', 'border-transparent')
+                } else {
+                    el.classList.remove('bg-green-100', 'border-green-300')
+                    el.classList.add('hover:bg-green-50', 'border-transparent')
+                }
+            })
+            // Enable select button
+            if (apptModalSelect) apptModalSelect.disabled = false
+            // Render details on right panel
+            renderApptDetail(appt)
+        }
+
+        function renderApptDetail(appt) {
+            if (!apptDetail) return
+            var patient = appointmentPatientName(appt)
+            var doctor = appointmentDoctorName(appt)
+            var services = servicesFromAppointment(appt)
+            var gross = originalAmount(appt)
+            var when = appt && appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
+
+            var servicesHtml = services.length
+                ? services.map(function (s) {
+                    return '<div class="flex items-center justify-between py-1 text-[0.78rem]"><span>' + escapeHtml(s.name) + '</span><span class="font-semibold">' + escapeHtml(money(s.price)) + '</span></div>'
+                }).join('')
+                : '<div class="text-[0.75rem] text-slate-400">No services</div>'
+
+            apptDetail.innerHTML =
+                '<div class="space-y-2 text-[0.78rem]">' +
+                    '<div><span class="font-semibold text-slate-800">Patient:</span> <span class="text-slate-700">' + escapeHtml(patient) + '</span></div>' +
+                    '<div><span class="font-semibold text-slate-800">Doctor:</span> <span class="text-slate-700">' + escapeHtml(doctor) + '</span></div>' +
+                    '<div><span class="font-semibold text-slate-800">Date/Time:</span> <span class="text-slate-700">' + escapeHtml(when) + '</span></div>' +
+                    '<div><span class="font-semibold text-slate-800">Type:</span> <span class="text-slate-700">' + escapeHtml(appointmentTypeLabel(appt)) + '</span></div>' +
+                    '<div class="border-t border-slate-200 pt-2 mt-2">' +
+                        '<div class="text-[0.72rem] font-semibold text-slate-600 mb-1">Services</div>' +
+                        servicesHtml +
+                        '<div class="border-t border-slate-200 mt-1 pt-1 flex items-center justify-between text-[0.82rem] font-bold">' +
+                            '<span>Subtotal Fees:</span><span class="text-green-700">' + escapeHtml(money(gross)) + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>'
+        }
+
+        function openAppointmentModal() {
+            if (apptModal) {
+                apptModal.classList.remove('hidden')
+                apptModal.classList.add('flex')
+            }
+            apptModalSelectedAppt = null
+            if (apptModalSelect) apptModalSelect.disabled = true
+            if (apptDetail) apptDetail.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select an appointment from the list.</div>'
+            if (apptModalSearch) apptModalSearch.value = ''
+            loadTodayAppointments('')
+        }
+
+        function closeAppointmentModal() {
+            if (apptModal) {
+                apptModal.classList.add('hidden')
+                apptModal.classList.remove('flex')
+            }
+        }
+
+        function confirmApptModalSelection() {
+            if (!apptModalSelectedAppt) return
+            setAppointmentSelection(apptModalSelectedAppt)
+            closeAppointmentModal()
         }
 
         function updateDiscountUI() {
@@ -590,12 +843,12 @@
             if (!txTodayBtn) return
             if (txTodayOnly) {
                 txTodayBtn.textContent = 'Showing today only'
-                txTodayBtn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200')
-                txTodayBtn.classList.add('bg-green-600', 'text-white', 'border-green-600')
+                txTodayBtn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50', 'hover:border-slate-300')
+                txTodayBtn.classList.add('bg-green-600', 'text-white', 'border-green-600', 'hover:bg-green-700', 'hover:border-green-700')
             } else {
                 txTodayBtn.textContent = 'Show today only'
-                txTodayBtn.classList.add('bg-white', 'text-slate-700', 'border-slate-200')
-                txTodayBtn.classList.remove('bg-green-600', 'text-white', 'border-green-600')
+                txTodayBtn.classList.add('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50', 'hover:border-slate-300')
+                txTodayBtn.classList.remove('bg-green-600', 'text-white', 'border-green-600', 'hover:bg-green-700', 'hover:border-green-700')
             }
         }
 
@@ -605,6 +858,20 @@
             var names = services.map(function (s) { return String((s && s.service_name) ? s.service_name : '').trim() }).filter(function (v) { return v !== '' })
             if (!names.length) return '-'
             return names.join(', ')
+        }
+
+        function txServicesHtml(tx) {
+            var appt = tx && tx.appointment ? tx.appointment : null
+            var services = appt && Array.isArray(appt.services) ? appt.services : []
+            var items = services.map(function (s) {
+                var name = String((s && s.service_name) ? s.service_name : '').trim()
+                var price = s && s.price != null ? parseFloat(s.price) : 0
+                if (isNaN(price)) price = 0
+                if (!name) return ''
+                return '<div style="display:flex;justify-content:space-between;font-size:0.72rem;padding:1px 0;"><span>' + escapeHtml(name) + '</span><span>' + escapeHtml(price.toFixed(2)) + '</span></div>'
+            }).filter(function (v) { return v !== '' }).join('')
+            if (!items) return ''
+            return items
         }
 
         function txPatientName(tx) {
@@ -620,38 +887,106 @@
 
         function renderTransactions(rows) {
             if (!txTableBody) return
-            var list = Array.isArray(rows) ? rows : []
+            txAllRows = Array.isArray(rows) ? rows : []
+            var list = txAllRows
             if (!list.length) {
-                txTableBody.innerHTML = '<tr><td colspan="9" class="px-3 py-6 text-center text-[0.78rem] text-slate-500">No transactions found.</td></tr>'
+                txTableBody.innerHTML = '<tr><td colspan="7" class="px-3 py-6 text-center text-[0.78rem] text-slate-500">No transactions found.</td></tr>'
+                if (txPagination) txPagination.innerHTML = ''
+                txCurrentPage = 1
                 return
             }
-            txTableBody.innerHTML = list.map(function (tx) {
+
+            // Deduplicate by patient — keep the latest transaction per patient
+            var patientMap = {}
+            list.forEach(function (tx) {
                 var appt = tx && tx.appointment ? tx.appointment : null
-                var apptStatus = String(appt && appt.status ? appt.status : '').toLowerCase()
+                var patient = appt && appt.patient ? appt.patient : null
+                var pid = patient && patient.user_id != null ? String(patient.user_id) : ''
+                if (!pid) return
+                var existing = patientMap[pid]
+                var txDate = tx.transaction_datetime || tx.created_at || ''
+                if (!existing || (txDate > (existing.transaction_datetime || existing.created_at || ''))) {
+                    patientMap[pid] = tx
+                }
+            })
+            var deduped = Object.keys(patientMap).map(function (k) { return patientMap[k] })
+            // Keep sort order from loadTransactions
+            deduped.sort(function (a, b) {
+                var da = (a.transaction_datetime || a.created_at || '')
+                var db = (b.transaction_datetime || b.created_at || '')
+                if (txSortOrder === 'oldest') return da < db ? -1 : (da > db ? 1 : 0)
+                return da < db ? 1 : (da > db ? -1 : 0)
+            })
+
+            var totalPages = Math.ceil(deduped.length / txPerPage)
+            if (txCurrentPage > totalPages) txCurrentPage = totalPages
+            if (txCurrentPage < 1) txCurrentPage = 1
+            var start = (txCurrentPage - 1) * txPerPage
+            var end = Math.min(start + txPerPage, deduped.length)
+            var pageSlice = deduped.slice(start, end)
+            txTableBody.innerHTML = pageSlice.map(function (tx) {
+                var appt = tx && tx.appointment ? tx.appointment : null
+                var patient = appt && appt.patient ? appt.patient : null
+                var patientId = patient && patient.user_id != null ? patient.user_id : ''
+                var patientName = txPatientName(tx)
                 var date = txDatePart(tx)
                 var ref = tx && tx.reference_number ? String(tx.reference_number) : '-'
-                var patient = txPatientName(tx)
-                var services = txServiceSummary(tx)
                 var type = appointmentTypeLabel(appt)
                 var gross = parseFloat(tx && tx.amount != null ? tx.amount : 0)
                 var disc = parseFloat(tx && tx.discount_amount != null ? tx.discount_amount : 0)
                 if (isNaN(gross)) gross = 0
                 if (isNaN(disc)) disc = 0
                 var net = Math.max(0, gross - disc)
-                var mode = tx && tx.payment_mode ? String(tx.payment_mode).toUpperCase() : 'CASH'
-                var badge = apptStatus ? '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border border-slate-200 bg-slate-50 text-slate-700">' + escapeHtml(apptStatus.replace(/_/g, ' ')) + '</span>' : ''
+                // Payment status from transaction
+                var payStatus = tx && tx.payment_status ? String(tx.payment_status).toLowerCase() : ''
+                var statusColors = { pending: 'border-amber-200 bg-amber-50 text-amber-700', paid: 'border-green-200 bg-green-50 text-green-700', failed: 'border-red-200 bg-red-50 text-red-700' }
+                var statusClass = statusColors[payStatus] || 'border-slate-200 bg-slate-50 text-slate-600'
+                var statusLabel = payStatus.charAt(0).toUpperCase() + payStatus.slice(1)
                 return '<tr>' +
-                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(date) + badge + '</td>' +
+                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(date) + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(ref) + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(patient) + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 min-w-[14rem] whitespace-nowrap">' + escapeHtml(services) + '</td>' +
+                    '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(patientName) + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(type) + '</td>' +
-                    '<td class="px-3 py-2 text-right text-slate-700 whitespace-nowrap">' + escapeHtml(money(gross)) + '</td>' +
-                    '<td class="px-3 py-2 text-right text-slate-700 whitespace-nowrap">' + escapeHtml(money(disc)) + '</td>' +
-                    '<td class="px-3 py-2 text-right text-slate-700 whitespace-nowrap">' + escapeHtml(money(net)) + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(mode) + '</td>' +
+                    '<td class="px-3 py-2 text-right text-slate-700 whitespace-nowrap font-medium">' + escapeHtml(money(net)) + '</td>' +
+                    '<td class="px-3 py-2 whitespace-nowrap"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border ' + statusClass + '">' + escapeHtml(statusLabel) + '</span></td>' +
+                    '<td class="px-3 py-2 whitespace-nowrap">' +
+                        '<button type="button" class="tx-see-history-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300" data-patient-id="' + escapeHtml(String(patientId)) + '" data-patient-name="' + escapeHtml(patientName) + '">See Details &amp; History</button>' +
+                    '</td>' +
                 '</tr>'
             }).join('')
+            renderTxPagination()
+        }
+
+        function renderTxPagination() {
+            if (!txPagination) return
+            var total = txAllRows.length
+            var totalPages = Math.max(1, Math.ceil(total / txPerPage))
+            if (txCurrentPage > totalPages) txCurrentPage = totalPages
+            if (txCurrentPage < 1) txCurrentPage = 1
+            if (total === 0) { txPagination.innerHTML = ''; return }
+            var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border '
+            var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer'
+            var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default'
+            var btnActive = btnBase + 'bg-green-600 text-white border-green-600'
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+            html += '<button type="button" class="' + (txCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (txCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            var ws = txCurrentPage
+            var we = Math.min(ws + txVisibleCount - 1, totalPages)
+            for (var i = ws; i <= we; i++) {
+                html += '<button type="button" class="' + (i === txCurrentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
+            }
+            if (we < totalPages) { html += '<button type="button" class="' + btnInactive + '" data-page="next-window" title="Next set">…</button>' }
+            html += '<button type="button" class="' + (txCurrentPage === totalPages ? btnDisabled : btnInactive) + '" data-page="next"' + (txCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            txPagination.innerHTML = html
+            txPagination.querySelectorAll('button[data-page]').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    var p = b.getAttribute('data-page')
+                    if (p === 'prev' && txCurrentPage > 1) { txCurrentPage--; renderTransactions(txAllRows) }
+                    else if (p === 'next' && txCurrentPage < totalPages) { txCurrentPage++; renderTransactions(txAllRows) }
+                    else if (p === 'next-window') { var ns = Math.min(we + 1, totalPages); txCurrentPage = ns; renderTransactions(txAllRows) }
+                    else if (p !== 'prev' && p !== 'next') { txCurrentPage = parseInt(p, 10); renderTransactions(txAllRows) }
+                })
+            })
         }
 
         function loadTransactions() {
@@ -660,6 +995,7 @@
 
             var url = "{{ url('/api/transactions') }}" + '?per_page=100'
             var order = txSort && txSort.value ? String(txSort.value) : 'latest'
+            txSortOrder = order
             url += '&order=' + encodeURIComponent(order === 'oldest' ? 'oldest' : 'latest')
 
             var now = new Date()
@@ -708,14 +1044,194 @@
                     })
 
                     renderTransactions(rows)
-                    if (txMeta) {
-                        txMeta.textContent = 'Showing ' + String(rows.length) + (txTodayOnly ? (' transactions for ' + today + '.') : ' transactions for this month.')
-                    }
                 })
                 .catch(function () {
                     showTransactionsError('Network error while loading transactions.')
                     renderTransactions([])
                 })
+        }
+
+        // ── Transaction History Modal ──
+        var txHistoryPatientId = null
+        var txHistoryTransactions = []
+
+        function openTxHistoryModal(patientId, patientName) {
+            txHistoryPatientId = patientId
+            var subtitle = document.getElementById('receptionTxHistorySubtitle')
+            if (subtitle) subtitle.textContent = patientName || 'Patient #' + patientId
+            var body = document.getElementById('receptionTxHistoryBody')
+            if (body) body.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading history…</div>'
+            var detailBody = document.getElementById('receptionTxHistoryDetailBody')
+            if (detailBody) detailBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select a transaction to view details.</div>'
+            var overlay = document.getElementById('receptionTxHistoryOverlay')
+            if (overlay) {
+                overlay.classList.remove('hidden')
+                overlay.classList.add('flex')
+            }
+            loadTxPatientHistory(patientId)
+        }
+
+        function closeTxHistoryModal() {
+            var overlay = document.getElementById('receptionTxHistoryOverlay')
+            if (overlay) {
+                overlay.classList.add('hidden')
+                overlay.classList.remove('flex')
+            }
+            txHistoryPatientId = null
+            txHistoryTransactions = []
+        }
+
+        function loadTxPatientHistory(patientId) {
+            if (!patientId) return
+            apiFetch("{{ url('/api/transactions') }}?per_page=100&patient_id=" + patientId, { method: 'GET' })
+                .then(function (response) {
+                    return response.json().then(function (data) { return { ok: response.ok, data: data } }).catch(function () { return { ok: false, data: null } })
+                })
+                .then(function (result) {
+                    if (!result.ok) {
+                        var body = document.getElementById('receptionTxHistoryBody')
+                        if (body) body.innerHTML = '<div class="text-center text-[0.78rem] text-red-500 py-8">Failed to load history.</div>'
+                        return
+                    }
+                    txHistoryTransactions = Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    var subtitle = document.getElementById('receptionTxHistorySubtitle')
+                    if (subtitle) {
+                        var first = txHistoryTransactions[0]
+                        var label = first && first.appointment && first.appointment.patient ? txPatientName(first) : ('Patient #' + patientId)
+                        subtitle.textContent = label + ' - ' + txHistoryTransactions.length + ' transaction(s)'
+                    }
+                    renderTxHistory()
+                })
+                .catch(function () {
+                    var body = document.getElementById('receptionTxHistoryBody')
+                    if (body) body.innerHTML = '<div class="text-center text-[0.78rem] text-red-500 py-8">Network error loading history.</div>'
+                })
+        }
+
+        function renderTxHistory() {
+            var body = document.getElementById('receptionTxHistoryBody')
+            if (!body) return
+            var list = txHistoryTransactions.slice()
+            list.sort(function (a, b) {
+                var da = (a.transaction_datetime || a.created_at || '')
+                var db = (b.transaction_datetime || b.created_at || '')
+                return da < db ? 1 : (da > db ? -1 : 0)
+            })
+            if (!list.length) {
+                body.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No transactions found.</div>'
+                return
+            }
+            var html = ''
+            list.forEach(function (tx) {
+                var appt = tx && tx.appointment ? tx.appointment : null
+                var dt = tx.transaction_datetime ? String(tx.transaction_datetime).replace('T', ' ').slice(0, 16) : '-'
+                var ref = tx && tx.reference_number ? String(tx.reference_number) : '-'
+                var gross = parseFloat(tx && tx.amount != null ? tx.amount : 0)
+                var disc = parseFloat(tx && tx.discount_amount != null ? tx.discount_amount : 0)
+                if (isNaN(gross)) gross = 0
+                if (isNaN(disc)) disc = 0
+                var net = Math.max(0, gross - disc)
+                var payStatus = tx && tx.payment_status ? String(tx.payment_status).toLowerCase() : ''
+                var statusColors = { pending: 'border-amber-200 bg-amber-50 text-amber-700', paid: 'border-green-200 bg-green-50 text-green-700', failed: 'border-red-200 bg-red-50 text-red-700' }
+                var statusClass = statusColors[payStatus] || 'border-slate-200 bg-slate-50 text-slate-600'
+                var statusLabel = payStatus.charAt(0).toUpperCase() + payStatus.slice(1)
+                html += '<div class="rounded-xl border border-slate-200 bg-white p-3 hover:border-green-200 transition-colors cursor-pointer tx-history-row" data-tx-id="' + (tx.transaction_id || '') + '">' +
+                    '<div class="flex items-center justify-between mb-1">' +
+                        '<span class="text-[0.78rem] font-semibold text-slate-800">' + escapeHtml(dt) + '</span>' +
+                        '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border ' + statusClass + '">' + escapeHtml(statusLabel) + '</span>' +
+                    '</div>' +
+                    '<div class="text-[0.72rem] text-slate-500">Ref: ' + escapeHtml(ref) + ' · Net: ' + escapeHtml(money(net)) + '</div>' +
+                '</div>'
+            })
+            body.innerHTML = html
+            // Auto-select first
+            if (list.length) {
+                var firstId = list[0].transaction_id
+                selectTxHistoryItem(firstId)
+            }
+            body.querySelectorAll('.tx-history-row').forEach(function (row) {
+                row.addEventListener('click', function () {
+                    var txId = this.getAttribute('data-tx-id')
+                    selectTxHistoryItem(txId)
+                })
+            })
+        }
+
+        function selectTxHistoryItem(txId) {
+            if (!txId) return
+            // Highlight selected
+            var rows = document.querySelectorAll('#receptionTxHistoryBody .tx-history-row')
+            rows.forEach(function (r) { r.classList.remove('border-green-500', 'ring-1', 'ring-green-200'); r.classList.add('border-slate-200') })
+            var selected = document.querySelector('#receptionTxHistoryBody .tx-history-row[data-tx-id="' + txId + '"]')
+            if (selected) { selected.classList.remove('border-slate-200'); selected.classList.add('border-green-500', 'ring-1', 'ring-green-200') }
+            var tx = txHistoryTransactions.find(function (t) { return String(t.transaction_id) === String(txId) })
+            if (tx) renderTxHistoryDetail(tx)
+        }
+
+        function renderTxHistoryDetail(tx) {
+            var detailBody = document.getElementById('receptionTxHistoryDetailBody')
+            if (!detailBody) return
+            if (!tx) {
+                detailBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select a transaction to view details.</div>'
+                return
+            }
+            var appt = tx && tx.appointment ? tx.appointment : null
+            var patient = appt && appt.patient ? appt.patient : null
+            var doctor = appt && appt.doctor ? appt.doctor : null
+            var patientName = txPatientName(tx)
+            var doctorName = doctor ? (doctor.firstname || '') + ' ' + (doctor.lastname || '') : '-'
+            var gross = parseFloat(tx && tx.amount != null ? tx.amount : 0)
+            var disc = parseFloat(tx && tx.discount_amount != null ? tx.discount_amount : 0)
+            if (isNaN(gross)) gross = 0
+            if (isNaN(disc)) disc = 0
+            var net = Math.max(0, gross - disc)
+            var discType = tx && tx.discount_type ? String(tx.discount_type) : 'none'
+            var mode = tx && tx.payment_mode ? String(tx.payment_mode).toUpperCase() : 'CASH'
+            var txnDate = tx.transaction_datetime ? String(tx.transaction_datetime).replace('T', ' ').slice(0, 16) : '-'
+            var payStatus = tx && tx.payment_status ? String(tx.payment_status).toLowerCase() : ''
+            var paid = parseFloat(tx && tx.money_paid != null ? tx.money_paid : (tx.amount || 0))
+            if (isNaN(paid)) paid = gross
+            var change = Math.max(0, paid - net)
+
+            var details = {
+                'Patient': patientName,
+                'Doctor': doctorName,
+                'Services': txServicesHtml(tx),
+                'Gross Amount': money(gross),
+                'Discount Type': discType,
+                'Discount Amount': money(disc),
+                'Net Amount': money(net),
+                'Payment Mode': mode,
+                'Transaction Date': txnDate,
+                'Paid': money(paid),
+                'Change': money(change),
+            }
+            detailBody.innerHTML = '<div class="max-w-sm mx-auto">' + formatReceiptHtml(details, true) + '<div class="text-center mt-3"><button type="button" onclick="window.print()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-[0.72rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300">\ud83d\udde8\ufe0f Print / PDF</button></div></div>'
+        }
+
+        // ── Event delegation for See Details & History button ──
+        var txTableBody = document.getElementById('receptionTransactionsTableBody')
+        if (txTableBody) {
+            txTableBody.addEventListener('click', function (e) {
+                var btn = e.target.closest('.tx-see-history-btn')
+                if (btn) {
+                    var pid = btn.getAttribute('data-patient-id')
+                    var pname = btn.getAttribute('data-patient-name')
+                    if (pid) openTxHistoryModal(pid, pname)
+                }
+            })
+        }
+
+        // ── Modal close ──
+        var txHistOverlay = document.getElementById('receptionTxHistoryOverlay')
+        var txHistClose = document.getElementById('receptionTxHistoryClose')
+        if (txHistOverlay) {
+            txHistOverlay.addEventListener('click', function (e) {
+                if (e.target === txHistOverlay) closeTxHistoryModal()
+            })
+        }
+        if (txHistClose) {
+            txHistClose.addEventListener('click', closeTxHistoryModal)
         }
 
         function renderTxServiceResults() {
@@ -776,35 +1292,62 @@
         updateDiscountUI()
         resetAppointmentSelection()
 
-        if (appointmentSearch) {
-            appointmentSearch.addEventListener('focus', function () {
+        // ── Browse button opens appointment modal ──
+        if (browseBtn) {
+            browseBtn.addEventListener('click', function () {
                 showPaymentError('')
                 showPaymentSuccess('')
-                searchAppointments(String(appointmentSearch.value || '').trim())
+                openAppointmentModal()
             })
-            appointmentSearch.addEventListener('input', function () {
-                var q = String(appointmentSearch.value || '').trim()
-                if (selectedAppointment) {
-                    var current = '#' + String(selectedAppointment.appointment_id || '') + ' - ' + appointmentPatientName(selectedAppointment)
-                    if (normalizeText(current) !== normalizeText(q)) {
-                        resetAppointmentSelection()
-                    }
-                }
-                if (appointmentSearchTimer) clearTimeout(appointmentSearchTimer)
-                appointmentSearchTimer = setTimeout(function () {
-                    searchAppointments(q)
+        }
+        if (appointmentDisplay) {
+            appointmentDisplay.addEventListener('click', function () {
+                showPaymentError('')
+                showPaymentSuccess('')
+                openAppointmentModal()
+            })
+        }
+
+        // ── Appointment Modal events ──
+        if (apptModalClose) apptModalClose.addEventListener('click', closeAppointmentModal)
+        if (apptModalCancel) apptModalCancel.addEventListener('click', closeAppointmentModal)
+        if (apptModalSelect) apptModalSelect.addEventListener('click', confirmApptModalSelection)
+        if (apptModal) {
+            apptModal.addEventListener('click', function (e) {
+                if (e.target === apptModal) closeAppointmentModal()
+            })
+        }
+        if (apptModalSearch) {
+            var apptModalSearchTimer = null
+            apptModalSearch.addEventListener('input', function () {
+                if (apptModalSearchTimer) clearTimeout(apptModalSearchTimer)
+                apptModalSearchTimer = setTimeout(function () {
+                    loadTodayAppointments(String(apptModalSearch.value || '').trim())
                 }, 250)
             })
         }
 
+        // ── Review overlay events ──
         if (reviewCancel) reviewCancel.addEventListener('click', function () { closeReview(false) })
-        if (reviewConfirm) reviewConfirm.addEventListener('click', function () { closeReview(true) })
+        if (reviewConfirm) {
+            reviewConfirm.addEventListener('click', function () {
+                if (reviewConfirming) return
+                reviewConfirming = true
+                reviewConfirm.disabled = true
+                reviewConfirm.innerHTML = '<span class="inline-flex items-center gap-2"><span class="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span><span>Processing...</span></span>'
+                closeReview(true)
+            })
+        }
+        if (reviewPrintBtn) {
+            reviewPrintBtn.addEventListener('click', function () { window.print() })
+        }
         if (reviewOverlay) {
             reviewOverlay.addEventListener('click', function (e) {
                 if (e.target === reviewOverlay) closeReview(false)
             })
         }
 
+        // ── Payment form submit ──
         if (paymentForm) {
             paymentForm.addEventListener('submit', function (e) {
                 e.preventDefault()
@@ -830,18 +1373,23 @@
                 var discount = showDiscount ? discountAmount(selectedAppointment) : 0
                 var net = Math.max(0, gross - discount)
                 var transactionDatetime = currentSqlDatetime()
+                var amountPaid = moneyPaidInput ? parseFloat(moneyPaidInput.value || '0') : 0
+                if (isNaN(amountPaid)) amountPaid = 0
+                var changeAmount = Math.max(0, amountPaid - net)
 
                 var details = {
                     'Appointment ID': String(appointmentId),
                     'Patient': appointmentPatientName(selectedAppointment),
                     'Doctor': appointmentDoctorName(selectedAppointment),
+                    'Services': appointmentServicesHtml(selectedAppointment),
                     'Gross Amount': money(gross),
                     'Discount Type': discountType,
                     'Discount Amount': money(discount),
                     'Net Amount': money(net),
                     'Payment Mode': 'cash',
-                    'Payment Status': 'paid',
                     'Transaction Date': transactionDatetime,
+                    'Paid': money(amountPaid),
+                    'Change': money(changeAmount),
                 }
 
                 setPaymentSubmitting(true)
@@ -860,7 +1408,7 @@
                                 amount: gross,
                                 discount_type: discountType,
                                 payment_mode: 'cash',
-                                payment_status: 'paid',
+                                money_paid: amountPaid,
                                 transaction_datetime: transactionDatetime
                             })
                         })
@@ -872,11 +1420,17 @@
                                     showPaymentError((result.data && result.data.message) ? String(result.data.message) : 'Failed to record payment.')
                                     return
                                 }
-                                var txId = result.data && result.data.transaction_id ? result.data.transaction_id : null
-                                var ref = result.data && result.data.reference_number ? result.data.reference_number : ''
-                                showPaymentSuccess('Payment recorded successfully.' + (txId ? (' Transaction #' + txId + '.') : ''))
-                                if (referenceDisplay) referenceDisplay.textContent = ref ? String(ref) : 'Auto-generated on save'
-                                if (appointmentSearch) appointmentSearch.value = ''
+                                // Use server response data for accurate Paid and Change values
+                                var sv = result && result.data && result.data.data ? result.data.data : result.data
+                                if (sv) {
+                                    var svPaid = parseFloat(sv.money_paid != null ? sv.money_paid : amountPaid)
+                                    var svChange = parseFloat(sv.money_change != null ? sv.money_change : changeAmount)
+                                    if (isNaN(svPaid)) svPaid = amountPaid
+                                    if (isNaN(svChange)) svChange = changeAmount
+                                    details['Paid'] = money(svPaid)
+                                    details['Change'] = money(svChange)
+                                }
+                                showReceipt(details)
                                 resetAppointmentSelection()
                                 showDiscount = false
                                 updateDiscountUI()
@@ -939,11 +1493,6 @@
 
         document.addEventListener('click', function (e) {
             var target = e.target
-            if (appointmentResults && !appointmentResults.classList.contains('hidden')) {
-                if (!(appointmentResults.contains(target) || (appointmentSearch && appointmentSearch.contains(target)))) {
-                    appointmentResults.classList.add('hidden')
-                }
-            }
             if (txServiceResults && !txServiceResults.classList.contains('hidden')) {
                 if (!(txServiceResults.contains(target) || (txServiceSearch && txServiceSearch.contains(target)))) {
                     txServiceResults.classList.add('hidden')

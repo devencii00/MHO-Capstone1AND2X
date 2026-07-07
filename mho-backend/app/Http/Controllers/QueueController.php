@@ -907,6 +907,16 @@ class QueueController extends Controller
 
         $nextStatus = array_key_exists('status', $data) ? $data['status'] : null;
 
+        // Lock: if queue is in a terminal/locked state, reject further modifications
+        $lockedStatuses = ['consulted', 'done', 'cancelled', 'no_show', 'skipped'];
+        $currentStatus = strtolower(trim((string) $queue->status));
+        if (in_array($currentStatus, $lockedStatuses, true)) {
+            return response()->json([
+                'message' => 'Queue entry is locked and cannot be modified. Current status: ' . $currentStatus . '.',
+                'code' => 'QUEUE_LOCKED',
+            ], 422);
+        }
+
         if ($nextStatus === 'done') {
             $queue->loadMissing('appointment');
             $appointmentId = (int) (optional($queue->appointment)->appointment_id ?? 0);
@@ -1024,6 +1034,16 @@ class QueueController extends Controller
 
     public function move(Request $request, Queue $queue)
     {
+        // Lock: prevent moving queue entries in terminal/locked states
+        $lockedStatuses = ['consulted', 'done', 'cancelled', 'no_show', 'skipped'];
+        $currentStatus = strtolower(trim((string) $queue->status));
+        if (in_array($currentStatus, $lockedStatuses, true)) {
+            return response()->json([
+                'message' => 'Queue entry is locked and cannot be moved. Current status: ' . $currentStatus . '.',
+                'code' => 'QUEUE_LOCKED',
+            ], 422);
+        }
+
         $data = $request->validate([
             'direction' => ['required', 'in:up,down'],
         ]);
@@ -1032,7 +1052,7 @@ class QueueController extends Controller
 
         $todayQueues = Queue::query()
             ->whereDate('queue_datetime', $queue->queue_datetime ? $queue->queue_datetime->toDateString() : now()->toDateString())
-            ->whereIn('status', ['waiting', 'serving', 'consulted', 'on_hold'])
+            ->whereIn('status', ['waiting', 'serving', 'on_hold'])
             ->orderBy('queue_number')
             ->get()
             ->values();

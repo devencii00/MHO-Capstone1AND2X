@@ -145,6 +145,16 @@ class TransactionController extends Controller
 
         $appointment = Appointment::query()->with('services')->findOrFail((int) $data['appointment_id']);
 
+        // Only allow transactions for "consulted" appointments
+        $appointmentStatus = strtolower(trim((string) ($appointment->status ?? '')));
+        if ($appointmentStatus !== 'consulted') {
+            return response()->json([
+                'message' => 'Payment can only be recorded for appointments with "Consulted" status.',
+                'code' => 'APPOINTMENT_NOT_CONSULTED',
+                'appointment_status' => $appointmentStatus,
+            ], 422);
+        }
+
         if (! isset($data['discount_type'])) {
             $data['discount_type'] = 'none';
         }
@@ -172,6 +182,14 @@ class TransactionController extends Controller
             $data['amount'] = 0;
         }
         $data['discount_amount'] = round($baseAmount * (float) $discountRates[$selectedDiscountType], 2);
+
+        // Handle money_paid and auto-calculate money_change
+        if (isset($data['money_paid']) && $data['money_paid'] !== null && $data['money_paid'] !== '') {
+            $paid = (float) $data['money_paid'];
+            $netAmount = (float) ($data['amount'] ?? 0) - (float) ($data['discount_amount'] ?? 0);
+            if ($netAmount < 0) $netAmount = 0;
+            $data['money_change'] = round(max(0, $paid - $netAmount), 2);
+        }
 
         if (! isset($data['payment_status']) || ! $data['payment_status']) {
             $data['payment_status'] = 'pending';
@@ -211,7 +229,6 @@ class TransactionController extends Controller
                 $updateData['receipt_path'] = $receiptPath;
             }
             $transaction->update($updateData);
-            $this->markLinkedAppointmentConsulted((int) $transaction->appointment_id, $updateData);
             $this->markLinkedAppointmentCompleted((int) $transaction->appointment_id);
             $this->notifyReceptionistsForPaymentStatus($originalPaymentStatus, (string) ($transaction->payment_status ?? ''));
             $this->notifyPatientForPaymentStatus($transaction, $originalPaymentStatus, (string) ($transaction->payment_status ?? ''));
@@ -235,7 +252,6 @@ class TransactionController extends Controller
         }
 
         $transaction = Transaction::create($data);
-        $this->markLinkedAppointmentConsulted((int) $transaction->appointment_id, $data);
         $this->markLinkedAppointmentCompleted((int) $transaction->appointment_id);
         $this->notifyReceptionistsForPaymentStatus(null, (string) ($transaction->payment_status ?? ''));
         $this->notifyPatientForPaymentStatus($transaction, null, (string) ($transaction->payment_status ?? ''));
@@ -478,7 +494,6 @@ class TransactionController extends Controller
         $originalPaymentStatus = (string) ($transaction->payment_status ?? '');
 
         $transaction->update($data);
-        $this->markLinkedAppointmentConsulted((int) $transaction->appointment_id, $data);
         $this->markLinkedAppointmentCompleted((int) $transaction->appointment_id);
         $this->notifyReceptionistsForPaymentStatus($originalPaymentStatus, (string) ($transaction->payment_status ?? ''));
         $this->notifyPatientForPaymentStatus($transaction, $originalPaymentStatus, (string) ($transaction->payment_status ?? ''));
@@ -603,47 +618,6 @@ class TransactionController extends Controller
             ->where('appointment_id', (int) $appointment->appointment_id)
             ->whereIn('status', ['waiting', 'serving', 'consulted'])
             ->update(['status' => 'done']);
-    }
-
-    private function markLinkedAppointmentConsulted(int $appointmentId, array $payload = []): void
-    {
-        if ($appointmentId < 1 || ! $this->hasConsultationPayload($payload)) {
-            return;
-        }
-
-        $appointment = Appointment::query()->find($appointmentId);
-        if (! $appointment) {
-            return;
-        }
-
-        if ((string) $appointment->status !== 'completed' && (string) $appointment->status !== 'consulted') {
-            $appointment->status = 'consulted';
-            $appointment->save();
-        }
-
-        Queue::query()
-            ->where('appointment_id', (int) $appointment->appointment_id)
-            ->whereNotIn('status', ['done', 'cancelled', 'no_show', 'skipped'])
-            ->update(['status' => 'consulted']);
-    }
-
-    private function hasConsultationPayload(array $payload): bool
-    {
-        if (array_key_exists('visit_datetime', $payload)) {
-            return true;
-        }
-
-        foreach (['diagnosis', 'treatment_notes'] as $field) {
-            if (! array_key_exists($field, $payload)) {
-                continue;
-            }
-
-            if ($payload[$field] !== null && trim((string) $payload[$field]) !== '') {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private function resolveTransactionDate(Transaction $transaction): Carbon
