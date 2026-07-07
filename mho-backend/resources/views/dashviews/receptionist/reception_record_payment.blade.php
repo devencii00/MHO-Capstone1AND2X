@@ -71,7 +71,7 @@
                 <div class="grid gap-3 grid-cols-1 md:grid-cols-2">
                     <div>
                         <label for="reception_payment_money_paid" class="block text-[0.7rem] text-slate-600 mb-1">Money paid</label>
-                        <input id="reception_payment_money_paid" type="number" step="0.01" min="0" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="0.00">
+                        <input id="reception_payment_money_paid" type="text" inputmode="decimal" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="0.00">
                     </div>
                 </div>
             </div>
@@ -320,6 +320,17 @@
         var discountDisplay = document.getElementById('receptionPaymentDiscountAmountDisplay')
         var netDisplay = document.getElementById('receptionPaymentNetAmountDisplay')
         var moneyPaidInput = document.getElementById('reception_payment_money_paid')
+        if (moneyPaidInput) {
+            moneyPaidInput.addEventListener('input', function () {
+                var raw = this.value.replace(/[^0-9.]/g, '')
+                var parts = raw.split('.')
+                if (parts.length > 2) parts = [parts[0], parts.slice(1).join('')]
+                if (parts[0]) {
+                    parts[0] = parseInt(parts[0], 10).toLocaleString('en-US')
+                }
+                this.value = parts[0] + (parts.length > 1 && parts[1] !== undefined ? '.' + parts[1] : '')
+            })
+        }
         var discountToggle = document.getElementById('receptionPaymentToggleDiscount')
         var discountWrap = document.getElementById('receptionPaymentDiscountWrap')
         var discountTypeSelect = document.getElementById('reception_payment_discount_type')
@@ -1373,7 +1384,7 @@
                 var discount = showDiscount ? discountAmount(selectedAppointment) : 0
                 var net = Math.max(0, gross - discount)
                 var transactionDatetime = currentSqlDatetime()
-                var amountPaid = moneyPaidInput ? parseFloat(moneyPaidInput.value || '0') : 0
+                var amountPaid = moneyPaidInput ? parseFloat((moneyPaidInput.value || '0').replace(/,/g, '')) : 0
                 if (isNaN(amountPaid)) amountPaid = 0
                 var changeAmount = Math.max(0, amountPaid - net)
 

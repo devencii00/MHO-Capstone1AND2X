@@ -48,32 +48,48 @@
                     <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Front desk</span>
                 </div>
                 <div class="grid gap-3 grid-cols-1 sm:grid-cols-3 text-sm text-slate-600 shrink-0">
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                        <div class="text-xs text-slate-500 mb-1">New registrations</div>
+                    <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[0.78rem] text-slate-500">New registrations</span>
+                            <x-lucide-user-plus class="w-[17px] h-[17px] text-green-600" />
+                        </div>
                         <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($newRegistrationsToday) }}</div>
                     </div>
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                        <div class="text-xs text-slate-500 mb-1">Appointments booked</div>
+                    <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[0.78rem] text-slate-500">Appointments booked</span>
+                            <x-lucide-calendar-check class="w-[17px] h-[17px] text-green-600" />
+                        </div>
                         <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($appointmentsToday) }}</div>
                     </div>
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                        <div class="text-xs text-slate-500 mb-1">Waiting in queue</div>
+                    <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[0.78rem] text-slate-500">Waiting in queue</span>
+                            <x-lucide-clock class="w-[17px] h-[17px] text-green-600" />
+                        </div>
                         <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($waitingInQueue) }}</div>
                     </div>
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                        <div class="text-xs text-slate-500 mb-1">Walk-ins</div>
-                        <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($walkInsToday) }}</div>
+                    <div class="sm:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[0.78rem] text-slate-500">Walk-ins</span>
+                                <x-lucide-door-open class="w-[17px] h-[17px] text-green-600" />
+                            </div>
+                            <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($walkInsToday) }}</div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[0.78rem] text-slate-500">Current queue count</span>
+                                <x-lucide-users class="w-[17px] h-[17px] text-green-600" />
+                            </div>
+                            <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($currentQueueCount) }}</div>
+                        </div>
                     </div>
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                        <div class="text-xs text-slate-500 mb-1">Pending requests</div>
-                        <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($pendingQueueRequests) }}</div>
-                    </div>
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                        <div class="text-xs text-slate-500 mb-1">Current queue count</div>
-                        <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($currentQueueCount) }}</div>
-                    </div>
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 sm:col-span-3">
-                        <div class="text-xs text-slate-500 mb-1">Today&apos;s transactions (paid)</div>
+                    <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)] sm:col-span-3">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[0.78rem] text-slate-500">Today's transactions (paid)</span>
+                            <x-lucide-coins class="w-[17px] h-[17px] text-green-600" />
+                        </div>
                         <div class="font-serif font-bold text-xl text-slate-900">₱{{ number_format($transactionsToday, 2) }}</div>
                     </div>
                 </div>
