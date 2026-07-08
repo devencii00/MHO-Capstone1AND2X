@@ -89,8 +89,12 @@ return new class extends Migration
     $table->index('parent_user_id');
     $table->index('is_dependent');
     $table->index('account_activated');
-    $table->index(['lastname', 'firstname'], 'idx_users_name_search');
     $table->index('created_at');
+    $table->index('firstname', 'idx_users_firstname');
+    $table->index('lastname', 'idx_users_lastname');
+    $table->index('contact_number');
+    $table->index('email');
+
 });
     }
 
