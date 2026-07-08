@@ -26,8 +26,6 @@ return new class extends Migration
             $table->unsignedInteger('skip_count')->default(0);
             $table->unsignedInteger('skip_turns_remaining')->default(0);
 
-
-
             $table->softDeletes();
             $table->timestamps();
 

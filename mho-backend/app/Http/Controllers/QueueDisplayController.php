@@ -112,10 +112,11 @@ class QueueDisplayController extends Controller
             $avg = (int) ($avgMinutesByDoctor[$docId] ?? $defaultMinutesPerPatient);
             foreach ($sorted as $idx => $row) {
                 $aheadCount = (int) $idx;
+                $estimatedWait = ((string) ($row->status ?? '') === 'serving') ? 0 : max(0, $aheadCount * $avg);
                 $estimatedByQueueId[(int) $row->queue_id] = [
                     'ahead_count' => $aheadCount,
                     'avg_service_minutes' => $avg,
-                    'estimated_wait_minutes' => ((string) ($row->status ?? '') === 'serving') ? 0 : max(0, $aheadCount * $avg),
+                    'estimated_wait_minutes' => $estimatedWait,
                 ];
             }
         }

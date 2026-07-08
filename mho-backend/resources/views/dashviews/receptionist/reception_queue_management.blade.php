@@ -1740,7 +1740,7 @@
             if (minutes == null) return ''
             var n = parseInt(minutes, 10)
             if (isNaN(n) || n < 1) return ''
-            return 'Est. wait ' + n + ' mins'
+            return 'Est. ' + n + 'min - ' + (n + 5) + 'min'
         }
 
         function buildQueueDisplay(payload) {
@@ -2001,5 +2001,7 @@
                 }
             }
         }
+
+        // Static estimated wait - calculated on page load from API data
     })
 </script>

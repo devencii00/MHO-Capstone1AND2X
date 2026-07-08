@@ -358,6 +358,13 @@
                                     return n || '---'
                                 }
 
+                                function waitLabel(minutes) {
+                                    if (minutes == null) return ''
+                                    var n = parseInt(minutes, 10)
+                                    if (isNaN(n) || n < 1) return ''
+                                    return 'Est. ' + n + 'min - ' + (n + 5) + 'min'
+                                }
+
                                 var serving = queuePayload && Array.isArray(queuePayload.now_serving) ? queuePayload.now_serving : []
                                 var next = queuePayload && Array.isArray(queuePayload.next) ? queuePayload.next.slice(0, 5) : []
                                 var waitingCount = queuePayload && queuePayload.counts && queuePayload.counts.waiting != null
@@ -396,10 +403,9 @@ if (!next.length) {
                 var nm = q && q.patient && q.patient.name ? String(q.patient.name) : 'Patient';
                 var qn = queueLabel(q);
                 var doctorName = q && q.doctor && q.doctor.name ? String(q.doctor.name) : 'Doctor';
-                var est = q && q.estimated_wait_minutes != null ? parseInt(String(q.estimated_wait_minutes), 10) : null;
-                
-                var estLabel = (est != null && !isNaN(est) && est > 0) 
-                    ? `<span class="text-slate-400 text-[0.7rem] block mt-0.5">(est. ${est} min)</span>` 
+                var estLabel = waitLabel(q && q.estimated_wait_minutes != null ? q.estimated_wait_minutes : null);
+                estLabel = estLabel
+                    ? `<span class="text-slate-400 text-[0.7rem] block mt-0.5">${escapeHtml(estLabel)}</span>`
                     : '';
 
                 return `

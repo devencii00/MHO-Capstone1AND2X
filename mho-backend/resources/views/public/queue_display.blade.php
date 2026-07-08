@@ -129,68 +129,7 @@
             if (minutes == null) return '';
             var n = parseInt(minutes, 10);
             if (isNaN(n) || n < 1) return '';
-            return 'Est. waiting ' + n + ' mins';
-        }
-
-        function deadlineStorageKey(queueId) {
-            return 'queueDeadline:' + String(date || '') + ':' + String(queueId || '');
-        }
-
-        function getOrInitDeadline(queueId, estimatedMinutes) {
-            var id = String(queueId || '');
-            if (!id) return null;
-            var key = deadlineStorageKey(id);
-            var existing = null;
-            try {
-                existing = window.localStorage ? window.localStorage.getItem(key) : null;
-            } catch (e) {
-                existing = null;
-            }
-
-            var parsed = existing ? parseInt(existing, 10) : NaN;
-            var nowMs = Date.now();
-            var est = estimatedMinutes == null ? null : parseInt(estimatedMinutes, 10);
-            var proposed = (est != null && !isNaN(est) && est >= 0) ? (nowMs + (est * 60 * 1000)) : null;
-
-            var deadline = (!isNaN(parsed) && parsed > 0) ? parsed : proposed;
-            if (deadline == null) return null;
-            if (proposed != null && deadline > proposed) {
-                deadline = proposed;
-            }
-
-            try {
-                if (window.localStorage) {
-                    window.localStorage.setItem(key, String(deadline));
-                }
-            } catch (e) {
-            }
-
-            return deadline;
-        }
-
-        function formatCountdownMinutes(msRemaining) {
-            var ms = msRemaining <= 0 ? 0 : msRemaining;
-            var mins = Math.ceil(ms / (60 * 1000));
-            if (!mins || isNaN(mins) || mins < 0) mins = 0;
-            return mins;
-        }
-
-        function updateCountdowns() {
-            if (!nextList) return;
-            var els = nextList.querySelectorAll('.queue-wait-timer');
-            for (var i = 0; i < els.length; i++) {
-                var el = els[i];
-                var qid = el.getAttribute('data-queue-id');
-                var est = el.getAttribute('data-est-minutes');
-                var deadline = getOrInitDeadline(qid, est);
-                if (!deadline) {
-                    el.textContent = '';
-                    continue;
-                }
-                var remaining = deadline - Date.now();
-                var minsLeft = formatCountdownMinutes(remaining);
-                el.textContent = 'Est. waiting: ' + minsLeft + ' min';
-            }
+            return 'Est. ' + n + 'min - ' + (n + 5) + 'min';
         }
 
         function render(payload) {
@@ -243,7 +182,6 @@
                 var qn = displayQueueLabel(q);
                 var patient = q && q.patient && q.patient.name ? q.patient.name : 'Patient';
                 var doctor = q && q.doctor && q.doctor.name ? q.doctor.name : 'Doctor';
-                var qid = q && q.queue_id != null ? String(q.queue_id) : '';
                 var wait = waitLabel(q && q.estimated_wait_minutes != null ? q.estimated_wait_minutes : null);
                 return '' +
                     '<div class="rounded-2xl border border-slate-800 bg-slate-900/40 px-4 py-3 flex items-center justify-between gap-4">' +
@@ -253,13 +191,11 @@
                             '<div class="text-[0.75rem] text-slate-400 mt-0.5">' + escapeHtml(doctor) + '</div>' +
                         '</div>' +
                         '<div class="text-right text-[0.7rem] text-slate-400">' +
-                            (qid && (q && q.estimated_wait_minutes != null) ? ('<div class="queue-wait-timer" data-queue-id="' + escapeHtml(qid) + '" data-est-minutes="' + escapeHtml(String(q.estimated_wait_minutes)) + '">' + escapeHtml(wait) + '</div>') : '') +
+                            (wait ? ('<div class="text-slate-400">' + escapeHtml(wait) + '</div>') : '') +
                             (q && q.priority_level != null ? ('<div>Priority ' + escapeHtml(q.priority_level) + '</div>') : '') +
                         '</div>' +
                     '</div>';
             }).join('');
-
-            updateCountdowns();
         }
 
         function load() {
@@ -328,8 +264,7 @@
             }
         })();
 
-        // Local countdown ticker (does not fetch data)
-        setInterval(updateCountdowns, 30000);
+        // Static estimated wait - calculated on page load from API data
     })();
 </script>
 </body>
