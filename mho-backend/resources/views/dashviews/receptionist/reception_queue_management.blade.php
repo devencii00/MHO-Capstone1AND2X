@@ -4,6 +4,18 @@
         ->filter(function ($row) {
             return strtolower((string) ($row->status ?? '')) !== 'no_show';
         })
+        ->sortBy(function ($row) {
+            $status = strtolower((string) ($row->status ?? ''));
+            $statusRank = match ($status) {
+                'waiting', 'skipped' => 0,
+                'serving' => 1,
+                'on_hold' => 2,
+                default => 3,
+            };
+            $priority = (int) ($row->priority_level ?? 5);
+            $number = (int) ($row->queue_number ?? 999999);
+            return str_pad((string) $statusRank, 6, '0', STR_PAD_LEFT) . '-' . str_pad((string) $priority, 6, '0', STR_PAD_LEFT) . '-' . str_pad((string) $number, 6, '0', STR_PAD_LEFT);
+        })
         ->values();
     $doctorSlots = collect($receptionDoctorSlots ?? [])
         ->filter(function ($slot) {
@@ -11,17 +23,24 @@
         })
         ->values();
     $servingItems = $queueItems->where('status', 'serving')->values()->take(4)->values();
-    $waitingItems = $queueItems
+    $boardItems = $queueItems
         ->filter(function ($row) {
-            return ($row->status ?? null) === 'waiting';
+            return in_array((string) ($row->status ?? ''), ['waiting', 'skipped', 'on_hold'], true);
         })
         ->sortBy(function ($row) {
+            $status = strtolower((string) ($row->status ?? ''));
+            // Skipped entries keep the same rank as waiting so queue_number position is respected
+            $statusRank = match ($status) {
+                'waiting', 'skipped' => 0,
+                'on_hold' => 1,
+                default => 2,
+            };
             $priority = (int) ($row->priority_level ?? 5);
             $number = (int) ($row->queue_number ?? 999999);
-            return str_pad((string) $priority, 6, '0', STR_PAD_LEFT) . '-' . str_pad((string) $number, 6, '0', STR_PAD_LEFT);
+            return str_pad((string) $statusRank, 6, '0', STR_PAD_LEFT) . '-' . str_pad((string) $priority, 6, '0', STR_PAD_LEFT) . '-' . str_pad((string) $number, 6, '0', STR_PAD_LEFT);
         })
         ->values();
-    $nextItems = $waitingItems->take(5);
+    $nextItems = $boardItems->take(5);
     $doctorPanelItems = $doctorSlots->map(function ($slot) use ($queueItems) {
         $doctorId = (int) ($slot->doctor_id ?? 0);
         $doctorName = optional($slot->doctor)->personalInformation->full_name ?? 'Doctor';
@@ -243,6 +262,11 @@
                             $dateKey = $queue->queue_datetime ? $queue->queue_datetime->format('Y-m-d H:i') : '';
                             $queueId = $queue->queue_id ?? null;
                             $priority = (int) ($queue->priority_level ?? 5);
+                            $priorityLabel = match ($priority) {
+                                1 => 'Emergency',
+                                2 => 'Priority',
+                                default => 'Regular',
+                            };
                             $services = collect(optional(optional($queue)->appointment)->services ?? [])
                                 ->filter(function ($s) { return $s && $s->service_name; })
                                 ->values()
@@ -336,7 +360,7 @@
                                     <span class="text-[0.7rem] text-slate-400">No service</span>
                                 @endif
                             </td>
-                            <td class="py-2 pr-4 text-[0.78rem] text-slate-500">{{ $priority }}</td>
+                            <td class="py-2 pr-4 text-[0.78rem] text-slate-500">{{ $priority }} - {{ $priorityLabel }}</td>
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
                                 {{ $dateKey }}
                             </td>
@@ -381,7 +405,7 @@
                                                         @if (strtolower($statusName) !== 'skipped')
                                                         <button type="button" class="w-full text-left px-3 py-1.5 text-[0.72rem] text-slate-700 hover:bg-slate-50 reception-queue-status flex items-center gap-2" data-queue-id="{{ $queueId }}" data-status="skipped">
                                                             <x-lucide-skip-forward class="w-[14px] h-[14px] text-orange-500" />
-                                                            Skip
+                                                            Skipped
                                                         </button>
                                                         @endif
                                                         @if (strtolower($statusName) !== 'on_hold')
@@ -532,10 +556,8 @@
                     <label for="receptionQueueConfigPriority" class="block text-[0.65rem] text-slate-600 mb-1">Priority level</label>
                     <select id="receptionQueueConfigPriority" class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                         <option value="1">1 : Emergency</option>
-                        <option value="2">2 : PWD</option>
-                        <option value="3">3 : Pregnant</option>
-                        <option value="4">4 : Senior</option>
-                        <option value="5">5 : General</option>
+                        <option value="2">2 : Priority</option>
+                        <option value="5">5 : Regular</option>
                     </select>
                 </div>
 
@@ -902,9 +924,7 @@
             if (configMeta) configMeta.textContent = metaText || ('Queue #' + String(queueId))
             if (configPriority) {
                 var p = parseInt(priorityLevel, 10)
-                if (!p || isNaN(p)) p = 5
-                if (p < 1) p = 1
-                if (p > 5) p = 5
+                    if (p !== 1 && p !== 2 && p !== 5) p = 5
                 configPriority.value = String(p)
             }
             if (configMoveSteps) configMoveSteps.value = '1'
@@ -928,9 +948,7 @@
         function updateQueuePriority(nextLevel) {
             if (!configQueueId || typeof apiFetch !== 'function') return Promise.resolve(false)
             var level = parseInt(nextLevel, 10)
-            if (!level || isNaN(level)) level = 5
-            if (level < 1) level = 1
-            if (level > 5) level = 5
+            if (level !== 1 && level !== 2 && level !== 5) level = 5
 
             if (configSave) configSave.disabled = true
             showConfigError('')
@@ -1270,15 +1288,15 @@
                 var sb = String(b.getAttribute('data-status') || '').toLowerCase()
 
                 function statusRank(s) {
+                    // Skipped stays in queue_number order with waiting
                     if (s === 'serving') return 0
-                    if (s === 'waiting') return 1
+                    if (s === 'waiting' || s === 'skipped') return 1
                     if (s === 'on_hold') return 2
                     if (s === 'consulted') return 3
                     if (s === 'done') return 4
                     if (s === 'cancelled') return 5
-                    if (s === 'skipped') return 6
-                    if (s === 'no_show') return 7
-                    return 8
+                    if (s === 'no_show') return 6
+                    return 7
                 }
                 var ra = statusRank(sa)
                 var rb = statusRank(sb)
@@ -1608,10 +1626,7 @@
                     }
 
                     showQueueSuccess(successMessage || 'Queue updated.')
-                    // Silently refresh the entire main content via page loader
                     refreshFullPage()
-                    loadQueueRequests()
-                    fetchQueueSnapshot()
                 })
                 .catch(function () {
                     showQueueError('Network error while updating queue.')
@@ -1926,51 +1941,50 @@
             renderQueuePagination()
         }
 
-        // ── Helper: silently refresh entire main content via page loader fetch ──
+        // ── Helper: refresh only the queue table via targeted fetch ──
+        var __refreshPending = false
         function refreshFullPage() {
-            var url = window.location.href
-            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                .then(function (r) { return r.text(); })
+            if (__refreshPending) return
+            __refreshPending = true
+
+            var tbody = document.getElementById('receptionQueueTableBody')
+            if (!tbody) { __refreshPending = false; return }
+
+            fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (r) { return r.text() })
                 .then(function (html) {
                     var parser = new DOMParser()
                     var doc = parser.parseFromString(html, 'text/html')
-                    var newContent = doc.getElementById('main-content')
-                    if (newContent) {
-                        // Flag to prevent duplicate init on re-execution
-                        window.__queueRefreshing = true
-                        document.getElementById('main-content').innerHTML = newContent.innerHTML
-                        // Re-run scripts in the new content
-                        Array.prototype.forEach.call(document.getElementById('main-content').querySelectorAll('script'), function (oldScript) {
-                            var newScript = document.createElement('script')
-                            Array.prototype.forEach.call(oldScript.attributes, function (attr) {
-                                newScript.setAttribute(attr.name, attr.value)
-                            })
-                            newScript.textContent = oldScript.textContent
-                            oldScript.parentNode.replaceChild(newScript, oldScript)
-                        })
-                        document.dispatchEvent(new Event('DOMContentLoaded'))
-                        // Restore sidebar scroll
-                        var sidebarEl = document.getElementById('sidebar-aside')
-                        if (sidebarEl) {
-                            var saved = null
-                            try { saved = window.localStorage.getItem('sidebar_scroll_top') } catch (_) {}
-                            if (saved) sidebarEl.scrollTop = parseInt(saved, 10) || 0
-                        }
+                    var newTbody = doc.getElementById('receptionQueueTableBody')
+                    if (newTbody) {
+                        tbody.innerHTML = newTbody.innerHTML
                     }
+                    // Update the rows variable for search/sort/pagination
+                    rows = Array.prototype.slice.call(document.querySelectorAll('.reception-queue-row'))
+                    applyReceptionQueueFilters()
+                    initQueuePagination()
                 })
                 .catch(function () {
                     window.location.reload()
                 })
+                .finally(function () {
+                    __refreshPending = false
+                })
         }
 
-        // Only set up polling and Echo listener once (not after each refresh)
+        // Refresh button: replace table with "Loading queue…" while fetching
         var queueRefreshBtn = document.getElementById('recQueueRefreshBtn')
         if (queueRefreshBtn) {
             queueRefreshBtn.addEventListener('click', function () {
+                var tbody = document.getElementById('receptionQueueTableBody')
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="py-4 text-center text-[0.78rem] text-slate-400">Loading queue…</td></tr>'
+                }
                 refreshFullPage()
             })
         }
 
+        // Echo listener: refresh table on queue updates (debounced by __refreshPending)
         if (!window.__queueInited) {
             window.__queueInited = true
             fetchQueueSnapshot()
@@ -1978,13 +1992,7 @@
             if (typeof window.Echo !== 'undefined' && window.Echo) {
                 try {
                     window.Echo.private('queue.all')
-                        .listen('.queue.updated', function (data) {
-                            var timeReceived = Date.now();
-                            if (data && data.fired_at) {
-                                var absoluteDelay = timeReceived - data.fired_at;
-                                console.log('[ReceptionQueue] Reverb fired: ' + absoluteDelay + 'ms');
-                            }
-                            document.dispatchEvent(new CustomEvent('queue:updated', { detail: data }));
+                        .listen('.queue.updated', function () {
                             refreshFullPage()
                         })
                     console.log('[ReceptionQueue] Echo listener attached to private queue.all')

@@ -266,7 +266,8 @@
                     if (!user) return ''
                     var parts = [user.firstname, user.middlename, user.lastname].filter(function (v) { return String(v || '').trim() !== '' })
                     var name = parts.join(' ').trim()
-                    if (!name) name = 'User #' + (user.user_id || '')
+                    if (!name) name = String(user.email || '').trim()
+                    if (!name) name = 'Patient'
                     return name
                 }
 
@@ -758,7 +759,8 @@ if (!next.length) {
                         if (!user) return ''
                         var parts = [user.firstname, user.middlename, user.lastname].filter(function (v) { return String(v || '').trim() !== '' })
                         var name = parts.join(' ').trim()
-                        if (!name) name = 'User #' + (user.user_id || '')
+                        if (!name) name = String(user.email || '').trim()
+                        if (!name) name = 'Patient'
                         return name
                     }
 

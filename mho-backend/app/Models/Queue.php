@@ -25,6 +25,20 @@ class Queue extends Model
     public const STATUS_SKIPPED = 'skipped';
     public const STATUS_ON_HOLD = 'on_hold';
 
+    public const ACTIVE_STATUSES = [
+        self::STATUS_WAITING,
+        self::STATUS_SERVING,
+        self::STATUS_SKIPPED,
+        self::STATUS_ON_HOLD,
+    ];
+
+    public const TERMINAL_STATUSES = [
+        self::STATUS_CONSULTED,
+        self::STATUS_DONE,
+        self::STATUS_CANCELLED,
+        self::STATUS_NO_SHOW,
+    ];
+
     public const STATUSES = [
         self::STATUS_WAITING,
         self::STATUS_SERVING,
@@ -43,10 +57,14 @@ class Queue extends Model
         'queue_datetime',
         'status',
         'priority_level',
+        'skip_count',
+        'skip_turns_remaining',
     ];
 
     protected $casts = [
         'queue_datetime' => 'datetime',
+        'skip_count' => 'integer',
+        'skip_turns_remaining' => 'integer',
     ];
 
     protected static function booted(): void
@@ -57,13 +75,12 @@ class Queue extends Model
                 $appointment = Appointment::query()->find((int) $queue->appointment_id, ['appointment_id', 'patient_id', 'priority_level']);
                 if ($appointment) {
                     $priorityLevel = self::sanitizePriorityLevel($appointment->priority_level);
-                    if ($priorityLevel === null) {
-                        $priorityLevel = self::priorityLevelForPatientId((int) $appointment->patient_id);
-                    }
                 }
             }
 
             $queue->priority_level = $priorityLevel ?? 5;
+            $queue->skip_count = max(0, (int) ($queue->skip_count ?? 0));
+            $queue->skip_turns_remaining = max(0, (int) ($queue->skip_turns_remaining ?? 0));
 
             $queueCode = is_string($queue->queue_code) ? trim($queue->queue_code) : '';
             if ($queueCode === '') {
@@ -73,6 +90,12 @@ class Queue extends Model
 
         static::updating(function (self $queue) {
             if (! $queue->isDirty('priority_level')) {
+                if ($queue->isDirty('skip_count')) {
+                    $queue->skip_count = max(0, (int) ($queue->skip_count ?? 0));
+                }
+                if ($queue->isDirty('skip_turns_remaining')) {
+                    $queue->skip_turns_remaining = max(0, (int) ($queue->skip_turns_remaining ?? 0));
+                }
                 return;
             }
 
@@ -97,36 +120,8 @@ class Queue extends Model
             return null;
         }
 
-        if ($value < 1) {
-            $value = 1;
-        }
-        if ($value > 5) {
-            $value = 5;
-        }
-
-        return $value;
-    }
-
-    public static function priorityLevelForPatientId(int $patientId): ?int
-    {
-        $approvedTypes = PatientVerification::query()
-            ->where('patient_id', $patientId)
-            ->where('status', 'approved')
-            ->pluck('type')
-            ->map(fn ($t) => is_string($t) ? strtolower(trim($t)) : '')
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
-
-        if (in_array('pwd', $approvedTypes, true)) {
-            return 2;
-        }
-        if (in_array('pregnant', $approvedTypes, true)) {
-            return 3;
-        }
-        if (in_array('senior', $approvedTypes, true)) {
-            return 4;
+        if ($value === 1 || $value === 2) {
+            return $value;
         }
 
         return 5;
@@ -138,10 +133,8 @@ class Queue extends Model
 
         return match ($level) {
             1 => 'EMG',
-            2 => 'PW',
-            3 => 'PR',
-            4 => 'SN',
-            default => 'GN',
+            2 => 'PRI',
+            default => 'REG',
         };
     }
 
@@ -160,39 +153,29 @@ class Queue extends Model
         return $candidate;
     }
 
-    public static function basePriorityScore(?int $priorityLevel): int
+    public static function activeStatuses(): array
     {
-        $level = self::sanitizePriorityLevel($priorityLevel) ?? 5;
-        $base = (6 - $level) * 1000;
-        return max(0, (int) $base);
+        return self::ACTIVE_STATUSES;
     }
 
-    public static function waitScoreWeight(): int
+    public static function terminalStatuses(): array
     {
-        $weight = (int) env('QUEUE_WAIT_SCORE_WEIGHT', 1);
-        if ($weight < 0) {
-            $weight = 0;
-        }
-        if ($weight > 60) {
-            $weight = 60;
-        }
-        return $weight;
+        return self::TERMINAL_STATUSES;
     }
 
-    public function totalScore($now = null): int
+    public static function statusRank(?string $status): int
     {
-        $base = self::basePriorityScore($this->priority_level ?? 5);
-        $weight = self::waitScoreWeight();
-
-        $waited = 0;
-        try {
-            $ref = $now ?: now();
-            $waited = $this->queue_datetime ? max(0, (int) $this->queue_datetime->diffInMinutes($ref)) : 0;
-        } catch (\Throwable $e) {
-            $waited = 0;
-        }
-
-        return $base + ($waited * $weight);
+        return match (strtolower(trim((string) $status))) {
+            self::STATUS_SERVING => 0,
+            self::STATUS_WAITING => 1,
+            self::STATUS_SKIPPED => 2,
+            self::STATUS_ON_HOLD => 3,
+            self::STATUS_CONSULTED => 4,
+            self::STATUS_DONE => 5,
+            self::STATUS_CANCELLED => 6,
+            self::STATUS_NO_SHOW => 7,
+            default => 8,
+        };
     }
 
     public function appointment()

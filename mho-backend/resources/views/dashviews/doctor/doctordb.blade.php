@@ -31,7 +31,12 @@
             return (string) $v !== '';
         });
         $name = trim(implode(' ', $parts));
-        return $name !== '' ? $name : ('User #' . ($user->user_id ?? ''));
+        if ($name !== '') {
+            return $name;
+        }
+
+        $email = trim((string) ($user->email ?? ''));
+        return $email !== '' ? $email : 'Patient';
     };
 
     $sectionKey = $section ?? 'overview';

@@ -5,11 +5,13 @@
             $rank = match ($status) {
                 'serving' => 0,
                 'waiting' => 1,
-                'consulted' => 2,
-                'done' => 3,
-                'no_show' => 4,
-                'cancelled' => 5,
-                default => 6,
+                'skipped' => 2,
+                'on_hold' => 3,
+                'consulted' => 4,
+                'done' => 5,
+                'cancelled' => 6,
+                'no_show' => 7,
+                default => 8,
             };
 
             return sprintf(
@@ -113,16 +115,22 @@
                             <td class="py-2 pr-4 text-right">
                                 @if ($queueId && ! in_array($statusName, ['done', 'cancelled', 'no_show'], true))
                                     <div class="inline-flex items-center gap-1.5">
-                                        @if ($statusName === 'waiting')
+                                        @if (in_array($statusName, ['waiting', 'skipped', 'on_hold'], true))
                                             <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-[0.7rem] text-slate-600 hover:bg-slate-50 doctor-queue-status" data-queue-id="{{ $queueId }}" data-status="serving">
                                                 <x-lucide-play class="w-[16px] h-[16px]" />
-                                                Serving
+                                                Serve
                                             </button>
                                         @endif
-                                        @if (in_array($statusName, ['waiting', 'serving', 'on_hold'], true))
-                                            <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-2 py-1 text-[0.7rem] text-rose-700 hover:bg-rose-50 doctor-queue-status" data-queue-id="{{ $queueId }}" data-status="no_show">
-                                                <x-lucide-user-x class="w-[16px] h-[16px]" />
-                                                No show
+                                        @if ($statusName !== 'skipped')
+                                            <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-orange-200 px-2 py-1 text-[0.7rem] text-orange-700 hover:bg-orange-50 doctor-queue-status" data-queue-id="{{ $queueId }}" data-status="skipped">
+                                                <x-lucide-skip-forward class="w-[16px] h-[16px]" />
+                                                Skipped
+                                            </button>
+                                        @endif
+                                        @if ($statusName !== 'on_hold')
+                                            <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-purple-200 px-2 py-1 text-[0.7rem] text-purple-700 hover:bg-purple-50 doctor-queue-status" data-queue-id="{{ $queueId }}" data-status="on_hold">
+                                                <x-lucide-pause class="w-[16px] h-[16px]" />
+                                                On hold
                                             </button>
                                         @endif
                                         @if ($statusName === 'consulted')
@@ -212,12 +220,12 @@
                 function statusRank(status) {
                     if (status === 'serving') return 0
                     if (status === 'waiting') return 1
-                    if (status === 'consulted') return 2
+                    if (status === 'skipped') return 2
                     if (status === 'on_hold') return 3
-                    if (status === 'done') return 4
-                    if (status === 'no_show') return 5
-                    if (status === 'skipped') return 6
-                    if (status === 'cancelled') return 7
+                    if (status === 'consulted') return 4
+                    if (status === 'done') return 5
+                    if (status === 'cancelled') return 6
+                    if (status === 'no_show') return 7
                     return 8
                 }
 

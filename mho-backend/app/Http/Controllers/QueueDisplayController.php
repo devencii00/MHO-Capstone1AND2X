@@ -40,35 +40,21 @@ class QueueDisplayController extends Controller
         $items = $query->get();
 
         $activeStatuses = $items->filter(function ($q) {
-            $status = (string) ($q->status ?? '');
-            return $status === 'waiting' || $status === 'serving';
+            return in_array((string) ($q->status ?? ''), Queue::activeStatuses(), true);
         })->values();
 
         $waiting = $activeStatuses
             ->filter(function ($q) {
-                return (string) ($q->status ?? '') === 'waiting';
+                return (string) ($q->status ?? '') === Queue::STATUS_WAITING;
             })
-            ->sort(function (Queue $a, Queue $b) {
-                if ($a->status === 'serving' && $b->status !== 'serving') {
-                    return -1;
-                }
-                if ($b->status === 'serving' && $a->status !== 'serving') {
-                    return 1;
-                }
+            ->sort(fn (Queue $a, Queue $b) => $this->compareQueueOrder($a, $b))
+            ->values();
 
-                $now = now();
-                $sa = $a->totalScore($now);
-                $sb = $b->totalScore($now);
-                if ($sa !== $sb) {
-                    return $sb <=> $sa;
-                }
-                $na = (int) ($a->queue_number ?? 999999);
-                $nb = (int) ($b->queue_number ?? 999999);
-                if ($na !== $nb) {
-                    return $na <=> $nb;
-                }
-                return (int) ($a->queue_id ?? 0) <=> (int) ($b->queue_id ?? 0);
+        $boardQueue = $activeStatuses
+            ->filter(function ($q) {
+                return (string) ($q->status ?? '') !== Queue::STATUS_SERVING;
             })
+            ->sort(fn (Queue $a, Queue $b) => $this->compareQueueOrder($a, $b))
             ->values();
 
         $defaultMinutesPerPatient = (int) env('QUEUE_MINUTES_PER_PATIENT', 10);
@@ -118,27 +104,7 @@ class QueueDisplayController extends Controller
             }
             $avgMinutesByDoctor[$docId] = $avg;
 
-            $now = now();
-            $sortedByDoctor[$docId] = collect($group)->sort(function (Queue $a, Queue $b) use ($now) {
-                if ($a->status === 'serving' && $b->status !== 'serving') {
-                    return -1;
-                }
-                if ($b->status === 'serving' && $a->status !== 'serving') {
-                    return 1;
-                }
-
-                $sa = $a->totalScore($now);
-                $sb = $b->totalScore($now);
-                if ($sa !== $sb) {
-                    return $sb <=> $sa;
-                }
-                $na = (int) ($a->queue_number ?? 999999);
-                $nb = (int) ($b->queue_number ?? 999999);
-                if ($na !== $nb) {
-                    return $na <=> $nb;
-                }
-                return (int) ($a->queue_id ?? 0) <=> (int) ($b->queue_id ?? 0);
-            })->values();
+            $sortedByDoctor[$docId] = collect($group)->sort(fn (Queue $a, Queue $b) => $this->compareQueueOrder($a, $b))->values();
         }
 
         $estimatedByQueueId = [];
@@ -154,7 +120,7 @@ class QueueDisplayController extends Controller
             }
         }
 
-        $next = $waiting->take(10)->values();
+        $next = $boardQueue->take(10)->values();
 
         $formatPerson = function ($user, string $fallback) {
             if (! $user) {
@@ -444,5 +410,32 @@ class QueueDisplayController extends Controller
         }
 
         return now()->toDateString();
+    }
+
+    private function compareQueueOrder(Queue $a, Queue $b): int
+    {
+        $statusCompare = Queue::statusRank($a->status) <=> Queue::statusRank($b->status);
+        if ($statusCompare !== 0) {
+            return $statusCompare;
+        }
+
+        $priorityCompare = (Queue::sanitizePriorityLevel($a->priority_level) ?? 5)
+            <=> (Queue::sanitizePriorityLevel($b->priority_level) ?? 5);
+        if ($priorityCompare !== 0) {
+            return $priorityCompare;
+        }
+
+        $numberCompare = (int) ($a->queue_number ?? 999999) <=> (int) ($b->queue_number ?? 999999);
+        if ($numberCompare !== 0) {
+            return $numberCompare;
+        }
+
+        $timeCompare = (optional($a->queue_datetime)?->getTimestamp() ?? PHP_INT_MAX)
+            <=> (optional($b->queue_datetime)?->getTimestamp() ?? PHP_INT_MAX);
+        if ($timeCompare !== 0) {
+            return $timeCompare;
+        }
+
+        return (int) ($a->queue_id ?? 0) <=> (int) ($b->queue_id ?? 0);
     }
 }

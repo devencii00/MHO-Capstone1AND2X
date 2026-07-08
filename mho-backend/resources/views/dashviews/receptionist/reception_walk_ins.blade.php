@@ -195,13 +195,11 @@
                 <select id="reception_walkin_priority" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                     <option value="">Select priority</option>
                     <option value="1">1 : Emergency</option>
-                    <option value="2">2 : PWD</option>
-                    <option value="3">3 : Pregnant</option>
-                    <option value="4">4 : Senior</option>
-                    <option value="5">5 : General</option>
+                    <option value="2">2 : Priority</option>
+                    <option value="5">5 : Regular</option>
                 </select>
                 <div id="receptionWalkInPriorityHelp" class="mt-1 text-[0.68rem] text-slate-500">
-                    Manual priority stays available until an approved patient type is found.
+                    Reception manually assigns Emergency, Priority, or Regular based on the situation.
                 </div>
             </div>
 
@@ -288,10 +286,8 @@
                 <select id="reception_guest_priority_level" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                     <option value="">Select priority</option>
                     <option value="1">1 : Emergency</option>
-                    <option value="2">2 : PWD</option>
-                    <option value="3">3 : Pregnant</option>
-                    <option value="4">4 : Senior</option>
-                    <option value="5">5 : General</option>
+                    <option value="2">2 : Priority</option>
+                    <option value="5">5 : Regular</option>
                 </select>
             </div>
 <div class="flex items-end self-end">
@@ -3105,47 +3101,32 @@ function setWalkInTab(tab) {
         function priorityTypeLabel(level) {
             var value = parseInt(level, 10)
             if (value === 1) return 'Emergency'
-            if (value === 2) return 'PWD'
-            if (value === 3) return 'Pregnant'
-            if (value === 4) return 'Senior'
-            if (value === 5) return 'General'
+            if (value === 2) return 'Priority'
+            if (value === 5) return 'Regular'
             return ''
         }
 
         function verificationPriorityLevel(type) {
-            var key = normalizeText(type || '')
-            if (key === 'pwd') return 2
-            if (key === 'pregnant') return 3
-            if (key === 'senior') return 4
             return null
         }
 
         function syncPriorityInputState() {
             if (!priorityInput) return
             var verificationType = normalizeText(approvedVerificationType || '')
-            var autoPriorityLevel = getAppointmentType() === 'walk_in' ? verificationPriorityLevel(verificationType) : null
-
-            if (autoPriorityLevel !== null) {
-                priorityInput.value = String(autoPriorityLevel)
-                priorityInput.disabled = true
-                if (priorityHelp) {
-                    priorityHelp.textContent = 'Priority is auto-set from approved patient type: ' + verificationTypeLabel(verificationType) + '.'
-                }
-                return
-            }
-
             priorityInput.disabled = false
             if (getAppointmentType() !== 'walk_in') {
                 if (priorityHelp) priorityHelp.textContent = 'Priority can be adjusted manually for this appointment.'
                 return
             }
 
-            if (verificationType === 'none') {
-                if (priorityHelp) priorityHelp.textContent = 'Approved patient type is None, so priority stays manual.'
+            if (verificationType && verificationType !== 'none') {
+                if (priorityHelp) {
+                    priorityHelp.textContent = 'Verified patient type: ' + verificationTypeLabel(verificationType) + '. Priority is still assigned manually.'
+                }
                 return
             }
 
-            if (priorityHelp) priorityHelp.textContent = 'Manual priority stays available until an approved patient type is found.'
+            if (priorityHelp) priorityHelp.textContent = 'Reception manually assigns Emergency, Priority, or Regular based on the situation.'
         }
 
         function loadApprovedPatientVerification(patientId) {

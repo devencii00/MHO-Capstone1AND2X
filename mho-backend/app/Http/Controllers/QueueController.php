@@ -70,8 +70,7 @@ class QueueController extends Controller
         }
 
         $doctorDateCache = [];
-        $scoreNow = now();
-        $snapshotForDoctorDate = function (int $doctorId, string $date) use (&$doctorDateCache, $defaultMinutesPerPatient, $scoreNow): array {
+        $snapshotForDoctorDate = function (int $doctorId, string $date) use (&$doctorDateCache, $defaultMinutesPerPatient): array {
             $key = $doctorId.'|'.$date;
             if (array_key_exists($key, $doctorDateCache)) {
                 return (array) $doctorDateCache[$key];
@@ -83,7 +82,7 @@ class QueueController extends Controller
                     $q->where('doctor_id', $doctorId);
                 })
                 ->whereDate('queue_datetime', $date)
-                ->whereIn('status', ['waiting', 'serving'])
+                ->whereIn('status', Queue::activeStatuses())
                 ->get();
 
             $durations = [];
@@ -113,26 +112,7 @@ class QueueController extends Controller
                 }
             }
 
-            $sorted = $items->sort(function (Queue $a, Queue $b) use ($scoreNow) {
-                if ($a->status === 'serving' && $b->status !== 'serving') {
-                    return -1;
-                }
-                if ($b->status === 'serving' && $a->status !== 'serving') {
-                    return 1;
-                }
-
-                $sa = $a->totalScore($scoreNow);
-                $sb = $b->totalScore($scoreNow);
-                if ($sa !== $sb) {
-                    return $sb <=> $sa;
-                }
-                $na = (int) ($a->queue_number ?? 999999);
-                $nb = (int) ($b->queue_number ?? 999999);
-                if ($na !== $nb) {
-                    return $na <=> $nb;
-                }
-                return (int) ($a->queue_id ?? 0) <=> (int) ($b->queue_id ?? 0);
-            })->values();
+            $sorted = $items->sort(fn (Queue $a, Queue $b) => $this->compareQueueOrder($a, $b))->values();
 
             $positions = [];
             foreach ($sorted as $idx => $row) {
@@ -199,7 +179,7 @@ class QueueController extends Controller
 
         $exists = Queue::query()
             ->whereDate('queue_datetime', $date)
-            ->whereIn('status', ['waiting', 'serving'])
+            ->whereIn('status', Queue::activeStatuses())
             ->whereHas('appointment', function ($q) use ($patientId) {
                 $q->where('patient_id', $patientId);
             })
@@ -276,7 +256,7 @@ class QueueController extends Controller
             if ($patientId > 0) {
                 $duplicatePatient = Queue::query()
                     ->whereDate('queue_datetime', $today)
-                    ->whereIn('status', ['waiting', 'serving'])
+                    ->whereIn('status', Queue::activeStatuses())
                     ->whereHas('appointment', function ($q) use ($patientId) {
                         $q->where('patient_id', $patientId);
                     })
@@ -294,7 +274,7 @@ class QueueController extends Controller
             $existingQueue = Queue::query()
                 ->where('appointment_id', (int) $appointment->appointment_id)
                 ->whereDate('queue_datetime', $today)
-                ->whereIn('status', ['waiting', 'serving'])
+                ->whereIn('status', Queue::activeStatuses())
                 ->first();
 
             if ($existingQueue) {
@@ -383,7 +363,7 @@ class QueueController extends Controller
         $duplicateAppointment = Queue::query()
             ->where('appointment_id', (int) $data['appointment_id'])
             ->whereDate('queue_datetime', $date)
-            ->whereIn('status', ['waiting', 'serving'])
+            ->whereIn('status', Queue::activeStatuses())
             ->exists();
 
         if ($duplicateAppointment) {
@@ -397,7 +377,7 @@ class QueueController extends Controller
         if ($patientId > 0) {
             $duplicatePatient = Queue::query()
                 ->whereDate('queue_datetime', $date)
-                ->whereIn('status', ['waiting', 'serving'])
+                ->whereIn('status', Queue::activeStatuses())
                 ->whereHas('appointment', function ($q) use ($patientId) {
                     $q->where('patient_id', $patientId);
                 })
@@ -493,12 +473,14 @@ class QueueController extends Controller
                 $candidate = Queue::query()
                     ->with(['appointment.patient', 'appointment.doctor'])
                     ->whereDate('queue_datetime', $date)
-                    ->where('status', 'waiting')
+                    ->where('status', Queue::STATUS_WAITING)
                     ->whereHas('appointment', function ($q) use ($selectedDoctorId) {
                         $q->where('doctor_id', $selectedDoctorId);
                     })
+                    ->orderByRaw($this->priorityOrderExpression().' ASC')
                     ->orderByRaw('COALESCE(queue_number, 999999) ASC')
                     ->orderByRaw('COALESCE(queue_datetime, NOW()) ASC')
+                    ->orderBy('queue_id')
                     ->lockForUpdate()
                     ->first();
 
@@ -506,9 +488,7 @@ class QueueController extends Controller
                     return null;
                 }
 
-                $candidate->update(['status' => 'serving']);
-
-                return $candidate->refresh()->load(['appointment.patient', 'appointment.doctor']);
+                return $this->markQueueAsServing($candidate);
             });
 
             if (! $nextForDoctor) {
@@ -620,27 +600,18 @@ class QueueController extends Controller
             $availableDoctorIds = [$selectedDoctorId];
         }
 
-        $weight = Queue::waitScoreWeight();
-        $next = DB::transaction(function () use ($date, $availableDoctorIds, $weight) {
-            $baseExpr = "CASE COALESCE(priority_level, 5)
-                WHEN 1 THEN 5000
-                WHEN 2 THEN 4000
-                WHEN 3 THEN 3000
-                WHEN 4 THEN 2000
-                ELSE 1000
-            END";
-            $scoreExpr = "($baseExpr + (TIMESTAMPDIFF(MINUTE, COALESCE(queue_datetime, NOW()), NOW()) * ".((int) $weight)."))";
-
+        $next = DB::transaction(function () use ($date, $availableDoctorIds) {
             $candidate = Queue::query()
                 ->with(['appointment.patient', 'appointment.doctor'])
                 ->whereDate('queue_datetime', $date)
-                ->where('status', 'waiting')
+                ->where('status', Queue::STATUS_WAITING)
                 ->whereHas('appointment', function ($q) use ($availableDoctorIds) {
                     $q->whereIn('doctor_id', $availableDoctorIds);
                 })
-                ->orderByRaw($scoreExpr.' DESC')
+                ->orderByRaw($this->priorityOrderExpression().' ASC')
                 ->orderByRaw('COALESCE(queue_number, 999999) ASC')
                 ->orderByRaw('COALESCE(queue_datetime, NOW()) ASC')
+                ->orderBy('queue_id')
                 ->lockForUpdate()
                 ->first();
 
@@ -648,8 +619,7 @@ class QueueController extends Controller
                 return null;
             }
 
-            $candidate->update(['status' => 'serving']);
-            return $candidate->refresh()->load(['appointment.patient', 'appointment.doctor']);
+            return $this->markQueueAsServing($candidate);
         });
 
         if (! $next) {
@@ -746,7 +716,7 @@ class QueueController extends Controller
         $currentTime = now()->format('H:i:s');
         $activeExists = Queue::query()
             ->whereDate('queue_datetime', $today)
-            ->whereIn('status', ['waiting', 'serving'])
+            ->whereIn('status', Queue::activeStatuses())
             ->whereHas('appointment', function ($q) use ($targetPatientId) {
                 $q->where('patient_id', $targetPatientId);
             })
@@ -838,7 +808,7 @@ class QueueController extends Controller
             }
         }
 
-        $priorityLevel = Queue::priorityLevelForPatientId($targetPatientId) ?? 5;
+        $priorityLevel = 5;
 
         $result = DB::transaction(function () use ($currentUser, $data, $targetPatientId, $priorityLevel, $serviceIds) {
             $appointment = Appointment::create([
@@ -937,10 +907,54 @@ class QueueController extends Controller
         }
 
         DB::transaction(function () use ($queue, $data, $nextStatus) {
-            $queue->update($data);
+            $payload = $data;
+            $queue->loadMissing('appointment');
+
+            if ($nextStatus === Queue::STATUS_SKIPPED) {
+                $skipCount = max(0, (int) ($queue->skip_count ?? 0)) + 1;
+                $date = $queue->queue_datetime ? $queue->queue_datetime->toDateString() : now()->toDateString();
+
+                // Re-sequence: collect all active queues, remove this one,
+                // re-insert at (current_index + skipCount) positions back,
+                // then re-assign sequential queue_numbers to ALL.
+                // This prevents the "swap cycling" bug where two skipped queues
+                // just trade places back and forth.
+                $allActive = Queue::query()
+                    ->whereDate('queue_datetime', $date)
+                    ->whereIn('status', [Queue::STATUS_WAITING, Queue::STATUS_SKIPPED, Queue::STATUS_SERVING, Queue::STATUS_ON_HOLD])
+                    ->orderBy('queue_number')
+                    ->get();
+
+                $currentIdx = $allActive->search(function ($q) use ($queue) {
+                    return $q->queue_id === $queue->queue_id;
+                });
+
+                if ($currentIdx === false) {
+                    $currentIdx = $allActive->count() - 1;
+                }
+
+                $newIdx = min($currentIdx + $skipCount, $allActive->count() - 1);
+                $items = collect($allActive);
+                $movingItem = $items->splice($currentIdx, 1)->first();
+                if ($movingItem) {
+                    $items->splice($newIdx, 0, [$movingItem]);
+                }
+
+                // Re-assign sequential queue_numbers
+                foreach ($items->values() as $i => $q) {
+                    $q->update(['queue_number' => $i + 1]);
+                }
+
+                $payload['skip_count'] = $skipCount;
+            } elseif ($nextStatus === Queue::STATUS_SERVING) {
+                $payload['skip_turns_remaining'] = 0;
+            } elseif ($nextStatus !== null) {
+                $payload['skip_turns_remaining'] = 0;
+            }
+
+            $queue->update($payload);
 
             if ($nextStatus === 'serving') {
-                $queue->loadMissing('appointment');
                 $doctorId = $queue->appointment ? $queue->appointment->doctor_id : null;
                 $date = $queue->queue_datetime ? $queue->queue_datetime->toDateString() : null;
 
@@ -953,6 +967,8 @@ class QueueController extends Controller
                         ->whereDate('queue_datetime', $date)
                         ->where('status', 'serving')
                         ->update(['status' => 'waiting']);
+
+                    $this->activateSkippedQueuesAfterCall((int) $doctorId, $date, (int) $queue->queue_id);
                 }
             }
 
@@ -989,12 +1005,9 @@ class QueueController extends Controller
                     $notificationBody = 'Your queue entry is marked as done.';
                 } elseif ($queue->status === 'cancelled') {
                     $notificationBody = 'Your queue entry was cancelled.';
-                } elseif ($queue->status === 'no_show') {
-                    $notificationTitle = 'Queue Missed';
-                    $notificationBody = 'You missed your queue number.';
                 } elseif ($queue->status === 'skipped') {
                     $notificationTitle = 'Queue Skipped';
-                    $notificationBody = 'Your queue entry was skipped.';
+                    $notificationBody = 'Your queue entry was temporarily skipped and will be called again.';
                 } elseif ($queue->status === 'on_hold') {
                     $notificationTitle = 'Queue On Hold';
                     $notificationBody = 'Your queue entry has been placed on hold.';
@@ -1052,7 +1065,7 @@ class QueueController extends Controller
 
         $todayQueues = Queue::query()
             ->whereDate('queue_datetime', $queue->queue_datetime ? $queue->queue_datetime->toDateString() : now()->toDateString())
-            ->whereIn('status', ['waiting', 'serving', 'on_hold'])
+            ->whereIn('status', ['waiting', 'serving', 'skipped', 'on_hold'])
             ->orderBy('queue_number')
             ->get()
             ->values();
@@ -1109,6 +1122,75 @@ class QueueController extends Controller
     {
         $payload = Cache::store('file')->get('doctor_availability:'.$doctorId);
         return is_array($payload) && ($payload['is_available'] ?? null) === false;
+    }
+
+    private function priorityOrderExpression(string $column = 'priority_level'): string
+    {
+        return "CASE COALESCE($column, 5) WHEN 1 THEN 1 WHEN 2 THEN 2 ELSE 5 END";
+    }
+
+    private function compareQueueOrder(Queue $a, Queue $b): int
+    {
+        $statusCompare = Queue::statusRank($a->status) <=> Queue::statusRank($b->status);
+        if ($statusCompare !== 0) {
+            return $statusCompare;
+        }
+
+        $priorityCompare = (Queue::sanitizePriorityLevel($a->priority_level) ?? 5)
+            <=> (Queue::sanitizePriorityLevel($b->priority_level) ?? 5);
+        if ($priorityCompare !== 0) {
+            return $priorityCompare;
+        }
+
+        $numberCompare = (int) ($a->queue_number ?? 999999) <=> (int) ($b->queue_number ?? 999999);
+        if ($numberCompare !== 0) {
+            return $numberCompare;
+        }
+
+        $timeCompare = (optional($a->queue_datetime)?->getTimestamp() ?? PHP_INT_MAX)
+            <=> (optional($b->queue_datetime)?->getTimestamp() ?? PHP_INT_MAX);
+        if ($timeCompare !== 0) {
+            return $timeCompare;
+        }
+
+        return (int) ($a->queue_id ?? 0) <=> (int) ($b->queue_id ?? 0);
+    }
+
+    private function markQueueAsServing(Queue $queue): Queue
+    {
+        $queue->loadMissing('appointment');
+
+        $queue->update([
+            'status' => Queue::STATUS_SERVING,
+            'skip_turns_remaining' => 0,
+        ]);
+
+        $doctorId = (int) ($queue->appointment?->doctor_id ?? 0);
+        $date = $queue->queue_datetime ? $queue->queue_datetime->toDateString() : null;
+
+        if ($doctorId > 0 && $date) {
+            $this->activateSkippedQueuesAfterCall($doctorId, $date, (int) $queue->queue_id);
+        }
+
+        return $queue->refresh()->load(['appointment.patient', 'appointment.doctor']);
+    }
+
+    private function activateSkippedQueuesAfterCall(int $doctorId, string $date, ?int $exceptQueueId = null): void
+    {
+        // Set ALL skipped queues for this doctor/date back to waiting immediately
+        Queue::query()
+            ->whereDate('queue_datetime', $date)
+            ->where('status', Queue::STATUS_SKIPPED)
+            ->when($exceptQueueId, function ($query) use ($exceptQueueId) {
+                $query->where('queue_id', '!=', $exceptQueueId);
+            })
+            ->whereHas('appointment', function ($query) use ($doctorId) {
+                $query->where('doctor_id', $doctorId);
+            })
+            ->update([
+                'status' => Queue::STATUS_WAITING,
+                'skip_turns_remaining' => 0,
+            ]);
     }
 
     public function destroy(Request $request, Queue $queue)

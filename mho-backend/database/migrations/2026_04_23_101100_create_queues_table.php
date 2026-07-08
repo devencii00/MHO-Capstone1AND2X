@@ -23,6 +23,10 @@ return new class extends Migration
             $table->enum('status', ['waiting', 'serving', 'consulted', 'done', 'cancelled','no_show','skipped','on_hold'])->default('waiting');
 
             $table->integer('priority_level')->default(5);
+            $table->unsignedInteger('skip_count')->default(0);
+            $table->unsignedInteger('skip_turns_remaining')->default(0);
+
+
 
             $table->softDeletes();
             $table->timestamps();
