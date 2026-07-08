@@ -29,6 +29,11 @@ class Conversation extends Model
         return $this->hasMany(Message::class, 'conversation_id', 'conversation_id');
     }
 
+    public function latestMessage()
+    {
+        return $this->hasOne(Message::class, 'conversation_id', 'conversation_id')->latest('message_id');
+    }
+
     public static function ensureForPatient(int $patientId): self
     {
         $conversation = self::query()

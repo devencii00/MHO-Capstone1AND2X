@@ -1,4 +1,10 @@
-<div class="bg-white border border-slate-200 rounded-[18px] shadow-[0_2px_10px_rgba(15,23,42,0.04)] overflow-hidden">
+<div class="space-y-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-slate-900 mb-1">Patients Registration & Records</h1>
+        <p class="text-sm text-slate-500">Register new patients and browse patient records.</p>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-[18px] shadow-[0_2px_10px_rgba(15,23,42,0.04)] overflow-hidden">
     <div class="grid grid-cols-2 border-b border-slate-200">
         <button id="receptionPatientTabRegister" type="button" class="px-4 py-3 text-xs font-semibold text-white bg-green-500 border-b-2 border-green-600">
             Register patient
@@ -9,13 +15,6 @@
     </div>
 
     <div id="receptionRegisterPatientPanel" class="p-5">
-        <div class="flex items-center justify-between mb-3">
-            <div>
-                <h2 class="text-sm font-semibold text-slate-900">Register patient</h2>
-                <p class="text-xs text-slate-500">Create a patient account and capture basic details for front desk use.</p>
-            </div>
-            <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Patients</span>
-        </div>
 
         <div id="receptionRegisterPatientError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
         <div id="receptionRegisterPatientSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>

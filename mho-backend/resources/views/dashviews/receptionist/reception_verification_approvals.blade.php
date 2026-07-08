@@ -1,11 +1,10 @@
-<div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
-    <div class="flex items-center justify-between mb-2">
-        <h2 class="text-sm font-semibold text-slate-900"></h2>
-        <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Patients</span>
+<div class="space-y-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-slate-900 mb-1">Verification &amp; Approvals</h1>
+        <p class="text-sm text-slate-500">Review and approve pending patient verification requests.</p>
     </div>
-    <p class="text-xs text-slate-500 mb-4">
-       
 
+    <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
             <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Pending</div>

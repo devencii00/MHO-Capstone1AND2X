@@ -318,7 +318,6 @@
                 $isReceptionQueue = $currentSection === 'queue-management';
                 $isReceptionRecordPayments = $currentSection === 'record-payment';
                 $isReceptionVerificationOversight = $currentSection === 'verification-oversight';
-                $isReceptionMessages = $currentSection === 'messages';
                 $isReceptionSettings = $currentSection === 'settings-reception';
 
                 $groupHeaderBase = 'sidebar-group-header flex items-center justify-between gap-2 pt-4 pb-1 text-slate-400 text-[0.67rem] font-semibold uppercase tracking-widest';
@@ -405,22 +404,7 @@
             </div>
 
 
-            <div class="{{ $groupHeaderBase }}">
-                <div>Communication</div>
-                <button type="button" class="{{ $groupToggleBtn }} sidebar-group-toggle" data-group="reception-communication">
-                    <x-lucide-chevron-down class="sidebar-group-icon-expanded w-[18px] h-[18px]" />
-                    <x-lucide-chevron-right class="sidebar-group-icon-collapsed hidden w-[18px] h-[18px]" />
-                </button>
-            </div>
-            <div data-group-body="reception-communication">
-                <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'messages']) }}" class="{{ $navBase }} {{ $isReceptionMessages ? $navActive : $navInactive }}">
-                    <x-lucide-messages-square class="w-[18px] h-[18px] {{ $isReceptionMessages ? 'text-green-600' : '' }}" />
-                    Messages
-                    @if ($isReceptionMessages)
-                        
-                    @endif
-                </a>
-            </div>
+
 
             <div class="{{ $groupHeaderBase }}">
                 <div>System</div>

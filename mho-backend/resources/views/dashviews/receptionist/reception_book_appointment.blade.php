@@ -1,4 +1,10 @@
-<div class="bg-white border border-slate-200 rounded-[18px] shadow-[0_2px_10px_rgba(15,23,42,0.04)] overflow-hidden">
+<div class="space-y-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-slate-900 mb-1">Appointments Management</h1>
+        <p class="text-sm text-slate-500">Book and manage patient appointments efficiently.</p>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-[18px] shadow-[0_2px_10px_rgba(15,23,42,0.04)] overflow-hidden">
     <div class="grid grid-cols-2 border-b border-slate-200">
       <button id="receptionAppointmentTabBook" type="button" class="px-4 py-3 text-xs font-semibold text-white bg-green-500 border-b-2 border-green-600">
     Book appointment
@@ -9,14 +15,6 @@
     </div>
 
     <div id="receptionAppointmentPanelBook" class="p-5">
-        <div class="flex items-center justify-between mb-3">
-            <div>
-                <h2 class="text-sm font-semibold text-slate-900">Book appointment</h2>
-                <p class="text-xs text-slate-500">Create a new appointment for a patient and doctor.</p>
-            </div>
-            <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Appointments</span>
-        </div>
-
         <div id="receptionBookAppointmentError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
         <div id="receptionBookAppointmentSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
 
@@ -124,12 +122,8 @@
     </div>
 
     <div id="receptionAppointmentPanelManage" class="hidden p-5">
-        <div class="flex items-center justify-between mb-3 gap-3">
-            <div>
-                <h3 class="text-sm font-semibold text-slate-900">Manage appointment</h3>
-                <p class="text-xs text-slate-500">Search, update status, or mark check-in for an existing appointment.</p>
-            </div>
-           <div class="flex items-center gap-2">
+        <div class="flex items-center justify-end mb-3 gap-3">
+            <div class="flex items-center gap-2">
             <button id="receptionManageTodayOnlyBtn" type="button" class="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.75rem] font-semibold text-slate-700">
                 Show today only
             </button>

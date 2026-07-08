@@ -24,12 +24,23 @@
         <span class="text-slate-700 font-semibold">Dashboard</span>
     </div>
     <div class="relative flex items-center gap-3">
-        <button id="headerNotificationButton" class="w-8.5 h-8.5 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:border-green-400 hover:text-green-600 relative">
+        <!-- Messages Button -->
+        <button id="headerMessagesButton" class="px-3.5 h-8.5 rounded-lg border border-slate-200 bg-white flex items-center gap-2 text-slate-500 hover:border-green-400 hover:text-green-600 relative">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            <span class="text-[0.78rem] font-semibold text-slate-600">Messages</span>
+            <span id="headerMessagesBadge" class="hidden absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 border border-white text-white text-[0.62rem] font-semibold leading-[16px] text-center"></span>
+        </button>
+
+        <!-- Notifications Button -->
+        <button id="headerNotificationButton" class="px-3.5 h-8.5 rounded-lg border border-slate-200 bg-white flex items-center gap-2 text-slate-500 hover:border-green-400 hover:text-green-600 relative">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
-            <span id="headerNotificationDot" class="absolute top-1.5 right-1.5 w-1.75 h-1.75 rounded-full bg-red-500 border-2 border-white"></span>
+            <span class="text-[0.78rem] font-semibold text-slate-600">Notifications</span>
+            <span id="headerNotificationBadge" class="hidden absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 border border-white text-white text-[0.62rem] font-semibold leading-[16px] text-center"></span>
         </button>
 
         <div id="headerNotificationPanel" class="hidden absolute right-0 top-10 w-80 max-h-80 bg-white border border-slate-200 rounded-2xl shadow-[0_10px_30px_rgba(15,23,42,0.18)] overflow-hidden">
@@ -43,8 +54,31 @@
                 </div>
             </div>
         </div>
-    </div>
+
 </header>
+
+<!-- Messages Modal (must be outside <header> — backdrop-filter on header breaks fixed positioning) -->
+<div id="headerMessagesModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/70">
+    <div class="w-full max-w-4xl h-[85vh] mx-4 rounded-2xl bg-white border border-slate-200 shadow-[0_20px_80px_rgba(15,23,42,0.35)] flex flex-col overflow-hidden">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0">
+            <div>
+                <h2 class="text-sm font-semibold text-slate-900">Patient Messages</h2>
+                <p class="text-xs text-slate-500">Chat with patients for doctor reassignment and queue updates.</p>
+            </div>
+            <button type="button" id="headerMessagesModalClose" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <!-- Modal Body - inner panels handle scrolling -->
+        <div class="flex-1 min-h-0 p-5">
+            @include('dashviews.receptionist.recept_message')
+        </div>
+    </div>
+</div>
 
 <template id="headerIconNotificationAppointment">
     <x-lucide-calendar class="w-4 h-4 text-green-600" />
@@ -180,7 +214,68 @@
             })
         }
 
-        function markNotificationsRead(items, dot) {
+        function isMessageNotification(item) {
+            if (!item) {
+                return false
+            }
+
+            var type = String(item.type || '').toLowerCase()
+            if (type === 'message') {
+                return true
+            }
+
+            var message = String(item.message || '').trim().toLowerCase()
+            return message === 'a patient has sent a message.'
+        }
+
+        function formatBadgeCount(count) {
+            var numeric = parseInt(count || 0, 10)
+            if (!numeric || numeric < 1) {
+                return ''
+            }
+
+            return numeric > 99 ? '99+' : String(numeric)
+        }
+
+        function setBadgeCount(element, count) {
+            if (!element) {
+                return
+            }
+
+            var label = formatBadgeCount(count)
+            element.textContent = label
+            element.classList.toggle('hidden', label === '')
+        }
+
+        function countUnreadBuckets(items) {
+            var messageCount = 0
+            var notificationCount = 0
+
+            ;(Array.isArray(items) ? items : []).forEach(function (item) {
+                if (!item || item.is_read !== false) {
+                    return
+                }
+
+                if (isMessageNotification(item)) {
+                    messageCount += 1
+                    return
+                }
+
+                notificationCount += 1
+            })
+
+            return {
+                messageCount: messageCount,
+                notificationCount: notificationCount,
+            }
+        }
+
+        function fetchNotifications(query) {
+            return headerApiFetch("{{ url('/api/notifications') }}" + (query || ''), { method: 'GET' })
+                .then(readJsonResult)
+        }
+
+        function markNotificationsRead(items) {
             var unreadIds = (Array.isArray(items) ? items : [])
                 .filter(function (item) {
                     return item && item.is_read === false && item.notification_id != null
@@ -191,10 +286,6 @@
 
             if (!unreadIds.length) {
                 return Promise.resolve()
-            }
-
-            if (dot) {
-                dot.classList.add('hidden')
             }
 
             return Promise.all(unreadIds.map(function (id) {
@@ -214,47 +305,131 @@
             var button = document.getElementById('headerNotificationButton')
             var panel = document.getElementById('headerNotificationPanel')
             var body = document.getElementById('headerNotificationBody')
-            var dot = document.getElementById('headerNotificationDot')
+            var notificationBadge = document.getElementById('headerNotificationBadge')
+            var messagesBadge = document.getElementById('headerMessagesBadge')
+            var msgOpenBtn = document.getElementById('headerMessagesButton');
+            var msgModal = document.getElementById('headerMessagesModal');
+            var msgCloseBtn = document.getElementById('headerMessagesModalClose');
 
-            if (!button || !panel) {
+            function refreshHeaderBadges() {
+                return fetchNotifications('?unread_only=1&per_page=100')
+                    .then(function (result) {
+                        if (!result.ok || !result.data) {
+                            setBadgeCount(messagesBadge, 0)
+                            setBadgeCount(notificationBadge, 0)
+                            return []
+                        }
+
+                        var unreadItems = extractNotificationItems(result.data)
+                        var counts = countUnreadBuckets(unreadItems)
+                        setBadgeCount(messagesBadge, counts.messageCount)
+                        setBadgeCount(notificationBadge, counts.notificationCount)
+                        return unreadItems
+                    })
+                    .catch(function () {
+                        setBadgeCount(messagesBadge, 0)
+                        setBadgeCount(notificationBadge, 0)
+                        return []
+                    })
+            }
+
+            function markMessageNotificationsRead() {
+                return fetchNotifications('?unread_only=1&per_page=100')
+                    .then(function (result) {
+                        if (!result.ok || !result.data) {
+                            return null
+                        }
+
+                        var unreadItems = extractNotificationItems(result.data).filter(function (item) {
+                            return item && item.is_read === false && isMessageNotification(item)
+                        })
+
+                        return markNotificationsRead(unreadItems)
+                    })
+                    .then(function () {
+                        return refreshHeaderBadges()
+                    })
+                    .catch(function () {
+                        return refreshHeaderBadges()
+                    })
+            }
+
+            function markNonMessageNotificationsRead() {
+                return fetchNotifications('?unread_only=1&per_page=100')
+                    .then(function (result) {
+                        if (!result.ok || !result.data) {
+                            return null
+                        }
+
+                        var unreadItems = extractNotificationItems(result.data).filter(function (item) {
+                            return item && item.is_read === false && !isMessageNotification(item)
+                        })
+
+                        return markNotificationsRead(unreadItems)
+                    })
+                    .then(function () {
+                        return refreshHeaderBadges()
+                    })
+                    .catch(function () {
+                        return refreshHeaderBadges()
+                    })
+            }
+
+            function loadNotificationPanel(markAsRead) {
+                if (body) {
+                    body.innerHTML = '<div class="px-3 py-3 text-[0.75rem] text-slate-400">Loading notifications...</div>'
+                }
+
+                return fetchNotifications('?per_page=15')
+                    .then(function (result) {
+                        if (!result.ok || !result.data) {
+                            if (body) {
+                                body.innerHTML = '<div class="px-3 py-3 text-[0.75rem] text-slate-400">Unable to load notifications.</div>'
+                            }
+                            return
+                        }
+
+                        var items = extractNotificationItems(result.data)
+                        renderNotifications(body, items)
+
+                        if (markAsRead === false) {
+                            return refreshHeaderBadges()
+                        }
+
+                        return markNonMessageNotificationsRead()
+                    })
+                    .catch(function () {
+                        if (body) {
+                            body.innerHTML = '<div class="px-3 py-3 text-[0.75rem] text-slate-400">Unable to load notifications.</div>'
+                        }
+                    })
+            }
+
+            if (!button || !panel || !msgOpenBtn || !msgModal) {
                 return
             }
+
+            if (button.dataset.headerInitialized === '1') {
+                document.dispatchEvent(new Event('header:refresh-badges'))
+                return
+            }
+
+            button.dataset.headerInitialized = '1'
+
+            refreshHeaderBadges()
+
+            document.addEventListener('header:refresh-badges', function () {
+                refreshHeaderBadges()
+                if (panel && !panel.classList.contains('hidden')) {
+                    loadNotificationPanel(false)
+                }
+            })
 
             button.addEventListener('click', function (e) {
                 e.stopPropagation()
                 var isHidden = panel.classList.contains('hidden')
                 if (isHidden) {
-                    if (body) {
-                        body.innerHTML = '<div class="px-3 py-3 text-[0.75rem] text-slate-400">Loading notifications...</div>'
-                    }
-                    headerApiFetch("{{ url('/api/notifications') }}", { method: 'GET' })
-                        .then(readJsonResult)
-                        .then(function (result) {
-                            if (!result.ok || !result.data) {
-                                if (body) {
-                                    body.innerHTML = '<div class="px-3 py-3 text-[0.75rem] text-slate-400">Unable to load notifications.</div>'
-                                }
-                                return
-                            }
-
-                            var items = extractNotificationItems(result.data)
-
-                            renderNotifications(body, items)
-
-                            var hasUnread = items.some(function (n) {
-                                return n && n.is_read === false
-                            })
-                            if (dot) {
-                                dot.classList.toggle('hidden', !hasUnread)
-                            }
-
-                            markNotificationsRead(items, dot)
-                        })
-                        .catch(function () {
-                            if (body) {
-                                body.innerHTML = '<div class="px-3 py-3 text-[0.75rem] text-slate-400">Unable to load notifications.</div>'
-                            }
-                        })
+                    loadNotificationPanel(true)
                 }
                 panel.classList.toggle('hidden')
             })
@@ -264,7 +439,46 @@
                     panel.classList.add('hidden')
                 }
             })
+
+            // ── Messages Modal toggle ──
+            msgOpenBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                msgModal.classList.remove('hidden');
+                msgModal.classList.add('flex');
+
+                // Refresh conversation data when modal opens
+                var refreshBtn = document.getElementById('receptionMessagesRefresh');
+                if (refreshBtn) refreshBtn.click();
+
+                markMessageNotificationsRead()
+            });
+
+            if (msgCloseBtn) {
+                msgCloseBtn.addEventListener('click', function () {
+                    msgModal.classList.add('hidden');
+                    msgModal.classList.remove('flex');
+                });
+            }
+
+            // Close on backdrop click
+            msgModal.addEventListener('click', function (e) {
+                if (e.target === msgModal) {
+                    msgModal.classList.add('hidden');
+                    msgModal.classList.remove('flex');
+                }
+            });
         })
+
+        // ── Escape key closes messages modal ──
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                var msgModal = document.getElementById('headerMessagesModal');
+                if (msgModal && !msgModal.classList.contains('hidden')) {
+                    msgModal.classList.add('hidden');
+                    msgModal.classList.remove('flex');
+                }
+            }
+        });
 
         // ── Reverb listener for real-time notifications ──
         (function () {
@@ -273,11 +487,7 @@
             if (typeof window.Echo !== 'undefined' && window.Echo && userId) {
                 window.Echo.private('notifications.' + userId)
                     .listen('.notification.new', function (e) {
-                        var btn = document.getElementById('headerNotificationButton');
-                        if (btn) btn.click();
-                        // Also update the dot if panel isn't open yet
-                        var dot = document.getElementById('headerNotificationDot');
-                        if (dot) dot.classList.remove('hidden');
+                        document.dispatchEvent(new Event('header:refresh-badges'));
                     });
             }
         })();

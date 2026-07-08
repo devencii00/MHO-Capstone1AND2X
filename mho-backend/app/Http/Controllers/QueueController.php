@@ -1014,8 +1014,16 @@ class QueueController extends Controller
                 }
             }
 
-            if (! $notificationBody && $queueNumberChanged) {
-                $notificationBody = 'Your queue number is now '.$queue->queue_number.'.';
+            if ($queueNumberChanged) {
+                $position = (int) $queue->queue_number;
+
+                if (in_array($position, [2, 3, 4, 5], true)) {
+                    $notificationBody = 'You are now in position '.$position.', you are near, get ready.';
+                } elseif (in_array($position, [7, 9, 10], true)) {
+                    $notificationBody = 'You are now in position '.$position.'.';
+                } elseif (! $notificationBody) {
+                    $notificationBody = 'Your queue number is now '.$queue->queue_number.'.';
+                }
             }
 
             if ($notificationBody) {

@@ -17,7 +17,7 @@ class MessagingController extends Controller
             abort(401);
         }
 
-        $query = Conversation::query()->with('user');
+        $query = Conversation::query()->with(['user', 'latestMessage']);
 
         if ($currentUser->role === 'patient') {
             $query->whereIn('user_id', $currentUser->accessiblePatientIds());

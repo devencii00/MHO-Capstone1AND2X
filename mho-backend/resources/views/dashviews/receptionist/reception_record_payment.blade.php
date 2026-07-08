@@ -1,4 +1,10 @@
-<div class="bg-white border border-slate-200 rounded-[18px] shadow-[0_2px_10px_rgba(15,23,42,0.04)] overflow-hidden">
+<div class="space-y-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-slate-900 mb-1">Billing & Transactions</h1>
+        <p class="text-sm text-slate-500">Record payments and review transaction history.</p>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-[18px] shadow-[0_2px_10px_rgba(15,23,42,0.04)] overflow-hidden">
     <div class="grid grid-cols-2 border-b border-slate-200">
         <button id="receptionBillingTabRecord" type="button" class="px-4 py-3 text-xs font-semibold text-white bg-green-500 border-b-2 border-green-600">
             Record payment
@@ -9,13 +15,6 @@
     </div>
 
     <div id="receptionBillingPanelRecord" class="p-5">
-        <div class="flex items-center justify-between mb-3">
-            <div>
-                <h2 class="text-sm font-semibold text-slate-900">Record payment</h2>
-                <p class="text-xs text-slate-500">Select an appointment, review totals, and confirm payment.</p>
-            </div>
-            <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Billing</span>
-        </div>
 
         <div id="receptionPaymentError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
         <div id="receptionPaymentSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
@@ -150,11 +149,7 @@
     </div>
 
     <div id="receptionBillingPanelTransactions" class="hidden p-5">
-        <div class="flex items-center justify-between mb-3 gap-3">
-            <div>
-                <h3 class="text-sm font-semibold text-slate-900">Transactions record</h3>
-                <p class="text-xs text-slate-500">Search and review billing transactions.</p>
-            </div>
+        <div class="flex items-center justify-end mb-3 gap-3">
             <div class="flex items-center gap-2">
                 <button id="receptionTransactionsTodayOnlyBtn" type="button" class="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.75rem] font-semibold text-slate-700 hover:bg-slate-50">Show today only</button>
                 <button type="button" id="recTransRefreshBtn" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">

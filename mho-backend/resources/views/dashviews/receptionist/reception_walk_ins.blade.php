@@ -1,4 +1,10 @@
-<div class="bg-white border border-slate-200 rounded-[18px] shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
+<div class="space-y-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-slate-900 mb-1">Walk-ins Management</h1>
+        <p class="text-sm text-slate-500">Register walk-in patients and view walk-in history.</p>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-[18px] shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
     <div class="grid grid-cols-2 border-b border-slate-200">
       <button id="receptionWalkInTabAccount" type="button" class="px-4 py-3 text-xs font-semibold text-white bg-green-500 border-b-2 border-green-600 rounded-tl-[18px]">
     Walk-in
@@ -8,48 +14,32 @@
 </button>
     </div>
 
-    <div class="p-5 pb-0">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 id="receptionWalkInHeaderTitle" class="text-sm font-semibold text-slate-900">Create walk-in</h2>
-                <p id="receptionWalkInHeaderDesc" class="text-xs text-slate-500">Register a walk-in based on personal information or an existing patient.</p>
-            </div>
-            <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Walk-ins</span>
-        </div>
-    </div>
-
     <div id="receptionWalkInPanelGuest" class="hidden p-5 pt-4">
-    <div class="px-4 py-3 mb-3 flex items-center justify-between">
-        <div>
-            <h3 class="text-xs font-semibold text-slate-900">Today's Walk-In Appointments</h3>
-            <div class="text-[0.72rem] text-slate-500">Showing walk-in records for today.</div>
+    <div class="flex items-center gap-2 mb-3">
+        <div class="relative flex-1">
+            <input id="receptionWalkInHistorySearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search patient or doctor">
         </div>
-        <div class="flex items-center gap-2">
-            <div class="relative">
-                <input id="receptionWalkInHistorySearch" type="text" class="w-48 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search patient or doctor">
-            </div>
-            <div class="relative">
-                <input id="receptionWalkInHistoryServiceSearch" type="text" class="w-36 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="All services" autocomplete="off">
-                <input id="receptionWalkInHistoryServiceId" type="hidden">
-                <div id="receptionWalkInHistoryServiceResults" class="hidden absolute left-0 right-0 top-full mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-sm max-h-64 overflow-y-auto overscroll-contain z-50"></div>
-            </div>
-            <select id="receptionWalkInHistorySort" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                <option value="latest">Latest first</option>
-                <option value="oldest">Oldest first</option>
-            </select>
-            <select id="receptionWalkInHistoryStatus" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                <option value="">All statuses</option>
-                <option value="pending">Pending</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="no_show">No-show</option>
-            </select>
-            <button type="button" id="recWalkinsRefreshBtn" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
-                <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
-                Refresh
-            </button>
+        <div class="relative">
+            <input id="receptionWalkInHistoryServiceSearch" type="text" class="w-36 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="All services" autocomplete="off">
+            <input id="receptionWalkInHistoryServiceId" type="hidden">
+            <div id="receptionWalkInHistoryServiceResults" class="hidden absolute left-0 right-0 top-full mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-sm max-h-64 overflow-y-auto overscroll-contain z-50"></div>
         </div>
+        <select id="receptionWalkInHistorySort" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+            <option value="latest">Latest first</option>
+            <option value="oldest">Oldest first</option>
+        </select>
+        <select id="receptionWalkInHistoryStatus" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+            <option value="">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="no_show">No-show</option>
+        </select>
+        <button type="button" id="recWalkinsRefreshBtn" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+            <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+            Refresh
+        </button>
     </div>
     <div id="receptionWalkInHistoryError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
     <div class="rounded-xl border border-slate-200 bg-white overflow-hidden">

@@ -1,11 +1,10 @@
-<div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
-    <div class="flex items-center justify-between mb-3">
-        <h2 class="text-sm font-semibold text-slate-900"></h2>
-        <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Receptionist</span>
+<div class="space-y-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-slate-900 mb-1">Settings & Profile</h1>
+        <p class="text-sm text-slate-500">Manage your account settings and preferences.</p>
     </div>
-    <p class="text-xs text-slate-500 mb-4">
-   
-    </p>
+
+    <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
 
     <div id="receptionAccountNotice" class="hidden mb-3 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.75rem] text-slate-700"></div>
     <div id="receptionAccountError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>

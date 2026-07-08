@@ -78,16 +78,16 @@
     })->values();
 @endphp
 
-<div class="space-y-4">
-    <div class="flex items-center justify-between">
-        <div>
-            <h2 class="text-sm font-semibold text-slate-900">Queue management</h2>
-            <p class="text-xs text-slate-500">Add patients to the queue and monitor today&apos;s flow.</p>
-        </div>
-        <div class="flex flex-wrap items-end gap-2">
-            <div>
+<div class="space-y-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-slate-900 mb-1">Queue management</h1>
+        <p class="text-sm text-slate-500">Add patients to the queue and monitor today&apos;s flow.</p>
+    </div>
+
+    <div class="flex flex-wrap items-end gap-2 justify-end">
+            <div class="flex-1 min-w-[200px] max-w-[420px]">
                 <label for="receptionCallNextDoctorId" class="block text-[0.68rem] text-slate-500 mb-1">Call next for</label>
-                <select id="receptionCallNextDoctorId" class="w-[260px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.75rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                <select id="receptionCallNextDoctorId" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.75rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                     <option value="">Auto (any active doctor)</option>
                     @foreach ($doctorPanelItems as $doctorState)
                         @php
