@@ -2264,6 +2264,16 @@ function setWalkInTab(tab) {
         var walkInServiceSearchHasMore = false
         var walkInServiceSearchQuery = ''
         var walkInServiceSearchLoading = false
+        var walkInPatientSearchPage = 1
+        var walkInPatientSearchResults = []
+        var walkInPatientSearchHasMore = false
+        var walkInPatientSearchQuery = ''
+        var walkInPatientSearchLoading = false
+        var walkInDoctorSearchPage = 1
+        var walkInDoctorSearchResults = []
+        var walkInDoctorSearchHasMore = false
+        var walkInDoctorSearchQuery = ''
+        var walkInDoctorSearchLoading = false
         var selectedServices = []
         var selectedDoctor = null
         var dateCursorFirstIso = null
@@ -2667,7 +2677,71 @@ function setWalkInTab(tab) {
                 .catch(function () { return [] })
         }
 
-        function renderSelectorPatientList(items, query) {
+        function fetchWalkInPatientsPage(query, page) {
+            if (typeof apiFetch !== 'function') return Promise.resolve({ data: [], hasMore: false })
+            var params = 'per_page=10&page=' + page + '&sort=desc'
+            if (query) params += '&search=' + encodeURIComponent(query)
+            return apiFetch("{{ url('/api/patients') }}?" + params, { method: 'GET' })
+                .then(function (r) { return readResponse(r) })
+                .then(function (res) {
+                    if (!res.ok) return { data: [], hasMore: false }
+                    var items = Array.isArray(res.data.data) ? res.data.data : []
+                    return {
+                        data: items,
+                        hasMore: (res.data.current_page || 1) < (res.data.last_page || 1)
+                    }
+                })
+                .catch(function () { return { data: [], hasMore: false } })
+        }
+
+        function fetchWalkInDoctorsPage(query, page) {
+            if (typeof apiFetch !== 'function') return Promise.resolve({ data: [], hasMore: false })
+            var params = 'per_page=10&page=' + page
+            if (query) params += '&search=' + encodeURIComponent(query)
+            return apiFetch("{{ url('/api/doctors') }}?" + params, { method: 'GET' })
+                .then(function (r) { return readResponse(r) })
+                .then(function (res) {
+                    if (!res.ok) return { data: [], hasMore: false }
+                    var items = Array.isArray(res.data.data) ? res.data.data : []
+                    return {
+                        data: items,
+                        hasMore: (res.data.current_page || 1) < (res.data.last_page || 1)
+                    }
+                })
+                .catch(function () { return { data: [], hasMore: false } })
+        }
+
+        function renderSelectorPatientList() {
+            if (!selectorListBody) return
+            var rawQuery = String(selectorSearch ? selectorSearch.value : '').trim()
+            var query = normalizeText(rawQuery)
+            var searchActive = !!query
+
+            if (searchActive) {
+                walkInPatientSearchQuery = rawQuery
+                walkInPatientSearchPage = 1
+                setSelectorLoading('Searching patients…')
+                fetchWalkInPatientsPage(rawQuery, 1).then(function (result) {
+                    if (selectorState.type !== 'patient') return
+                    if (String(selectorSearch ? selectorSearch.value : '').trim() !== rawQuery) return
+                    walkInPatientSearchResults = result.data
+                    walkInPatientSearchHasMore = result.hasMore
+                    buildWalkInPatientList(result.data, rawQuery, result.hasMore)
+                })
+            } else {
+                walkInPatientSearchQuery = ''
+                walkInPatientSearchPage = 1
+                setSelectorLoading('Loading patients…')
+                fetchWalkInPatientsPage('', 1).then(function (result) {
+                    if (selectorState.type !== 'patient') return
+                    walkInPatientSearchResults = result.data
+                    walkInPatientSearchHasMore = result.hasMore
+                    buildWalkInPatientList(result.data, '', result.hasMore)
+                })
+            }
+        }
+
+        function buildWalkInPatientList(items, query, hasMore) {
             if (!selectorListBody) return
             selectorState.items = Array.isArray(items) ? items : []
             if (selectorListLabel) selectorListLabel.textContent = query ? 'Patient search results' : 'Latest patients'
@@ -2694,15 +2768,39 @@ function setWalkInTab(tab) {
                         '</div>' +
                     '</button>'
             })
+            if (hasMore) {
+                html += '<button type="button" id="walkInPatientLoadMoreBtn" class="w-full text-center py-2.5 mt-1 text-[0.75rem] font-semibold text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg border border-dashed border-slate-200 transition-colors">Load more patients</button>'
+            }
             selectorListBody.innerHTML = html
+            selectorState.items = items
             Array.prototype.forEach.call(selectorListBody.querySelectorAll('.reception-selector-patient'), function (btn) {
                 btn.addEventListener('click', function () {
                     var idx = parseInt(btn.getAttribute('data-index') || '-1', 10)
                     selectorState.activeItem = selectorState.items[idx] || null
-                    renderSelectorPatientList(selectorState.items, query)
+                    buildWalkInPatientList(selectorState.items, query, hasMore)
                     renderSelectorDetail()
                 })
             })
+            var loadMoreBtn = document.getElementById('walkInPatientLoadMoreBtn')
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', function () {
+                    if (walkInPatientSearchLoading) return
+                    walkInPatientSearchLoading = true
+                    walkInPatientSearchPage++
+                    var page = walkInPatientSearchPage
+                    var originalText = loadMoreBtn.textContent
+                    loadMoreBtn.textContent = 'Loading…'
+                    loadMoreBtn.disabled = true
+                    fetchWalkInPatientsPage(walkInPatientSearchQuery, page).then(function (result) {
+                        if (result.data.length) {
+                            walkInPatientSearchResults = walkInPatientSearchResults.concat(result.data)
+                        }
+                        walkInPatientSearchHasMore = result.hasMore
+                        walkInPatientSearchLoading = false
+                        buildWalkInPatientList(walkInPatientSearchResults, walkInPatientSearchQuery, walkInPatientSearchHasMore)
+                    })
+                })
+            }
             renderSelectorDetail()
         }
 
@@ -2761,7 +2859,7 @@ function setWalkInTab(tab) {
 
         function fetchWalkInServicesPage(query, page) {
             if (typeof apiFetch !== 'function') return Promise.resolve({ data: [], hasMore: false })
-            var params = 'per_page=15&page=' + page
+            var params = 'per_page=10&page=' + page
             if (query) params += '&search=' + encodeURIComponent(query)
             return apiFetch("{{ url('/api/services') }}?" + params, { method: 'GET' })
                 .then(function (r) { return readResponse(r) })
@@ -2940,23 +3038,107 @@ function setWalkInTab(tab) {
             return { needsService: false, list: enriched.slice(0, 10) }
         }
 
+        function walkInDoctorEnrichItems(rawDoctors) {
+            var srcSelectedServices, srcPreviousDoctorId
+            if (selectorState.mode === 'guest') {
+                var gd = window._guestData || {}
+                srcSelectedServices = Array.isArray(gd.selectedServices) ? gd.selectedServices : []
+                srcPreviousDoctorId = gd.previousDoctorId || 0
+            } else {
+                srcSelectedServices = selectedServices || []
+                srcPreviousDoctorId = previousDoctorId || 0
+            }
+            var isGuest = selectorState.mode === 'guest'
+            var type = isGuest ? 'walk_in' : getAppointmentType()
+            var dateStr = type === 'walk_in'
+                ? localDateIso()
+                : ((dateSelect && dateSelect.value) ? String(dateSelect.value) : localDateIso())
+            var dayKey = dayKeyFromDate(dateStr)
+            var checkTime = type === 'walk_in'
+                ? new Date().toTimeString().slice(0, 5)
+                : (selectedSlotStart ? String(selectedSlotStart).slice(0, 5) : '')
+            var categories = (srcSelectedServices || [])
+                .map(function (service) { return extractServiceCategory(service && service.service_name ? service.service_name : '') })
+                .filter(function (category) { return !!category })
+            var list = (rawDoctors || []).filter(function (doctor) {
+                var spec = doctor && doctor.specialization ? doctor.specialization : ''
+                return categories.every(function (category) { return specializationMatches(category, spec) })
+            })
+            var enriched = list.map(function (doctor) {
+                var isDoctorAvailable = doctor && doctor.is_available !== false
+                var hasSchedule = !!dayKey && hasScheduleAtTime(doctor, dayKey, dateStr, checkTime)
+                var isSelectable = isDoctorAvailable && hasSchedule
+                var tag = ''
+                if (!isDoctorAvailable) tag = 'Unavailable'
+                else if (!hasSchedule) tag = 'No schedule on this time'
+                else if (srcPreviousDoctorId && parseInt(doctor.user_id, 10) === srcPreviousDoctorId) tag = 'Last provider'
+                return { doctor: doctor, isSelectable: isSelectable, tag: tag }
+            })
+            enriched.sort(function (a, b) {
+                if (a.isSelectable !== b.isSelectable) return a.isSelectable ? -1 : 1
+                if ((a.tag === 'Last provider') !== (b.tag === 'Last provider')) return a.tag === 'Last provider' ? -1 : 1
+                return normalizeText(doctorDisplayName(a.doctor)).localeCompare(normalizeText(doctorDisplayName(b.doctor)))
+            })
+            return enriched
+        }
+
         function renderSelectorDoctorList() {
             if (!selectorListBody) return
-            var source = walkInDoctorSourceList()
-            selectorState.items = source.list
-            if (selectorListLabel) selectorListLabel.textContent = selectorSearch && selectorSearch.value ? 'Doctor search results' : 'Latest doctors'
-            if (source.needsService) {
+            var rawQuery = String(selectorSearch ? selectorSearch.value : '').trim()
+            var query = normalizeText(rawQuery)
+            var searchActive = !!query
+
+            var srcSelectedServices
+            if (selectorState.mode === 'guest') {
+                srcSelectedServices = Array.isArray(window._guestData && window._guestData.selectedServices) ? window._guestData.selectedServices : []
+            } else {
+                srcSelectedServices = selectedServices || []
+            }
+            var needsService = !srcSelectedServices || !srcSelectedServices.length
+
+            if (needsService) {
                 selectorListBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select a service first to load matching doctors.</div>'
                 renderSelectorDetail()
                 return
             }
-            if (!source.list.length) {
+
+            if (searchActive) {
+                walkInDoctorSearchQuery = rawQuery
+                walkInDoctorSearchPage = 1
+                setSelectorLoading('Searching doctors…')
+                fetchWalkInDoctorsPage(rawQuery, 1).then(function (result) {
+                    if (selectorState.type !== 'doctor') return
+                    if (String(selectorSearch ? selectorSearch.value : '').trim() !== rawQuery) return
+                    var enriched = walkInDoctorEnrichItems(result.data)
+                    walkInDoctorSearchResults = enriched
+                    walkInDoctorSearchHasMore = result.hasMore
+                    buildWalkInDoctorList(enriched, rawQuery, result.hasMore)
+                })
+            } else {
+                walkInDoctorSearchQuery = ''
+                walkInDoctorSearchPage = 1
+                setSelectorLoading('Loading doctors…')
+                fetchWalkInDoctorsPage('', 1).then(function (result) {
+                    if (selectorState.type !== 'doctor') return
+                    var enriched = walkInDoctorEnrichItems(result.data)
+                    walkInDoctorSearchResults = enriched
+                    walkInDoctorSearchHasMore = result.hasMore
+                    buildWalkInDoctorList(enriched, '', result.hasMore)
+                })
+            }
+        }
+
+        function buildWalkInDoctorList(items, query, hasMore) {
+            if (!selectorListBody) return
+            selectorState.items = Array.isArray(items) ? items : []
+            if (selectorListLabel) selectorListLabel.textContent = query ? 'Doctor search results' : 'Latest doctors'
+            if (!selectorState.items.length) {
                 selectorListBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No doctors found.</div>'
                 renderSelectorDetail()
                 return
             }
             var html = ''
-            source.list.forEach(function (entry, idx) {
+            selectorState.items.forEach(function (entry, idx) {
                 var doctor = entry.doctor
                 var isActive = selectorState.activeItem && String(selectorState.activeItem.user_id) === String(doctor.user_id)
                 html += '' +
@@ -2970,22 +3152,55 @@ function setWalkInTab(tab) {
                         '</div>' +
                     '</button>'
             })
+            if (hasMore) {
+                html += '<button type="button" id="walkInDoctorLoadMoreBtn" class="w-full text-center py-2.5 mt-1 text-[0.75rem] font-semibold text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg border border-dashed border-slate-200 transition-colors">Load more doctors</button>'
+            }
             selectorListBody.innerHTML = html
+            selectorState.items = items
             Array.prototype.forEach.call(selectorListBody.querySelectorAll('.reception-selector-doctor'), function (btn) {
                 btn.addEventListener('click', function () {
                     var idx = parseInt(btn.getAttribute('data-index') || '-1', 10)
                     selectorState.activeItem = selectorState.items[idx] ? selectorState.items[idx].doctor : null
-                    renderSelectorDoctorList()
+                    buildWalkInDoctorList(selectorState.items, query, hasMore)
                     renderSelectorDetail()
                 })
             })
+            var loadMoreBtn = document.getElementById('walkInDoctorLoadMoreBtn')
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', function () {
+                    if (walkInDoctorSearchLoading) return
+                    walkInDoctorSearchLoading = true
+                    walkInDoctorSearchPage++
+                    var page = walkInDoctorSearchPage
+                    var originalText = loadMoreBtn.textContent
+                    loadMoreBtn.textContent = 'Loading…'
+                    loadMoreBtn.disabled = true
+                    fetchWalkInDoctorsPage(walkInDoctorSearchQuery, page).then(function (result) {
+                        if (result.data.length) {
+                            var enriched = walkInDoctorEnrichItems(result.data)
+                            walkInDoctorSearchResults = walkInDoctorSearchResults.concat(enriched)
+                        }
+                        walkInDoctorSearchHasMore = result.hasMore
+                        walkInDoctorSearchLoading = false
+                        buildWalkInDoctorList(walkInDoctorSearchResults, walkInDoctorSearchQuery, walkInDoctorSearchHasMore)
+                    })
+                })
+            }
             renderSelectorDetail()
         }
 
+        var servicesLoadPromise = null
+
         function ensureWalkInServicesLoaded() {
             if (servicesLoaded && services.length) return Promise.resolve(services)
+            if (servicesLoading) return new Promise(function (resolve) {
+                var check = setInterval(function () {
+                    if (servicesLoaded) { clearInterval(check); resolve(services) }
+                }, 30)
+            })
+            if (servicesLoadPromise) return servicesLoadPromise
             if (typeof apiFetch !== 'function') return Promise.resolve([])
-            return apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
+            servicesLoadPromise = apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) return services || []
@@ -2994,6 +3209,7 @@ function setWalkInTab(tab) {
                     return services
                 })
                 .catch(function () { return services || [] })
+                .finally(function () { servicesLoadPromise = null })
         }
 
         function ensureWalkInDoctorsLoaded() {
@@ -3025,10 +3241,7 @@ function setWalkInTab(tab) {
                 if (selectorConfirmBtn) selectorConfirmBtn.textContent = 'Select Patient'
                 setSelectorOpen(true)
                 setSelectorLoading('Loading patients…')
-                fetchWalkInPatients('').then(function (items) {
-                    if (selectorState.type !== 'patient') return
-                    renderSelectorPatientList(items, '')
-                })
+                renderSelectorPatientList()
             } else if (type === 'service') {
                 selectorState.stagedServices = Array.isArray(selectedServices) ? selectedServices.slice() : []
                 if (selectorTitle) selectorTitle.textContent = 'Select Service/s'
@@ -3755,14 +3968,8 @@ function setWalkInTab(tab) {
             selectorSearch.addEventListener('input', function () {
                 if (selectorState.searchTimer) clearTimeout(selectorState.searchTimer)
                 if (selectorState.type === 'patient') {
-                    var query = String(selectorSearch.value || '').trim()
                     selectorState.searchTimer = window.setTimeout(function () {
-                        var requestId = ++selectorState.searchSeq
-                        setSelectorLoading(query ? 'Searching patients…' : 'Loading patients…')
-                        fetchWalkInPatients(query).then(function (items) {
-                            if (selectorState.type !== 'patient' || selectorState.searchSeq !== requestId) return
-                            renderSelectorPatientList(items, query)
-                        })
+                        renderSelectorPatientList()
                     }, 250)
                     return
                 }

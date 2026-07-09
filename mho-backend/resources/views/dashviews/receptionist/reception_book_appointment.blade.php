@@ -555,6 +555,16 @@ function setAppointmentTab(tab) {
         var bookServiceSearchHasMore = false
         var bookServiceSearchQuery = ''
         var bookServiceSearchLoading = false
+        var bookPatientSearchPage = 1
+        var bookPatientSearchResults = []
+        var bookPatientSearchHasMore = false
+        var bookPatientSearchQuery = ''
+        var bookPatientSearchLoading = false
+        var bookDoctorSearchPage = 1
+        var bookDoctorSearchResults = []
+        var bookDoctorSearchHasMore = false
+        var bookDoctorSearchQuery = ''
+        var bookDoctorSearchLoading = false
         var selectedServices = []
         var selectedDoctor = null
         var previousDoctorId = 0
@@ -954,7 +964,41 @@ function setAppointmentTab(tab) {
                 .catch(function () { return [] })
         }
 
-        function renderSelectorPatientList(items, query) {
+        function fetchBookPatientsPage(query, page) {
+            if (typeof apiFetch !== 'function') return Promise.resolve({ data: [], hasMore: false })
+            var params = 'per_page=10&page=' + page + '&sort=desc'
+            if (query) params += '&search=' + encodeURIComponent(query)
+            return apiFetch("{{ url('/api/patients') }}?" + params, { method: 'GET' })
+                .then(function (r) { return readResponse(r) })
+                .then(function (res) {
+                    if (!res.ok) return { data: [], hasMore: false }
+                    var items = Array.isArray(res.data.data) ? res.data.data : []
+                    return {
+                        data: items,
+                        hasMore: (res.data.current_page || 1) < (res.data.last_page || 1)
+                    }
+                })
+                .catch(function () { return { data: [], hasMore: false } })
+        }
+
+        function fetchBookDoctorsPage(query, page) {
+            if (typeof apiFetch !== 'function') return Promise.resolve({ data: [], hasMore: false })
+            var params = 'per_page=10&page=' + page
+            if (query) params += '&search=' + encodeURIComponent(query)
+            return apiFetch("{{ url('/api/doctors') }}?" + params, { method: 'GET' })
+                .then(function (r) { return readResponse(r) })
+                .then(function (res) {
+                    if (!res.ok) return { data: [], hasMore: false }
+                    var items = Array.isArray(res.data.data) ? res.data.data : []
+                    return {
+                        data: items,
+                        hasMore: (res.data.current_page || 1) < (res.data.last_page || 1)
+                    }
+                })
+                .catch(function () { return { data: [], hasMore: false } })
+        }
+
+        function buildBookPatientList(items, query, hasMore) {
             if (!selectorListBody) return
             selectorState.items = Array.isArray(items) ? items : []
             if (selectorListLabel) {
@@ -983,15 +1027,37 @@ function setAppointmentTab(tab) {
                         '</div>' +
                     '</button>'
             })
+            if (hasMore) {
+                html += '<button type="button" id="bookPatientLoadMoreBtn" class="w-full text-center py-2.5 mt-1 text-[0.75rem] font-semibold text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg border border-dashed border-slate-200 transition-colors">Load more patients</button>'
+            }
             selectorListBody.innerHTML = html
             Array.prototype.forEach.call(selectorListBody.querySelectorAll('.reception-selector-patient'), function (btn) {
                 btn.addEventListener('click', function () {
                     var idx = parseInt(btn.getAttribute('data-index') || '-1', 10)
                     selectorState.activeItem = selectorState.items[idx] || null
-                    renderSelectorPatientList(selectorState.items, query)
+                    buildBookPatientList(selectorState.items, query, hasMore)
                     renderSelectorDetail()
                 })
             })
+            var loadMoreBtn = document.getElementById('bookPatientLoadMoreBtn')
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', function () {
+                    if (bookPatientSearchLoading) return
+                    bookPatientSearchLoading = true
+                    bookPatientSearchPage++
+                    var page = bookPatientSearchPage
+                    loadMoreBtn.textContent = 'Loading…'
+                    loadMoreBtn.disabled = true
+                    fetchBookPatientsPage(bookPatientSearchQuery, page).then(function (result) {
+                        if (result.data.length) {
+                            bookPatientSearchResults = bookPatientSearchResults.concat(result.data)
+                        }
+                        bookPatientSearchHasMore = result.hasMore
+                        bookPatientSearchLoading = false
+                        buildBookPatientList(bookPatientSearchResults, bookPatientSearchQuery, bookPatientSearchHasMore)
+                    })
+                })
+            }
             renderSelectorDetail()
         }
 
@@ -1035,7 +1101,7 @@ function setAppointmentTab(tab) {
 
         function fetchBookServicesPage(query, page) {
             if (typeof apiFetch !== 'function') return Promise.resolve({ data: [], hasMore: false })
-            var params = 'per_page=15&page=' + page
+            var params = 'per_page=10&page=' + page
             if (query) params += '&search=' + encodeURIComponent(query)
             return apiFetch("{{ url('/api/services') }}?" + params, { method: 'GET' })
                 .then(function (r) { return readResponse(r) })
@@ -1203,46 +1269,99 @@ function setAppointmentTab(tab) {
 
         function renderSelectorDoctorList() {
             if (!selectorListBody) return
-            var source = bookDoctorSourceList()
-            selectorState.items = source.list
-            if (selectorListLabel) {
-                selectorListLabel.textContent = selectorSearch && selectorSearch.value ? 'Doctor search results' : 'Latest doctors'
+            var rawQuery = String(selectorSearch ? selectorSearch.value : '').trim()
+            var query = normalizeText(rawQuery)
+            var searchActive = !!query
+
+            if (searchActive) {
+                bookDoctorSearchQuery = rawQuery
+                bookDoctorSearchPage = 1
+                setSelectorLoading('Searching doctors…')
+                fetchBookDoctorsPage(rawQuery, 1).then(function (result) {
+                    if (selectorState.type !== 'doctor') return
+                    if (String(selectorSearch ? selectorSearch.value : '').trim() !== rawQuery) return
+                    bookDoctorSearchResults = result.data
+                    bookDoctorSearchHasMore = result.hasMore
+                    buildBookDoctorList(result.data, rawQuery, result.hasMore)
+                })
+                return
             }
-            if (source.needsService) {
+
+            var primary = selectedServices && selectedServices.length ? selectedServices[0] : null
+            var category = extractServiceCategory(primary ? primary.service_name : '')
+            if (!category) {
+                selectorState.items = []
+                if (selectorListLabel) selectorListLabel.textContent = 'Latest doctors'
                 selectorListBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select a service first to load matching doctors.</div>'
                 renderSelectorDetail()
                 return
             }
-            if (!source.list.length) {
+
+            bookDoctorSearchQuery = category
+            bookDoctorSearchPage = 1
+            setSelectorLoading('Loading doctors…')
+            fetchBookDoctorsPage(category, 1).then(function (result) {
+                if (selectorState.type !== 'doctor') return
+                bookDoctorSearchResults = result.data
+                bookDoctorSearchHasMore = result.hasMore
+                if (selectorListLabel) selectorListLabel.textContent = 'Latest doctors'
+                buildBookDoctorList(result.data, category, result.hasMore)
+            })
+        }
+
+        function buildBookDoctorList(items, query, hasMore) {
+            if (!selectorListBody) return
+            selectorState.items = Array.isArray(items) ? items : []
+            if (!selectorState.items.length) {
                 selectorListBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No doctors found.</div>'
                 renderSelectorDetail()
                 return
             }
             var html = ''
-            source.list.forEach(function (entry, idx) {
-                var doctor = entry.doctor
+            selectorState.items.forEach(function (doctor, idx) {
                 var isActive = selectorState.activeItem && String(selectorState.activeItem.user_id) === String(doctor.user_id)
                 html += '' +
-                    '<button type="button" class="reception-selector-doctor w-full rounded-xl border px-3 py-3 text-left transition-colors ' + (entry.isSelectable ? (isActive ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-white hover:border-green-200 hover:bg-slate-50') : 'border-slate-200 bg-slate-100/80') + '" data-index="' + idx + '" ' + (entry.isSelectable ? '' : 'disabled') + '>' +
+                    '<button type="button" class="reception-selector-doctor w-full rounded-xl border px-3 py-3 text-left transition-colors ' + (isActive ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-white hover:border-green-200 hover:bg-slate-50') + '" data-index="' + idx + '">' +
                         '<div class="flex items-start justify-between gap-3">' +
                             '<div class="min-w-0">' +
                                 '<div class="text-[0.8rem] font-semibold text-slate-900 truncate">' + escapeHtml('Dr. ' + doctorDisplayName(doctor)) + '</div>' +
                                 '<div class="mt-1 text-[0.72rem] text-slate-500">' + escapeHtml(doctor.specialization || '-') + '</div>' +
                             '</div>' +
-                            (entry.tag ? '<span class="inline-flex items-center rounded-full border px-2 py-0.5 text-[0.65rem] font-semibold ' + (entry.tag === 'Last provider' ? 'border-green-200 bg-white text-green-700' : 'border-slate-200 bg-white text-slate-500') + '">' + escapeHtml(entry.tag) + '</span>' : '') +
                         '</div>' +
                     '</button>'
             })
+            if (hasMore) {
+                html += '<button type="button" id="bookDoctorLoadMoreBtn" class="w-full text-center py-2.5 mt-1 text-[0.75rem] font-semibold text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg border border-dashed border-slate-200 transition-colors">Load more doctors</button>'
+            }
             selectorListBody.innerHTML = html
             Array.prototype.forEach.call(selectorListBody.querySelectorAll('.reception-selector-doctor'), function (btn) {
                 btn.addEventListener('click', function () {
                     var idx = parseInt(btn.getAttribute('data-index') || '-1', 10)
-                    var chosen = selectorState.items[idx] ? selectorState.items[idx].doctor : null
+                    var chosen = selectorState.items[idx] || null
                     selectorState.activeItem = chosen
-                    renderSelectorDoctorList()
+                    buildBookDoctorList(selectorState.items, query, hasMore)
                     renderSelectorDetail()
                 })
             })
+            var loadMoreBtn = document.getElementById('bookDoctorLoadMoreBtn')
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', function () {
+                    if (bookDoctorSearchLoading) return
+                    bookDoctorSearchLoading = true
+                    bookDoctorSearchPage++
+                    var page = bookDoctorSearchPage
+                    loadMoreBtn.textContent = 'Loading…'
+                    loadMoreBtn.disabled = true
+                    fetchBookDoctorsPage(bookDoctorSearchQuery, page).then(function (result) {
+                        if (result.data.length) {
+                            bookDoctorSearchResults = bookDoctorSearchResults.concat(result.data)
+                        }
+                        bookDoctorSearchHasMore = result.hasMore
+                        bookDoctorSearchLoading = false
+                        buildBookDoctorList(bookDoctorSearchResults, bookDoctorSearchQuery, bookDoctorSearchHasMore)
+                    })
+                })
+            }
             renderSelectorDetail()
         }
 
@@ -1288,9 +1407,13 @@ function setAppointmentTab(tab) {
                 if (selectorConfirmBtn) selectorConfirmBtn.textContent = 'Select Patient'
                 setSelectorOpen(true)
                 setSelectorLoading('Loading patients…')
-                fetchBookPatients('').then(function (items) {
+                bookPatientSearchQuery = ''
+                bookPatientSearchPage = 1
+                fetchBookPatientsPage('', 1).then(function (result) {
                     if (selectorState.type !== 'patient') return
-                    renderSelectorPatientList(items, '')
+                    bookPatientSearchResults = result.data
+                    bookPatientSearchHasMore = result.hasMore
+                    buildBookPatientList(result.data, '', result.hasMore)
                 })
             } else if (type === 'service') {
                 selectorState.stagedServices = Array.isArray(selectedServices) ? selectedServices.slice() : []
@@ -2051,9 +2174,13 @@ function setAppointmentTab(tab) {
                     selectorState.searchTimer = window.setTimeout(function () {
                         var requestId = ++selectorState.searchSeq
                         setSelectorLoading(query ? 'Searching patients…' : 'Loading patients…')
-                        fetchBookPatients(query).then(function (items) {
+                        bookPatientSearchQuery = query
+                        bookPatientSearchPage = 1
+                        fetchBookPatientsPage(query, 1).then(function (result) {
                             if (selectorState.type !== 'patient' || selectorState.searchSeq !== requestId) return
-                            renderSelectorPatientList(items, query)
+                            bookPatientSearchResults = result.data
+                            bookPatientSearchHasMore = result.hasMore
+                            buildBookPatientList(result.data, query, result.hasMore)
                         })
                     }, 250)
                     return
