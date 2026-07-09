@@ -603,7 +603,7 @@ if (!next.length) {
                     if (!patient) return 'Patient'
                     var parts = [patient.firstname, patient.middlename, patient.lastname].filter(function (v) { return String(v || '').trim() !== '' })
                     var name = parts.join(' ').trim()
-                    return name || ('Patient #' + patient.user_id)
+                    return name || (patient.email ? String(patient.email) : 'Patient')
                 }
 
                 function txServiceSummary(tx) {

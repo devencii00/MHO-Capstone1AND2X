@@ -306,7 +306,7 @@
             var name = ((p.firstname || '') + ' ' + (p.middlename || '') + ' ' + (p.lastname || '')).trim().replace(/\s+/g, ' ')
             if (name) return name
             if (p.email) return p.email
-            return 'Patient #' + p.user_id
+            return 'Patient'
         }
 
         function getVerifierLabel(v) {

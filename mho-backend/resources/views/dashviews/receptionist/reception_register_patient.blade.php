@@ -805,14 +805,14 @@
             var html = ''
             items.forEach(function (p, idx) {
                 var name = [p.firstname, p.middlename, p.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
-                if (!name) name = 'User #' + p.user_id
+                if (!name) name = p.email ? String(p.email) : 'User'
                 var meta = []
                 if (p.email) meta.push(p.email)
                 if (p.contact_number) meta.push(p.contact_number)
                 var isActive = activeId && String(p.user_id) === activeId
                 html += '<button type="button" class="reception-pr-parent-pick w-full rounded-xl border px-3 py-3 text-left transition-colors ' + (isActive ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-white hover:border-green-200 hover:bg-slate-50') + '" data-idx="' + idx + '">' +
                     '<div class="text-[0.8rem] font-semibold text-slate-900 truncate">' + escapeHtml(name) + '</div>' +
-                    '<div class="mt-1 text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || ('#' + p.user_id)) + '</div>' +
+                    '<div class="mt-1 text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || (p.email ? p.email : '')) + '</div>' +
                 '</button>'
             })
             parentPickerListBody.innerHTML = html
@@ -1174,8 +1174,8 @@
                         if (p.contact_number) meta.push('Contact: ' + escapeHtml(p.contact_number))
                         if (p.email) meta.push('Email: ' + escapeHtml(p.email))
                         return '<div class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">' +
-                            '<div class="text-[0.78rem] font-semibold text-slate-900">' + escapeHtml(nm || ('Patient #' + p.user_id)) + '</div>' +
-                            '<div class="text-[0.72rem] text-slate-600 mt-0.5">#' + escapeHtml(p.user_id) + (meta.length ? ' • ' + meta.join(' • ') : '') + '</div>' +
+                            '<div class="text-[0.78rem] font-semibold text-slate-900">' + escapeHtml(nm || (p.email ? p.email : 'Patient')) + '</div>' +
+                            '<div class="text-[0.72rem] text-slate-600 mt-0.5">' + (meta.length ? meta.join(' • ') : '') + '</div>' +
                         '</div>'
                     }).join('')
 
@@ -1191,7 +1191,7 @@
                     var nm = [p.firstname, p.middlename, p.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
                     return '<div class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">' +
                         '<div class="text-[0.7rem] text-amber-700 font-semibold mb-1">Existing patient (masked)</div>' +
-                        '<div class="text-[0.78rem] text-slate-900 font-semibold">' + escapeHtml(maskHalf(nm || ('Patient #' + p.user_id))) + '</div>' +
+                        '<div class="text-[0.78rem] text-slate-900 font-semibold">' + escapeHtml(maskHalf(nm || (p.email ? p.email : 'Patient'))) + '</div>' +
                         '<div class="mt-2 grid grid-cols-2 gap-2 text-[0.75rem] text-slate-700">' +
                             '<div><span class="text-slate-500">Birthdate:</span> ' + escapeHtml(maskHalf(p.birthdate || '-')) + '</div>' +
                             '<div><span class="text-slate-500">Sex:</span> ' + escapeHtml(maskHalf(p.sex || '-')) + '</div>' +
@@ -1436,7 +1436,7 @@
         function recFullName(p, fallback) {
             if (!p) return fallback || '-'
             var parts = []; if (p.firstname) parts.push(String(p.firstname)); if (p.middlename) parts.push(String(p.middlename)); if (p.lastname) parts.push(String(p.lastname))
-            var name = parts.join(' ').trim(); if (name) return name; if (p.email) return String(p.email); return fallback || ('#' + (p.user_id || ''))
+            var name = parts.join(' ').trim(); if (name) return name; if (p.email) return String(p.email); return fallback || ''
         }
 
         function recNameOnly(p) {
@@ -1612,7 +1612,7 @@
             var html = ''
             filtered.forEach(function (p) {
                 var patientId = p && p.user_id != null ? String(p.user_id) : ''
-                var name = recNameOnly(p) || ('Patient #' + p.user_id)
+                var name = recNameOnly(p) || (p && p.email ? String(p.email) : '')
                 var address = p && p.address ? String(p.address) : ''
                 var age = recAgeFromBirthdate(p && p.birthdate ? String(p.birthdate) : null)
                 var sex = p && p.sex ? String(p.sex) : ''

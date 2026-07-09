@@ -106,7 +106,18 @@
     </div>
 
     <div id="receptionAppointmentPanelManage" class="hidden p-5">
-        <div class="flex items-center justify-end mb-3 gap-3">
+        <div id="receptionManageDateHeader" class="hidden text-center text-sm font-semibold text-slate-700 mb-3"></div>
+        <div class="flex items-center justify-between mb-3 gap-3">
+            <div class="flex items-center gap-2">
+                <button id="receptionManageCalendarToggle" type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.7rem] font-semibold text-slate-700 transition-colors">
+                    <x-lucide-calendar class="w-[14px] h-[14px]" />
+                    <span id="receptionManageCalendarToggleText">Calendar view</span>
+                </button>
+                <button id="receptionManageClearFilterBtn" type="button" style="display:none" class="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-[0.7rem] font-semibold text-red-700 hover:bg-red-100 transition-colors">
+                    <x-lucide-x class="w-[14px] h-[14px]" />
+                    Clear Filter
+                </button>
+            </div>
             <div class="flex items-center gap-2">
             <button id="receptionManageTodayOnlyBtn" type="button" class="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.75rem] font-semibold text-slate-700">
                 Show today only
@@ -118,66 +129,86 @@
         </div>
         </div>
 
-        <div id="receptionManageAppointmentError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
-        <div id="receptionManageAppointmentSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
+    <div id="receptionManageAppointmentError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
+    <div id="receptionManageAppointmentSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
 
-        <div class="grid gap-3 grid-cols-1 md:grid-cols-5 items-start mb-4">
-            <div class="md:col-span-2 min-w-0">
-                <label for="receptionManageApptSearch" class="block text-[0.7rem] text-slate-600 mb-1">Search</label>
-                <input id="receptionManageApptSearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search by patient or doctor">
-            </div>
-            <div class="min-w-0">
-                <label for="receptionManageServiceSearch" class="block text-[0.7rem] text-slate-600 mb-1">Service</label>
-                <div class="relative">
-                    <input id="receptionManageServiceSearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="All services" autocomplete="off">
-                    <input id="receptionManageServiceId" type="hidden">
-                    <div id="receptionManageServiceResults" class="hidden absolute left-0 right-0 top-full mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-sm max-h-64 overflow-y-auto overscroll-contain z-50"></div>
-                </div>
-            </div>
-            <div class="min-w-0">
-                <label for="receptionManageSort" class="block text-[0.7rem] text-slate-600 mb-1">Sort by date</label>
-                <select id="receptionManageSort" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                    <option value="latest">Latest first</option>
-                    <option value="oldest">Oldest first</option>
-                </select>
-            </div>
-            <div class="min-w-0">
-                <label for="receptionManageStatus" class="block text-[0.7rem] text-slate-600 mb-1">Status</label>
-                <select id="receptionManageStatus" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                    <option value="">All statuses</option>
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                    <option value="no_show">No-show</option>
-                </select>
+    <div class="grid gap-3 grid-cols-1 md:grid-cols-5 items-start mb-4">
+        <div class="md:col-span-2 min-w-0">
+            <label for="receptionManageApptSearch" class="block text-[0.7rem] text-slate-600 mb-1">Search</label>
+            <input id="receptionManageApptSearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search by patient or doctor">
+        </div>
+        <div class="min-w-0">
+            <label for="receptionManageServiceSearch" class="block text-[0.7rem] text-slate-600 mb-1">Service</label>
+            <div class="relative">
+                <input id="receptionManageServiceSearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="All services" autocomplete="off">
+                <input id="receptionManageServiceId" type="hidden">
+                <div id="receptionManageServiceResults" class="hidden absolute left-0 right-0 top-full mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-sm max-h-64 overflow-y-auto overscroll-contain z-50"></div>
             </div>
         </div>
-<div class="w-full" style="display:grid;">
-<div class="rounded-2xl border border-slate-200 overflow-hidden">
- <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[470px]">
-        <table class="text-xs" style="min-width:700px;width:100%;table-layout:auto;">
-            <thead class="bg-slate-50 text-slate-600 sticky top-0">
-                <tr>
-                    <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Date</th>
-                    <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Time</th>
-                    <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Patient</th>
-                    <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Service</th>
-                    <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Doctor</th>
-                    <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Status</th>
-                    <th class="text-right px-3 py-2 font-semibold whitespace-nowrap">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="receptionManageAppointmentTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
-        </table>
+        <div class="min-w-0">
+            <label for="receptionManageSort" class="block text-[0.7rem] text-slate-600 mb-1">Sort by date</label>
+            <select id="receptionManageSort" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                <option value="latest">Latest first</option>
+                <option value="oldest">Oldest first</option>
+            </select>
+        </div>
+        <div class="min-w-0">
+            <label for="receptionManageStatus" class="block text-[0.7rem] text-slate-600 mb-1">Status</label>
+            <select id="receptionManageStatus" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                <option value="">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="no_show">No-show</option>
+            </select>
+        </div>
     </div>
-    <div id="receptionManageAppointmentTableFooter" class="px-3 py-2 text-[0.72rem] text-slate-500 bg-white border-t border-slate-100 flex items-center justify-between">
-        <div id="receptionManageAppointmentMeta">Showing latest 10 booked appointments.</div>
-    </div>
-    <div id="receptionManagePagination" class="px-3 py-2 bg-white border-t border-slate-50 flex items-center justify-center gap-1"></div>
-</div>
 
+    <div id="receptionManageTableArea">
+        <div class="w-full" style="display:grid;">
+        <div class="rounded-2xl border border-slate-200 overflow-hidden">
+         <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[470px]">
+                <table class="text-xs" style="min-width:700px;width:100%;table-layout:auto;">
+                    <thead class="bg-slate-50 text-slate-600 sticky top-0">
+                        <tr>
+                            <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Date</th>
+                            <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Time</th>
+                            <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Patient</th>
+                            <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Service</th>
+                            <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Doctor</th>
+                            <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Status</th>
+                            <th class="text-right px-3 py-2 font-semibold whitespace-nowrap">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receptionManageAppointmentTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+                </table>
+            </div>
+            <div id="receptionManageAppointmentTableFooter" class="px-3 py-2 text-[0.72rem] text-slate-500 bg-white border-t border-slate-100 flex items-center justify-between">
+                <div id="receptionManageAppointmentMeta">Showing latest 10 booked appointments.</div>
+            </div>
+            <div id="receptionManagePagination" class="px-3 py-2 bg-white border-t border-slate-50 flex items-center justify-center gap-1"></div>
+        </div>
+        </div>
         <pre id="receptionManageAppointmentResult" class="hidden mt-3 text-[0.68rem] text-slate-600 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 overflow-x-auto"></pre>
+    </div>
+
+    <div id="receptionManageCalendarArea" class="hidden">
+        <div class="rounded-2xl border border-slate-200 overflow-hidden bg-white">
+            <div class="px-5 py-4 border-b border-slate-100">
+                <div class="flex items-center justify-between">
+                    <button id="receptionManageCalDatePrev" type="button" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold">‹</button>
+                    <div id="receptionManageCalMonthLabel" class="text-base font-bold text-slate-800"></div>
+                    <button id="receptionManageCalDateNext" type="button" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold">›</button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-7 gap-1.5 text-[0.75rem] text-slate-400 mb-3 text-center font-medium">
+                    <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                </div>
+                <div id="receptionManageCalDateGrid" class="grid grid-cols-7 grid-rows-[repeat(6,1fr)] gap-1.5 h-[520px]"></div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -186,42 +217,84 @@
     <div class="w-full max-w-4xl h-[90vh] max-h-none rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] flex overflow-hidden">
         <!-- History list (left) -->
         <div class="w-1/2 border-r border-slate-200 flex flex-col min-h-0">
-            <div class="px-4 py-3 border-b border-slate-100 shrink-0 flex items-center justify-between">
-                <div>
-                    <div class="text-sm font-semibold text-slate-900">Patient History</div>
-                    <div id="managePatientHistSubtitle" class="text-[0.72rem] text-slate-500">Loading…</div>
+            <!-- History list content -->
+            <div id="manageHistListSection">
+                <div class="px-4 py-3 border-b border-slate-100 shrink-0 flex items-center justify-between">
+                    <div>
+                        <div class="text-sm font-semibold text-slate-900">Patient History</div>
+                        <div id="managePatientHistSubtitle" class="text-[0.72rem] text-slate-500">Loading…</div>
+                    </div>
+                    <button type="button" id="managePatientHistClose" class="text-slate-400 hover:text-slate-600">
+                        <x-lucide-x class="w-[20px] h-[20px]" />
+                    </button>
                 </div>
-                <button type="button" id="managePatientHistClose" class="text-slate-400 hover:text-slate-600">
-                    <x-lucide-x class="w-[20px] h-[20px]" />
-                </button>
+                <div class="px-4 py-2 border-b border-slate-100 shrink-0 grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block text-[0.6rem] text-slate-500 mb-0.5">Date</label>
+                        <input id="managePatientHistDate" type="date" class="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[0.7rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[0.6rem] text-slate-500 mb-0.5">Status</label>
+                        <select id="managePatientHistStatus" class="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[0.7rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            <option value="">All</option>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="no_show">No-show</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[0.6rem] text-slate-500 mb-0.5">Type</label>
+                        <select id="managePatientHistType" class="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[0.7rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            <option value="">All</option>
+                            <option value="walk_in">Walk In</option>
+                            <option value="scheduled">Scheduled</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="managePatientHistBody" class="flex-1 overflow-y-auto p-3 space-y-2">
+                    <div class="text-center text-[0.78rem] text-slate-400 py-8">Loading history…</div>
+                </div>
             </div>
-            <div class="px-4 py-2 border-b border-slate-100 shrink-0 grid grid-cols-3 gap-2">
-                <div>
-                    <label class="block text-[0.6rem] text-slate-500 mb-0.5">Date</label>
-                    <input id="managePatientHistDate" type="date" class="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[0.7rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+            <!-- Change Appointment panel -->
+            <div id="manageHistChangePanel" class="hidden flex-1 flex flex-col min-h-0">
+                <div class="px-4 py-3 border-b border-slate-100 shrink-0 flex items-center gap-3">
+                    <button id="manageHistChangeBack" type="button" class="shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
+                        <x-lucide-arrow-left class="w-[14px] h-[14px]" />
+                    </button>
+                    <div>
+                        <div class="text-sm font-semibold text-slate-900">Change Appointment</div>
+                        <div id="manageHistChangeSubtitle" class="text-[0.72rem] text-slate-500">Select a new doctor, date and time.</div>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-[0.6rem] text-slate-500 mb-0.5">Status</label>
-                    <select id="managePatientHistStatus" class="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[0.7rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                        <option value="">All</option>
-                        <option value="pending">Pending</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                        <option value="no_show">No-show</option>
-                    </select>
+                <div class="px-4 py-3 border-b border-slate-100 shrink-0">
+                    <label class="block text-[0.65rem] font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Doctor</label>
+                    <select id="manageHistChangeDoctor" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.78rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none"></select>
                 </div>
-                <div>
-                    <label class="block text-[0.6rem] text-slate-500 mb-0.5">Type</label>
-                    <select id="managePatientHistType" class="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[0.7rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                        <option value="">All</option>
-                        <option value="walk_in">Walk In</option>
-                        <option value="scheduled">Scheduled</option>
-                    </select>
+                <div class="flex-1 overflow-y-auto">
+                    <div class="px-4 py-3 border-b border-slate-100">
+                        <label class="text-[0.65rem] font-semibold text-slate-600 uppercase tracking-wider block mb-2">Select Date</label>
+                        <div class="flex items-center justify-between mb-2">
+                            <button id="manageHistChangeCalPrev" type="button" class="px-2 py-1 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold">‹</button>
+                            <div id="manageHistChangeCalMonth" class="text-xs font-semibold text-slate-800"></div>
+                            <button id="manageHistChangeCalNext" type="button" class="px-2 py-1 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold">›</button>
+                        </div>
+                        <div class="grid grid-cols-7 gap-0.5 text-[0.6rem] text-slate-400 mb-1 text-center font-medium">
+                            <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+                        </div>
+                        <div id="manageHistChangeCalGrid" class="grid grid-cols-7 gap-0.5"></div>
+                    </div>
+                    <div class="px-4 py-3">
+                        <label class="text-[0.65rem] font-semibold text-slate-600 uppercase tracking-wider block mb-2">Select Time</label>
+                        <div id="manageHistChangeTimeBody">
+                            <div class="text-center text-[0.72rem] text-slate-400 py-4">Select a date to view time slots.</div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div id="managePatientHistBody" class="flex-1 overflow-y-auto p-3 space-y-2">
-                <div class="text-center text-[0.78rem] text-slate-400 py-8">Loading history…</div>
+                <div class="px-4 py-3 border-t border-slate-100 shrink-0 bg-white">
+                    <button id="manageHistChangeConfirmBtn" type="button" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-[0.78rem] font-semibold text-white hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed" disabled>Confirm Change</button>
+                </div>
             </div>
         </div>
         <!-- Detail panel (right) with status actions -->
@@ -670,11 +743,11 @@ function setAppointmentTab(tab) {
         }
 
         function patientLabel(p) {
-            var id = p && (p.user_id != null ? p.user_id : p.id)
             var parts = [p && p.firstname, p && p.middlename, p && p.lastname].filter(function (v) { return String(v || '').trim() !== '' })
             var name = parts.join(' ').trim()
-            if (!name) name = 'Patient'
-            return '#' + id + ' - ' + name
+            if (name) return name
+            if (p && p.email) return String(p.email)
+            return 'Patient'
         }
 
         function patientDisplayName(patient) {
@@ -683,7 +756,7 @@ function setAppointmentTab(tab) {
                 .filter(function (v) { return String(v || '').trim() !== '' })
                 .join(' ')
                 .trim()
-            if (!name) name = 'User #' + (patient.user_id != null ? patient.user_id : '')
+            if (!name) name = patient.email ? String(patient.email) : ''
             return name
         }
 
@@ -864,7 +937,7 @@ function setAppointmentTab(tab) {
                             '<div class="min-w-0 flex-1">' +
                                 '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-1">Patient</div>' +
                                 '<div class="text-base font-semibold text-slate-900 break-words">' + escapeHtml(name) + '</div>' +
-                                '<div class="mt-1 text-[0.78rem] text-slate-500">#' + escapeHtml(patient.user_id) + '</div>' +
+                                '<div class="mt-1 text-[0.78rem] text-slate-500">' + escapeHtml(patient && patient.email ? patient.email : '') + '</div>' +
                             '</div>' +
                         '</div>' +
                     '</div>' +
@@ -1561,7 +1634,7 @@ function setAppointmentTab(tab) {
                 } else {
                     var parts = []
                     var name = [patient.firstname, patient.middlename, patient.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
-                    if (!name) name = 'User #' + patient.user_id
+                    if (!name) name = patient.email ? String(patient.email) : ''
                     parts.push('Name: ' + name)
                     if (patient.birthdate) parts.push('Birthdate: ' + String(patient.birthdate).slice(0, 10))
                     if (patient.contact_number) parts.push('Contact: ' + patient.contact_number)
@@ -1654,7 +1727,7 @@ function setAppointmentTab(tab) {
             var html = ''
             list.forEach(function (p) {
                 var name = [p.firstname, p.middlename, p.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
-                if (!name) name = 'User #' + p.user_id
+                if (!name) name = p.email ? String(p.email) : ''
                 var meta = [p.email, p.contact_number].filter(Boolean).join(' • ')
                 html += '<button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50 border-b border-slate-100 last:border-0">' +
                     '<div class="text-[0.78rem] text-slate-800 font-semibold">' + escapeHtml(name) + '</div>' +
@@ -3099,6 +3172,9 @@ function setAppointmentTab(tab) {
         var manageVisibleCount = 5
         var manageLastPage = 1
         var manageTotal = 0
+        var manageFilterDate = ''
+        var manageDateHeader = document.getElementById('receptionManageDateHeader')
+        var manageClearFilterBtn = document.getElementById('receptionManageClearFilterBtn')
 
         var manageHistOverlay = document.getElementById('managePatientHistoryOverlay')
         var manageHistClose = document.getElementById('managePatientHistClose')
@@ -3112,6 +3188,82 @@ function setAppointmentTab(tab) {
         var manageHistUpdateBtn = document.getElementById('managePatientHistUpdateBtn')
         var manageHistoryPatientId = ''
         var manageHistoryAppointments = []
+
+        var manageCalMonth = new Date()
+        manageCalMonth.setDate(1)
+        var manageMonthAppointments = {}
+        var manageCalMonthLabel = document.getElementById('receptionManageCalMonthLabel')
+        var manageCalDateGrid = document.getElementById('receptionManageCalDateGrid')
+        var manageCalDatePrev = document.getElementById('receptionManageCalDatePrev')
+        var manageCalDateNext = document.getElementById('receptionManageCalDateNext')
+
+        function renderManageCalendar() {
+            if (!manageCalDateGrid || !manageCalMonthLabel) return
+
+            var year = manageCalMonth.getFullYear()
+            var month = manageCalMonth.getMonth()
+            var first = new Date(year, month, 1)
+            var firstDow = first.getDay()
+            var daysIn = new Date(year, month + 1, 0).getDate()
+
+            manageCalMonthLabel.textContent = first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+
+            var today = new Date()
+            today.setHours(0, 0, 0, 0)
+
+            var selectedIso = ''
+            var cells = []
+            for (var i = 0; i < firstDow; i++) cells.push('')
+            for (var day = 1; day <= daysIn; day++) {
+                var d = new Date(year, month, day)
+                var iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+                var notPast = d.getTime() >= today.getTime()
+                var selected = selectedIso && selectedIso === iso
+                var base = 'relative w-full rounded-lg text-[0.75rem] font-semibold border transition-colors flex items-center justify-center'
+                var cls = base + ' ' + (notPast
+                    ? (selected ? 'bg-green-600 text-white border-green-600' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50')
+                    : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed')
+                var count = manageMonthAppointments[iso] || 0
+                var showBadge = count > 0 && notPast
+                var badge = showBadge ? '<span class="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-red-500 text-white text-[0.5rem] leading-[14px] font-bold rounded-full px-0.5 text-center">' + count + '</span>' : ''
+                cells.push('<button type="button" class="' + cls + '" data-date="' + iso + '"' + (notPast ? '' : ' disabled') + '>' + day + badge + '</button>')
+            }
+            var total = Math.ceil(cells.length / 7) * 7
+            while (cells.length < total) cells.push('')
+            manageCalDateGrid.innerHTML = cells.map(function (html) {
+                return html ? html : '<div></div>'
+            }).join('')
+        }
+
+        function loadManageMonthAppointments() {
+            if (typeof apiFetch !== 'function') return
+            var y = manageCalMonth.getFullYear()
+            var m = manageCalMonth.getMonth()
+            var startDate = y + '-' + String(m + 1).padStart(2, '0') + '-01'
+            var lastDay = new Date(y, m + 1, 0).getDate()
+            var endDate = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(lastDay).padStart(2, '0')
+            apiFetch("{{ url('/api/appointments') }}?start_date=" + encodeURIComponent(startDate) + "&end_date=" + encodeURIComponent(endDate) + "&per_page=200", { method: 'GET' })
+                .then(function (response) { return readResponse(response) })
+                .then(function (result) {
+                    var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    var map = {}
+                    raw.forEach(function (a) {
+                        if (!a || !a.appointment_datetime) return
+                        if (String(a.status || '').toLowerCase() === 'cancelled') return
+                        var d = new Date(a.appointment_datetime)
+                        if (!isNaN(d.getTime())) {
+                            var datePart = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+                            map[datePart] = (map[datePart] || 0) + 1
+                        }
+                    })
+                    manageMonthAppointments = map
+                    renderManageCalendar()
+                })
+                .catch(function () {
+                    manageMonthAppointments = {}
+                    renderManageCalendar()
+                })
+        }
 
         var confirmOverlay = document.getElementById('receptionBookConfirmOverlay')
         var confirmMessage = document.getElementById('receptionBookConfirmMessage')
@@ -3343,7 +3495,8 @@ function updateManageTodayButton() {
             if (!appt) return ''
             var id = appt.id || appt.appointment_id || ''
             var patient = appt.patient || {}
-            var patientName = personName(patient, 'Patient #' + String(patient && patient.user_id != null ? patient.user_id : ''))
+            var patientFallback = patient && patient.email ? String(patient.email) : ''
+            var patientName = personName(patient, patientFallback)
             var doctor = appt.doctor || {}
             var doctorName = personName(doctor, 'Doctor #' + String(doctor && doctor.user_id != null ? doctor.user_id : ''))
             var when = safeIsoParts(appt && appt.appointment_datetime ? String(appt.appointment_datetime) : '')
@@ -3541,9 +3694,11 @@ function updateManageTodayButton() {
                         '<div class="col-span-2"><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Service(s)</span><span class="font-medium text-slate-800">' + escapeHtml(srv) + (serviceDesc ? ' — <span class="text-slate-500 font-normal">' + escapeHtml(serviceDesc) + '</span>' : '') + '</span></div>' +
                         '<div class="col-span-2"><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Status</span><span class="font-medium text-slate-800">' + escapeHtml(stLabel || '-') + '</span></div>' +
                     '</div>' +
-                    '<button type="button" class="rec-book-change-appt w-full mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-green-50 border border-green-200 px-3 py-2 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 transition-colors" data-appointment-id="' + escapeHtml(apptId) + '" data-doctor-id="' + escapeHtml(docId) + '">' +
-                        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[14px] h-[14px]"><path d="M11 10v4h4"/><path d="m11 14 1.535-1.605a5 5 0 0 1 8 1.5"/><path d="M16 2v4"/><path d="m21 18-1.535 1.605a5 5 0 0 1-8-1.5"/><path d="M21 22v-4h-4"/><path d="M21 8.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4.3"/><path d="M3 10h4"/><path d="M8 2v4"/></svg> Change Appointment' +
-                    '</button>' +
+                    (currentStatus === 'confirmed'
+                        ? '<button type="button" class="rec-book-change-appt w-full mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-green-50 border border-green-200 px-3 py-2 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 transition-colors" data-appointment-id="' + escapeHtml(apptId) + '" data-doctor-id="' + escapeHtml(docId) + '">' +
+                            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[14px] h-[14px]"><path d="M11 10v4h4"/><path d="m11 14 1.535-1.605a5 5 0 0 1 8 1.5"/><path d="M16 2v4"/><path d="m21 18-1.535 1.605a5 5 0 0 1-8-1.5"/><path d="M21 22v-4h-4"/><path d="M21 8.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4.3"/><path d="M3 10h4"/><path d="M8 2v4"/></svg> Change Appointment' +
+                        '</button>'
+                        : '') +
                 '</div>'
 
             // Enable status dropdown
@@ -3709,7 +3864,10 @@ function updateManageTodayButton() {
             var now = new Date()
             var startIso = ''
             var endIso = ''
-            if (manageShowTodayOnly) {
+            if (manageFilterDate) {
+                startIso = manageFilterDate
+                endIso = manageFilterDate
+            } else if (manageShowTodayOnly) {
                 var todayIso = formatLocalDateIso(now)
                 startIso = todayIso
                 endIso = todayIso
@@ -3833,6 +3991,92 @@ function updateManageTodayButton() {
             manageTodayOnlyBtn.addEventListener('click', function () {
                 manageShowTodayOnly = !manageShowTodayOnly
                 updateManageTodayButton()
+                manageCurrentPage = 1
+                loadManageAppointments()
+            })
+        }
+
+        var manageCalendarToggle = document.getElementById('receptionManageCalendarToggle')
+        var manageCalendarToggleText = document.getElementById('receptionManageCalendarToggleText')
+        var manageTableArea = document.getElementById('receptionManageTableArea')
+        var manageCalendarArea = document.getElementById('receptionManageCalendarArea')
+        var manageShowCalendar = false
+        if (manageCalendarToggle && manageTableArea && manageCalendarArea) {
+            manageCalendarToggle.addEventListener('click', function () {
+                manageShowCalendar = !manageShowCalendar
+                if (manageShowCalendar) {
+                    manageTableArea.classList.add('hidden')
+                    manageCalendarArea.classList.remove('hidden')
+                    manageCalendarToggle.classList.add('bg-green-600', 'text-white', 'border-green-600')
+                    manageCalendarToggle.classList.remove('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50', 'hover:border-slate-300')
+                    if (manageCalendarToggleText) manageCalendarToggleText.textContent = 'Table view'
+                    if (manageDateHeader) manageDateHeader.style.display = 'none'
+                    if (manageClearFilterBtn) manageClearFilterBtn.style.display = 'none'
+                    manageCalMonth = new Date()
+                    manageCalMonth.setDate(1)
+                    loadManageMonthAppointments()
+                } else {
+                    manageCalendarArea.classList.add('hidden')
+                    manageTableArea.classList.remove('hidden')
+                    manageCalendarToggle.classList.remove('bg-green-600', 'text-white', 'border-green-600')
+                    manageCalendarToggle.classList.add('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50', 'hover:border-slate-300')
+                    if (manageCalendarToggleText) manageCalendarToggleText.textContent = 'Calendar view'
+                    if (manageFilterDate && manageDateHeader && manageClearFilterBtn) {
+                        manageDateHeader.style.display = ''
+                        manageClearFilterBtn.style.display = ''
+                    }
+                }
+            })
+        }
+
+        if (manageCalDatePrev) {
+            manageCalDatePrev.addEventListener('click', function () {
+                manageCalMonth.setMonth(manageCalMonth.getMonth() - 1)
+                loadManageMonthAppointments()
+            })
+        }
+        if (manageCalDateNext) {
+            manageCalDateNext.addEventListener('click', function () {
+                manageCalMonth.setMonth(manageCalMonth.getMonth() + 1)
+                loadManageMonthAppointments()
+            })
+        }
+
+        if (manageCalDateGrid) {
+            manageCalDateGrid.addEventListener('click', function (e) {
+                var btn = e.target && e.target.closest ? e.target.closest('button[data-date]') : null
+                if (!btn || btn.disabled) return
+                var dateIso = btn.getAttribute('data-date') || ''
+                if (!dateIso) return
+                manageFilterDate = dateIso
+                manageCurrentPage = 1
+                if (manageDateHeader) {
+                    var d = new Date(dateIso + 'T00:00:00')
+                    var formatted = d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
+                    manageDateHeader.textContent = 'Showing ' + formatted + ' Appointments'
+                    manageDateHeader.style.display = ''
+                }
+                if (manageClearFilterBtn) manageClearFilterBtn.style.display = ''
+                if (manageCalendarToggle && manageTableArea && manageCalendarArea) {
+                    manageShowCalendar = false
+                    manageCalendarArea.classList.add('hidden')
+                    manageTableArea.classList.remove('hidden')
+                    manageCalendarToggle.classList.remove('bg-green-600', 'text-white', 'border-green-600', 'hover:bg-slate-50', 'hover:border-slate-300')
+                    manageCalendarToggle.classList.add('bg-white', 'text-slate-700', 'border-slate-200')
+                    if (manageCalendarToggleText) manageCalendarToggleText.textContent = 'Calendar view'
+                }
+                loadManageAppointments()
+            })
+        }
+
+        if (manageClearFilterBtn) {
+            manageClearFilterBtn.addEventListener('click', function () {
+                manageFilterDate = ''
+                if (manageDateHeader) {
+                    manageDateHeader.textContent = ''
+                    manageDateHeader.style.display = 'none'
+                }
+                manageClearFilterBtn.style.display = 'none'
                 manageCurrentPage = 1
                 loadManageAppointments()
             })
@@ -3996,7 +4240,179 @@ function updateManageTodayButton() {
         var recBookCurrentDoctorLabel = document.getElementById('recBookCurrentDoctorLabel')
         var recBookDoctorListWrap = document.getElementById('recBookDoctorListWrap')
 
-        // Open change appointment overlay
+        // ── Change Appointment Panel (inside Details modal) ──
+        var manageHistChangePanel = document.getElementById('manageHistChangePanel')
+        var manageHistListSection = document.getElementById('manageHistListSection')
+        var manageHistChangeBack = document.getElementById('manageHistChangeBack')
+        var manageHistChangeDoctor = document.getElementById('manageHistChangeDoctor')
+        var manageHistChangeCalPrev = document.getElementById('manageHistChangeCalPrev')
+        var manageHistChangeCalNext = document.getElementById('manageHistChangeCalNext')
+        var manageHistChangeCalMonth = document.getElementById('manageHistChangeCalMonth')
+        var manageHistChangeCalGrid = document.getElementById('manageHistChangeCalGrid')
+        var manageHistChangeTimeBody = document.getElementById('manageHistChangeTimeBody')
+        var manageHistChangeConfirmBtn = document.getElementById('manageHistChangeConfirmBtn')
+        var manageHistChangeCalDate = new Date()
+        manageHistChangeCalDate.setDate(1)
+        var manageHistChangeMonthAppts = {}
+        var manageHistChangeSelectedDate = null
+        var manageHistChangeSelectedTime = null
+
+        function manageHistRenderDoctorDropdown(docList, selectedDocId) {
+            if (!manageHistChangeDoctor || !docList || !docList.length) return
+            var allowedSpecializations = [
+                'general surgeon',
+                'obstetrician-gynecologist',
+                'obstetrician - gynecologist',
+                'internal medicine'
+            ]
+            var filtered = docList.filter(function (doc) {
+                if (!doc || !doc.specialization) return false
+                var spec = normalizeText(doc.specialization)
+                for (var s = 0; s < allowedSpecializations.length; s++) {
+                    if (specializationMatches(allowedSpecializations[s], spec)) return true
+                }
+                return false
+            })
+            manageHistChangeDoctor.innerHTML = ''
+            for (var i = 0; i < filtered.length; i++) {
+                var doc = filtered[i]
+                var opt = document.createElement('option')
+                opt.value = doc.user_id
+                opt.textContent = doctorDisplayName(doc)
+                if (String(doc.user_id) === String(selectedDocId)) opt.selected = true
+                manageHistChangeDoctor.appendChild(opt)
+            }
+        }
+
+        function manageHistRenderChangeCalendar() {
+            if (!manageHistChangeCalGrid || !manageHistChangeCalMonth) return
+            var year = manageHistChangeCalDate.getFullYear()
+            var month = manageHistChangeCalDate.getMonth()
+            var first = new Date(year, month, 1)
+            var firstDow = first.getDay()
+            var daysIn = new Date(year, month + 1, 0).getDate()
+
+            manageHistChangeCalMonth.textContent = first.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
+
+            var today = new Date()
+            today.setHours(0, 0, 0, 0)
+            var selectedIso = manageHistChangeSelectedDate || ''
+
+            var cells = []
+            for (var i = 0; i < firstDow; i++) cells.push('')
+            for (var day = 1; day <= daysIn; day++) {
+                var d = new Date(year, month, day)
+                var iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+                var notPast = d.getTime() >= today.getTime()
+                var selected = selectedIso === iso
+                var base = 'w-full rounded-md text-[0.7rem] font-semibold border transition-colors flex items-center justify-center aspect-square'
+                var cls = base + ' ' + (notPast
+                    ? (selected ? 'bg-green-600 text-white border-green-600' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50')
+                    : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed')
+                var count = manageHistChangeMonthAppts[iso] || 0
+                var showBadge = count > 0 && notPast
+                var badge = showBadge ? '<span class="absolute -top-1 -right-1 min-w-[12px] h-[12px] bg-red-500 text-white text-[0.45rem] leading-[12px] font-bold rounded-full px-0.5 text-center">' + count + '</span>' : ''
+                cells.push('<button type="button" class="relative ' + cls + '" data-date="' + iso + '"' + (notPast ? '' : ' disabled') + '>' + day + badge + '</button>')
+            }
+            var total = Math.ceil(cells.length / 7) * 7
+            while (cells.length < total) cells.push('')
+            manageHistChangeCalGrid.innerHTML = cells.map(function (html) {
+                return html ? html : '<div></div>'
+            }).join('')
+        }
+
+        function manageHistLoadMonthAppts() {
+            if (typeof apiFetch !== 'function') return
+            var doctorId = manageHistChangeDoctor ? manageHistChangeDoctor.value : ''
+            if (!doctorId) return
+            var y = manageHistChangeCalDate.getFullYear()
+            var m = manageHistChangeCalDate.getMonth()
+            var startDate = y + '-' + String(m + 1).padStart(2, '0') + '-01'
+            var lastDay = new Date(y, m + 1, 0).getDate()
+            var endDate = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(lastDay).padStart(2, '0')
+            apiFetch("{{ url('/api/appointments') }}?doctor_id=" + encodeURIComponent(doctorId) + "&start_date=" + encodeURIComponent(startDate) + "&end_date=" + encodeURIComponent(endDate) + "&per_page=200", { method: 'GET' })
+                .then(function (r) { return readResponse(r) })
+                .then(function (result) {
+                    var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    var map = {}
+                    raw.forEach(function (a) {
+                        if (!a || !a.appointment_datetime) return
+                        if (String(a.status || '').toLowerCase() === 'cancelled') return
+                        var d = new Date(a.appointment_datetime)
+                        if (!isNaN(d.getTime())) {
+                            var datePart = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+                            map[datePart] = (map[datePart] || 0) + 1
+                        }
+                    })
+                    manageHistChangeMonthAppts = map
+                    manageHistRenderChangeCalendar()
+                })
+                .catch(function () {
+                    manageHistChangeMonthAppts = {}
+                    manageHistRenderChangeCalendar()
+                })
+        }
+
+        function manageHistLoadTimeSlots(dateIso) {
+            if (!manageHistChangeTimeBody || !dateIso) return
+            manageHistChangeTimeBody.innerHTML = '<div class="text-center text-[0.72rem] text-slate-400 py-4">Loading time slots…</div>'
+            var doctorId = manageHistChangeDoctor ? manageHistChangeDoctor.value : ''
+            if (!doctorId) return
+
+            apiFetch("{{ url('/api/appointments') }}?doctor_id=" + encodeURIComponent(doctorId) + "&start_date=" + encodeURIComponent(dateIso) + "&end_date=" + encodeURIComponent(dateIso) + "&per_page=50", { method: 'GET' })
+                .then(function (r) { return readResponse(r) })
+                .then(function (result) {
+                    var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    var bookedSet = {}
+                    raw.forEach(function (a) {
+                        if (!a || !a.appointment_datetime) return
+                        if (String(a.status || '').toLowerCase() === 'cancelled') return
+                        var d = new Date(a.appointment_datetime)
+                        if (!isNaN(d.getTime())) {
+                            var datePart = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+                            if (datePart === dateIso) {
+                                var timeKey = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
+                                bookedSet[timeKey] = true
+                            }
+                        }
+                    })
+                    manageHistRenderTimeOptions(bookedSet)
+                })
+                .catch(function () {
+                    manageHistChangeTimeBody.innerHTML = '<div class="text-center text-[0.72rem] text-slate-400 py-4">Error loading time slots.</div>'
+                })
+        }
+
+        function manageHistRenderTimeOptions(bookedSet) {
+            if (!manageHistChangeTimeBody) return
+            var slotMinutes = 30
+            var startHour = 7
+            var endHour = 17
+            var html = '<div class="grid grid-cols-3 gap-1.5">'
+            for (var h = startHour; h < endHour; h++) {
+                for (var m = 0; m < 60; m += slotMinutes) {
+                    var timeStr = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0')
+                    var display = (h % 12 || 12) + ':' + String(m).padStart(2, '0') + ' ' + (h < 12 ? 'AM' : 'PM')
+                    var booked = bookedSet && bookedSet[timeStr]
+                    var selected = manageHistChangeSelectedTime === timeStr
+                    var cls = 'w-full rounded-lg border px-2 py-1.5 text-[0.68rem] font-semibold text-center transition-colors'
+                    if (booked) {
+                        cls += ' border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
+                        html += '<button type="button" class="' + cls + '" disabled>' + display + ' · Booked</button>'
+                    } else if (selected) {
+                        cls += ' border-green-600 bg-green-600 text-white'
+                        html += '<button type="button" class="' + cls + '" data-time="' + timeStr + '">' + display + '</button>'
+                    } else {
+                        cls += ' border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                        html += '<button type="button" class="' + cls + '" data-time="' + timeStr + '">' + display + '</button>'
+                    }
+                }
+            }
+            html += '</div>'
+            manageHistChangeTimeBody.innerHTML = html
+        }
+
+        // Open change appointment panel (inside details modal)
         document.addEventListener('click', function (e) {
             var btn = e.target.closest('.rec-book-change-appt')
             if (!btn) return
@@ -4018,35 +4434,138 @@ function updateManageTodayButton() {
                 }
             }
 
-            // Update subtitle
-            if (recBookDocPickerSubtitle) {
-                recBookDocPickerSubtitle.textContent = 'Select a new date and time.'
+            // Hide history list, show change panel
+            if (manageHistListSection) manageHistListSection.classList.add('hidden')
+            if (manageHistChangePanel) manageHistChangePanel.classList.remove('hidden')
+
+            // Populate doctor dropdown
+            if (typeof doctors !== 'undefined' && Array.isArray(doctors)) {
+                manageHistRenderDoctorDropdown(doctors, currentDoctorId)
             }
-            if (recBookCurrentDoctorLabel && recBookCurrentDoctor) {
-                recBookCurrentDoctorLabel.textContent = 'Current: ' + doctorDisplayName(recBookCurrentDoctor)
-            }
 
-            // Reset doctor toggle
-            if (recBookDoctorListWrap) recBookDoctorListWrap.classList.add('hidden')
-            if (recBookToggleDoctorCaret) recBookToggleDoctorCaret.textContent = '\u25BC'
-            recBookPendingDoctorChanged = false
+            // Reset state
+            manageHistChangeSelectedDate = null
+            manageHistChangeSelectedTime = null
+            if (manageHistChangeConfirmBtn) manageHistChangeConfirmBtn.disabled = true
 
-            // Reset date/time state
-            recBookSelectedDate = null
-            recBookSelectedTime = null
-
-            // Show date/time slot picker based on current doctor
-            if (recBookSlotPicker) recBookSlotPicker.classList.remove('hidden')
-            recBookRenderDateOptions()
-            if (recBookTimeOptions) recBookTimeOptions.innerHTML = ''
-            if (recBookConfirmSlotBtn) recBookConfirmSlotBtn.disabled = true
-
-            // Show the overlay
-            if (recBookDocPickerOverlay) {
-                recBookDocPickerOverlay.classList.remove('hidden')
-                recBookDocPickerOverlay.classList.add('flex')
-            }
+            // Init calendar
+            manageHistChangeCalDate = new Date()
+            manageHistChangeCalDate.setDate(1)
+            manageHistLoadMonthAppts()
+            if (manageHistChangeTimeBody) manageHistChangeTimeBody.innerHTML = '<div class="text-center text-[0.72rem] text-slate-400 py-4">Select a date to view time slots.</div>'
         })
+
+        // Back button
+        if (manageHistChangeBack) {
+            manageHistChangeBack.addEventListener('click', function () {
+                if (manageHistChangePanel) manageHistChangePanel.classList.add('hidden')
+                if (manageHistListSection) manageHistListSection.classList.remove('hidden')
+            })
+        }
+
+        // Doctor change → reload calendar + time slots
+        if (manageHistChangeDoctor) {
+            manageHistChangeDoctor.addEventListener('change', function () {
+                manageHistChangeSelectedDate = null
+                manageHistChangeSelectedTime = null
+                if (manageHistChangeConfirmBtn) manageHistChangeConfirmBtn.disabled = true
+                if (manageHistChangeTimeBody) manageHistChangeTimeBody.innerHTML = '<div class="text-center text-[0.72rem] text-slate-400 py-4">Select a date to view time slots.</div>'
+                manageHistLoadMonthAppts()
+            })
+        }
+
+        // Calendar navigation
+        if (manageHistChangeCalPrev) {
+            manageHistChangeCalPrev.addEventListener('click', function () {
+                manageHistChangeCalDate.setMonth(manageHistChangeCalDate.getMonth() - 1)
+                manageHistLoadMonthAppts()
+            })
+        }
+        if (manageHistChangeCalNext) {
+            manageHistChangeCalNext.addEventListener('click', function () {
+                manageHistChangeCalDate.setMonth(manageHistChangeCalDate.getMonth() + 1)
+                manageHistLoadMonthAppts()
+            })
+        }
+
+        // Calendar date click
+        if (manageHistChangeCalGrid) {
+            manageHistChangeCalGrid.addEventListener('click', function (e) {
+                var btn = e.target && e.target.closest ? e.target.closest('button[data-date]') : null
+                if (!btn || btn.disabled) return
+                manageHistChangeSelectedDate = btn.getAttribute('data-date') || ''
+                manageHistChangeSelectedTime = null
+                if (manageHistChangeConfirmBtn) manageHistChangeConfirmBtn.disabled = true
+                manageHistRenderChangeCalendar()
+                manageHistLoadTimeSlots(manageHistChangeSelectedDate)
+            })
+        }
+
+        // Time slot click (delegated) — just update classes, no re-fetch
+        if (manageHistChangeTimeBody) {
+            manageHistChangeTimeBody.addEventListener('click', function (e) {
+                var btn = e.target && e.target.closest ? e.target.closest('button[data-time]') : null
+                if (!btn || btn.disabled) return
+                var timeStr = btn.getAttribute('data-time') || ''
+                if (!timeStr) return
+                // Deselect previous
+                var prev = manageHistChangeTimeBody.querySelector('button.bg-green-600')
+                if (prev) {
+                    prev.className = 'w-full rounded-lg border px-2 py-1.5 text-[0.68rem] font-semibold text-center transition-colors border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                }
+                // Select clicked
+                btn.className = 'w-full rounded-lg border px-2 py-1.5 text-[0.68rem] font-semibold text-center transition-colors border-green-600 bg-green-600 text-white'
+                manageHistChangeSelectedTime = timeStr
+                if (manageHistChangeConfirmBtn) manageHistChangeConfirmBtn.disabled = false
+            })
+        }
+
+        // Confirm change
+        if (manageHistChangeConfirmBtn) {
+            manageHistChangeConfirmBtn.addEventListener('click', function () {
+                var appointmentId = recBookPendingAppointmentId
+                var doctorId = manageHistChangeDoctor ? manageHistChangeDoctor.value : ''
+                var dateIso = manageHistChangeSelectedDate
+                var timeStr = manageHistChangeSelectedTime
+                if (!appointmentId || !doctorId || !dateIso || !timeStr) return
+                manageHistChangeConfirmBtn.disabled = true
+                manageHistChangeConfirmBtn.textContent = 'Updating…'
+
+                apiFetch("{{ url('/api/appointments') }}/" + encodeURIComponent(appointmentId), {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        doctor_id: doctorId,
+                        appointment_datetime: dateIso + ' ' + timeStr + ':00'
+                    })
+                })
+                .then(function (r) { return readResponse(r) })
+                .then(function (result) {
+                    if (result.ok) {
+                        manageHistChangeConfirmBtn.textContent = 'Updated ✓'
+                        if (manageHistChangeBack) manageHistChangeBack.click()
+                        loadManageAppointments()
+                        setTimeout(function () {
+                            manageHistChangeConfirmBtn.textContent = 'Confirm Change'
+                            manageHistChangeConfirmBtn.disabled = false
+                        }, 1500)
+                    } else {
+                        manageHistChangeConfirmBtn.textContent = 'Failed — ' + (result.data && result.data.message ? result.data.message : 'Error')
+                        setTimeout(function () {
+                            manageHistChangeConfirmBtn.textContent = 'Confirm Change'
+                            manageHistChangeConfirmBtn.disabled = false
+                        }, 3000)
+                    }
+                })
+                .catch(function () {
+                    manageHistChangeConfirmBtn.textContent = 'Error — try again'
+                    setTimeout(function () {
+                        manageHistChangeConfirmBtn.textContent = 'Confirm Change'
+                        manageHistChangeConfirmBtn.disabled = false
+                    }, 3000)
+                })
+            })
+        }
 
         // Toggle doctor picker
         if (recBookToggleDoctor) {

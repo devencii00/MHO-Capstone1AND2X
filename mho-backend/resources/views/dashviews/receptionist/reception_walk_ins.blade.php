@@ -19,6 +19,13 @@
         <div class="relative flex-1">
             <input id="receptionWalkInHistorySearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search patient or doctor">
         </div>
+        <button type="button" id="recWalkinsRefreshBtn" class="shrink-0 inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+            <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+            Refresh
+        </button>
+        <div class="relative">
+            <input id="receptionWalkInHistoryDate" type="date" class="w-36 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+        </div>
         <div class="relative">
             <input id="receptionWalkInHistoryServiceSearch" type="text" class="w-36 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="All services" autocomplete="off">
             <input id="receptionWalkInHistoryServiceId" type="hidden">
@@ -36,10 +43,6 @@
             <option value="cancelled">Cancelled</option>
             <option value="no_show">No-show</option>
         </select>
-        <button type="button" id="recWalkinsRefreshBtn" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
-            <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
-            Refresh
-        </button>
     </div>
     <div id="receptionWalkInHistoryError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
     <div class="rounded-xl border border-slate-200 bg-white overflow-hidden">
@@ -58,7 +61,7 @@
                 <tbody id="receptionWalkInHistoryTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
             </table>
         </div>
-        <div id="receptionWalkInHistoryMeta" class="px-4 py-2 text-[0.72rem] text-slate-500 border-t border-slate-100 bg-slate-50">Loading today's walk-ins…</div>
+        <div id="receptionWalkInHistoryMeta" class="px-4 py-2 text-[0.72rem] text-slate-500 border-t border-slate-100 bg-slate-50">Loading walk-in history…</div>
         <div id="receptionWalkInPagination" class="px-4 py-2 border-t border-slate-50 bg-white flex items-center justify-center gap-1"></div>
     </div>
     </div>
@@ -559,6 +562,7 @@ function setWalkInTab(tab) {
         var statusSelect = document.getElementById('receptionWalkInHistoryStatus')
         var tableBody = document.getElementById('receptionWalkInHistoryTableBody')
         var refreshBtn = document.getElementById('recWalkinsRefreshBtn')
+        var walkinDateInput = document.getElementById('receptionWalkInHistoryDate')
         var searchTimer = null
         var services = []
         var servicesLoaded = false
@@ -568,6 +572,7 @@ function setWalkInTab(tab) {
         var walkinVisibleCount = 5
         var walkinLastPage = 1
         var walkinTotal = 0
+        var walkinFilterDate = ''
 
         function normalizeText(value) {
             return String(value || '').trim().toLowerCase()
@@ -674,7 +679,8 @@ function setWalkInTab(tab) {
                 var when = safeIsoParts(appt && appt.appointment_datetime ? appt.appointment_datetime : '')
                 var patient = appt && appt.patient ? appt.patient : null
                 var doctor = appt && appt.doctor ? appt.doctor : null
-                var patientName = personName(patient, 'Patient #' + String(patient && patient.user_id != null ? patient.user_id : ''))
+                var patientFallback = patient && patient.email ? String(patient.email) : ''
+                var patientName = personName(patient, patientFallback)
                 var doctorName = personName(doctor, 'Doctor #' + String(doctor && doctor.user_id != null ? doctor.user_id : ''))
                 var status = statusText(appt)
 
@@ -800,9 +806,10 @@ function setWalkInTab(tab) {
             var order = sortSelect && sortSelect.value === 'oldest' ? 'oldest' : 'latest'
             url += '&order=' + encodeURIComponent(order)
 
-            var todayIso = formatLocalDateIso(new Date())
-            url += '&start_date=' + encodeURIComponent(todayIso)
-            url += '&end_date=' + encodeURIComponent(todayIso)
+            if (walkinFilterDate) {
+                url += '&start_date=' + encodeURIComponent(walkinFilterDate)
+                url += '&end_date=' + encodeURIComponent(walkinFilterDate)
+            }
 
             var search = searchInput ? normalizeText(searchInput.value) : ''
             if (search) url += '&search=' + encodeURIComponent(search)
@@ -838,7 +845,8 @@ function setWalkInTab(tab) {
 
                     renderRows(rows)
                     var metaBox = document.getElementById('receptionWalkInHistoryMeta')
-                    metaBox.textContent = 'Showing page ' + walkinCurrentPage + ' of ' + walkinLastPage + ' (' + walkinTotal + ' walk-in(s) for today).'
+                    var dateText = walkinFilterDate ? ' on ' + walkinFilterDate : ' (all dates)'
+                    metaBox.textContent = 'Showing page ' + walkinCurrentPage + ' of ' + walkinLastPage + ' (' + walkinTotal + ' walk-in(s)' + dateText + ').'
                 })
                 .catch(function () {
                     showError('Network error while loading walk-in history.')
@@ -856,7 +864,7 @@ function setWalkInTab(tab) {
         function openWalkinHistoryModal(patientId, patientName) {
             historyPatientId = patientId
             var subtitle = document.getElementById('receptionWalkInHistorySubtitle')
-            if (subtitle) subtitle.textContent = patientName || 'Patient #' + patientId
+            if (subtitle) subtitle.textContent = patientName || 'Patient'
             var body = document.getElementById('receptionWalkInHistBody')
             if (body) body.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading history…</div>'
             var detailBody = document.getElementById('receptionWalkInHistDetailBody')
@@ -903,7 +911,7 @@ function setWalkInTab(tab) {
                     var subtitle = document.getElementById('receptionWalkInHistorySubtitle')
                     if (subtitle) {
                         var first = historyAppointments[0]
-                        var label = first && first.patient ? personName(first.patient) : ('Patient #' + patientId)
+                        var label = first && first.patient ? personName(first.patient, first.patient.email ? String(first.patient.email) : '') : 'Patient'
                         subtitle.textContent = label + ' - ' + historyAppointments.length + ' appointment(s)'
                     }
                     renderWalkinPatientHistory()
@@ -1061,6 +1069,14 @@ function setWalkInTab(tab) {
 
         if (statusSelect) {
             statusSelect.addEventListener('change', function () {
+                walkinCurrentPage = 1
+                loadHistory()
+            })
+        }
+
+        if (walkinDateInput) {
+            walkinDateInput.addEventListener('change', function () {
+                walkinFilterDate = walkinDateInput.value || ''
                 walkinCurrentPage = 1
                 loadHistory()
             })
@@ -2555,7 +2571,7 @@ function setWalkInTab(tab) {
                             '<div class="min-w-0 flex-1">' +
                                 '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-1">Patient</div>' +
                                 '<div class="text-base font-semibold text-slate-900 break-words">' + escapeHtml(name) + '</div>' +
-                                '<div class="mt-1 text-[0.78rem] text-slate-500">#' + escapeHtml(patient.user_id) + '</div>' +
+                                '<div class="mt-1 text-[0.78rem] text-slate-500">' + escapeHtml(patient && patient.email ? patient.email : '') + '</div>' +
                             '</div>' +
                         '</div>' +
                     '</div>' +
@@ -2762,7 +2778,7 @@ function setWalkInTab(tab) {
                         '<div class="flex items-start justify-between gap-3">' +
                             '<div class="min-w-0">' +
                                 '<div class="text-[0.8rem] font-semibold text-slate-900 truncate">' + escapeHtml(name) + '</div>' +
-                                '<div class="mt-1 text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || ('#' + String(patient.user_id))) + '</div>' +
+                                '<div class="mt-1 text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || (patient && patient.email ? patient.email : '')) + '</div>' +
                             '</div>' +
                             '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] font-semibold border ' + (active ? 'border-green-200 bg-white text-green-700' : 'border-slate-200 bg-slate-50 text-slate-500') + '">' + (active ? 'Selected' : 'Recent') + '</span>' +
                         '</div>' +
@@ -4873,7 +4889,7 @@ function setWalkInTab(tab) {
                 if (reason) body.reason_for_visit = reason
                 if (priority !== null && !isNaN(priority)) body.priority_level = priority
 
-                var patientName = selectedPatient ? patientDisplayName(selectedPatient) : ('#' + String(patientId))
+                var patientName = selectedPatient ? patientDisplayName(selectedPatient) : ''
                 var doctorName = selectedDoctor ? doctorDisplayName(selectedDoctor) : ('#' + String(doctorId))
                 var serviceText = (selectedServices || []).map(function (s) { return s && s.service_name ? s.service_name : '' }).filter(Boolean).join(', ')
                 var reviewDetails = {
