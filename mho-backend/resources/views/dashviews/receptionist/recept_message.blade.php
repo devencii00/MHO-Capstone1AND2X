@@ -152,6 +152,7 @@
                         convo.latest_message = message
                         convo.updated_at = message.created_at || new Date().toISOString()
                         convo.messages_count = parseInt(convo.messages_count || 0, 10) + 1
+                        convo.unread_count = 0
 
                         selectedConversation = convo
 
@@ -284,7 +285,7 @@
                             var patientName = escapeHtml(nameForUser(c.user))
                             var previewHtml = lastMessagePreview(c)
                             var isActive = selectedConversation && String(selectedConversation.conversation_id) === String(c.conversation_id)
-                            var msgCount = c.messages_count != null ? parseInt(c.messages_count, 10) : 0
+                            var unreadCount = c.unread_count != null ? parseInt(c.unread_count, 10) : 0
 
                             html += '<button type="button" class="w-full text-left px-4 py-3 border-b border-slate-100 hover:bg-slate-50 transition-colors ' + (isActive ? 'bg-slate-50' : '') + '" data-conversation-id="' + c.conversation_id + '">' +
                                 '<div class="flex items-start gap-3">' +
@@ -292,7 +293,7 @@
                                     '<div class="flex-1 min-w-0">' +
                                         '<div class="flex items-center justify-between gap-2">' +
                                             '<div class="text-[0.8rem] font-semibold text-slate-800 truncate">' + patientName + '</div>' +
-                                            (msgCount > 0 ? '<div class="text-[0.65rem] text-slate-400 whitespace-nowrap">' + msgCount + '</div>' : '') +
+                                            (unreadCount > 0 ? '<div class="flex items-center gap-1"><span class="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[0.6rem] font-bold px-1">' + unreadCount + '</span></div>' : '') +
                                         '</div>' +
                                         '<div class="text-[0.7rem] mt-0.5 truncate">' + previewHtml + '</div>' +
                                     '</div>' +
@@ -383,7 +384,7 @@
                         if (!messageList || !conversationId) return
                         messageList.innerHTML = '<div class="text-[0.78rem] text-slate-400">Loading messages…</div>'
 
-                        apiFetch("{{ url('/api/conversations') }}/" + encodeURIComponent(conversationId) + "/messages?per_page=200", { method: 'GET' })
+                        apiFetch("{{ url('/api/conversations') }}/" + encodeURIComponent(conversationId) + "/messages?per_page=200&mark_read=1", { method: 'GET' })
                             .then(function (response) {
                                 return response.text().then(function (text) {
                                     var data = null
@@ -419,6 +420,13 @@
                                 })
                                 messageList.innerHTML = html
                                 scrollMessagesToBottom()
+
+                                // Mark conversation as read locally and re-render
+                                var convo = conversations.find(function (x) { return String(x.conversation_id) === String(conversationId) })
+                                if (convo) {
+                                    convo.unread_count = 0
+                                    renderConversations()
+                                }
                             })
                             .catch(function () {
                                 messageList.innerHTML = '<div class="text-[0.78rem] text-red-500">Network error while loading messages.</div>'

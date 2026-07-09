@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Mail\StaffInviteMail;
+use App\Models\Appointment;
 use App\Models\LogEntry;
+use App\Models\MedicalBackground;
 use App\Models\Notification;
+use App\Models\Prescription;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -576,5 +580,155 @@ class PatientController extends Controller
             ->first();
 
         return response()->json($vital, $existing ? 200 : 201);
+    }
+
+    public function printPatientReport(Request $request)
+    {
+        $currentUser = $request->user();
+        if (! $currentUser || strtolower((string) $currentUser->role) !== 'admin') {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'patient_id' => ['required', 'integer', 'exists:users,user_id'],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date'],
+        ]);
+
+        $patient = User::query()->findOrFail((int) $data['patient_id']);
+        if ($patient->role !== 'patient') {
+            abort(404, 'User is not a patient.');
+        }
+
+        $start = ! empty($data['start_date'])
+            ? Carbon::parse($data['start_date'])->startOfDay()
+            : now()->startOfMonth();
+        $end = ! empty($data['end_date'])
+            ? Carbon::parse($data['end_date'])->endOfDay()
+            : now()->endOfDay();
+
+        if ($start->gt($end)) {
+            [$start, $end] = [$end->copy()->startOfDay(), $start->copy()->endOfDay()];
+        }
+
+        // Medical background
+        $medicalBackgrounds = MedicalBackground::query()
+            ->where('patient_id', $patient->user_id)
+            ->orderBy('category')
+            ->orderByDesc('created_at')
+            ->get();
+
+        // Appointments within date range
+        $appointments = Appointment::query()
+            ->with(['doctor', 'services'])
+            ->where('patient_id', $patient->user_id)
+            ->whereBetween('appointment_datetime', [$start, $end])
+            ->orderByDesc('appointment_datetime')
+            ->get();
+
+        // Completed visits (completed appointments with transactions)
+        $completedVisits = Transaction::query()
+            ->whereHas('appointment', function ($q) use ($patient) {
+                $q->where('patient_id', $patient->user_id)->where('status', 'completed');
+            })
+            ->with(['appointment.doctor', 'appointment.services'])
+            ->whereBetween('transaction_datetime', [$start, $end])
+            ->orderByDesc('transaction_datetime')
+            ->get();
+
+        // Prescriptions within date range
+        $prescriptions = Prescription::query()
+            ->with(['doctor', 'items'])
+            ->whereHas('transaction.appointment', function ($q) use ($patient) {
+                $q->where('patient_id', $patient->user_id);
+            })
+            ->whereBetween('prescribed_datetime', [$start, $end])
+            ->orderByDesc('prescribed_datetime')
+            ->get();
+
+        // Transactions within date range
+        $transactions = Transaction::query()
+            ->whereHas('appointment', function ($q) use ($patient) {
+                $q->where('patient_id', $patient->user_id);
+            })
+            ->with(['appointment.doctor', 'appointment.services'])
+            ->whereBetween('transaction_datetime', [$start, $end])
+            ->orderByDesc('transaction_datetime')
+            ->get();
+
+        // All-time stats for patient summary
+        $allAppointments = Appointment::query()->where('patient_id', $patient->user_id)->get();
+        $totalAppointments = $allAppointments->count();
+        $completedCount = $allAppointments->where('status', 'completed')->count();
+        $cancelledCount = $allAppointments->where('status', 'cancelled')->count();
+        $allMedBg = MedicalBackground::query()->where('patient_id', $patient->user_id)->get();
+        $allergiesCount = $allMedBg->whereIn('category', ['allergy_food', 'allergy_drug'])->count();
+        $conditionsCount = $allMedBg->where('category', 'condition')->count();
+        $allPrescriptions = Prescription::query()
+            ->whereHas('transaction.appointment', function ($q) use ($patient) {
+                $q->where('patient_id', $patient->user_id);
+            })
+            ->count();
+        $totalPaid = (float) Transaction::query()
+            ->whereHas('appointment', function ($q) use ($patient) {
+                $q->where('patient_id', $patient->user_id);
+            })
+            ->where('payment_status', 'paid')
+            ->sum('amount');
+
+        $summary = [
+            'total_appointments' => $totalAppointments,
+            'completed_visits' => $completedCount,
+            'cancelled_appointments' => $cancelledCount,
+            'allergies_recorded' => $allergiesCount,
+            'active_conditions' => $conditionsCount,
+            'prescriptions_issued' => $allPrescriptions,
+            'total_amount_paid' => round($totalPaid, 2),
+        ];
+
+        $reportPeriodLabel = $start->isSameDay($end)
+            ? $start->format('F j, Y')
+            : $start->format('F j, Y').' - '.$end->format('F j, Y');
+
+        return response()->view('print.patient_reports', [
+            'clinicName' => 'OPOL PRIMARY HEALTHCARE CLINIC',
+            'embedded' => $request->boolean('embed'),
+            'reportPeriodLabel' => $reportPeriodLabel,
+            'generatedOn' => now(),
+            'generatedBy' => $this->userDisplayName($currentUser, 'Administrator'),
+            'patient' => $patient,
+            'medicalBackgrounds' => $medicalBackgrounds,
+            'appointments' => $appointments,
+            'completedVisits' => $completedVisits,
+            'prescriptions' => $prescriptions,
+            'transactions' => $transactions,
+            'summary' => $summary,
+        ]);
+    }
+
+    private function userDisplayName($user, string $fallback = 'User'): string
+    {
+        if (! $user) {
+            return $fallback;
+        }
+
+        $name = trim(implode(' ', array_filter([
+            $user->firstname ?? null,
+            $user->middlename ?? null,
+            $user->lastname ?? null,
+        ], function ($value) {
+            return trim((string) $value) !== '';
+        })));
+
+        if ($name !== '') {
+            return $name;
+        }
+
+        $email = trim((string) ($user->email ?? ''));
+        if ($email !== '') {
+            return $email;
+        }
+
+        return $fallback;
     }
 }

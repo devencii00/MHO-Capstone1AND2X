@@ -30,7 +30,12 @@ class MessagingController extends Controller
         }
 
         return $query
-            ->withCount('messages')
+            ->withCount([
+                'messages',
+                'messages as unread_count' => function ($q) {
+                    $q->where('sender', 'user')->where('is_read', false);
+                },
+            ])
             ->orderByDesc('updated_at')
             ->orderByDesc('conversation_id')
             ->paginate((int) $request->query('per_page', 15));
@@ -99,6 +104,13 @@ class MessagingController extends Controller
             $perPage = 200;
         }
 
+        if ($request->boolean('mark_read') && $currentUser->role === 'receptionist') {
+            Message::where('conversation_id', $conversation->conversation_id)
+                ->where('sender', 'user')
+                ->where('is_read', false)
+                ->update(['is_read' => true]);
+        }
+
         return Message::query()
             ->where('conversation_id', $conversation->conversation_id)
             ->orderByDesc('message_id')
@@ -134,6 +146,7 @@ class MessagingController extends Controller
             'conversation_id' => $conversation->conversation_id,
             'sender' => $sender,
             'message_text' => $data['message_text'],
+            'is_read' => $sender === 'bot',
         ]);
 
         if ($currentUser->role === 'patient') {

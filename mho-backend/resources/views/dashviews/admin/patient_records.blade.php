@@ -321,6 +321,75 @@
     </div>
 </div>
 
+{{-- ===== GENERATE PATIENT RECORDS REPORT MODAL ===== --}}
+<div id="adminPrReportModal" class="hidden fixed inset-0 z-[90] bg-slate-950/45 backdrop-blur-sm p-4 sm:p-6">
+    <div class="min-h-full flex items-center justify-center">
+        <div id="adminPrReportModalCard" class="w-full max-w-lg rounded-3xl border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.22)] transition-all duration-200">
+            <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+                <div>
+                    <h3 id="adminPrReportModalTitle" class="text-sm font-semibold text-slate-900">Generate patient medical record</h3>
+                    <p id="adminPrReportModalSubtitle" class="mt-1 text-[0.78rem] text-slate-500">Choose a single date or a custom date range, then generate a report preview inside this window.</p>
+                </div>
+                <button type="button" id="adminPrReportModalCloseBtn" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700">
+                    <x-lucide-x class="w-4 h-4" />
+                </button>
+            </div>
+
+            <div id="adminPrReportModalForm" class="px-5 py-4 space-y-4">
+                <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                    <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient</div>
+                    <div id="adminPrReportPatientName" class="text-[0.82rem] font-semibold text-slate-800 mt-0.5">-</div>
+                </div>
+
+                <div id="adminPrReportFormFields">
+                    <label for="adminPrReportType" class="block text-[0.72rem] text-slate-600 mb-1">Report type</label>
+                    <select id="adminPrReportType" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        <option value="date">Single date</option>
+                        <option value="range">Date range</option>
+                    </select>
+                </div>
+
+                <div id="adminPrReportSingleDateWrap">
+                    <label for="adminPrReportDate" class="block text-[0.72rem] text-slate-600 mb-1">Date</label>
+                    <input id="adminPrReportDate" type="date" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                </div>
+
+                <div id="adminPrReportRangeWrap" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label for="adminPrReportStartDate" class="block text-[0.72rem] text-slate-600 mb-1">Starting date</label>
+                        <input id="adminPrReportStartDate" type="date" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    </div>
+                    <div>
+                        <label for="adminPrReportEndDate" class="block text-[0.72rem] text-slate-600 mb-1">End date</label>
+                        <input id="adminPrReportEndDate" type="date" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    </div>
+                </div>
+
+                <div id="adminPrReportFeedback" class="hidden rounded-2xl border px-3 py-2 text-[0.78rem]"></div>
+            </div>
+
+            <div id="adminPrReportPreviewWrap" class="hidden px-5 py-4">
+                <div class="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
+                    <iframe id="adminPrReportPreviewFrame" title="Patient medical record preview" class="block w-full h-[68vh] bg-white"></iframe>
+                </div>
+            </div>
+
+            <div id="adminPrReportInitialActions" class="flex items-center justify-end gap-2 border-t border-slate-100 px-5 py-4">
+                <button type="button" id="adminPrReportCancelBtn" class="px-3 py-2 rounded-xl border border-slate-200 text-[0.78rem] font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="button" id="adminPrReportSubmitBtn" class="px-3 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700">Generate Report</button>
+            </div>
+
+            <div id="adminPrReportPreviewActions" class="hidden items-center justify-between gap-2 border-t border-slate-100 px-5 py-4">
+                <button type="button" id="adminPrReportResetBtn" class="px-3 py-2 rounded-xl border border-slate-200 text-[0.78rem] font-semibold text-slate-600 hover:bg-slate-50">Generate Another Report</button>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="adminPrReportPreviewCloseBtn" class="px-3 py-2 rounded-xl border border-slate-200 text-[0.78rem] font-semibold text-slate-600 hover:bg-slate-50">Close</button>
+                    <button type="button" id="adminPrReportPrintBtn" class="px-3 py-2 rounded-xl bg-green-700 text-white text-[0.78rem] font-semibold hover:bg-green-800">Download / Print</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         var apiBaseUrl = "{{ request()->getBasePath() }}/api"
@@ -1369,6 +1438,7 @@
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (verificationType ? escapeHtml(verificationType.charAt(0).toUpperCase() + verificationType.slice(1)) : '<span class="text-slate-400">-</span>') + '</td>' +
                     '<td class="py-2 pr-4">' +
                         '<button type="button" class="admin-pr-open-panel inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.78rem] font-semibold hover:bg-slate-50" data-patient-id="' + escapeHtml(patientId) + '">View Details and History</button>' +
+                        '<button type="button" class="admin-pr-generate-records ml-2 inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-green-200 bg-green-50 text-green-700 text-[0.72rem] font-semibold hover:bg-green-100" data-patient-id="' + escapeHtml(patientId) + '">Generate Records</button>' +
                     '</td>' +
                 '</tr>'
             })
@@ -1765,5 +1835,258 @@
         if (prRefreshBtn) {
             prRefreshBtn.addEventListener('click', function () { loadPatients(1) })
         }
+
+        // ── Generate Patient Records Report ──
+
+        function todayIsoDate() {
+            var d = new Date()
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+        }
+
+        function fetchWithAuth(url, options) {
+            options = options || {}
+            options.headers = options.headers || {}
+            var token = null
+            try { token = window.localStorage ? window.localStorage.getItem('api_token') : null } catch (e) { token = null }
+            if (token) {
+                options.headers['Authorization'] = 'Bearer ' + token
+            }
+            options.headers['X-Requested-With'] = 'XMLHttpRequest'
+            options.credentials = 'include'
+            return fetch(url, options)
+        }
+
+        var prReportModal = document.getElementById('adminPrReportModal')
+        var prReportModalCard = document.getElementById('adminPrReportModalCard')
+        var prReportModalCloseBtn = document.getElementById('adminPrReportModalCloseBtn')
+        var prReportModalTitle = document.getElementById('adminPrReportModalTitle')
+        var prReportModalSubtitle = document.getElementById('adminPrReportModalSubtitle')
+        var prReportModalForm = document.getElementById('adminPrReportModalForm')
+        var prReportPreviewWrap = document.getElementById('adminPrReportPreviewWrap')
+        var prReportPreviewFrame = document.getElementById('adminPrReportPreviewFrame')
+        var prReportInitialActions = document.getElementById('adminPrReportInitialActions')
+        var prReportPreviewActions = document.getElementById('adminPrReportPreviewActions')
+        var prReportCancelBtn = document.getElementById('adminPrReportCancelBtn')
+        var prReportSubmitBtn = document.getElementById('adminPrReportSubmitBtn')
+        var prReportResetBtn = document.getElementById('adminPrReportResetBtn')
+        var prReportPreviewCloseBtn = document.getElementById('adminPrReportPreviewCloseBtn')
+        var prReportPrintBtn = document.getElementById('adminPrReportPrintBtn')
+        var prReportType = document.getElementById('adminPrReportType')
+        var prReportDate = document.getElementById('adminPrReportDate')
+        var prReportStartDate = document.getElementById('adminPrReportStartDate')
+        var prReportEndDate = document.getElementById('adminPrReportEndDate')
+        var prReportSingleDateWrap = document.getElementById('adminPrReportSingleDateWrap')
+        var prReportRangeWrap = document.getElementById('adminPrReportRangeWrap')
+        var prReportFeedback = document.getElementById('adminPrReportFeedback')
+        var prReportPatientName = document.getElementById('adminPrReportPatientName')
+
+        var prReportSelectedPatientId = null
+        var prReportPreviewLoaded = false
+
+        function prReportSetFeedback(message, tone) {
+            if (!prReportFeedback) return
+            if (!message) {
+                prReportFeedback.className = 'hidden rounded-2xl border px-3 py-2 text-[0.78rem]'
+                prReportFeedback.textContent = ''
+                return
+            }
+            var cls = 'rounded-2xl border px-3 py-2 text-[0.78rem] '
+            if (tone === 'error') cls += 'border-rose-200 bg-rose-50 text-rose-700'
+            else if (tone === 'success') cls += 'border-emerald-200 bg-emerald-50 text-emerald-700'
+            else cls += 'border-slate-200 bg-slate-50 text-slate-600'
+            prReportFeedback.className = cls
+            prReportFeedback.textContent = message
+        }
+
+        function prReportSyncInputs() {
+            var isRange = prReportType && prReportType.value === 'range'
+            if (prReportSingleDateWrap) prReportSingleDateWrap.classList.toggle('hidden', isRange)
+            if (prReportRangeWrap) prReportRangeWrap.classList.toggle('hidden', !isRange)
+            prReportSetFeedback('', '')
+        }
+
+        function prReportSetModalMode(mode) {
+            var previewMode = mode === 'preview'
+            if (prReportModalCard) {
+                prReportModalCard.classList.toggle('max-w-lg', !previewMode)
+                prReportModalCard.classList.toggle('max-w-7xl', previewMode)
+            }
+            if (prReportModalForm) prReportModalForm.classList.toggle('hidden', previewMode)
+            if (prReportPreviewWrap) prReportPreviewWrap.classList.toggle('hidden', !previewMode)
+            if (prReportInitialActions) {
+                prReportInitialActions.classList.toggle('hidden', previewMode)
+                prReportInitialActions.classList.toggle('flex', !previewMode)
+            }
+            if (prReportPreviewActions) {
+                prReportPreviewActions.classList.toggle('hidden', !previewMode)
+                prReportPreviewActions.classList.toggle('flex', previewMode)
+            }
+            if (prReportModalTitle) prReportModalTitle.textContent = previewMode ? 'Patient medical record preview' : 'Generate patient medical record'
+            if (prReportModalSubtitle) {
+                prReportModalSubtitle.textContent = previewMode
+                    ? 'Review the generated report here, then print it or save it as PDF when ready.'
+                    : 'Choose a single date or a custom date range, then generate a report preview inside this window.'
+            }
+        }
+
+        function prReportResetModal(clearDates) {
+            prReportPreviewLoaded = false
+            if (prReportPreviewFrame) prReportPreviewFrame.srcdoc = ''
+            prReportSetModalMode('form')
+            prReportSetFeedback('', '')
+            if (clearDates) {
+                var defaultDate = todayIsoDate()
+                if (prReportType) prReportType.value = 'date'
+                if (prReportDate) prReportDate.value = defaultDate
+                if (prReportStartDate) prReportStartDate.value = defaultDate
+                if (prReportEndDate) prReportEndDate.value = defaultDate
+            }
+            prReportSyncInputs()
+        }
+
+        function prReportOpenModal(patientId) {
+            if (!prReportModal) return
+            prReportSelectedPatientId = patientId
+            var patient = findPatientById(patientId)
+            if (prReportPatientName) {
+                prReportPatientName.textContent = patient ? fullName(patient, 'Patient #' + patientId) : 'Patient #' + patientId
+            }
+            prReportModal.classList.remove('hidden')
+            prReportResetModal(false)
+        }
+
+        function prReportCloseModal() {
+            if (!prReportModal) return
+            prReportModal.classList.add('hidden')
+            prReportResetModal(false)
+            prReportSelectedPatientId = null
+        }
+
+        function prReportBuildQuery() {
+            if (!prReportSelectedPatientId) throw new Error('No patient selected.')
+            var mode = prReportType ? prReportType.value : 'date'
+            var base = '?patient_id=' + encodeURIComponent(prReportSelectedPatientId)
+            if (mode === 'range') {
+                var start = String(prReportStartDate ? prReportStartDate.value || '' : '').trim()
+                var end = String(prReportEndDate ? prReportEndDate.value || '' : '').trim()
+                if (!start || !end) throw new Error('Starting date and end date are required.')
+                return base + '&start_date=' + encodeURIComponent(start) + '&end_date=' + encodeURIComponent(end)
+            }
+            var singleDate = String(prReportDate ? prReportDate.value || '' : '').trim()
+            if (!singleDate) throw new Error('Date is required.')
+            return base + '&start_date=' + encodeURIComponent(singleDate) + '&end_date=' + encodeURIComponent(singleDate)
+        }
+
+        function prReportOpenPrintableReport() {
+            try {
+                var query = prReportBuildQuery()
+                if (!prReportSubmitBtn) return
+
+                prReportSubmitBtn.disabled = true
+                prReportSubmitBtn.textContent = 'Preparing report...'
+                prReportSetFeedback('Generating report preview...', 'info')
+
+                fetchWithAuth('/api/patients/report/print' + query + '&embed=1', {
+                    headers: { 'Accept': 'text/html' }
+                })
+                .then(function (response) {
+                    return response.text().then(function (html) {
+                        return { ok: response.ok, status: response.status, html: html }
+                    })
+                })
+                .then(function (result) {
+                    if (!result.ok) {
+                        if (result.status === 403) throw new Error('You are not allowed to generate this report.')
+                        if (result.status === 401) throw new Error('Authentication required. Please log in again.')
+                        if (result.status === 422) {
+                            try {
+                                var errData = JSON.parse(result.html)
+                                var msg = errData && errData.message ? errData.message : 'Validation error.'
+                                throw new Error(msg)
+                            } catch (e) {
+                                throw new Error('Validation error.')
+                            }
+                        }
+                        var snippet = (result.html || '').substring(0, 120)
+                        throw new Error('Server error (HTTP ' + result.status + ': ' + snippet + ')')
+                    }
+                    if (!prReportPreviewFrame) throw new Error('Report preview is unavailable.')
+                    prReportPreviewLoaded = false
+                    prReportPreviewFrame.srcdoc = result.html
+                    prReportSetModalMode('preview')
+                    prReportSetFeedback('', '')
+                })
+                .catch(function (error) {
+                    prReportSetFeedback(error && error.message ? error.message : 'Failed to generate patient medical record.', 'error')
+                })
+                .finally(function () {
+                    if (prReportSubmitBtn) {
+                        prReportSubmitBtn.disabled = false
+                        prReportSubmitBtn.textContent = 'Generate Report'
+                    }
+                })
+            } catch (error) {
+                prReportSetFeedback(error && error.message ? error.message : 'Please review the report dates.', 'error')
+                if (prReportSubmitBtn) {
+                    prReportSubmitBtn.disabled = false
+                    prReportSubmitBtn.textContent = 'Generate Report'
+                }
+            }
+        }
+
+        function prReportPrintPreview() {
+            if (!prReportPreviewFrame || !prReportPreviewFrame.contentWindow || !prReportPreviewLoaded) return
+
+            var origTitle = document.title
+            document.title = 'OPOL MHO - Patient Medical Record'
+
+            prReportPreviewFrame.contentWindow.focus()
+            prReportPreviewFrame.contentWindow.print()
+
+            setTimeout(function () {
+                document.title = origTitle
+            }, 100)
+        }
+
+        var prReportDefaultDate = todayIsoDate()
+        if (prReportDate) prReportDate.value = prReportDefaultDate
+        if (prReportStartDate) prReportStartDate.value = prReportDefaultDate
+        if (prReportEndDate) prReportEndDate.value = prReportDefaultDate
+        if (prReportPreviewFrame) {
+            prReportPreviewFrame.addEventListener('load', function () {
+                prReportPreviewLoaded = true
+            })
+        }
+
+        if (prReportType) prReportType.addEventListener('change', prReportSyncInputs)
+
+        // Delegate click on Generate Records buttons
+        if (patientsTableBody) {
+            patientsTableBody.addEventListener('click', function (event) {
+                var target = event && event.target ? event.target : null
+                var btn = target && target.closest ? target.closest('.admin-pr-generate-records') : null
+                if (!btn) return
+                var patientId = btn.getAttribute('data-patient-id')
+                if (!patientId) return
+                prReportOpenModal(patientId)
+            })
+        }
+
+        if (prReportModalCloseBtn) prReportModalCloseBtn.addEventListener('click', prReportCloseModal)
+        if (prReportCancelBtn) prReportCancelBtn.addEventListener('click', prReportCloseModal)
+        if (prReportSubmitBtn) prReportSubmitBtn.addEventListener('click', prReportOpenPrintableReport)
+        if (prReportResetBtn) prReportResetBtn.addEventListener('click', function () { prReportResetModal(true) })
+        if (prReportPreviewCloseBtn) prReportPreviewCloseBtn.addEventListener('click', prReportCloseModal)
+        if (prReportPrintBtn) prReportPrintBtn.addEventListener('click', prReportPrintPreview)
+        if (prReportModal) {
+            prReportModal.addEventListener('click', function (event) {
+                if (event.target === prReportModal) prReportCloseModal()
+            })
+        }
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && prReportModal && !prReportModal.classList.contains('hidden')) {
+                prReportCloseModal()
+            }
+        })
     })
 </script>

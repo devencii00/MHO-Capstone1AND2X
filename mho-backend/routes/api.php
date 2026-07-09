@@ -96,6 +96,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('medical-backgrounds', MedicalBackgroundController::class);
     Route::get('/vitals', [PatientController::class, 'vitals']);
     Route::post('/vitals', [PatientController::class, 'storeVital']);
+    Route::get('/patients/report/print', [PatientController::class, 'printPatientReport']);
 
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::patch('/notifications/{notification}', [NotificationController::class, 'update']);

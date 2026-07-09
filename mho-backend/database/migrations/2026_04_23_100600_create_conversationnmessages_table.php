@@ -29,6 +29,7 @@ return new class extends Migration
 
             $table->enum('sender', ['user', 'bot']);
             $table->text('message_text');
+            $table->boolean('is_read')->default(false);
 
             $table->timestamps();
         });

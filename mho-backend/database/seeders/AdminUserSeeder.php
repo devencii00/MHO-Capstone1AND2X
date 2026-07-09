@@ -22,5 +22,18 @@ class AdminUserSeeder extends Seeder
                 'is_first_login' => 1,
             ]
         );
+
+        User::firstOrCreate(
+            ['email' => 'admin2@test.com'],
+            [
+                'role' => 'admin',
+                'status' => 'active',
+                'employee_number' => 'ADN-0002',
+                'password_hash' => Hash::make('admin123'),
+
+                'account_activated' => 1,
+                'is_first_login' => 1,
+            ]
+        );
     }
 }
