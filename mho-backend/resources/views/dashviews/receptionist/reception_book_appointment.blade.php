@@ -69,38 +69,18 @@
                 </div>
             </div>
         </div>
-        <div id="receptionAppointmentDateWrap" class="self-start relative min-w-0">
-            <label for="reception_appointment_date" class="block text-[0.7rem] text-slate-600 mb-1">Date</label>
-            <div class="mb-1 text-[0.7rem] text-slate-500">&nbsp;</div>
-            <button id="receptionAppointmentDateTrigger" type="button" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 text-left focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none disabled:opacity-60" disabled>
+        <div id="receptionAppointmentScheduleWrap" class="self-start relative min-w-0 mb-8">
+            <label class="block text-[0.7rem] text-slate-600 mb-1">Schedule</label>
+             <div class="mb-1 text-[0.7rem] text-slate-500">&nbsp;</div>
+            <input id="reception_appointment_date" type="hidden" required>
+            <input id="reception_appointment_time" type="hidden" required>
+            <button id="receptionScheduleTrigger" type="button" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 text-left focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none disabled:opacity-60" disabled>
                 Select a doctor first
             </button>
-            <div id="receptionAppointmentDateOverlay" class="hidden fixed z-50 rounded-xl border border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.12)]">
-                <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100">
-                    <button id="receptionDatePrev" type="button" class="px-2 py-1 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold">‹</button>
-                    <div id="receptionDateMonthLabel" class="text-[0.78rem] font-semibold text-slate-800"></div>
-                    <button id="receptionDateNext" type="button" class="px-2 py-1 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold">›</button>
-                </div>
-                <div class="p-3">
-                    <div class="grid grid-cols-7 gap-1 text-[0.68rem] text-slate-400 mb-2">
-                        <div class="text-center">Sun</div><div class="text-center">Mon</div><div class="text-center">Tue</div><div class="text-center">Wed</div><div class="text-center">Thu</div><div class="text-center">Fri</div><div class="text-center">Sat</div>
-                    </div>
-                    <div id="receptionAppointmentDateGrid" class="grid grid-cols-7 gap-1"></div>
-                </div>
-            </div>
-            <select id="reception_appointment_date_select" class="hidden" required disabled>
-                <option value="">Select a doctor first</option>
-            </select>
-            <input id="reception_appointment_date" type="date" class="hidden" tabindex="-1">
-        </div>
-        <div id="receptionAppointmentTimeWrap" class="self-start relative min-w-0">
-            <label class="block text-[0.7rem] text-slate-600 mb-1">Time slot</label>
-            <input id="reception_appointment_time" type="hidden" required>
-            <button id="receptionTimeSlotTrigger" type="button" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 text-left focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none disabled:opacity-60 mt-[1.35rem]" disabled>
-                Select a date first
-            </button>
-            <div id="receptionTimeSlotOverlay" class="hidden absolute left-0 right-0 bottom-full mb-1 z-50 rounded-xl border border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.12)]">
-                <div id="reception_time_slots" class="h-44 overflow-y-auto overscroll-contain flex flex-col gap-2 p-2"></div>
+            <div id="receptionScheduleCard" class="hidden mt-2 p-3 rounded-xl border border-green-200 bg-green-50">
+                <div class="text-[0.72rem] text-green-700 font-semibold">Selected Schedule</div>
+                <div id="receptionScheduleCardText" class="text-[0.78rem] text-green-800 mt-1"></div>
+                <button id="receptionScheduleClearBtn" type="button" class="mt-1 text-[0.7rem] text-green-600 hover:text-green-800 underline">Clear</button>
             </div>
         </div>
         <input id="reception_appointment_type" type="hidden" value="scheduled">
@@ -319,6 +299,49 @@
         </div>
     </div>
 </div>
+<div id="receptionScheduleOverlay" class="hidden fixed inset-0 z-[80] bg-slate-900/50 items-center justify-center p-4">
+    <div class="w-full max-w-5xl h-[88vh] rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] overflow-hidden grid grid-cols-1 md:grid-cols-2">
+        <!-- Left: Calendar -->
+        <div class="border-b md:border-b-0 md:border-r border-slate-200 flex flex-col min-h-0">
+            <div class="px-4 py-3 border-b border-slate-100 shrink-0 flex items-start justify-between gap-3">
+                <div>
+                    <div class="text-sm font-semibold text-slate-900">Select Date</div>
+                    <div class="text-[0.72rem] text-slate-500">Choose a date for the appointment.</div>
+                </div>
+                <button type="button" id="receptionScheduleClose" class="text-slate-400 hover:text-slate-600">
+                    <x-lucide-x class="w-[20px] h-[20px]" />
+                </button>
+            </div>
+            <div class="px-4 py-3 border-b border-slate-100 shrink-0">
+                <div class="flex items-center justify-between">
+                    <button id="receptionScheduleDatePrev" type="button" class="px-2 py-1 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold">‹</button>
+                    <div id="receptionScheduleMonthLabel" class="text-[0.78rem] font-semibold text-slate-800"></div>
+                    <button id="receptionScheduleDateNext" type="button" class="px-2 py-1 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold">›</button>
+                </div>
+            </div>
+            <div class="p-3 flex-1 overflow-y-auto">
+                <div class="grid grid-cols-7 gap-1 text-[0.68rem] text-slate-400 mb-2">
+                    <div class="text-center">Sun</div><div class="text-center">Mon</div><div class="text-center">Tue</div><div class="text-center">Wed</div><div class="text-center">Thu</div><div class="text-center">Fri</div><div class="text-center">Sat</div>
+                </div>
+                <div id="receptionScheduleDateGrid" class="grid grid-cols-7 gap-1"></div>
+            </div>
+        </div>
+        <!-- Right: Time slots -->
+        <div class="flex flex-col min-h-0 bg-slate-50/60">
+            <div class="px-4 py-3 border-b border-slate-100 shrink-0">
+                <div class="text-sm font-semibold text-slate-900">Select Time</div>
+                <div id="receptionScheduleTimeHint" class="text-[0.72rem] text-slate-500">Select a date to view time slots.</div>
+            </div>
+            <div id="receptionScheduleTimeBody" class="flex-1 overflow-y-auto p-4">
+                <div class="text-center text-[0.78rem] text-slate-400 py-8">Select a date to load time slots.</div>
+            </div>
+            <div class="px-4 py-3 border-t border-slate-100 bg-white shrink-0 flex items-center justify-end gap-2">
+                <button type="button" id="receptionScheduleCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button type="button" id="receptionScheduleSetBtn" class="px-3 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60" disabled>Set Schedule</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div id="receptionBookReviewOverlay" class="hidden fixed inset-0 z-[75] bg-slate-900/50 backdrop-blur-sm items-center justify-center p-4 transition-all duration-200">
     <div class="w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-slate-100 overflow-hidden">
         <!-- Header section with icon and title - refined spacing -->
@@ -521,22 +544,23 @@ function setAppointmentTab(tab) {
         var doctorResults = document.getElementById('receptionDoctorResults')
         var doctorPreview = document.getElementById('receptionDoctorPreview')
         var doctorPickerBtn = document.getElementById('reception_doctor_picker_btn')
-        var dateSelect = document.getElementById('reception_appointment_date_select')
         var dateInput = document.getElementById('reception_appointment_date')
-        var dateLoadMore = document.getElementById('reception_appointment_date_load_more')
-        var dateRangeHint = document.getElementById('reception_appointment_date_range_hint')
-        var dateWrap = document.getElementById('receptionAppointmentDateWrap')
-        var dateTrigger = document.getElementById('receptionAppointmentDateTrigger')
-        var dateOverlay = document.getElementById('receptionAppointmentDateOverlay')
-        var dateGrid = document.getElementById('receptionAppointmentDateGrid')
-        var datePrevBtn = document.getElementById('receptionDatePrev')
-        var dateNextBtn = document.getElementById('receptionDateNext')
-        var dateMonthLabel = document.getElementById('receptionDateMonthLabel')
         var timeInput = document.getElementById('reception_appointment_time')
-        var timeWrap = document.getElementById('receptionAppointmentTimeWrap')
-        var timeTrigger = document.getElementById('receptionTimeSlotTrigger')
-        var timeOverlay = document.getElementById('receptionTimeSlotOverlay')
-        var timeSlotsEl = document.getElementById('reception_time_slots')
+        var scheduleWrap = document.getElementById('receptionAppointmentScheduleWrap')
+        var scheduleTrigger = document.getElementById('receptionScheduleTrigger')
+        var scheduleCard = document.getElementById('receptionScheduleCard')
+        var scheduleCardText = document.getElementById('receptionScheduleCardText')
+        var scheduleClearBtn = document.getElementById('receptionScheduleClearBtn')
+        var scheduleOverlay = document.getElementById('receptionScheduleOverlay')
+        var scheduleCloseBtn = document.getElementById('receptionScheduleClose')
+        var scheduleDateGrid = document.getElementById('receptionScheduleDateGrid')
+        var scheduleMonthLabel = document.getElementById('receptionScheduleMonthLabel')
+        var scheduleDatePrev = document.getElementById('receptionScheduleDatePrev')
+        var scheduleDateNext = document.getElementById('receptionScheduleDateNext')
+        var scheduleTimeBody = document.getElementById('receptionScheduleTimeBody')
+        var scheduleTimeHint = document.getElementById('receptionScheduleTimeHint')
+        var scheduleCancelBtn = document.getElementById('receptionScheduleCancel')
+        var scheduleSetBtn = document.getElementById('receptionScheduleSetBtn')
         var services = []
         var doctors = []
         var servicesLoaded = false
@@ -1229,7 +1253,7 @@ function setAppointmentTab(tab) {
                 return { needsService: true, list: [] }
             }
             var query = normalizeText(selectorSearch ? selectorSearch.value : '')
-            var dateStr = (dateSelect && dateSelect.value) ? String(dateSelect.value).slice(0, 10) : (dateInput && dateInput.value ? String(dateInput.value).slice(0, 10) : localDateIso())
+            var dateStr = dateInput && dateInput.value ? String(dateInput.value).slice(0, 10) : localDateIso()
             var dayKey = dayKeyFromDate(dateStr)
             var checkTime = selectedSlotStart ? String(selectedSlotStart).slice(0, 5) : ''
             var list = (doctors || []).filter(function (doctor) {
@@ -1772,29 +1796,46 @@ function setAppointmentTab(tab) {
             doctorAppointments = []
             selectedSlotStart = null
             if (timeInput) timeInput.value = ''
-            if (dateSelect) {
-                dateSelect.innerHTML = '<option value="">Select a date</option>'
-                dateSelect.disabled = true
-            }
-            if (dateLoadMore) dateLoadMore.classList.add('hidden')
-            if (dateRangeHint) {
-                dateRangeHint.textContent = ''
-                dateRangeHint.classList.add('hidden')
-            }
             if (dateInput) dateInput.value = ''
-            if (timeSlotsEl) timeSlotsEl.innerHTML = ''
             datePickerMonth = (function () {
                 var now = new Date()
                 return new Date(now.getFullYear(), now.getMonth(), 1)
             })()
-            renderDatePicker()
-            closeDateOverlay()
-
-            if (timeTrigger) {
-                timeTrigger.disabled = true
-                timeTrigger.textContent = 'Select a date first'
+            updateScheduleCard()
+            syncScheduleUI()
+            if (scheduleOverlay && !scheduleOverlay.classList.contains('hidden')) {
+                scheduleOverlay.classList.add('hidden')
             }
-            closeTimeOverlay()
+        }
+
+        function updateScheduleCard() {
+            if (!scheduleCard || !scheduleCardText) return
+            var date = dateInput && dateInput.value ? String(dateInput.value).slice(0, 10) : ''
+            var time = timeInput ? timeInput.value : ''
+            if (date && time) {
+                scheduleCard.classList.remove('hidden')
+                scheduleCardText.textContent = friendlyDateLabelFromIso(date) + ' · ' + formatTime12h(time)
+                scheduleTrigger.textContent = 'Change Schedule'
+            } else {
+                scheduleCard.classList.add('hidden')
+                scheduleCardText.textContent = ''
+                scheduleTrigger.textContent = 'Select Schedule'
+            }
+        }
+
+        function openScheduleModal() {
+            if (!scheduleOverlay) return
+            scheduleOverlay.classList.remove('hidden')
+            scheduleOverlay.classList.add('flex')
+            renderScheduleDatePicker()
+            renderScheduleTimeSlotsInModal()
+        }
+
+        function closeScheduleModal() {
+            if (scheduleOverlay) {
+                scheduleOverlay.classList.add('hidden')
+                scheduleOverlay.classList.remove('flex')
+            }
         }
 
         function serviceKey(service) {
@@ -2065,8 +2106,8 @@ function setAppointmentTab(tab) {
                 if (Array.isArray(embedded) && embedded.length) {
                     doctorSchedules = embedded.slice()
                     buildAvailableDaySet()
-                    if (dateSelect) dateSelect.disabled = true
-                    renderDatePicker()
+                    syncScheduleUI()
+                    renderScheduleDatePicker()
                 }
                 loadDoctorSchedulesAndAvailability(doctor.user_id, dateInput ? dateInput.value : '')
                 applyAppointmentTypeUI()
@@ -2111,7 +2152,7 @@ function setAppointmentTab(tab) {
                 return
             }
 
-            var dateStr = (dateSelect && dateSelect.value) ? String(dateSelect.value).slice(0, 10) : (dateInput && dateInput.value ? String(dateInput.value).slice(0, 10) : localDateIso())
+            var dateStr = dateInput && dateInput.value ? String(dateInput.value).slice(0, 10) : localDateIso()
             var dayKey = dayKeyFromDate(dateStr)
             var checkTime = selectedSlotStart ? String(selectedSlotStart).slice(0, 5) : ''
 
@@ -2258,77 +2299,6 @@ function setAppointmentTab(tab) {
             return formatDateIso(d) + ' (' + (keys[d.getDay()] || '') + ')'
         }
 
-        var dateCursor = null
-        var dateCursorFirstIso = null
-        var dateCursorLastIso = null
-
-        function resetDateCursor() {
-            var today = new Date()
-            today.setHours(0, 0, 0, 0)
-            dateCursor = today
-            dateCursorFirstIso = null
-            dateCursorLastIso = null
-        }
-
-        function appendAllowedDates(batchSize) {
-            if (!dateSelect) return
-            var allowedKeys = doctorAvailableDaySet && Object.keys(doctorAvailableDaySet).length ? doctorAvailableDaySet : null
-            if (!allowedKeys) return
-            if (!dateCursor) resetDateCursor()
-
-            var added = 0
-            var scanned = 0
-            var maxScan = 365
-            while (added < batchSize && scanned < maxScan) {
-                var iso = formatDateIso(dateCursor)
-                var dayKey = dayKeyFromDate(iso)
-                if (dayKey && allowedKeys[dayKey]) {
-                    var option = document.createElement('option')
-                    option.value = iso
-                    option.textContent = formatDateLabel(dateCursor)
-                    dateSelect.appendChild(option)
-                    added++
-                    if (!dateCursorFirstIso) dateCursorFirstIso = iso
-                    dateCursorLastIso = iso
-                }
-                dateCursor = new Date(dateCursor.getTime())
-                dateCursor.setDate(dateCursor.getDate() + 1)
-                scanned++
-            }
-
-            if (dateRangeHint) {
-                if (dateCursorFirstIso && dateCursorLastIso) {
-                    dateRangeHint.textContent = 'Loaded: ' + dateCursorFirstIso + ' → ' + dateCursorLastIso
-                    dateRangeHint.classList.remove('hidden')
-                } else {
-                    dateRangeHint.textContent = ''
-                    dateRangeHint.classList.add('hidden')
-                }
-            }
-
-            if (dateLoadMore) {
-                dateLoadMore.classList.toggle('hidden', !allowedKeys)
-                dateLoadMore.disabled = scanned >= maxScan
-                dateLoadMore.classList.toggle('opacity-60', dateLoadMore.disabled)
-                dateLoadMore.classList.toggle('cursor-not-allowed', dateLoadMore.disabled)
-            }
-
-            renderDatePicker()
-        }
-
-        function closeDateOverlay() {
-            if (dateOverlay) {
-                dateOverlay.classList.add('hidden')
-                dateOverlay.style.left = ''
-                dateOverlay.style.top = ''
-                dateOverlay.style.width = ''
-            }
-        }
-
-        function closeTimeOverlay() {
-            if (timeOverlay) timeOverlay.classList.add('hidden')
-        }
-
         var datePickerMonth = (function () {
             var now = new Date()
             return new Date(now.getFullYear(), now.getMonth(), 1)
@@ -2349,37 +2319,28 @@ function setAppointmentTab(tab) {
             return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: '2-digit', year: 'numeric' })
         }
 
-        function syncDatePickerUI() {
-            if (!dateTrigger) return
+        function syncScheduleUI() {
+            if (!scheduleTrigger) return
             var allowedKeys = doctorAvailableDaySet && Object.keys(doctorAvailableDaySet).length ? doctorAvailableDaySet : null
             var doctorId = doctorSelect && doctorSelect.value ? String(doctorSelect.value) : ''
             var enabled = !!doctorId && !!allowedKeys
-            dateTrigger.disabled = !enabled
-
-            var selected = dateInput && dateInput.value ? String(dateInput.value).slice(0, 10) : ''
-            if (!enabled) {
-                dateTrigger.textContent = 'Select a doctor first'
-            } else if (selected) {
-                dateTrigger.textContent = friendlyDateLabelFromIso(selected)
-            } else {
-                dateTrigger.textContent = 'Select a date'
-            }
+            scheduleTrigger.disabled = !enabled
+            scheduleTrigger.textContent = enabled ? 'Select Schedule' : 'Select a doctor first'
         }
 
-        function renderDatePicker() {
-            syncDatePickerUI()
-            if (!dateGrid || !dateMonthLabel) return
+        function renderScheduleDatePicker() {
+            if (!scheduleDateGrid || !scheduleMonthLabel) return
 
             var allowedKeys = doctorAvailableDaySet && Object.keys(doctorAvailableDaySet).length ? doctorAvailableDaySet : null
             var doctorId = doctorSelect && doctorSelect.value ? String(doctorSelect.value) : ''
             if (!doctorId) {
-                dateMonthLabel.textContent = ''
-                dateGrid.innerHTML = '<div class="col-span-7 text-[0.75rem] text-slate-500 py-2">Select a doctor first.</div>'
+                scheduleMonthLabel.textContent = ''
+                scheduleDateGrid.innerHTML = '<div class="col-span-7 text-[0.75rem] text-slate-500 py-2">Select a doctor first.</div>'
                 return
             }
             if (!allowedKeys) {
-                dateMonthLabel.textContent = ''
-                dateGrid.innerHTML = '<div class="col-span-7 text-[0.75rem] text-slate-500 py-2">No available schedule days.</div>'
+                scheduleMonthLabel.textContent = ''
+                scheduleDateGrid.innerHTML = '<div class="col-span-7 text-[0.75rem] text-slate-500 py-2">No available schedule days.</div>'
                 return
             }
 
@@ -2389,7 +2350,7 @@ function setAppointmentTab(tab) {
             var firstDow = first.getDay()
             var daysIn = new Date(year, month + 1, 0).getDate()
 
-            dateMonthLabel.textContent = first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+            scheduleMonthLabel.textContent = first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
 
             var today = new Date()
             today.setHours(0, 0, 0, 0)
@@ -2404,7 +2365,7 @@ function setAppointmentTab(tab) {
                 var iso = isoFromDate(d)
                 var dayKey = keys[d.getDay()] || ''
                 var allowed = !!allowedKeys[dayKey]
-                var notPast = d.getTime() >= today.getTime()
+                var notPast = d.getTime() > today.getTime()
                 var enabled = allowed && notPast
                 var selected = selectedIso && selectedIso === iso
                 var base =
@@ -2418,7 +2379,7 @@ function setAppointmentTab(tab) {
             var total = Math.ceil(cells.length / 7) * 7
             while (cells.length < total) cells.push('')
 
-            dateGrid.innerHTML = cells.map(function (html) {
+            scheduleDateGrid.innerHTML = cells.map(function (html) {
                 return html ? html : '<div></div>'
             }).join('')
         }
@@ -2434,54 +2395,42 @@ function setAppointmentTab(tab) {
         }
 
         function renderTimeSlots() {
-            if (!timeSlotsEl) return
-            timeSlotsEl.innerHTML = ''
+            // Keep as-is for backward compatibility; delegates to renderScheduleTimeSlotsInModal
+        }
+
+        function renderScheduleTimeSlotsInModal() {
+            if (!scheduleTimeBody) return
 
             if (!doctorSelect || !doctorSelect.value) {
-                if (timeTrigger) {
-                    timeTrigger.disabled = true
-                    timeTrigger.textContent = 'Select a doctor first'
-                }
-                closeTimeOverlay()
-                timeSlotsEl.innerHTML = '<div class="text-[0.7rem] text-slate-400">Select a doctor to load time slots.</div>'
+                if (scheduleTimeHint) scheduleTimeHint.textContent = 'Select a doctor first.'
+                scheduleTimeBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select a doctor to load time slots.</div>'
+                if (scheduleSetBtn) scheduleSetBtn.disabled = true
                 return
             }
             if (!dateInput || !dateInput.value) {
-                if (timeTrigger) {
-                    timeTrigger.disabled = true
-                    timeTrigger.textContent = 'Select a date first'
-                }
-                closeTimeOverlay()
-                timeSlotsEl.innerHTML = '<div class="text-[0.7rem] text-slate-400">Select a date to load time slots.</div>'
+                if (scheduleTimeHint) scheduleTimeHint.textContent = 'Select a date to view time slots.'
+                scheduleTimeBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select a date to load time slots.</div>'
+                if (scheduleSetBtn) scheduleSetBtn.disabled = true
                 return
             }
             if (!doctorSchedules.length) {
-                if (timeTrigger) {
-                    timeTrigger.disabled = true
-                    timeTrigger.textContent = 'No schedules found'
-                }
-                closeTimeOverlay()
-                timeSlotsEl.innerHTML = '<div class="text-[0.7rem] text-slate-400">No schedules found for this doctor.</div>'
+                if (scheduleTimeHint) scheduleTimeHint.textContent = 'No schedules found.'
+                scheduleTimeBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No schedules found for this doctor.</div>'
+                if (scheduleSetBtn) scheduleSetBtn.disabled = true
                 return
             }
 
             var dayKey = dayKeyFromDate(dateInput.value)
             if (!dayKey) {
-                if (timeTrigger) {
-                    timeTrigger.disabled = true
-                    timeTrigger.textContent = 'Invalid date'
-                }
-                closeTimeOverlay()
-                timeSlotsEl.innerHTML = '<div class="text-[0.7rem] text-slate-400">Invalid date selected.</div>'
+                if (scheduleTimeHint) scheduleTimeHint.textContent = 'Invalid date.'
+                scheduleTimeBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Invalid date selected.</div>'
+                if (scheduleSetBtn) scheduleSetBtn.disabled = true
                 return
             }
             if (doctorAvailableDaySet && Object.keys(doctorAvailableDaySet).length && !doctorAvailableDaySet[dayKey]) {
-                if (timeTrigger) {
-                    timeTrigger.disabled = true
-                    timeTrigger.textContent = 'Doctor not available'
-                }
-                closeTimeOverlay()
-                timeSlotsEl.innerHTML = '<div class="text-[0.7rem] text-slate-400">Doctor is not available on this day.</div>'
+                if (scheduleTimeHint) scheduleTimeHint.textContent = 'Doctor not available on this day.'
+                scheduleTimeBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Doctor is not available on this day.</div>'
+                if (scheduleSetBtn) scheduleSetBtn.disabled = true
                 return
             }
 
@@ -2495,12 +2444,9 @@ function setAppointmentTab(tab) {
             })
 
             if (!daySchedules.length) {
-                if (timeTrigger) {
-                    timeTrigger.disabled = true
-                    timeTrigger.textContent = 'No available slots'
-                }
-                closeTimeOverlay()
-                timeSlotsEl.innerHTML = '<div class="text-[0.7rem] text-slate-400">Doctor has no available slots on this day.</div>'
+                if (scheduleTimeHint) scheduleTimeHint.textContent = 'No available slots.'
+                scheduleTimeBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Doctor has no available slots on this day.</div>'
+                if (scheduleSetBtn) scheduleSetBtn.disabled = true
                 return
             }
 
@@ -2555,19 +2501,24 @@ function setAppointmentTab(tab) {
             })
 
             if (!slots.length) {
-                if (timeTrigger) {
-                    timeTrigger.disabled = true
-                    timeTrigger.textContent = 'No time slots available'
-                }
-                closeTimeOverlay()
-                timeSlotsEl.innerHTML = '<div class="text-[0.7rem] text-slate-400">No time slots available for this day.</div>'
+                if (scheduleTimeHint) scheduleTimeHint.textContent = 'No time slots available.'
+                scheduleTimeBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No time slots available for this day.</div>'
+                if (scheduleSetBtn) scheduleSetBtn.disabled = true
                 return
             }
 
-            if (timeTrigger) {
-                timeTrigger.disabled = false
-                timeTrigger.textContent = selectedSlotStart ? ('Selected: ' + formatTime12h(selectedSlotStart)) : 'Select a time slot'
-            }
+            var availableCount = slots.filter(function (slot) {
+                var startHHMM = hhmmFromMinutes(slot.start)
+                return !bookedSet[startHHMM]
+            }).length
+            if (scheduleTimeHint) scheduleTimeHint.textContent = String(availableCount) + ' available slot' + (availableCount !== 1 ? 's' : '') + ' · Click a slot to select.'
+
+            var container = document.createElement('div')
+            container.className = 'grid grid-cols-2 gap-2'
+            // Column-major layout: fills top-to-bottom then left-to-right (1 6 / 2 7 / 3 8 / ...)
+            container.style.gridAutoFlow = 'column'
+            var gridRows = Math.ceil(slots.length / 2)
+            if (gridRows > 1) container.style.gridTemplateRows = 'repeat(' + gridRows + ', auto)'
 
             slots.forEach(function (slot) {
                 var startHHMM = hhmmFromMinutes(slot.start)
@@ -2590,31 +2541,21 @@ function setAppointmentTab(tab) {
                 btn.addEventListener('click', function () {
                     selectedSlotStart = startHHMM
                     if (timeInput) timeInput.value = startHHMM
-                    closeTimeOverlay()
-                    renderTimeSlots()
+                    if (scheduleTimeHint) scheduleTimeHint.textContent = 'Selected: ' + formatTime12h(startHHMM)
+                    if (scheduleSetBtn) scheduleSetBtn.disabled = false
+                    renderScheduleTimeSlotsInModal()
                 })
-                timeSlotsEl.appendChild(btn)
+                container.appendChild(btn)
             })
-        }
 
-        if (timeTrigger) {
-            timeTrigger.addEventListener('click', function () {
-                if (timeTrigger.disabled) return
-                if (!timeOverlay) return
-                renderTimeSlots()
-                timeOverlay.classList.toggle('hidden')
-            })
+            scheduleTimeBody.innerHTML = ''
+            scheduleTimeBody.appendChild(container)
         }
 
         document.addEventListener('click', function (e) {
-            if (dateOverlay && !dateOverlay.classList.contains('hidden')) {
-                if (!dateWrap || (!dateWrap.contains(e.target) && !dateOverlay.contains(e.target))) {
-                    closeDateOverlay()
-                }
-            }
-            if (timeOverlay && !timeOverlay.classList.contains('hidden')) {
-                if (!timeWrap || (!timeWrap.contains(e.target) && !timeOverlay.contains(e.target))) {
-                    closeTimeOverlay()
+            if (scheduleOverlay && !scheduleOverlay.classList.contains('hidden')) {
+                if (e.target === scheduleOverlay) {
+                    closeScheduleModal()
                 }
             }
         })
@@ -2622,15 +2563,14 @@ function setAppointmentTab(tab) {
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 closeSelectorModal()
-                closeDateOverlay()
-                closeTimeOverlay()
+                closeScheduleModal()
             }
         })
 
         function loadDoctorSchedulesAndAvailability(doctorId, dateStr) {
             if (!doctorId || typeof apiFetch !== 'function') return
             clearAvailability()
-            apiFetch("{{ url('/api/doctor-schedules') }}?doctor_id=" + encodeURIComponent(doctorId) + "&per_page=15", { method: 'GET' })
+            apiFetch("{{ url('/api/doctor-schedules') }}?doctor_id=" + encodeURIComponent(doctorId) + "&per_page=100", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) {
@@ -2638,36 +2578,30 @@ function setAppointmentTab(tab) {
                         if (result.status === 401) msg = 'Session expired. Please log in again.'
                         if (result.status === 403) msg = 'Forbidden (403). Your account does not have permission to view this doctor’s schedules.'
                         showBookAppointmentError(msg)
-                        if ((!doctorSchedules || !doctorSchedules.length) && dateSelect) {
-                            dateSelect.innerHTML = '<option value=\"\">Failed to load schedules</option>'
-                            dateSelect.disabled = true
-                        }
                         buildAvailableDaySet()
-                        renderDatePicker()
-                        renderTimeSlots()
+                        syncScheduleUI()
+                        renderScheduleDatePicker()
+                        renderScheduleTimeSlotsInModal()
                         return
                     }
 
                     var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
                     doctorSchedules = raw || []
                     buildAvailableDaySet()
-                    if (dateSelect) dateSelect.disabled = true
-                    renderDatePicker()
+                    syncScheduleUI()
+                    renderScheduleDatePicker()
                     if (dateStr) {
                         loadDoctorAppointments(doctorId, dateStr)
                     } else {
-                        renderTimeSlots()
+                        renderScheduleTimeSlotsInModal()
                     }
                 })
                 .catch(function () {
                     showBookAppointmentError('Network error while loading doctor schedules.')
-                    if ((!doctorSchedules || !doctorSchedules.length) && dateSelect) {
-                        dateSelect.innerHTML = '<option value=\"\">Network error loading schedules</option>'
-                        dateSelect.disabled = true
-                    }
                     buildAvailableDaySet()
-                    renderDatePicker()
-                    renderTimeSlots()
+                    syncScheduleUI()
+                    renderScheduleDatePicker()
+                    renderScheduleTimeSlotsInModal()
                 })
         }
 
@@ -2678,11 +2612,11 @@ function setAppointmentTab(tab) {
                 .then(function (result) {
                     var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
                     doctorAppointments = raw || []
-                    renderTimeSlots()
+                    renderScheduleTimeSlotsInModal()
                 })
                 .catch(function () {
                     doctorAppointments = []
-                    renderTimeSlots()
+                    renderScheduleTimeSlotsInModal()
                 })
         }
 
@@ -2768,97 +2702,73 @@ function setAppointmentTab(tab) {
         bindSelectorTrigger(serviceSearch, servicePickerBtn, 'service')
         bindSelectorTrigger(doctorSearch, doctorPickerBtn, 'doctor')
 
-        function onDateChanged() {
-            showBookAppointmentError('')
-            showBookAppointmentSuccess('')
-            selectedSlotStart = null
-            if (timeInput) timeInput.value = ''
-            var doctorId = doctorSelect ? doctorSelect.value : ''
-            var dateStr = dateInput && dateInput.value ? String(dateInput.value).slice(0, 10) : ''
-            renderDatePicker()
-            closeDateOverlay()
-            closeTimeOverlay()
-            if (!doctorId || !dateStr) {
-                renderTimeSlots()
-                return
-            }
-            loadDoctorAppointments(doctorId, dateStr)
-        }
-
-        renderDatePicker()
-
-        function positionDateOverlay() {
-            if (!dateOverlay || !dateTrigger) return
-            if (dateOverlay.classList.contains('hidden')) return
-
-            var triggerRect = dateTrigger.getBoundingClientRect()
-            var margin = 8
-
-            dateOverlay.style.width = Math.max(220, Math.floor(triggerRect.width)) + 'px'
-            dateOverlay.style.left = '0px'
-            dateOverlay.style.top = '0px'
-
-            window.requestAnimationFrame(function () {
-                if (!dateOverlay || dateOverlay.classList.contains('hidden')) return
-
-                var overlayRect = dateOverlay.getBoundingClientRect()
-                var maxLeft = Math.max(margin, window.innerWidth - overlayRect.width - margin)
-                var left = Math.min(Math.max(triggerRect.left, margin), maxLeft)
-
-                var top = triggerRect.top - overlayRect.height - margin
-                if (top < margin) {
-                    top = triggerRect.bottom + margin
-                }
-                if (top + overlayRect.height > window.innerHeight - margin) {
-                    top = Math.max(margin, window.innerHeight - overlayRect.height - margin)
-                }
-
-                dateOverlay.style.left = Math.floor(left) + 'px'
-                dateOverlay.style.top = Math.floor(top) + 'px'
+        // Schedule trigger → open modal
+        if (scheduleTrigger) {
+            scheduleTrigger.addEventListener('click', function () {
+                if (scheduleTrigger.disabled) return
+                openScheduleModal()
             })
         }
 
-        if (dateTrigger) {
-            dateTrigger.addEventListener('click', function () {
-                if (dateTrigger.disabled) return
-                if (!dateOverlay) return
-                renderDatePicker()
-                dateOverlay.classList.toggle('hidden')
-                positionDateOverlay()
+        // Schedule close/cancel
+        if (scheduleCloseBtn) scheduleCloseBtn.addEventListener('click', closeScheduleModal)
+        if (scheduleCancelBtn) scheduleCancelBtn.addEventListener('click', closeScheduleModal)
+
+        // Schedule Set button
+        if (scheduleSetBtn) {
+            scheduleSetBtn.addEventListener('click', function () {
+                if (scheduleSetBtn.disabled) return
+                var date = dateInput && dateInput.value ? String(dateInput.value).slice(0, 10) : ''
+                var time = selectedSlotStart
+                if (date && time) {
+                    dateInput.value = date
+                    timeInput.value = time
+                    updateScheduleCard()
+                    closeScheduleModal()
+                    updateSelectorConfirmState()
+                }
             })
         }
 
-        window.addEventListener('resize', function () {
-            positionDateOverlay()
-        })
-        window.addEventListener('scroll', function () {
-            positionDateOverlay()
-        }, true)
+        // Schedule clear
+        if (scheduleClearBtn) {
+            scheduleClearBtn.addEventListener('click', function () {
+                dateInput.value = ''
+                timeInput.value = ''
+                selectedSlotStart = null
+                updateScheduleCard()
+                updateSelectorConfirmState()
+            })
+        }
 
-        if (datePrevBtn) {
-            datePrevBtn.addEventListener('click', function () {
+        // Date prev/next in schedule modal
+        if (scheduleDatePrev) {
+            scheduleDatePrev.addEventListener('click', function () {
                 datePickerMonth = new Date(datePickerMonth.getFullYear(), datePickerMonth.getMonth() - 1, 1)
-                renderDatePicker()
-                positionDateOverlay()
+                renderScheduleDatePicker()
             })
         }
-
-        if (dateNextBtn) {
-            dateNextBtn.addEventListener('click', function () {
+        if (scheduleDateNext) {
+            scheduleDateNext.addEventListener('click', function () {
                 datePickerMonth = new Date(datePickerMonth.getFullYear(), datePickerMonth.getMonth() + 1, 1)
-                renderDatePicker()
-                positionDateOverlay()
+                renderScheduleDatePicker()
             })
         }
 
-        if (dateGrid) {
-            dateGrid.addEventListener('click', function (e) {
+        // Calendar date click (via event delegation on scheduleDateGrid)
+        if (scheduleDateGrid) {
+            scheduleDateGrid.addEventListener('click', function (e) {
                 var btn = e.target && e.target.closest ? e.target.closest('button[data-date]') : null
-                if (!btn || !dateInput) return
-                var iso = btn.getAttribute('data-date') || ''
-                if (!iso) return
-                dateInput.value = iso
-                onDateChanged()
+                if (!btn || btn.disabled) return
+                var dateIso = btn.getAttribute('data-date') || ''
+                if (!dateIso) return
+                dateInput.value = dateIso
+                selectedSlotStart = null
+                timeInput.value = ''
+                if (scheduleSetBtn) scheduleSetBtn.disabled = true
+                loadDoctorAppointments(doctorSelect ? doctorSelect.value : '', dateIso)
+                renderScheduleDatePicker()
+                renderScheduleTimeSlotsInModal()
             })
         }
 
@@ -2897,28 +2807,14 @@ function setAppointmentTab(tab) {
         function applyAppointmentTypeUI() {
             if (typeInput) typeInput.value = 'scheduled'
             var isWalkIn = false
-            if (dateWrap) dateWrap.classList.toggle('hidden', isWalkIn)
-            if (timeWrap) timeWrap.classList.toggle('hidden', isWalkIn)
-            if (dateSelect) {
-                dateSelect.required = !isWalkIn
-                dateSelect.disabled = isWalkIn || !doctorSelect || !doctorSelect.value
-            }
-            if (dateLoadMore) {
-                var canShowMore = !isWalkIn && !!(doctorSelect && doctorSelect.value) && !!(doctorAvailableDaySet && Object.keys(doctorAvailableDaySet).length)
-                dateLoadMore.classList.toggle('hidden', !canShowMore)
-            }
-            if (dateRangeHint) {
-                var canShowHint = !isWalkIn && !!(doctorSelect && doctorSelect.value) && !!(dateCursorFirstIso && dateCursorLastIso)
-                dateRangeHint.classList.toggle('hidden', !canShowHint)
-            }
+            if (scheduleWrap) scheduleWrap.classList.toggle('hidden', isWalkIn)
             if (dateInput) dateInput.required = false
             if (timeInput) timeInput.required = !isWalkIn
             if (isWalkIn) {
-                if (dateSelect) dateSelect.value = ''
                 if (dateInput) dateInput.value = ''
                 if (timeInput) timeInput.value = ''
                 selectedSlotStart = null
-                renderTimeSlots()
+                updateScheduleCard()
             }
         }
         if (typeScheduledBtn) {
@@ -2959,7 +2855,8 @@ function setAppointmentTab(tab) {
         if (typeInput && !typeInput.value) typeInput.value = 'scheduled'
         applyAppointmentTypeUI()
         syncTypeToggleUI()
-        renderTimeSlots()
+        syncScheduleUI()
+        updateScheduleCard()
         syncSelectionTriggers()
 
         if (form) {
@@ -2973,7 +2870,6 @@ function setAppointmentTab(tab) {
                 var patientInput = document.getElementById('reception_appointment_patient_id')
                 var doctorInput = document.getElementById('reception_appointment_doctor_id')
                 var serviceInput = document.getElementById('reception_appointment_service_id')
-                var dateSelect = document.getElementById('reception_appointment_date_select')
                 var dateInput = document.getElementById('reception_appointment_date')
                 var timeInput = document.getElementById('reception_appointment_time')
                 var typeInput = document.getElementById('reception_appointment_type')
@@ -2982,7 +2878,7 @@ function setAppointmentTab(tab) {
                 var patientId = patientInput ? parseInt(patientInput.value, 10) : 0
                 var doctorId = doctorInput ? parseInt(doctorInput.value, 10) : 0
                 var serviceIds = selectedServiceIds()
-                var date = (dateInput && dateInput.value ? dateInput.value : (dateSelect && dateSelect.value ? dateSelect.value : ''))
+                var date = (dateInput && dateInput.value ? dateInput.value : '')
                 var time = timeInput ? timeInput.value : ''
                 var type = 'scheduled'
                 var reason = reasonInput ? reasonInput.value : ''
@@ -3069,6 +2965,8 @@ function setAppointmentTab(tab) {
                             if (timeInput) timeInput.value = ''
                             if (typeInput) typeInput.value = 'scheduled'
                             if (reasonInput) reasonInput.value = ''
+                            updateScheduleCard()
+                            syncScheduleUI()
                             applyAppointmentTypeUI()
                             syncTypeToggleUI()
                             loadManageAppointments()

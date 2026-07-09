@@ -11,19 +11,42 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('notifications', function (Blueprint $table) {
-            $table->id('notification_id');
+     Schema::create('notification', function (Blueprint $table) {
+    $table->id('notification_id');
 
-            $table->unsignedBigInteger('user_id');
-            $table->foreign('user_id')->references('user_id')->on('users')->cascadeOnDelete();
+    $table->unsignedBigInteger('user_id');
+    $table->foreign('user_id')
+        ->references('user_id')
+        ->on('users')
+        ->cascadeOnDelete();
 
-            $table->enum('type', ['appointment', 'payment', 'system']);
-            $table->text('message');
-            $table->boolean('is_read')->default(false);
+    $table->enum('type', [
+        'appointment',
+        'queue',
+        'payment',
+        'medical_record',
+        'system'
+    ]);
 
-            $table->softDeletes();
-            $table->timestamps();
-        });
+    $table->string('title');
+    $table->text('message');
+
+    $table->unsignedBigInteger('reference_id')->nullable();
+
+    $table->enum('reference_table', [
+        'appointments',
+        'queues',
+        'payments',
+        'medical_backgrounds'
+    ])->nullable();
+
+    $table->timestamp('read_at')->nullable();
+
+    $table->index(['user_id', 'read_at']);
+
+    $table->softDeletes();
+    $table->timestamps();
+});
     }
 
     /**
