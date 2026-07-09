@@ -16,7 +16,7 @@ class DoctorScheduleController extends Controller
             'doctor_id' => ['nullable', 'integer', 'exists:users,user_id'],
             'available_only' => ['nullable', 'boolean'],
             'page' => ['nullable', 'integer', 'min:1'],
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:15'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:200'],
         ]);
 
         $perPage = (int) ($data['per_page'] ?? $request->query('per_page', 15));
@@ -90,7 +90,7 @@ class DoctorScheduleController extends Controller
             $data['to_day'] = $data['from_day'];
         }
 
-        $slotMinutes = (int) ($data['slot_minutes'] ?? 60);
+        $slotMinutes = (int) ($data['slot_minutes'] ?? 30);
 
         $startMinutes = $this->minutesFromTime($data['start_time']);
         $endMinutes = $this->minutesFromTime($data['end_time']);

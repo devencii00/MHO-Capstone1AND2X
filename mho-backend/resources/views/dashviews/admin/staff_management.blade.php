@@ -105,8 +105,8 @@
                 </div>
 
                 <div id="adminDoctorScheduleFormWrap" class="hidden">
-                <form id="adminDoctorScheduleForm" class="mb-5 grid gap-3 grid-cols-1 md:grid-cols-6 items-start">
-                    <div class="md:col-span-2">
+                <form id="adminDoctorScheduleForm" class="mb-5 grid gap-3 grid-cols-1 md:grid-cols-8 items-start">
+                    <div class="md:col-span-4">
                         <label class="block text-[0.7rem] text-slate-600 mb-1">From day</label>
                         <select id="admin_schedule_from_day" class="hidden" aria-hidden="true">
                             <option value="">Select</option>
@@ -137,7 +137,7 @@
                         <label for="admin_schedule_end_time" class="block text-[0.7rem] text-slate-600 mb-1">End time</label>
                         <input id="admin_schedule_end_time" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. 5:00 PM or 17:00">
                     </div>
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-4">
                         <label class="block text-[0.7rem] text-slate-600 mb-1">To day <span class="text-slate-400">(single-day)</span></label>
                         <select id="admin_schedule_to_day" class="hidden" aria-hidden="true">
                             <option value="">Select</option>
@@ -168,8 +168,8 @@
                         <label for="admin_schedule_room" class="block text-[0.7rem] text-slate-600 mb-1">Room # (optional)</label>
                         <input id="admin_schedule_room" type="number" min="1" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. 101">
                     </div>
-                    <input type="hidden" id="admin_schedule_slot_minutes" value="60">
-                    <div class="md:col-span-6 flex justify-end pt-1">
+                    <input type="hidden" id="admin_schedule_slot_minutes" value="30">
+                    <div class="md:col-span-8 flex justify-end pt-1">
                         <button type="submit" id="adminDoctorScheduleSubmit" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60">
                             <span id="adminDoctorScheduleSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
                             <span id="adminDoctorScheduleSubmitLabel">Generate schedule</span>
@@ -201,7 +201,13 @@
                                 <option value="sun">Sunday</option>
                             </select>
                         </div>
-                        <button type="button" id="adminScheduleTimeTableViewBtn" class="px-3 py-2 rounded-xl border border-green-200 bg-green-50 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100">Time Table view</button>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" id="adminScheduleTtRefreshBtn" class="hidden px-3 py-2 rounded-xl border border-orange-200 bg-orange-50 text-[0.72rem] font-semibold text-orange-700 hover:bg-orange-100">
+                                <x-lucide-refresh-cw class="w-[14px] h-[14px] inline-block align-text-top" />
+                                Refresh
+                            </button>
+                            <button type="button" id="adminScheduleTimeTableViewBtn" class="px-3 py-2 rounded-xl border border-green-200 bg-green-50 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100">Time Table view</button>
+                        </div>
                     </div>
 
                     <!-- Grouped Schedule View (by day, then time slots) -->
@@ -554,7 +560,7 @@
         }
 
         function fetchAllDoctorSchedules(doctorId, onSuccess, onFailure) {
-            var perPage = 15
+            var perPage = 200
             var page = 1
             var all = []
 
@@ -1429,7 +1435,7 @@
             showStaffPage(1)
         }
 
-        function loadSchedulesForDoctor(doctorId) {
+        function loadSchedulesForDoctor(doctorId, onComplete) {
             if (!scheduleList) return
             if (!doctorId) return
             loadedSchedules = []
@@ -1440,8 +1446,8 @@
             fetchAllDoctorSchedules(doctorId, function (all) {
                 loadedSchedules = Array.isArray(all) ? all : []
                 renderGroupedSchedules()
-                renderTimeTableView(loadedSchedules)
                 wireScheduleBulkActions(doctorId)
+                if (typeof onComplete === 'function') onComplete()
 
                 if (!scheduleListWired) {
                     scheduleListWired = true
@@ -1857,9 +1863,9 @@
                 var roomNumberRaw = scheduleRoom ? String(scheduleRoom.value || '').trim() : ''
                 var fromDay = scheduleFromDay ? normalizeDayKey(scheduleFromDay.value || '') : ''
                 var toDay = scheduleToDay ? normalizeDayKey(scheduleToDay.value || '') : ''
-                var slotMinutes = scheduleSlotMinutes && scheduleSlotMinutes.value ? parseInt(String(scheduleSlotMinutes.value), 10) : 60
+                var slotMinutes = scheduleSlotMinutes && scheduleSlotMinutes.value ? parseInt(String(scheduleSlotMinutes.value), 10) : 30
                 if (!slotMinutes || isNaN(slotMinutes)) {
-                    slotMinutes = 60
+                    slotMinutes = 30
                 }
 
               // Validate required fields
@@ -1982,7 +1988,13 @@ if (!fromDay) {
                         if (scheduleToDay) { scheduleToDay.value = ''; syncDayRoller('admin_schedule_to_day', 'admin_schedule_to_day_roller'); }
                         if (scheduleSubmitLabel) scheduleSubmitLabel.textContent = 'Generate schedule'
                         currentScheduleId = null
-                        loadSchedulesForDoctor(currentDoctorIdForSchedule)
+                        loadSchedulesForDoctor(currentDoctorIdForSchedule, function () {
+                            if (timetableVisible) {
+                                timetableRendered = false
+                                renderTimeTableView(loadedSchedules)
+                                timetableRendered = true
+                            }
+                        })
                         loadDoctors()
                     })
                     .catch(function () {
@@ -1995,7 +2007,9 @@ if (!fromDay) {
         }
 
         var timetableVisible = false
+        var timetableRendered = false
         var timetableBtn = document.getElementById('adminScheduleTimeTableViewBtn')
+        var ttRefreshBtn = document.getElementById('adminScheduleTtRefreshBtn')
         if (timetableBtn) {
             timetableBtn.addEventListener('click', function () {
                 timetableVisible = !timetableVisible
@@ -2003,15 +2017,51 @@ if (!fromDay) {
                 var ttEl = document.getElementById('adminDoctorTimeTableView')
                 if (!listEl || !ttEl) return
                 if (timetableVisible) {
+                    if (!timetableRendered) {
+                        renderTimeTableView(loadedSchedules)
+                        timetableRendered = true
+                    }
                     listEl.classList.add('hidden')
                     ttEl.classList.remove('hidden')
                     timetableBtn.textContent = 'Day view'
+                    if (ttRefreshBtn) ttRefreshBtn.classList.remove('hidden')
                 } else {
                     listEl.classList.remove('hidden')
                     ttEl.classList.add('hidden')
                     timetableBtn.textContent = 'Time Table view'
+                    if (ttRefreshBtn) ttRefreshBtn.classList.add('hidden')
                 }
             })
+        }
+        if (ttRefreshBtn) {
+            ttRefreshBtn.addEventListener('click', function () {
+                if (!currentDoctorIdForSchedule) return
+                var ttEl = document.getElementById('adminDoctorTimeTableView')
+                if (ttEl) ttEl.innerHTML = '<div class="py-4 text-center text-[0.78rem] text-slate-400">Loading schedules…</div>'
+                timetableRendered = false
+                loadSchedulesForDoctor(currentDoctorIdForSchedule, function () {
+                    if (timetableVisible) {
+                        renderTimeTableView(loadedSchedules)
+                        timetableRendered = true
+                    }
+                })
+            })
+        }
+
+        function timeToMinutes(t) {
+            if (!t) return null
+            var parts = (t + '').split(':')
+            if (parts.length < 2) return null
+            var h = parseInt(parts[0], 10)
+            var m = parseInt(parts[1], 10)
+            if (isNaN(h) || isNaN(m)) return null
+            return h * 60 + m
+        }
+
+        function minutesToTime(m) {
+            var h = Math.floor(m / 60)
+            var min = m % 60
+            return (h < 10 ? '0' : '') + h + ':' + (min < 10 ? '0' : '') + min
         }
 
         function renderTimeTableView(schedules) {
@@ -2035,30 +2085,47 @@ if (!fromDay) {
                 sun: { bg: '#fef2f2', head: '#fecaca', text: '#991b1b', border: '#fecaca' }
             }
 
-            // Collect all unique time slots across the week
-            var allSlots = []
-            var seenTimes = {}
+            // Build per-day schedule lists for quick lookup
+            var daySchedules = {}
+            var globalEarliest = null
+            var globalLatest = null
+            var minInterval = Infinity
+
             for (var i = 0; i < schedules.length; i++) {
                 var s = schedules[i]
-                var start = (s.start_time || '').slice(0, 5)
-                var end = (s.end_time || '').slice(0, 5)
-                var tkey = start + '-' + end
-                if (!seenTimes[tkey]) {
-                    seenTimes[tkey] = true
-                    allSlots.push({ start: start, end: end, label: formatTimeCompact(start) + '–' + formatTimeCompact(end) })
+                var dk = (s.day_of_week || '').toLowerCase()
+                if (!daySchedules[dk]) daySchedules[dk] = []
+                daySchedules[dk].push(s)
+
+                var stMin = timeToMinutes(s.start_time)
+                var enMin = timeToMinutes(s.end_time)
+                if (stMin !== null && enMin !== null) {
+                    if (globalEarliest === null || stMin < globalEarliest) globalEarliest = stMin
+                    if (globalLatest === null || enMin > globalLatest) globalLatest = enMin
+                    var diff = enMin - stMin
+                    if (diff > 0 && diff < minInterval) minInterval = diff
                 }
             }
-            allSlots.sort(function (a, b) { if (a.start < b.start) return -1; if (a.start > b.start) return 1; return 0 })
 
-            // Build lookup: day_key + time_key -> schedule
-            var slotMap = {}
-            for (var j = 0; j < schedules.length; j++) {
-                var s2 = schedules[j]
-                var dk = (s2.day_of_week || '').toLowerCase()
-                var st = (s2.start_time || '').slice(0, 5)
-                var et = (s2.end_time || '').slice(0, 5)
-                var tk = st + '-' + et
-                slotMap[dk + '|' + tk] = s2
+            if (minInterval === Infinity || globalEarliest === null || globalLatest === null) {
+                ttEl.innerHTML = '<div class="text-[0.78rem] text-slate-500 p-4 text-center">No schedules to display.</div>'
+                return
+            }
+
+            // Build uniform time rows at minInterval
+            var timeRows = []
+            for (var tm = globalEarliest; tm < globalLatest; tm += minInterval) {
+                var rowStart = tm
+                var rowEnd = Math.min(tm + minInterval, globalLatest)
+                var startStr = minutesToTime(rowStart)
+                var endStr = minutesToTime(rowEnd)
+                timeRows.push({
+                    start: startStr,
+                    end: endStr,
+                    startMin: rowStart,
+                    endMin: rowEnd,
+                    label: formatTimeCompact(startStr) + '\u2013' + formatTimeCompact(endStr)
+                })
             }
 
             var html = '<div class="overflow-x-auto"><table class="w-full text-[0.72rem] border-collapse">'
@@ -2071,16 +2138,27 @@ if (!fromDay) {
             html += '</tr>'
 
             // Body rows
-            allSlots.forEach(function (slot) {
+            timeRows.forEach(function (row) {
                 html += '<tr>'
-                html += '<td class="p-1.5 text-center font-medium text-slate-600 border bg-slate-50/80">' + slot.label + '</td>'
+                html += '<td class="p-1.5 text-center font-medium text-slate-600 border bg-slate-50/80">' + row.label + '</td>'
                 dayOrder.forEach(function (dk) {
                     var c = dayColors[dk] || dayColors.mon
-                    var sch = slotMap[dk + '|' + slot.start + '-' + slot.end]
-                    if (sch) {
-                        var isUnavail = sch.is_available === false
-                        var txt = sch.room_number != null ? 'Room ' + sch.room_number : ''
-                        if (sch.max_patients != null) txt += (txt ? ' | ' : '') + 'Max ' + sch.max_patients
+                    var matchingSch = null
+                    if (daySchedules[dk]) {
+                        for (var j = 0; j < daySchedules[dk].length; j++) {
+                            var sch = daySchedules[dk][j]
+                            var schStart = timeToMinutes(sch.start_time)
+                            var schEnd = timeToMinutes(sch.end_time)
+                            if (schStart !== null && schEnd !== null && schStart <= row.startMin && schEnd >= row.endMin) {
+                                matchingSch = sch
+                                break
+                            }
+                        }
+                    }
+                    if (matchingSch) {
+                        var isUnavail = matchingSch.is_available === false
+                        var txt = matchingSch.room_number != null ? 'Room ' + matchingSch.room_number : ''
+                        if (matchingSch.max_patients != null) txt += (txt ? ' | ' : '') + 'Max ' + matchingSch.max_patients
                         var statusLabel = isUnavail ? 'Unavailable' : 'Available'
                         html += '<td class="p-1.5 text-center border" style="background:' + c.bg + ';border-color:' + c.border + '">' +
                             '<div class="font-semibold" style="color:' + c.text + '">' +

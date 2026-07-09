@@ -520,7 +520,7 @@ function setAppointmentTab(tab) {
         var doctorAvailableDaySet = {}
         var doctorAppointments = []
         var selectedSlotStart = null
-        var slotMinutes = 60
+        var slotMinutes = 30
         var patientSearchTimer = null
         var selectedPatient = null
         var selectedServices = []
