@@ -77,13 +77,18 @@ class DoctorScheduleController extends Controller
         $data = $request->validate([
             'doctor_id' => ['required', 'integer', 'exists:users,user_id'],
             'from_day' => ['required', 'in:mon,tue,wed,thu,fri,sat,sun'],
-            'to_day' => ['required', 'in:mon,tue,wed,thu,fri,sat,sun'],
+            'to_day' => ['sometimes', 'nullable', 'in:mon,tue,wed,thu,fri,sat,sun'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i'],
             'slot_minutes' => ['sometimes', 'integer', 'min:15', 'max:240'],
             'room_number' => ['nullable', 'integer', 'min:1'],
             'max_patients' => ['nullable', 'integer', 'min:1'],
         ]);
+
+        // If to_day is not provided, default to from_day (single-day schedule)
+        if (empty($data['to_day'])) {
+            $data['to_day'] = $data['from_day'];
+        }
 
         $slotMinutes = (int) ($data['slot_minutes'] ?? 60);
 

@@ -71,6 +71,14 @@
                         </div>
                     </div>
 
+                    {{-- Specialization (display only) --}}
+                    <div>
+                        <label class="block text-[0.7rem] text-slate-500 mb-1">Specialization</label>
+                        <div class="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-xs text-slate-600 cursor-default select-none">
+                            <span id="doctor_settings_specialization_display">—</span>
+                        </div>
+                    </div>
+
                     {{-- Sex + Birthdate --}}
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
@@ -398,6 +406,8 @@
                     if (fn) fn.value = user.firstname || ''
                     if (mn) mn.value = user.middlename || ''
                     if (ln) ln.value = user.lastname || ''
+                    var specDisplay = document.getElementById('doctor_settings_specialization_display')
+                    if (specDisplay) specDisplay.textContent = user.specialization || '—'
                     if (bd) bd.value = user.birthdate || ''
                     if (addr) addr.value = user.address || ''
                     if (contact) contact.value = user.contact_number || ''

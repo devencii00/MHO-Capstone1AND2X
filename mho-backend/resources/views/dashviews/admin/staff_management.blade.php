@@ -106,9 +106,9 @@
 
                 <div id="adminDoctorScheduleFormWrap" class="hidden">
                 <form id="adminDoctorScheduleForm" class="mb-5 grid gap-3 grid-cols-1 md:grid-cols-6 items-start">
-                    <div>
-                        <label for="admin_schedule_from_day" class="block text-[0.7rem] text-slate-600 mb-1">From day</label>
-                        <select id="admin_schedule_from_day" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    <div class="md:col-span-2">
+                        <label class="block text-[0.7rem] text-slate-600 mb-1">From day</label>
+                        <select id="admin_schedule_from_day" class="hidden" aria-hidden="true">
                             <option value="">Select</option>
                             <option value="mon">Mon</option>
                             <option value="tue">Tue</option>
@@ -118,40 +118,58 @@
                             <option value="sat">Sat</option>
                             <option value="sun">Sun</option>
                         </select>
+                        <div id="admin_schedule_from_day_roller" class="day-roller flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hidden" style="-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+                            <button type="button" class="day-roller-btn flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap transition-colors cursor-pointer" data-value="">Select</button>
+                            <button type="button" class="day-roller-btn flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap transition-colors cursor-pointer" data-value="mon">Mon</button>
+                            <button type="button" class="day-roller-btn flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap transition-colors cursor-pointer" data-value="tue">Tue</button>
+                            <button type="button" class="day-roller-btn flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap transition-colors cursor-pointer" data-value="wed">Wed</button>
+                            <button type="button" class="day-roller-btn flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap transition-colors cursor-pointer" data-value="thu">Thu</button>
+                            <button type="button" class="day-roller-btn flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap transition-colors cursor-pointer" data-value="fri">Fri</button>
+                            <button type="button" class="day-roller-btn flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap transition-colors cursor-pointer" data-value="sat">Sat</button>
+                            <button type="button" class="day-roller-btn flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap transition-colors cursor-pointer" data-value="sun">Sun</button>
+                        </div>
                     </div>
-                    <div>
-                        <label for="admin_schedule_to_day" class="block text-[0.7rem] text-slate-600 mb-1">To day</label>
-                        <select id="admin_schedule_to_day" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                            <option value="">Select</option>
-                            <option value="mon">Mon</option>
-                            <option value="tue">Tue</option>
-                            <option value="wed">Wed</option>
-                            <option value="thu">Thu</option>
-                            <option value="fri">Fri</option>
-                            <option value="sat">Sat</option>
-                            <option value="sun">Sun</option>
-                        </select>
-                    </div>
-                    <div>
+                    <div class="md:col-span-2">
                         <label for="admin_schedule_start_time" class="block text-[0.7rem] text-slate-600 mb-1">Start time</label>
                         <input id="admin_schedule_start_time" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. 8:00 AM or 08:00">
-                        <div class="mt-1 text-[0.68rem] leading-tight text-slate-400">Accepts `8:00 AM`, `8am`, or `08:00`.</div>
                     </div>
-                    <div>
+                    <div class="md:col-span-2">
                         <label for="admin_schedule_end_time" class="block text-[0.7rem] text-slate-600 mb-1">End time</label>
                         <input id="admin_schedule_end_time" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. 5:00 PM or 17:00">
-                        <div class="mt-1 text-[0.68rem] leading-tight text-slate-400">Accepts `5:00 PM`, `5pm`, or `17:00`.</div>
                     </div>
-                    <div>
+                    <div class="md:col-span-2">
+                        <label class="block text-[0.7rem] text-slate-600 mb-1">To day <span class="text-slate-400">(single-day)</span></label>
+                        <select id="admin_schedule_to_day" class="hidden" aria-hidden="true">
+                            <option value="">Select</option>
+                            <option value="mon">Mon</option>
+                            <option value="tue">Tue</option>
+                            <option value="wed">Wed</option>
+                            <option value="thu">Thu</option>
+                            <option value="fri">Fri</option>
+                            <option value="sat">Sat</option>
+                            <option value="sun">Sun</option>
+                        </select>
+                        <div id="admin_schedule_to_day_roller" class="day-roller flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hidden" style="-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+                            <button type="button" class="day-roller-btn flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap transition-colors cursor-pointer" data-value="">Select</button>
+                            <button type="button" class="day-roller-btn flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap transition-colors cursor-pointer" data-value="mon">Mon</button>
+                            <button type="button" class="day-roller-btn flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap transition-colors cursor-pointer" data-value="tue">Tue</button>
+                            <button type="button" class="day-roller-btn flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap transition-colors cursor-pointer" data-value="wed">Wed</button>
+                            <button type="button" class="day-roller-btn flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap transition-colors cursor-pointer" data-value="thu">Thu</button>
+                            <button type="button" class="day-roller-btn flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap transition-colors cursor-pointer" data-value="fri">Fri</button>
+                            <button type="button" class="day-roller-btn flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap transition-colors cursor-pointer" data-value="sat">Sat</button>
+                            <button type="button" class="day-roller-btn flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap transition-colors cursor-pointer" data-value="sun">Sun</button>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2">
                         <label for="admin_schedule_max" class="block text-[0.7rem] text-slate-600 mb-1">Max patients</label>
                         <input id="admin_schedule_max" type="number" min="1" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Optional">
                     </div>
-                    <div>
+                    <div class="md:col-span-2">
                         <label for="admin_schedule_room" class="block text-[0.7rem] text-slate-600 mb-1">Room # (optional)</label>
                         <input id="admin_schedule_room" type="number" min="1" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. 101">
                     </div>
                     <input type="hidden" id="admin_schedule_slot_minutes" value="60">
-                    <div class="md:col-span-6 flex justify-end">
+                    <div class="md:col-span-6 flex justify-end pt-1">
                         <button type="submit" id="adminDoctorScheduleSubmit" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60">
                             <span id="adminDoctorScheduleSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
                             <span id="adminDoctorScheduleSubmitLabel">Generate schedule</span>
@@ -395,6 +413,18 @@
     </div>
 </div>
 
+<style>
+    .day-roller-btn.active {
+        background-color: #059669 !important;
+        color: white !important;
+        border-color: #059669 !important;
+    }
+    .day-roller-btn.active:hover {
+        background-color: #047857 !important;
+        border-color: #047857 !important;
+    }
+</style>
+
 <script>
     ;(function () {
         var errorBox = document.getElementById('adminDoctorError')
@@ -431,6 +461,39 @@
         var scheduleBulkDay = document.getElementById('adminScheduleBulkDay')
         var scheduleDeleteDay = document.getElementById('adminScheduleDeleteDay')
         var scheduleDeleteAll = document.getElementById('adminScheduleDeleteAll')
+
+        // ── Day Roller (horizontal scrollable day picker) ──
+        function syncDayRoller(selectId, rollerId) {
+            var select = document.getElementById(selectId)
+            var roller = document.getElementById(rollerId)
+            if (!select || !roller) return
+            var value = select.value || ''
+            var btns = roller.querySelectorAll('.day-roller-btn')
+            for (var i = 0; i < btns.length; i++) {
+                var btn = btns[i]
+                if (btn.getAttribute('data-value') === value) btn.classList.add('active')
+                else btn.classList.remove('active')
+            }
+        }
+
+        function setupDayRoller(selectId, rollerId) {
+            var roller = document.getElementById(rollerId)
+            if (!roller) return
+            roller.addEventListener('click', function (e) {
+                var btn = e.target.closest('.day-roller-btn')
+                if (!btn) return
+                var select = document.getElementById(selectId)
+                if (!select) return
+                select.value = btn.getAttribute('data-value') || ''
+                syncDayRoller(selectId, rollerId)
+            })
+            // Sync initial state
+            syncDayRoller(selectId, rollerId)
+        }
+
+        setupDayRoller('admin_schedule_from_day', 'admin_schedule_from_day_roller')
+        setupDayRoller('admin_schedule_to_day', 'admin_schedule_to_day_roller')
+
         var confirmOverlay = document.getElementById('adminConfirmOverlay')
         var confirmMessage = document.getElementById('adminConfirmMessage')
         var confirmOk = document.getElementById('adminConfirmOk')
@@ -1340,8 +1403,8 @@
                     clear12HourSelects('start')
                     clear12HourSelects('end')
                     if (scheduleMax) scheduleMax.value = ''
-                    if (scheduleFromDay) scheduleFromDay.value = ''
-                    if (scheduleToDay) scheduleToDay.value = ''
+                    if (scheduleFromDay) { scheduleFromDay.value = ''; syncDayRoller('admin_schedule_from_day', 'admin_schedule_from_day_roller'); }
+                    if (scheduleToDay) { scheduleToDay.value = ''; syncDayRoller('admin_schedule_to_day', 'admin_schedule_to_day_roller'); }
                     if (scheduleSubmitLabel) scheduleSubmitLabel.textContent = 'Generate schedule'
                     
                     showDoctorError('')
@@ -1408,8 +1471,8 @@
                             if (!slot) return
 
                             currentScheduleId = String(slot.schedule_id)
-                            if (scheduleFromDay) scheduleFromDay.value = normalizeDayKey(slot.day_of_week || '')
-                            if (scheduleToDay) scheduleToDay.value = ''
+                            if (scheduleFromDay) { scheduleFromDay.value = normalizeDayKey(slot.day_of_week || ''); syncDayRoller('admin_schedule_from_day', 'admin_schedule_from_day_roller'); }
+                            if (scheduleToDay) { scheduleToDay.value = ''; syncDayRoller('admin_schedule_to_day', 'admin_schedule_to_day_roller'); }
 
                             set12HourSelects('start', slot.start_time || '')
                             set12HourSelects('end', slot.end_time || '')
@@ -1726,8 +1789,8 @@
                 clear12HourSelects('end')
                 if (scheduleMax) scheduleMax.value = ''
                 if (scheduleRoom) scheduleRoom.value = ''
-                if (scheduleFromDay) scheduleFromDay.value = ''
-                if (scheduleToDay) scheduleToDay.value = ''
+                if (scheduleFromDay) { scheduleFromDay.value = ''; syncDayRoller('admin_schedule_from_day', 'admin_schedule_from_day_roller'); }
+                if (scheduleToDay) { scheduleToDay.value = ''; syncDayRoller('admin_schedule_to_day', 'admin_schedule_to_day_roller'); }
                 if (scheduleSubmitLabel) scheduleSubmitLabel.textContent = 'Generate schedule'
                 showDoctorError('')
                 showDoctorSuccess('')
@@ -1807,12 +1870,6 @@ if (!start || !end) {
 
 if (!fromDay) {
     showDoctorError('Day is required.')
-    return
-}
-
-// Only require toDay when creating new schedules (not editing)
-if (!currentScheduleId && !toDay) {
-    showDoctorError('To day is required for generating multiple day schedules.')
     return
 }
 
@@ -1921,8 +1978,8 @@ if (!currentScheduleId && !toDay) {
                         clear12HourSelects('end')
                         if (scheduleMax) scheduleMax.value = ''
                         if (scheduleRoom) scheduleRoom.value = ''
-                        if (scheduleFromDay) scheduleFromDay.value = ''
-                        if (scheduleToDay) scheduleToDay.value = ''
+                        if (scheduleFromDay) { scheduleFromDay.value = ''; syncDayRoller('admin_schedule_from_day', 'admin_schedule_from_day_roller'); }
+                        if (scheduleToDay) { scheduleToDay.value = ''; syncDayRoller('admin_schedule_to_day', 'admin_schedule_to_day_roller'); }
                         if (scheduleSubmitLabel) scheduleSubmitLabel.textContent = 'Generate schedule'
                         currentScheduleId = null
                         loadSchedulesForDoctor(currentDoctorIdForSchedule)
