@@ -2831,7 +2831,10 @@ function setWalkInTab(tab) {
             }
             if (query) {
                 list = list.filter(function (service) {
-                    return wordPrefixMatch(service && service.service_name ? service.service_name : '', query)
+                    if (!service) return false
+                    var name = service.service_name || ''
+                    var desc = service.description || ''
+                    return wordPrefixMatch(name, query) || wordPrefixMatch(desc, query)
                 })
             }
             list.sort(function (a, b) {

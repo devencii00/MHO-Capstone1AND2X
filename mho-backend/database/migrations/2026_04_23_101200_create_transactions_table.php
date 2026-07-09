@@ -28,9 +28,6 @@ return new class extends Migration
             $table->enum('payment_mode', ['cash'])->nullable();
             $table->enum('payment_status', ['pending', 'paid', 'failed'])->default('pending');
 
-            $table->decimal('money_paid', 10, 2)->nullable();
-            $table->decimal('money_change', 10, 2)->nullable();
-
             $table->string('reference_number')->nullable();
             $table->string('receipt_path')->nullable();
             $table->dateTime('transaction_datetime')->nullable();

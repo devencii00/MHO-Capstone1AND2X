@@ -1101,7 +1101,10 @@ function setAppointmentTab(tab) {
             }
             if (query) {
                 list = list.filter(function (service) {
-                    return wordPrefixMatch(service && service.service_name ? service.service_name : '', query)
+                    if (!service) return false
+                    var name = service.service_name || ''
+                    var desc = service.description || ''
+                    return wordPrefixMatch(name, query) || wordPrefixMatch(desc, query)
                 })
             }
             list.sort(function (a, b) {
@@ -1395,16 +1398,33 @@ function setAppointmentTab(tab) {
 
         function ensureBookServicesLoaded() {
             if (servicesLoaded && services.length) return Promise.resolve(services)
+            if (servicesLoading) return new Promise(function (resolve) {
+                var check = setInterval(function () {
+                    if (servicesLoaded) { clearInterval(check); resolve(services) }
+                }, 16)
+            })
             if (typeof apiFetch !== 'function') return Promise.resolve([])
+            servicesLoading = true
             return apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) return services || []
-                    services = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    var allowedServiceNames = [
+                        'general surgeon',
+                        'obstetrician-gynecologist',
+                        'obstetrician - gynecologist',
+                        'internal medicine'
+                    ]
+                    services = (raw || []).filter(function (s) {
+                        var name = normalizeText(s && s.service_name ? s.service_name : '')
+                        return allowedServiceNames.indexOf(name) !== -1
+                    })
                     servicesLoaded = true
                     return services
                 })
                 .catch(function () { return services || [] })
+                .finally(function () { servicesLoading = false })
         }
 
         function ensureBookDoctorsLoaded() {
@@ -2671,37 +2691,33 @@ function setAppointmentTab(tab) {
 
         function loadServicesAndDoctors() {
             if (typeof apiFetch !== 'function') return
-
-            servicesLoading = true
-            apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
-                .then(function (response) {
-                    return response.json().then(function (data) {
-                        return { ok: response.ok, data: data }
-                    }).catch(function () {
-                        return { ok: response.ok, data: null }
+            if (!servicesLoaded && !servicesLoading) {
+                servicesLoading = true
+                apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
+                    .then(function (response) { return readResponse(response) })
+                    .then(function (result) {
+                        if (!result.ok) return
+                        var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                        var allowedServiceNames = [
+                            'general surgeon',
+                            'obstetrician-gynecologist',
+                            'obstetrician - gynecologist',
+                            'internal medicine'
+                        ]
+                        services = (raw || []).filter(function (s) {
+                            var name = normalizeText(s && s.service_name ? s.service_name : '')
+                            return allowedServiceNames.indexOf(name) !== -1
+                        })
+                        servicesLoaded = true
+                        if (serviceSearch && serviceSearch.value) {
+                            renderServiceResults()
+                        }
                     })
-                })
-                .then(function (result) {
-                    var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
-                    var allowedServiceNames = [
-                        'general surgeon',
-                        'obstetrician-gynecologist',
-                        'obstetrician - gynecologist',
-                        'internal medicine'
-                    ]
-                    services = (raw || []).filter(function (s) {
-                        var name = normalizeText(s && s.service_name ? s.service_name : '')
-                        return allowedServiceNames.indexOf(name) !== -1
+                    .catch(function () {})
+                    .finally(function () {
+                        servicesLoading = false
                     })
-                    servicesLoaded = true
-                    if (serviceSearch && serviceSearch.value) {
-                        renderServiceResults()
-                    }
-                })
-                .catch(function () {})
-                .finally(function () {
-                    servicesLoading = false
-                })
+            }
 
             doctorsLoading = true
             apiFetch("{{ url('/api/doctors') }}?per_page=15", { method: 'GET' })
