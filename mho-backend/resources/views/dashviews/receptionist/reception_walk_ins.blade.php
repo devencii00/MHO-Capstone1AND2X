@@ -2866,6 +2866,10 @@ function setWalkInTab(tab) {
                 .then(function (res) {
                     if (!res.ok) return { data: [], hasMore: false }
                     var items = Array.isArray(res.data.data) ? res.data.data : []
+                    var allowed = ['general medicine', 'pediatrics']
+                    items = items.filter(function (s) {
+                        return allowed.indexOf(normalizeText(s && s.service_name ? s.service_name : '')) !== -1
+                    })
                     return {
                         data: items,
                         hasMore: (res.data.current_page || 1) < (res.data.last_page || 1)
@@ -3204,7 +3208,11 @@ function setWalkInTab(tab) {
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) return services || []
-                    services = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    var allowed = ['general medicine', 'pediatrics']
+                    services = raw.filter(function (s) {
+                        return allowed.indexOf(normalizeText(s && s.service_name ? s.service_name : '')) !== -1
+                    })
                     servicesLoaded = true
                     return services
                 })
@@ -4560,6 +4568,10 @@ function setWalkInTab(tab) {
                     .then(function (res) {
                         if (res.ok) {
                             services = res.data && Array.isArray(res.data.data) ? res.data.data : (Array.isArray(res.data) ? res.data : [])
+                            var allowed = ['general medicine', 'pediatrics']
+                            services = services.filter(function (s) {
+                                return allowed.indexOf(normalizeText(s && s.service_name ? s.service_name : '')) !== -1
+                            })
                             servicesLoaded = true
                             if (serviceSearch && document.activeElement === serviceSearch) {
                                 searchServices(String(serviceSearch.value || '').trim())
@@ -4579,6 +4591,10 @@ function setWalkInTab(tab) {
                     .then(function (res) {
                         if (res.ok) {
                             popularServices = Array.isArray(res.data) ? res.data : (res.data && Array.isArray(res.data.data) ? res.data.data : [])
+                            var allowed = ['general medicine', 'pediatrics']
+                            popularServices = popularServices.filter(function (s) {
+                                return allowed.indexOf(normalizeText(s && s.service_name ? s.service_name : '')) !== -1
+                            })
                             popularServicesLoaded = true
                         } else {
                             popularServicesLoadError = (res.data && res.data.message) ? String(res.data.message) : 'Failed to load popular services.'

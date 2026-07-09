@@ -77,7 +77,12 @@
             <button id="receptionScheduleTrigger" type="button" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 text-left focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none disabled:opacity-60" disabled>
                 Select a doctor first
             </button>
-            <div id="receptionScheduleCard" class="hidden mt-2 p-3 rounded-xl border border-green-200 bg-green-50">
+        </div>
+        
+        <div class="self-start min-w-0">
+            <label class="block text-[0.7rem] text-slate-600 mb-1">Set Date & Time</label>
+            <div class="mb-1 text-[0.7rem] text-slate-500">&nbsp;</div>
+            <div id="receptionScheduleCard" class="hidden p-3 rounded-xl border border-green-200 bg-green-50">
                 <div class="text-[0.72rem] text-green-700 font-semibold">Selected Schedule</div>
                 <div id="receptionScheduleCardText" class="text-[0.78rem] text-green-800 mt-1"></div>
                 <button id="receptionScheduleClearBtn" type="button" class="mt-1 text-[0.7rem] text-green-600 hover:text-green-800 underline">Clear</button>
@@ -570,6 +575,7 @@ function setAppointmentTab(tab) {
         var doctorSchedules = []
         var doctorAvailableDaySet = {}
         var doctorAppointments = []
+        var doctorMonthAppointments = {}
         var selectedSlotStart = null
         var slotMinutes = 30
         var patientSearchTimer = null
@@ -1014,6 +1020,12 @@ function setAppointmentTab(tab) {
                 .then(function (res) {
                     if (!res.ok) return { data: [], hasMore: false }
                     var items = Array.isArray(res.data.data) ? res.data.data : []
+                    if (query) {
+                        var q = normalizeText(query)
+                        items = items.filter(function (doc) {
+                            return normalizeText(doc.specialization || '') === q
+                        })
+                    }
                     return {
                         data: items,
                         hasMore: (res.data.current_page || 1) < (res.data.last_page || 1)
@@ -1794,6 +1806,7 @@ function setAppointmentTab(tab) {
             doctorSchedules = []
             doctorAvailableDaySet = {}
             doctorAppointments = []
+            doctorMonthAppointments = {}
             selectedSlotStart = null
             if (timeInput) timeInput.value = ''
             if (dateInput) dateInput.value = ''
@@ -1829,6 +1842,7 @@ function setAppointmentTab(tab) {
             scheduleOverlay.classList.add('flex')
             renderScheduleDatePicker()
             renderScheduleTimeSlotsInModal()
+            if (doctorSelect && doctorSelect.value) loadMonthAppointments(doctorSelect.value)
         }
 
         function closeScheduleModal() {
@@ -2076,20 +2090,14 @@ function setAppointmentTab(tab) {
                     doctorPreview.textContent = ''
                     doctorPreview.classList.add('hidden')
                 } else {
-                    var parts = []
-                    parts.push('Doctor: ' + doctorLabel(doctor))
-                    if (previousDoctorId && parseInt(doctor.user_id, 10) === previousDoctorId) {
-                        parts.push('Last provider')
-                    }
-                    var dateStr = dateInput && dateInput.value ? String(dateInput.value).slice(0, 10) : localDateIso()
-                    var dayKey = dayKeyFromDate(dateStr)
-                    var checkTime = selectedSlotStart ? String(selectedSlotStart).slice(0, 5) : ''
-                    var hasSchedule = !!dayKey && hasScheduleAtTime(doctor, dayKey, dateStr, checkTime)
-                    parts.push('Availability: ' + ((doctor.is_available !== false && hasSchedule) ? 'Available' : 'Unavailable'))
-                    var primary = selectedServices && selectedServices.length ? selectedServices[0] : null
-                    var category = extractServiceCategory(primary ? primary.service_name : '')
-                    if (category) parts.push('Service match: ' + (specializationMatches(category, doctor.specialization) ? 'Yes' : 'No'))
-                    doctorPreview.textContent = parts.join(' • ')
+                    var name = doctorDisplayName(doctor) || 'Doctor #' + (doctor.user_id || '')
+                    var spec = doctor.specialization ? String(doctor.specialization).trim() : 'N/A'
+                    var sched = doctorScheduleSummary(doctor)
+                    var lines = []
+                    lines.push('<div class="text-[0.78rem] text-slate-700 font-semibold">' + escapeHtml(name) + '</div>')
+                    lines.push('<div class="text-[0.7rem] text-slate-500">Specialization: ' + escapeHtml(spec) + '</div>')
+                    lines.push('<div class="text-[0.7rem] text-slate-500">Schedule: ' + escapeHtml(sched) + '</div>')
+                    doctorPreview.innerHTML = lines.join('')
                     doctorPreview.classList.remove('hidden')
                 }
             }
@@ -2369,11 +2377,14 @@ function setAppointmentTab(tab) {
                 var enabled = allowed && notPast
                 var selected = selectedIso && selectedIso === iso
                 var base =
-                    'w-full aspect-square rounded-lg text-[0.75rem] font-semibold border transition-colors flex items-center justify-center'
+                    'relative w-full aspect-square rounded-lg text-[0.75rem] font-semibold border transition-colors flex items-center justify-center'
                 var cls = base + ' ' + (enabled
                     ? (selected ? 'bg-green-600 text-white border-green-600' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50')
                     : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed')
-                cells.push('<button type="button" class="' + cls + '" data-date="' + iso + '"' + (enabled ? '' : ' disabled') + '>' + day + '</button>')
+                var count = doctorMonthAppointments[iso] || 0
+                var showBadge = count > 0 && d.getTime() >= today.getTime()
+                var badge = showBadge ? '<span class="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-red-500 text-white text-[0.5rem] leading-[14px] font-bold rounded-full px-0.5 text-center">' + count + '</span>' : ''
+                cells.push('<button type="button" class="' + cls + '" data-date="' + iso + '"' + (enabled ? '' : ' disabled') + '>' + day + badge + '</button>')
             }
 
             var total = Math.ceil(cells.length / 7) * 7
@@ -2595,6 +2606,7 @@ function setAppointmentTab(tab) {
                     } else {
                         renderScheduleTimeSlotsInModal()
                     }
+                    loadMonthAppointments(doctorId)
                 })
                 .catch(function () {
                     showBookAppointmentError('Network error while loading doctor schedules.')
@@ -2602,6 +2614,7 @@ function setAppointmentTab(tab) {
                     syncScheduleUI()
                     renderScheduleDatePicker()
                     renderScheduleTimeSlotsInModal()
+                    if (doctorId) loadMonthAppointments(doctorId)
                 })
         }
 
@@ -2617,6 +2630,33 @@ function setAppointmentTab(tab) {
                 .catch(function () {
                     doctorAppointments = []
                     renderScheduleTimeSlotsInModal()
+                })
+        }
+
+        function loadMonthAppointments(doctorId) {
+            if (!doctorId || typeof apiFetch !== 'function') return
+            var y = datePickerMonth.getFullYear()
+            var m = datePickerMonth.getMonth()
+            var startDate = y + '-' + String(m + 1).padStart(2, '0') + '-01'
+            var lastDay = new Date(y, m + 1, 0).getDate()
+            var endDate = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(lastDay).padStart(2, '0')
+            apiFetch("{{ url('/api/appointments') }}?doctor_id=" + encodeURIComponent(doctorId) + "&start_date=" + encodeURIComponent(startDate) + "&end_date=" + encodeURIComponent(endDate) + "&per_page=200", { method: 'GET' })
+                .then(function (response) { return readResponse(response) })
+                .then(function (result) {
+                    var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    var map = {}
+                    raw.forEach(function (a) {
+                        if (!a || !a.appointment_datetime) return
+                        if (String(a.status || '').toLowerCase() === 'cancelled') return
+                        var datePart = String(a.appointment_datetime).slice(0, 10)
+                        map[datePart] = (map[datePart] || 0) + 1
+                    })
+                    doctorMonthAppointments = map
+                    renderScheduleDatePicker()
+                })
+                .catch(function () {
+                    doctorMonthAppointments = {}
+                    renderScheduleDatePicker()
                 })
         }
 
@@ -2746,12 +2786,14 @@ function setAppointmentTab(tab) {
             scheduleDatePrev.addEventListener('click', function () {
                 datePickerMonth = new Date(datePickerMonth.getFullYear(), datePickerMonth.getMonth() - 1, 1)
                 renderScheduleDatePicker()
+                if (doctorSelect && doctorSelect.value) loadMonthAppointments(doctorSelect.value)
             })
         }
         if (scheduleDateNext) {
             scheduleDateNext.addEventListener('click', function () {
                 datePickerMonth = new Date(datePickerMonth.getFullYear(), datePickerMonth.getMonth() + 1, 1)
                 renderScheduleDatePicker()
+                if (doctorSelect && doctorSelect.value) loadMonthAppointments(doctorSelect.value)
             })
         }
 
