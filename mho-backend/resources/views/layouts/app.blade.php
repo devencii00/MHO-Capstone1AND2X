@@ -174,6 +174,37 @@
         }
     </script>
 
+    <script>
+        ;(function () {
+            if (window.__spaDomReadyShimInstalled) return
+            window.__spaDomReadyShimInstalled = true
+
+            var nativeAddEventListener = Document.prototype.addEventListener
+
+            Document.prototype.addEventListener = function (type, listener, options) {
+                if (
+                    this === document &&
+                    type === 'DOMContentLoaded' &&
+                    typeof listener !== 'undefined' &&
+                    document.readyState !== 'loading'
+                ) {
+                    setTimeout(function () {
+                        if (typeof listener === 'function') {
+                            listener.call(document, new Event('DOMContentLoaded'))
+                            return
+                        }
+                        if (listener && typeof listener.handleEvent === 'function') {
+                            listener.handleEvent(new Event('DOMContentLoaded'))
+                        }
+                    }, 0)
+                    return
+                }
+
+                return nativeAddEventListener.call(this, type, listener, options)
+            }
+        })()
+    </script>
+
     @yield('body')
 
     <script>
@@ -249,6 +280,14 @@
         var mainContent = document.getElementById('main-content');
         if (!mainContent) return; 
 
+        function normalizeUrl(url) {
+            try {
+                return new URL(url, window.location.origin).toString();
+            } catch (_) {
+                return url;
+            }
+        }
+
         function afterContentSwap(url) {
             // Re-run all inline scripts in main-content
             Array.prototype.forEach.call(mainContent.querySelectorAll('script'), function (oldScript) {
@@ -259,10 +298,6 @@
                 newScript.textContent = oldScript.textContent;
                 oldScript.parentNode.replaceChild(newScript, oldScript);
             });
-
-            // Fire DOMContentLoaded so script listeners registered via
-            // document.addEventListener('DOMContentLoaded', ...) will execute
-            document.dispatchEvent(new Event('DOMContentLoaded'));
 
             // Update sidebar active nav indicator
             updateSidebarActive(url);
@@ -291,11 +326,17 @@
 
             e.preventDefault();
 
-            var url = href;
+            var url = normalizeUrl(href);
+
+            if (url === normalizeUrl(window.location.href)) {
+                updateSidebarActive(url);
+                return;
+            }
 
             // Cached?
             if (pageCache[url]) {
                 mainContent.innerHTML = pageCache[url];
+                mainContent.style.opacity = '1';
                 window.scrollTo(0, 0);
                 history.pushState(null, '', url);
                 afterContentSwap(url);

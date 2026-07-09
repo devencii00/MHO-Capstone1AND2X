@@ -24,6 +24,7 @@
         <span class="text-slate-700 font-semibold">Dashboard</span>
     </div>
     <div class="relative flex items-center gap-3">
+        @if ($roleKey === 'receptionist')
         <!-- Messages Button -->
         <button id="headerMessagesButton" class="px-3.5 h-8.5 rounded-lg border border-slate-200 bg-white flex items-center gap-2 text-slate-500 hover:border-green-400 hover:text-green-600 relative">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -32,6 +33,7 @@
             <span class="text-[0.78rem] font-semibold text-slate-600">Messages</span>
             <span id="headerMessagesBadge" class="hidden absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 border border-white text-white text-[0.62rem] font-semibold leading-[16px] text-center"></span>
         </button>
+        @endif
 
         <!-- Notifications Button -->
         <button id="headerNotificationButton" class="px-3.5 h-8.5 rounded-lg border border-slate-200 bg-white flex items-center gap-2 text-slate-500 hover:border-green-400 hover:text-green-600 relative">
@@ -57,6 +59,7 @@
 
 </header>
 
+@if ($roleKey === 'receptionist')
 <!-- Messages Modal (must be outside <header> — backdrop-filter on header breaks fixed positioning) -->
 <div id="headerMessagesModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/70">
     <div class="w-full max-w-4xl h-[85vh] mx-4 rounded-2xl bg-white border border-slate-200 shadow-[0_20px_80px_rgba(15,23,42,0.35)] flex flex-col overflow-hidden">
@@ -79,6 +82,7 @@
         </div>
     </div>
 </div>
+@endif
 
 <template id="headerIconNotificationAppointment">
     <x-lucide-calendar class="w-4 h-4 text-green-600" />
@@ -307,9 +311,9 @@
             var body = document.getElementById('headerNotificationBody')
             var notificationBadge = document.getElementById('headerNotificationBadge')
             var messagesBadge = document.getElementById('headerMessagesBadge')
-            var msgOpenBtn = document.getElementById('headerMessagesButton');
-            var msgModal = document.getElementById('headerMessagesModal');
-            var msgCloseBtn = document.getElementById('headerMessagesModalClose');
+            var msgOpenBtn = document.getElementById('headerMessagesButton')
+            var msgModal = document.getElementById('headerMessagesModal')
+            var msgCloseBtn = document.getElementById('headerMessagesModalClose')
 
             function refreshHeaderBadges() {
                 return fetchNotifications('?unread_only=1&per_page=100')
@@ -405,7 +409,7 @@
                     })
             }
 
-            if (!button || !panel || !msgOpenBtn || !msgModal) {
+            if (!button || !panel) {
                 return
             }
 
@@ -441,32 +445,34 @@
             })
 
             // ── Messages Modal toggle ──
-            msgOpenBtn.addEventListener('click', function (e) {
-                e.stopPropagation();
-                msgModal.classList.remove('hidden');
-                msgModal.classList.add('flex');
+            if (msgOpenBtn && msgModal) {
+                msgOpenBtn.addEventListener('click', function (e) {
+                    e.stopPropagation()
+                    msgModal.classList.remove('hidden')
+                    msgModal.classList.add('flex')
 
-                // Refresh conversation data when modal opens
-                var refreshBtn = document.getElementById('receptionMessagesRefresh');
-                if (refreshBtn) refreshBtn.click();
+                    // Refresh conversation data when modal opens
+                    var refreshBtn = document.getElementById('receptionMessagesRefresh')
+                    if (refreshBtn) refreshBtn.click()
 
-                markMessageNotificationsRead()
-            });
+                    markMessageNotificationsRead()
+                })
 
-            if (msgCloseBtn) {
-                msgCloseBtn.addEventListener('click', function () {
-                    msgModal.classList.add('hidden');
-                    msgModal.classList.remove('flex');
-                });
-            }
-
-            // Close on backdrop click
-            msgModal.addEventListener('click', function (e) {
-                if (e.target === msgModal) {
-                    msgModal.classList.add('hidden');
-                    msgModal.classList.remove('flex');
+                if (msgCloseBtn) {
+                    msgCloseBtn.addEventListener('click', function () {
+                        msgModal.classList.add('hidden')
+                        msgModal.classList.remove('flex')
+                    })
                 }
-            });
+
+                // Close on backdrop click
+                msgModal.addEventListener('click', function (e) {
+                    if (e.target === msgModal) {
+                        msgModal.classList.add('hidden')
+                        msgModal.classList.remove('flex')
+                    }
+                })
+            }
         })
 
         // ── Escape key closes messages modal ──

@@ -55,7 +55,7 @@
                 <option value="name_desc">Name Z–A</option>
                 <option value="price_asc">Price low–high</option>
                 <option value="price_desc">Price high–low</option>
-                <option value="created_desc">Newest first</option>
+                <option value="created_desc" selected>Newest first</option>
                 <option value="created_asc">Oldest first</option>
             </select>
         </div>
@@ -455,7 +455,8 @@
             if (!tableBody) return
             tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading services…</td></tr>'
 
-            apiFetch("{{ url('/api/services') }}?per_page=15", {
+            var sort = sortSelect ? String(sortSelect.value || 'created_desc') : 'created_desc'
+            apiFetch("{{ url('/api/services') }}?per_page=100&sort=" + encodeURIComponent(sort), {
                 method: 'GET'
             })
                 .then(function (response) {
@@ -482,7 +483,7 @@
 
             var query = searchInput ? searchInput.value.toLowerCase().trim() : ''
             var status = statusFilter ? String(statusFilter.value || '') : ''
-            var sort = sortSelect ? sortSelect.value : 'name_asc'
+            var sort = sortSelect ? sortSelect.value : 'created_desc'
 
             var filtered = services.slice().filter(function (service) {
                 var name = (service.service_name || '').toLowerCase()
@@ -508,12 +509,12 @@
                 }
 
                 if (sort === 'created_asc' || sort === 'created_desc') {
-                    var ta = a && a.created_at ? Date.parse(String(a.created_at)) : 0
-                    var tb = b && b.created_at ? Date.parse(String(b.created_at)) : 0
-                    if (isNaN(ta)) ta = 0
-                    if (isNaN(tb)) tb = 0
-                    if (ta < tb) return sort === 'created_asc' ? -1 : 1
-                    if (ta > tb) return sort === 'created_asc' ? 1 : -1
+                    var ia = a && a.service_id != null ? parseInt(a.service_id, 10) : 0
+                    var ib = b && b.service_id != null ? parseInt(b.service_id, 10) : 0
+                    if (isNaN(ia)) ia = 0
+                    if (isNaN(ib)) ib = 0
+                    if (ia < ib) return sort === 'created_asc' ? -1 : 1
+                    if (ia > ib) return sort === 'created_asc' ? 1 : -1
                     return 0
                 }
 
@@ -867,7 +868,8 @@
         }
         if (sortSelect) {
             sortSelect.addEventListener('change', function () {
-                renderServices()
+                serviceCurrentPage = 1
+                loadServices()
             })
         }
 

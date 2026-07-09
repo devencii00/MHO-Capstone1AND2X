@@ -14,7 +14,8 @@ class ServiceController extends Controller
         $request->validate([
             'status' => ['nullable', 'in:active,inactive'],
             'is_active' => ['nullable', 'boolean'],
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:15'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'sort' => ['nullable', 'in:name_asc,name_desc,price_asc,price_desc,created_desc,created_asc'],
         ]);
 
         $perPage = (int) $request->query('per_page', 15);
@@ -25,7 +26,8 @@ class ServiceController extends Controller
             $perPage = 100;
         }
 
-        $query = Service::query()->orderBy('service_name');
+        $sort = strtolower((string) $request->query('sort', 'name_asc'));
+        $query = Service::query();
 
         if (! $currentUser || $currentUser->role !== 'admin') {
             $query->where('is_active', true);
@@ -35,6 +37,28 @@ class ServiceController extends Controller
             } elseif ($request->has('is_active')) {
                 $query->where('is_active', $request->boolean('is_active'));
             }
+        }
+
+        switch ($sort) {
+            case 'name_desc':
+                $query->orderByDesc('service_name')->orderByDesc('service_id');
+                break;
+            case 'price_asc':
+                $query->orderByRaw('price IS NULL ASC')->orderBy('price')->orderByDesc('service_id');
+                break;
+            case 'price_desc':
+                $query->orderByRaw('price IS NULL ASC')->orderByDesc('price')->orderByDesc('service_id');
+                break;
+            case 'created_asc':
+                $query->orderBy('service_id');
+                break;
+            case 'created_desc':
+                $query->orderByDesc('service_id');
+                break;
+            case 'name_asc':
+            default:
+                $query->orderBy('service_name')->orderByDesc('service_id');
+                break;
         }
 
         return $query->paginate($perPage);
