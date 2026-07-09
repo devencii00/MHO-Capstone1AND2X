@@ -294,7 +294,7 @@ class DashboardController extends Controller
                 ->limit(50)
                 ->get();
 
-            $todayAppointments = Appointment::with(['patient', 'doctor', 'queue', 'transaction'])
+            $todayAppointments = Appointment::with(['patient', 'doctor', 'queue', 'transaction', 'services'])
                 ->whereDate('appointment_datetime', $today)
                 ->when($doctorId, function ($q) use ($doctorId) {
                     $q->where('doctor_id', $doctorId);

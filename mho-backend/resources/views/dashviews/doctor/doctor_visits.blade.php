@@ -421,8 +421,8 @@
 
             Promise.all([
                 api("{{ url('/api/visits') }}/" + encodeURIComponent(visitId)),
-                api("{{ url('/api/medical-backgrounds') }}?patient_id=" + encodeURIComponent(patientId) + '&per_page=100'),
-                api("{{ url('/api/visits') }}?patient_id=" + encodeURIComponent(patientId) + '&per_page=50'),
+                api("{{ url('/api/medical-backgrounds') }}?patient_id=" + encodeURIComponent(patientId) + '&per_page=15'),
+                api("{{ url('/api/visits') }}?patient_id=" + encodeURIComponent(patientId) + '&per_page=15'),
             ])
                 .then(function (results) {
                     var visit = results[0]

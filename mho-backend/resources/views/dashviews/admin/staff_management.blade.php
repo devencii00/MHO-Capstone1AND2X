@@ -1284,7 +1284,7 @@
                     }
                 }
                 if (minEl) {
-                    for (var m = 0; m < 60; m += 10) {
+                    for (var m = 0; m < 60; m += 30) {
                         var opt = document.createElement('option')
                         opt.value = m < 10 ? '0' + m : String(m)
                         opt.textContent = m < 10 ? '0' + m : String(m)

@@ -19,8 +19,8 @@ class TransactionController extends Controller
         if ($perPage < 1) {
             $perPage = 15;
         }
-        if ($perPage > 100) {
-            $perPage = 100;
+        if ($perPage > 15) {
+            $perPage = 15;
         }
 
         $request->validate([

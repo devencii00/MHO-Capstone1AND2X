@@ -324,18 +324,26 @@
 
                     // ── Load conversations ──
 
+                    var loadingConversations = false
                     function loadConversations(selectConversationId) {
+                        if (loadingConversations) return
+                        loadingConversations = true
                         showError('')
                         if (conversationList) conversationList.innerHTML = '<div class="p-4 text-[0.78rem] text-slate-400">Loading…</div>'
 
-                        apiFetch("{{ url('/api/conversations') }}?per_page=15", { method: 'GET' })
+                        apiFetch("{{ url('/api/conversations') }}?per_page=200", { method: 'GET' })
                             .then(function (response) {
-                                return response.json().then(function (data) { return { ok: response.ok, data: data } })
+                                return response.text().then(function (text) {
+                                    var data = null
+                                    try { data = text ? JSON.parse(text) : null } catch (e) {}
+                                    return { ok: response.ok, status: response.status, data: data }
+                                })
                             })
                             .then(function (result) {
                                 if (!result.ok) {
                                     showError('Failed to load conversations.')
                                     if (conversationList) conversationList.innerHTML = ''
+                                    loadingConversations = false
                                     return
                                 }
                                 var payload = result.data
@@ -351,10 +359,12 @@
                                 } else {
                                     setSelectedConversation(null)
                                 }
+                                loadingConversations = false
                             })
                             .catch(function () {
                                 showError('Network error while loading conversations.')
                                 if (conversationList) conversationList.innerHTML = ''
+                                loadingConversations = false
                             })
                     }
 
@@ -373,9 +383,13 @@
                         if (!messageList || !conversationId) return
                         messageList.innerHTML = '<div class="text-[0.78rem] text-slate-400">Loading messages…</div>'
 
-                        apiFetch("{{ url('/api/conversations') }}/" + encodeURIComponent(conversationId) + "/messages?per_page=15", { method: 'GET' })
+                        apiFetch("{{ url('/api/conversations') }}/" + encodeURIComponent(conversationId) + "/messages?per_page=200", { method: 'GET' })
                             .then(function (response) {
-                                return response.json().then(function (data) { return { ok: response.ok, data: data } })
+                                return response.text().then(function (text) {
+                                    var data = null
+                                    try { data = text ? JSON.parse(text) : null } catch (e) {}
+                                    return { ok: response.ok, status: response.status, data: data }
+                                })
                             })
                             .then(function (result) {
                                 if (!result.ok) {

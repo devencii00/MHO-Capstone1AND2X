@@ -1014,7 +1014,7 @@
         }
 
         function loadMedicines() {
-            return api('{{ url('/api/medicines') }}?per_page=200').then(function (resp) {
+            return api('{{ url('/api/medicines') }}?per_page=15').then(function (resp) {
                 state.medicines = getPaginatedData(resp)
                 state.medicinesById = {}
                 state.medicines.forEach(function (m) {
@@ -1084,7 +1084,7 @@
         }
 
         function loadMedicalBackground(patientId) {
-            return api('{{ url('/api/medical-backgrounds') }}?patient_id=' + patientId + '&per_page=200').then(function (resp) {
+            return api('{{ url('/api/medical-backgrounds') }}?patient_id=' + patientId + '&per_page=15').then(function (resp) {
                 state.medicalBackground = getPaginatedData(resp)
                 renderBackground(state.medicalBackground)
                 renderSafety()
@@ -1117,7 +1117,7 @@
                 return Promise.resolve()
             }
 
-            return api('{{ url('/api/vitals') }}?patient_id=' + encodeURIComponent(String(patientId)) + '&per_page=200')
+            return api('{{ url('/api/vitals') }}?patient_id=' + encodeURIComponent(String(patientId)) + '&per_page=15')
                 .then(function (resp) {
                     var rows = getPaginatedData(resp)
                     var byAppointment = {}
@@ -1136,7 +1136,7 @@
             setVisible(historyError, false)
             setVisible(historyLoading, true)
             return Promise.all([
-                api('{{ url('/api/visits') }}?patient_id=' + patientId + '&per_page=50'),
+                api('{{ url('/api/visits') }}?patient_id=' + patientId + '&per_page=15'),
                 loadHistoryVitals(patientId),
             ]).then(function (results) {
                 var resp = results[0]
