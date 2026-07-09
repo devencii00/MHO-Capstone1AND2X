@@ -130,12 +130,30 @@
                         </div>
                     </div>
                     <div class="md:col-span-2">
-                        <label for="admin_schedule_start_time" class="block text-[0.7rem] text-slate-600 mb-1">Start time</label>
-                        <input id="admin_schedule_start_time" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. 8:00 AM or 08:00">
+                        <label class="block text-[0.7rem] text-slate-600 mb-1">Start time</label>
+                        <input type="hidden" id="admin_schedule_start_time">
+                        <div class="flex gap-1 items-center">
+                            <select id="admin_schedule_start_hour" class="w-16 rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none"></select>
+                            <span class="text-slate-400 text-xs font-medium">:</span>
+                            <select id="admin_schedule_start_minute" class="w-16 rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none"></select>
+                            <select id="admin_schedule_start_ampm" class="w-16 rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="md:col-span-2">
-                        <label for="admin_schedule_end_time" class="block text-[0.7rem] text-slate-600 mb-1">End time</label>
-                        <input id="admin_schedule_end_time" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. 5:00 PM or 17:00">
+                        <label class="block text-[0.7rem] text-slate-600 mb-1">End time</label>
+                        <input type="hidden" id="admin_schedule_end_time">
+                        <div class="flex gap-1 items-center">
+                            <select id="admin_schedule_end_hour" class="w-16 rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none"></select>
+                            <span class="text-slate-400 text-xs font-medium">:</span>
+                            <select id="admin_schedule_end_minute" class="w-16 rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none"></select>
+                            <select id="admin_schedule_end_ampm" class="w-16 rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="md:col-span-4">
                         <label class="block text-[0.7rem] text-slate-600 mb-1">To day <span class="text-slate-400">(single-day)</span></label>
@@ -1191,45 +1209,93 @@
             return (parseInt(parts[0], 10) * 60) + parseInt(parts[1], 10)
         }
         function syncScheduleTimeHidden(prefix) {
+            var hourEl = document.getElementById('admin_schedule_' + prefix + '_hour')
+            var minEl = document.getElementById('admin_schedule_' + prefix + '_minute')
+            var ampmEl = document.getElementById('admin_schedule_' + prefix + '_ampm')
             var inputEl = document.getElementById('admin_schedule_' + prefix + '_time')
-            if (!inputEl) return
-            var normalized = normalizeTimeToHHMM(inputEl.value)
-            inputEl.dataset.normalizedTime = normalized
+            if (!hourEl || !minEl || !ampmEl || !inputEl) return
+            var hVal = hourEl.value
+            var mVal = minEl.value
+            var apVal = ampmEl.value
+            if (hVal && mVal && apVal) {
+                inputEl.value = to24Hour(hVal, mVal, apVal)
+            } else {
+                inputEl.value = ''
+            }
         }
         function read12HourTime(prefix) {
             var inputEl = document.getElementById('admin_schedule_' + prefix + '_time')
             if (!inputEl) return ''
-            return normalizeTimeToHHMM(inputEl.value)
+            return inputEl.value || ''
         }
         function set12HourSelects(prefix, rawValue) {
             var t = normalizeTimeToHHMM(rawValue)
-            var inputEl = document.getElementById('admin_schedule_' + prefix + '_time')
-            if (!inputEl) return
-            inputEl.value = t ? formatTimeLabel(t) : ''
-            inputEl.dataset.normalizedTime = t
+            var hourEl = document.getElementById('admin_schedule_' + prefix + '_hour')
+            var minEl = document.getElementById('admin_schedule_' + prefix + '_minute')
+            var ampmEl = document.getElementById('admin_schedule_' + prefix + '_ampm')
+            if (!hourEl || !minEl || !ampmEl) return
+            if (t && /^\d{2}:\d{2}$/.test(t)) {
+                var parts = t.split(':')
+                var h24 = parseInt(parts[0], 10)
+                var m = parts[1]
+                var ap = h24 >= 12 ? 'PM' : 'AM'
+                var h12 = h24 % 12
+                if (h12 === 0) h12 = 12
+                hourEl.value = String(h12)
+                minEl.value = m
+                ampmEl.value = ap
+            } else {
+                hourEl.value = '8'
+                minEl.value = '00'
+                ampmEl.value = 'AM'
+            }
+            syncScheduleTimeHidden(prefix)
         }
-       
-
         function clear12HourSelects(prefix) {
-            var inputEl = document.getElementById('admin_schedule_' + prefix + '_time')
-            if (!inputEl) return
-            inputEl.value = ''
-            inputEl.dataset.normalizedTime = ''
+            var hourEl = document.getElementById('admin_schedule_' + prefix + '_hour')
+            var minEl = document.getElementById('admin_schedule_' + prefix + '_minute')
+            var ampmEl = document.getElementById('admin_schedule_' + prefix + '_ampm')
+            if (hourEl) hourEl.value = '8'
+            if (minEl) minEl.value = '00'
+            if (ampmEl) ampmEl.value = 'AM'
+            syncScheduleTimeHidden(prefix)
         }
-
-        function wire12HourPicker(prefix) {
-            var inputEl = document.getElementById('admin_schedule_' + prefix + '_time')
-            if (!inputEl) return
-            inputEl.addEventListener('blur', function () {
-                var normalized = normalizeTimeToHHMM(inputEl.value)
-                if (!normalized) {
-                    inputEl.dataset.normalizedTime = ''
-                    return
+        function wireDropdownTimePicker(prefix) {
+            var hourEl = document.getElementById('admin_schedule_' + prefix + '_hour')
+            var minEl = document.getElementById('admin_schedule_' + prefix + '_minute')
+            var ampmEl = document.getElementById('admin_schedule_' + prefix + '_ampm')
+            if (!hourEl || !minEl || !ampmEl) return
+            function onChange() { syncScheduleTimeHidden(prefix) }
+            hourEl.addEventListener('change', onChange)
+            minEl.addEventListener('change', onChange)
+            ampmEl.addEventListener('change', onChange)
+        }
+        // Populate dropdown options and set defaults
+        function populateTimeDropdowns() {
+            ['start', 'end'].forEach(function (prefix) {
+                var hourEl = document.getElementById('admin_schedule_' + prefix + '_hour')
+                var minEl = document.getElementById('admin_schedule_' + prefix + '_minute')
+                if (hourEl) {
+                    for (var h = 1; h <= 12; h++) {
+                        var opt = document.createElement('option')
+                        opt.value = h
+                        opt.textContent = h
+                        hourEl.appendChild(opt)
+                    }
                 }
-                inputEl.value = formatTimeLabel(normalized)
-                inputEl.dataset.normalizedTime = normalized
+                if (minEl) {
+                    for (var m = 0; m < 60; m += 10) {
+                        var opt = document.createElement('option')
+                        opt.value = m < 10 ? '0' + m : String(m)
+                        opt.textContent = m < 10 ? '0' + m : String(m)
+                        minEl.appendChild(opt)
+                    }
+                }
+                set12HourSelects(prefix, '')
+                wireDropdownTimePicker(prefix)
             })
         }
+        populateTimeDropdowns()
 
         function formatTimeLabel(hhmm) {
             var t = String(hhmm || '').slice(0, 5)
@@ -1268,8 +1334,6 @@
             return String(h12) + ':' + m + ap
         }
 
-        wire12HourPicker('start')
-        wire12HourPicker('end')
         clear12HourSelects('start')
         clear12HourSelects('end')
 
