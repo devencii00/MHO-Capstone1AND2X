@@ -3193,18 +3193,15 @@ function setWalkInTab(tab) {
             renderSelectorDetail()
         }
 
-        var servicesLoadPromise = null
-
         function ensureWalkInServicesLoaded() {
             if (servicesLoaded && services.length) return Promise.resolve(services)
             if (servicesLoading) return new Promise(function (resolve) {
                 var check = setInterval(function () {
                     if (servicesLoaded) { clearInterval(check); resolve(services) }
-                }, 30)
+                }, 16)
             })
-            if (servicesLoadPromise) return servicesLoadPromise
             if (typeof apiFetch !== 'function') return Promise.resolve([])
-            servicesLoadPromise = apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
+            return apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) return services || []
@@ -3217,7 +3214,6 @@ function setWalkInTab(tab) {
                     return services
                 })
                 .catch(function () { return services || [] })
-                .finally(function () { servicesLoadPromise = null })
         }
 
         function ensureWalkInDoctorsLoaded() {
