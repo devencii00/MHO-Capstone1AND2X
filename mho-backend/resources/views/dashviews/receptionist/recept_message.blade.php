@@ -555,9 +555,13 @@
                         })
                     }
 
-                    // ── Initial load ──
+                    // ── Initial load (only if authenticated) ──
 
-                    loadConversations()
+                    var _userDataCached = null;
+                    try { var _rawCached = window.localStorage ? window.localStorage.getItem('user_data') : null; if (_rawCached) { _userDataCached = JSON.parse(_rawCached); } } catch (_) {}
+                    if (_userDataCached && _userDataCached.user_id) {
+                        loadConversations()
+                    }
 
                     // ── Reverb listener for real-time messages ──
 

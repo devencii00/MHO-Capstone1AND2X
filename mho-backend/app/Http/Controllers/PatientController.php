@@ -35,6 +35,8 @@ class PatientController extends Controller
             'parents_only' => ['nullable', 'boolean'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:15'],
             'sort' => ['nullable', 'in:asc,desc'],
+            'order_by' => ['nullable', 'in:name_asc,name_desc,created_asc,created_desc'],
+            'age_filter' => ['nullable', 'in:all,1_5,6_12,13_18,19_30,31_up'],
         ]);
 
         $search = trim((string) $request->query('search', ''));
@@ -75,10 +77,43 @@ class PatientController extends Controller
             });
         }
 
-        $sort = strtolower((string) $request->query('sort', 'desc'));
-        $direction = $sort === 'asc' ? 'asc' : 'desc';
+        $ageFilter = $request->query('age_filter', 'all');
+        if ($ageFilter !== 'all') {
+            $ageRanges = [
+                '1_5' => [1, 5],
+                '6_12' => [6, 12],
+                '13_18' => [13, 18],
+                '19_30' => [19, 30],
+                '31_up' => [31, 999],
+            ];
+            if (isset($ageRanges[$ageFilter])) {
+                [$minAge, $maxAge] = $ageRanges[$ageFilter];
+                if ($maxAge >= 999) {
+                    $query->whereRaw('TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) >= ?', [$minAge]);
+                } else {
+                    $query->whereRaw('TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) BETWEEN ? AND ?', [$minAge, $maxAge]);
+                }
+            }
+        }
 
-        return $query->orderBy('user_id', $direction)->paginate($perPage);
+        $orderBy = $request->query('order_by', 'created_desc');
+        switch ($orderBy) {
+            case 'name_asc':
+                $query->orderBy('lastname', 'asc')->orderBy('firstname', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('lastname', 'desc')->orderBy('firstname', 'desc');
+                break;
+            case 'created_asc':
+                $query->orderBy('user_id', 'asc');
+                break;
+            case 'created_desc':
+            default:
+                $query->orderBy('user_id', 'desc');
+                break;
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function store(Request $request)

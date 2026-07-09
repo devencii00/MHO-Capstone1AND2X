@@ -16,18 +16,27 @@ class ServiceController extends Controller
             'is_active' => ['nullable', 'boolean'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'in:name_asc,name_desc,price_asc,price_desc,created_desc,created_asc'],
+            'search' => ['nullable', 'string', 'max:255'],
         ]);
 
         $perPage = (int) $request->query('per_page', 15);
         if ($perPage < 1) {
             $perPage = 15;
         }
-        if ($perPage > 15) {
-            $perPage = 15;
+        if ($perPage > 100) {
+            $perPage = 100;
         }
 
         $sort = strtolower((string) $request->query('sort', 'name_asc'));
         $query = Service::query();
+
+        if ($search = $request->query('search')) {
+            $search = trim($search);
+            $query->where(function ($q) use ($search) {
+                $q->where('service_name', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%');
+            });
+        }
 
         if (! $currentUser || $currentUser->role !== 'admin') {
             $query->where('is_active', true);

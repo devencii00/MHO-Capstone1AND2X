@@ -186,47 +186,47 @@
 
         var services = []
         var editingServiceId = null
-        var servicePerPage = 10
         var serviceCurrentPage = 1
-        var serviceFiltered = []
+        var serviceMeta = { current_page: 1, last_page: 1, total: 0, per_page: 10 }
 
         var serviceVisibleCount = 6;
         function renderServicePagination() {
             var pagination = document.getElementById('adminServicePagination')
             if (!pagination) return
-            var total = serviceFiltered.length
+            var total = serviceMeta.total
             if (total === 0) {
                 pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
                 return
             }
-            var totalPages = Math.ceil(total / servicePerPage)
+            var totalPages = serviceMeta.last_page
+            var currentPage = serviceMeta.current_page
             var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border ';
             var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer';
             var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default';
             var btnActive = btnBase + 'bg-green-600 text-white border-green-600';
             var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
-            html += '<button type="button" class="' + (serviceCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (serviceCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
-            var windowStart = serviceCurrentPage;
+            html += '<button type="button" class="' + (currentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (currentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
+            var windowStart = currentPage;
             var windowEnd = Math.min(windowStart + serviceVisibleCount - 1, totalPages);
             for (var i = windowStart; i <= windowEnd; i++) {
-                html += '<button type="button" class="' + (i === serviceCurrentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
+                html += '<button type="button" class="' + (i === currentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
             }
             if (windowEnd < totalPages) {
                 html += '<button type="button" class="' + btnInactive + '" data-page="next-window" title="Next set">…</button>'
             }
-            html += '<button type="button" class="' + (serviceCurrentPage === totalPages ? btnDisabled : btnInactive) + '" data-page="next"' + (serviceCurrentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
+            html += '<button type="button" class="' + (currentPage === totalPages ? btnDisabled : btnInactive) + '" data-page="next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next ›</button>'
             pagination.innerHTML = html
             pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var p = btn.getAttribute('data-page')
-                    if (p === 'prev' && serviceCurrentPage > 1) { serviceCurrentPage--; renderServices() }
-                    else if (p === 'next' && serviceCurrentPage < totalPages) { serviceCurrentPage++; renderServices() }
+                    if (p === 'prev' && currentPage > 1) { serviceCurrentPage = currentPage - 1; loadServices() }
+                    else if (p === 'next' && currentPage < totalPages) { serviceCurrentPage = currentPage + 1; loadServices() }
                     else if (p === 'next-window') {
                         var nextStart = Math.min(windowEnd + 1, totalPages);
                         serviceCurrentPage = nextStart;
-                        renderServices();
+                        loadServices();
                     }
-                    else if (p !== 'prev' && p !== 'next') { serviceCurrentPage = parseInt(p, 10); renderServices() }
+                    else if (p !== 'prev' && p !== 'next') { serviceCurrentPage = parseInt(p, 10); loadServices() }
                 })
             })
         }
@@ -456,7 +456,12 @@
             tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading services…</td></tr>'
 
             var sort = sortSelect ? String(sortSelect.value || 'created_desc') : 'created_desc'
-            apiFetch("{{ url('/api/services') }}?per_page=100&sort=" + encodeURIComponent(sort), {
+            var query = searchInput ? searchInput.value.trim() : ''
+            var status = statusFilter ? String(statusFilter.value || '') : ''
+            var params = 'per_page=10&page=' + serviceCurrentPage + '&sort=' + encodeURIComponent(sort)
+            if (query) params += '&search=' + encodeURIComponent(query)
+            if (status) params += '&status=' + encodeURIComponent(status)
+            apiFetch("{{ url('/api/services') }}?" + params, {
                 method: 'GET'
             })
                 .then(function (response) {
@@ -470,7 +475,13 @@
                         return
                     }
                     var payload = result.data
-                    services = Array.isArray(payload.data) ? payload.data : payload
+                    services = Array.isArray(payload.data) ? payload.data : []
+                    serviceMeta = {
+                        current_page: payload.current_page || 1,
+                        last_page: payload.last_page || 1,
+                        total: payload.total || 0,
+                        per_page: payload.per_page || 10
+                    }
                     renderServices()
                 })
                 .catch(function () {
@@ -481,67 +492,15 @@
         function renderServices() {
             if (!tableBody) return
 
-            var query = searchInput ? searchInput.value.toLowerCase().trim() : ''
-            var status = statusFilter ? String(statusFilter.value || '') : ''
-            var sort = sortSelect ? sortSelect.value : 'created_desc'
-
-            var filtered = services.slice().filter(function (service) {
-                var name = (service.service_name || '').toLowerCase()
-                var description = (service.description || '').toLowerCase()
-                if (!query) return true
-                return name.indexOf(query) !== -1 || description.indexOf(query) !== -1
-            })
-
-            if (status) {
-                filtered = filtered.filter(function (service) {
-                    var isActive = service && service.is_active !== false
-                    return status === 'active' ? isActive : !isActive
-                })
-            }
-
-            filtered.sort(function (a, b) {
-                if (sort === 'price_asc' || sort === 'price_desc') {
-                    var pa = parseFloat(a.price || '0')
-                    var pb = parseFloat(b.price || '0')
-                    if (pa < pb) return sort === 'price_asc' ? -1 : 1
-                    if (pa > pb) return sort === 'price_asc' ? 1 : -1
-                    return 0
-                }
-
-                if (sort === 'created_asc' || sort === 'created_desc') {
-                    var ia = a && a.service_id != null ? parseInt(a.service_id, 10) : 0
-                    var ib = b && b.service_id != null ? parseInt(b.service_id, 10) : 0
-                    if (isNaN(ia)) ia = 0
-                    if (isNaN(ib)) ib = 0
-                    if (ia < ib) return sort === 'created_asc' ? -1 : 1
-                    if (ia > ib) return sort === 'created_asc' ? 1 : -1
-                    return 0
-                }
-
-                var na = (a.service_name || '').toLowerCase()
-                var nb = (b.service_name || '').toLowerCase()
-                if (na < nb) return sort === 'name_asc' ? -1 : 1
-                if (na > nb) return sort === 'name_asc' ? 1 : -1
-                return 0
-            })
-
-            serviceFiltered = filtered
-
-            if (!filtered.length) {
+            if (!services.length) {
                 tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No services found.</td></tr>'
                 renderServicePagination()
                 return
             }
 
-            var totalPages = Math.ceil(filtered.length / servicePerPage)
-            if (serviceCurrentPage > totalPages) serviceCurrentPage = totalPages
-            var start = (serviceCurrentPage - 1) * servicePerPage
-            var end = Math.min(start + servicePerPage, filtered.length)
-            var pageSlice = filtered.slice(start, end)
-
             tableBody.innerHTML = ''
 
-            pageSlice.forEach(function (service) {
+            services.forEach(function (service) {
                 var tr = document.createElement('tr')
                 tr.className = 'border-b border-slate-50 last:border-0'
 
@@ -858,12 +817,14 @@
 
         if (searchInput) {
             searchInput.addEventListener('input', function () {
-                renderServices()
+                serviceCurrentPage = 1
+                loadServices()
             })
         }
         if (statusFilter) {
             statusFilter.addEventListener('change', function () {
-                renderServices()
+                serviceCurrentPage = 1
+                loadServices()
             })
         }
         if (sortSelect) {

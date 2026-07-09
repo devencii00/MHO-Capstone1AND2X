@@ -368,6 +368,8 @@
         var txCurrentPage = 1
         var txPerPage = 15
         var txVisibleCount = 5
+        var txLastPage = 1
+        var txTotal = 0
         var txSortOrder = 'latest'
         var txTodayBtn = document.getElementById('receptionTransactionsTodayOnlyBtn')
 
@@ -715,7 +717,7 @@
         function loadTodayAppointments(query) {
             if (typeof apiFetch !== 'function') return
             if (apptList) apptList.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading appointments...</div>'
-            var url = "{{ url('/api/appointments') }}" + '?per_page=15&order=latest&today_only=1&status=consulted'
+            var url = "{{ url('/api/appointments') }}" + '?per_page=10&order=latest&today_only=1&status=consulted'
             var q = String(query || '').trim()
             if (q) url += '&search=' + encodeURIComponent(q)
             apiFetch(url, { method: 'GET' })
@@ -895,44 +897,14 @@
 
         function renderTransactions(rows) {
             if (!txTableBody) return
-            txAllRows = Array.isArray(rows) ? rows : []
-            var list = txAllRows
+            var list = Array.isArray(rows) ? rows : []
             if (!list.length) {
                 txTableBody.innerHTML = '<tr><td colspan="7" class="px-3 py-6 text-center text-[0.78rem] text-slate-500">No transactions found.</td></tr>'
                 if (txPagination) txPagination.innerHTML = ''
-                txCurrentPage = 1
                 return
             }
 
-            // Deduplicate by patient — keep the latest transaction per patient
-            var patientMap = {}
-            list.forEach(function (tx) {
-                var appt = tx && tx.appointment ? tx.appointment : null
-                var patient = appt && appt.patient ? appt.patient : null
-                var pid = patient && patient.user_id != null ? String(patient.user_id) : ''
-                if (!pid) return
-                var existing = patientMap[pid]
-                var txDate = tx.transaction_datetime || tx.created_at || ''
-                if (!existing || (txDate > (existing.transaction_datetime || existing.created_at || ''))) {
-                    patientMap[pid] = tx
-                }
-            })
-            var deduped = Object.keys(patientMap).map(function (k) { return patientMap[k] })
-            // Keep sort order from loadTransactions
-            deduped.sort(function (a, b) {
-                var da = (a.transaction_datetime || a.created_at || '')
-                var db = (b.transaction_datetime || b.created_at || '')
-                if (txSortOrder === 'oldest') return da < db ? -1 : (da > db ? 1 : 0)
-                return da < db ? 1 : (da > db ? -1 : 0)
-            })
-
-            var totalPages = Math.ceil(deduped.length / txPerPage)
-            if (txCurrentPage > totalPages) txCurrentPage = totalPages
-            if (txCurrentPage < 1) txCurrentPage = 1
-            var start = (txCurrentPage - 1) * txPerPage
-            var end = Math.min(start + txPerPage, deduped.length)
-            var pageSlice = deduped.slice(start, end)
-            txTableBody.innerHTML = pageSlice.map(function (tx) {
+            txTableBody.innerHTML = list.map(function (tx) {
                 var appt = tx && tx.appointment ? tx.appointment : null
                 var patient = appt && appt.patient ? appt.patient : null
                 var patientId = patient && patient.user_id != null ? patient.user_id : ''
@@ -967,19 +939,17 @@
 
         function renderTxPagination() {
             if (!txPagination) return
-            var total = txAllRows.length
-            var totalPages = Math.max(1, Math.ceil(total / txPerPage))
-            if (txCurrentPage > totalPages) txCurrentPage = totalPages
-            if (txCurrentPage < 1) txCurrentPage = 1
-            if (total === 0) { txPagination.innerHTML = ''; return }
+            if (txTotal === 0) { txPagination.innerHTML = ''; return }
+            var totalPages = txLastPage
             var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border '
             var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer'
             var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default'
             var btnActive = btnBase + 'bg-green-600 text-white border-green-600'
-            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + txTotal + ' entries</span>'
             html += '<button type="button" class="' + (txCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (txCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
-            var ws = txCurrentPage
+            var ws = Math.max(1, txCurrentPage - Math.floor(txVisibleCount / 2))
             var we = Math.min(ws + txVisibleCount - 1, totalPages)
+            if (we - ws + 1 < txVisibleCount) ws = Math.max(1, we - txVisibleCount + 1)
             for (var i = ws; i <= we; i++) {
                 html += '<button type="button" class="' + (i === txCurrentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
             }
@@ -989,20 +959,21 @@
             txPagination.querySelectorAll('button[data-page]').forEach(function (b) {
                 b.addEventListener('click', function () {
                     var p = b.getAttribute('data-page')
-                    if (p === 'prev' && txCurrentPage > 1) { txCurrentPage--; renderTransactions(txAllRows) }
-                    else if (p === 'next' && txCurrentPage < totalPages) { txCurrentPage++; renderTransactions(txAllRows) }
-                    else if (p === 'next-window') { var ns = Math.min(we + 1, totalPages); txCurrentPage = ns; renderTransactions(txAllRows) }
-                    else if (p !== 'prev' && p !== 'next') { txCurrentPage = parseInt(p, 10); renderTransactions(txAllRows) }
+                    if (p === 'prev' && txCurrentPage > 1) { txCurrentPage--; loadTransactions(txCurrentPage) }
+                    else if (p === 'next' && txCurrentPage < totalPages) { txCurrentPage++; loadTransactions(txCurrentPage) }
+                    else if (p === 'next-window') { var ns = Math.min(we + 1, totalPages); txCurrentPage = ns; loadTransactions(txCurrentPage) }
+                    else if (p !== 'prev' && p !== 'next') { txCurrentPage = parseInt(p, 10); loadTransactions(txCurrentPage) }
                 })
             })
         }
 
-        function loadTransactions() {
+        function loadTransactions(page) {
             if (typeof apiFetch !== 'function') return
+            page = page || txCurrentPage
             showTransactionsError('')
             txTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading transactions…</td></tr>'
 
-            var url = "{{ url('/api/transactions') }}" + '?per_page=15'
+            var url = "{{ url('/api/transactions') }}" + '?per_page=10&page=' + page
             var order = txSort && txSort.value ? String(txSort.value) : 'latest'
             txSortOrder = order
             url += '&order=' + encodeURIComponent(order === 'oldest' ? 'oldest' : 'latest')
@@ -1037,20 +1008,10 @@
                     }
                     var rows = Array.isArray(result.data.data) ? result.data.data.slice() : (Array.isArray(result.data) ? result.data.slice() : [])
 
-                    rows.sort(function (a, b) {
-                        function completeRank(tx) {
-                            var appt = tx && tx.appointment ? tx.appointment : null
-                            var status = String(appt && appt.status ? appt.status : '').toLowerCase()
-                            return status === 'completed' ? 1 : 0
-                        }
-                        var ra = completeRank(a)
-                        var rb = completeRank(b)
-                        if (ra !== rb) return ra - rb
-                        var da = String(a && a.transaction_datetime ? a.transaction_datetime : (a && a.created_at ? a.created_at : ''))
-                        var db = String(b && b.transaction_datetime ? b.transaction_datetime : (b && b.created_at ? b.created_at : ''))
-                        if (order === 'oldest') return da < db ? -1 : (da > db ? 1 : 0)
-                        return da < db ? 1 : (da > db ? -1 : 0)
-                    })
+                    txCurrentPage = result.data.current_page || page
+                    txLastPage = result.data.last_page || 1
+                    txTotal = result.data.total || rows.length
+                    txAllRows = rows
 
                     renderTransactions(rows)
                 })
@@ -1460,15 +1421,16 @@
             txTodayBtn.addEventListener('click', function () {
                 txTodayOnly = !txTodayOnly
                 txSetTodayButton()
+                txCurrentPage = 1
                 loadTransactions()
             })
         }
-        if (txRefresh) txRefresh.addEventListener('click', loadTransactions)
-        if (txSort) txSort.addEventListener('change', loadTransactions)
+        if (txRefresh) txRefresh.addEventListener('click', function () { txCurrentPage = 1; loadTransactions() })
+        if (txSort) txSort.addEventListener('change', function () { txCurrentPage = 1; loadTransactions() })
         if (txSearch) {
             txSearch.addEventListener('input', function () {
                 if (transactionsSearchTimer) clearTimeout(transactionsSearchTimer)
-                transactionsSearchTimer = setTimeout(function () { loadTransactions() }, 250)
+                transactionsSearchTimer = setTimeout(function () { txCurrentPage = 1; loadTransactions() }, 250)
             })
         }
         if (txServiceSearch) {
@@ -1482,6 +1444,7 @@
                     var pickedName = picked && picked.service_name ? String(picked.service_name) : ''
                     if (normalizeText(txServiceSearch.value) !== normalizeText(pickedName)) {
                         setTxServiceSelection(null)
+                        txCurrentPage = 1
                         loadTransactions()
                     }
                 }
@@ -1496,6 +1459,7 @@
                 var id = btn.getAttribute('data-service-id')
                 var picked = txServices.find(function (s) { return String(s.service_id) === String(id) }) || null
                 setTxServiceSelection(picked)
+                txCurrentPage = 1
                 loadTransactions()
             })
         }
@@ -1509,6 +1473,6 @@
             }
         })
 
-        loadTransactions()
+        loadTransactions(1)
     })
 </script>

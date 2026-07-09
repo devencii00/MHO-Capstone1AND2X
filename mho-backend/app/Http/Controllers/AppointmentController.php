@@ -162,6 +162,12 @@ class AppointmentController extends Controller
                 ->whereDate('appointment_datetime', now()->toDateString());
         }
 
+        // Auto-mark past confirmed scheduled appointments as No Show
+        Appointment::where('appointment_type', 'scheduled')
+            ->where('status', 'confirmed')
+            ->where('appointment_datetime', '<', Carbon::now())
+            ->update(['status' => 'no_show']);
+
         $order = (string) $request->query('order', 'oldest');
 
         if ($order === 'latest') {

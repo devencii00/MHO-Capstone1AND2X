@@ -457,9 +457,8 @@
         var roleFilter = document.getElementById('admin_staff_role_filter')
         var sortSelect = document.getElementById('admin_doctor_sort')
         var tableBody = document.getElementById('admin_doctor_table_body')
-        var staffRows = []
         var staffPage = 1
-        var staffPerPage = 10
+        var staffMeta = { current_page: 1, last_page: 1, total: 0 }
 
         var scheduleModal = document.getElementById('adminDoctorScheduleModal')
         var scheduleTitle = document.getElementById('adminDoctorScheduleTitle')
@@ -1061,7 +1060,7 @@
             })
             if (docEl) docEl.textContent = String(doctorsCount)
             if (recEl) recEl.textContent = String(receptionistsCount)
-            if (totalEl) totalEl.textContent = String(doctorsCount + receptionistsCount)
+            if (totalEl) totalEl.textContent = String(staffMeta.total || (doctorsCount + receptionistsCount))
         }
 
         function setScheduleSubmitting(isSubmitting) {
@@ -1337,11 +1336,13 @@
         clear12HourSelects('start')
         clear12HourSelects('end')
 
-        function loadDoctors() {
+        function loadDoctors(page) {
             if (!tableBody) return
             tableBody.innerHTML = '<tr><td colspan="9" class="py-4 text-center text-[0.78rem] text-slate-400">Loading staff…</td></tr>'
+            page = page || 1
+            staffPage = page
 
-            apiFetch(apiUrl('/api/staff'), {
+            apiFetch(apiUrl('/api/staff?per_page=10&page=' + page), {
                 method: 'GET'
             })
                 .then(function (response) {
@@ -1354,7 +1355,12 @@
                         tableBody.innerHTML = '<tr><td colspan="9" class="py-4 text-center text-[0.78rem] text-red-500">Failed to load staff.</td></tr>'
                         return
                     }
-                    doctors = Array.isArray(result.data) ? result.data : []
+                    doctors = Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    staffMeta = {
+                        current_page: result.data.current_page || 1,
+                        last_page: result.data.last_page || 1,
+                        total: result.data.total || 0
+                    }
                     renderDoctors()
                     updateStaffStats()
                 })
@@ -1398,8 +1404,7 @@
                 tableBody.innerHTML = '<tr><td colspan="9" class="py-4 text-center text-[0.78rem] text-slate-400">' +
                     (query ? 'No staff members match your search.' : 'No staff members found.') +
                     '</td></tr>'
-                staffRows = []
-                showStaffPage(1)
+                renderStaffPagination()
                 return
             }
 
@@ -1494,9 +1499,7 @@
                 })
             })
 
-            // Track staff rows and show first page
-            staffRows = Array.prototype.slice.call(tableBody.querySelectorAll('tr'))
-            showStaffPage(1)
+            renderStaffPagination()
         }
 
         function loadSchedulesForDoctor(doctorId, onComplete) {
@@ -1599,7 +1602,7 @@
                                             return
                                         }
                                         showDoctorSuccess('Slot set to ' + label + '.')
-                                        loadDoctors()
+                                        loadDoctors(staffPage)
                                         loadSchedulesForDoctor(currentDoctorIdForSchedule)
                                     })
                                     .catch(function () {
@@ -1893,7 +1896,7 @@
 
         var staffRefreshBtn = document.getElementById('adminStaffRefreshBtn')
         if (staffRefreshBtn) {
-            staffRefreshBtn.addEventListener('click', function () { loadDoctors() })
+            staffRefreshBtn.addEventListener('click', function () { loadDoctors(staffPage) })
         }
 
         if (scheduleAddToggle && scheduleFormWrap) {
@@ -2059,7 +2062,7 @@ if (!fromDay) {
                                 timetableRendered = true
                             }
                         })
-                        loadDoctors()
+                        loadDoctors(staffPage)
                     })
                     .catch(function () {
                         showDoctorError('Network error while saving schedule.')
@@ -2242,27 +2245,12 @@ if (!fromDay) {
             ttEl.innerHTML = html
         }
 
-        function showStaffPage(page) {
-            var total = staffRows.length
-            var totalPages = Math.ceil(total / staffPerPage) || 1
-            if (page < 1 || page > totalPages) return
-            staffPage = page
-            var start = (page - 1) * staffPerPage
-            var end = Math.min(start + staffPerPage, total)
-
-            staffRows.forEach(function (row, i) {
-                row.style.display = (i >= start && i < end) ? '' : 'none'
-            })
-
-            renderStaffPagination()
-        }
-
         var staffVisibleCount = 6;
         function renderStaffPagination() {
             var pagination = document.getElementById('adminStaffPagination')
             if (!pagination) return
-            var total = staffRows.length
-            var totalPages = Math.ceil(total / staffPerPage) || 1
+            var total = staffMeta.total
+            var totalPages = staffMeta.last_page
 
             if (total === 0) {
                 pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
@@ -2290,24 +2278,23 @@ if (!fromDay) {
             pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var p = btn.getAttribute('data-page')
-                    if (p === 'prev' && staffPage > 1) { staffPage--; showStaffPage(staffPage) }
-                    else if (p === 'next' && staffPage < totalPages) { staffPage++; showStaffPage(staffPage) }
+                    if (p === 'prev' && staffPage > 1) { loadDoctors(staffPage - 1) }
+                    else if (p === 'next' && staffPage < totalPages) { loadDoctors(staffPage + 1) }
                     else if (p === 'next-window') {
                         var nextStart = Math.min(windowEnd + 1, totalPages);
-                        showStaffPage(nextStart);
+                        loadDoctors(nextStart);
                     }
-                    else if (p !== 'prev' && p !== 'next') showStaffPage(parseInt(p, 10))
+                    else if (p !== 'prev' && p !== 'next') loadDoctors(parseInt(p, 10))
                 })
             })
         }
 
         // Wrapper for filter/sort - resets to page 1
         var renderDoctorsWithReset = function () {
-            staffPage = 1
-            renderDoctors()
+            loadDoctors(1)
         }
 
         // Call loadDoctors once
-        setTimeout(function () { loadDoctors() }, 0)
+        setTimeout(function () { loadDoctors(1) }, 0)
     })()
 </script>

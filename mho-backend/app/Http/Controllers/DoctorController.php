@@ -214,11 +214,19 @@ class DoctorController extends Controller
 
     public function staffIndex(Request $request)
     {
+        $perPage = (int) $request->query('per_page', 15);
+        if ($perPage < 1) {
+            $perPage = 15;
+        }
+        if ($perPage > 100) {
+            $perPage = 100;
+        }
+
         $staff = User::query()
             ->whereIn('role', ['doctor', 'receptionist'])
             ->with(['doctorSchedules'])
-            ->get()
-            ->map(function (User $user) {
+            ->paginate($perPage)
+            ->through(function (User $user) {
                 if ($user->role === 'doctor') {
                     $availability = $this->availabilityForDoctorId((int) $user->user_id);
                     $user->is_available = $availability['is_available'];
@@ -229,8 +237,7 @@ class DoctorController extends Controller
                     $user->prof_path = \Illuminate\Support\Facades\Storage::url($user->prof_path);
                 }
                 return $user;
-            })
-            ->values();
+            });
 
         return response()->json($staff);
     }

@@ -9,6 +9,13 @@
 
     <div id="adminAppointmentsError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
 
+    <div class="flex justify-end mb-2">
+        <button type="button" id="adminApptRefreshBtn" class="inline-flex items-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+            <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+            Refresh
+        </button>
+    </div>
+
     <div class="mb-3 grid grid-cols-1 md:grid-cols-6 gap-2 md:items-end">
         <div>
             <label for="admin_appt_date" class="block text-[0.7rem] text-slate-600 mb-1">Date</label>
@@ -49,12 +56,6 @@
         <div>
             <label for="admin_appt_search" class="block text-[0.7rem] text-slate-600 mb-1">Search</label>
             <input id="admin_appt_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Patient/doctor name">
-        </div>
-        <div class="pt-1">
-            <button type="button" id="adminApptRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
-                <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
-                Refresh
-            </button>
         </div>
     </div>
 
@@ -149,20 +150,19 @@
         var tableBody = document.getElementById('admin_appt_table_body')
 
         var appointments = []
-        var apptPerPage = 10
         var apptCurrentPage = 1
-        var apptFiltered = []
+        var apptMeta = { current_page: 1, last_page: 1, total: 0 }
 
         var apptVisibleCount = 6;
         function renderApptPagination() {
             var pagination = document.getElementById('adminApptPagination')
             if (!pagination) return
-            var total = apptFiltered.length
+            var total = apptMeta.total
+            var totalPages = apptMeta.last_page
             if (total === 0) {
                 pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
                 return
             }
-            var totalPages = Math.ceil(total / apptPerPage)
             var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border ';
             var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer';
             var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default';
@@ -182,14 +182,13 @@
             pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var p = btn.getAttribute('data-page')
-                    if (p === 'prev' && apptCurrentPage > 1) { apptCurrentPage--; renderAppointments() }
-                    else if (p === 'next' && apptCurrentPage < totalPages) { apptCurrentPage++; renderAppointments() }
+                    if (p === 'prev' && apptCurrentPage > 1) { loadAppointments(apptCurrentPage - 1) }
+                    else if (p === 'next' && apptCurrentPage < totalPages) { loadAppointments(apptCurrentPage + 1) }
                     else if (p === 'next-window') {
                         var nextStart = Math.min(windowEnd + 1, totalPages);
-                        apptCurrentPage = nextStart;
-                        renderAppointments();
+                        loadAppointments(nextStart);
                     }
-                    else if (p !== 'prev' && p !== 'next') { apptCurrentPage = parseInt(p, 10); renderAppointments() }
+                    else if (p !== 'prev' && p !== 'next') { loadAppointments(parseInt(p, 10)) }
                 })
             })
         }
@@ -498,11 +497,13 @@
             doctorSelect.value = selected
         }
 
-        function loadAppointments() {
+        function loadAppointments(page) {
             if (!tableBody) return
             tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading appointments…</td></tr>'
             showError('')
-            apiFetch("{{ url('/api/appointments') }}?per_page=15", { method: 'GET' })
+            page = page || 1
+            apptCurrentPage = page
+            apiFetch("{{ url('/api/appointments') }}?per_page=10&page=" + page, { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -512,15 +513,22 @@
                     if (!result.ok) {
                         showError('Failed to load appointments.')
                         appointments = []
+                        apptMeta = { current_page: 1, last_page: 1, total: 0 }
                         renderAppointments()
                         return
                     }
                     appointments = Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    apptMeta = {
+                        current_page: result.data.current_page || 1,
+                        last_page: result.data.last_page || 1,
+                        total: result.data.total || 0
+                    }
                     renderAppointments()
                 })
                 .catch(function () {
                     showError('Network error while loading appointments.')
                     appointments = []
+                    apptMeta = { current_page: 1, last_page: 1, total: 0 }
                     renderAppointments()
                 })
         }
@@ -565,21 +573,9 @@
                 })
             }
 
-            // Deduplicate: keep only the newest appointment per patient
-            var seen = {}
-            var deduped = []
-            // Sort newest first so the first entry per patient is the newest
-            filtered.sort(function (a, b) { return ((b.appointment_datetime || '') > (a.appointment_datetime || '')) ? 1 : -1 })
-            filtered.forEach(function (a) {
-                var pid = a.patient_id || (a.patient && a.patient.user_id)
-                if (!pid) return
-                if (seen[pid]) return
-                seen[pid] = true
-                deduped.push(a)
-            })
-
-            // Apply sort order to deduped
-            deduped.sort(function (a, b) {
+            // Apply sort order
+            var sorted = filtered.slice()
+            sorted.sort(function (a, b) {
                 var da = a.appointment_datetime || ''
                 var db = b.appointment_datetime || ''
                 if (selectedSort === 'oldest') {
@@ -588,22 +584,14 @@
                 if (da < db) return 1; if (da > db) return -1; return 0
             })
 
-            apptFiltered = deduped
-
-            if (!deduped.length) {
+            if (!sorted.length) {
                 tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No appointments found.</td></tr>'
                 renderApptPagination()
                 return
             }
 
-            var totalPages = Math.ceil(deduped.length / apptPerPage)
-            if (apptCurrentPage > totalPages) apptCurrentPage = totalPages
-            var start = (apptCurrentPage - 1) * apptPerPage
-            var end = Math.min(start + apptPerPage, deduped.length)
-            var pageSlice = deduped.slice(start, end)
-
             var html = ''
-            pageSlice.forEach(function (a) {
+            sorted.forEach(function (a) {
                 var dt = a.appointment_datetime ? String(a.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
                 var patient = personLabel(a.patient, 'Patient #' + (a.patient_id || ''))
                 var patientId = a.patient_id || (a.patient && a.patient.user_id) || ''
@@ -633,19 +621,24 @@
             renderApptPagination()
         }
 
-        if (dateInput) dateInput.addEventListener('change', renderAppointments)
-        if (doctorSelect) doctorSelect.addEventListener('change', renderAppointments)
-        if (typeSelect) typeSelect.addEventListener('change', renderAppointments)
-        if (statusSelect) statusSelect.addEventListener('change', renderAppointments)
-        if (sortSelect) sortSelect.addEventListener('change', renderAppointments)
-        if (searchInput) searchInput.addEventListener('input', renderAppointments)
+        function reloadAppts() {
+            apptCurrentPage = 1
+            loadAppointments(1)
+        }
+
+        if (dateInput) dateInput.addEventListener('change', reloadAppts)
+        if (doctorSelect) doctorSelect.addEventListener('change', reloadAppts)
+        if (typeSelect) typeSelect.addEventListener('change', reloadAppts)
+        if (statusSelect) statusSelect.addEventListener('change', reloadAppts)
+        if (sortSelect) sortSelect.addEventListener('change', reloadAppts)
+        if (searchInput) searchInput.addEventListener('input', reloadAppts)
 
         var apptRefreshBtn = document.getElementById('adminApptRefreshBtn')
         if (apptRefreshBtn) {
-            apptRefreshBtn.addEventListener('click', function () { loadAppointments() })
+            apptRefreshBtn.addEventListener('click', function () { loadAppointments(apptCurrentPage) })
         }
 
         loadDoctors()
-        loadAppointments()
+        loadAppointments(1)
     })
 </script>

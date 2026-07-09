@@ -41,7 +41,9 @@
                     Browse
                 </button>
             </div>
-            <div id="receptionSelectedServices" class="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.78rem] text-slate-700 max-h-24 overflow-y-auto overscroll-contain"></div>
+            <div id="receptionSelectedServices" class="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2 min-h-[3rem] max-h-24 overflow-y-auto overscroll-contain">
+                <span id="receptionSelectedServicesEmpty" class="text-[0.78rem] text-slate-400">No selected services.</span>
+            </div>
         </div>
         <div class="min-w-0">
             <label for="reception_appointment_doctor_id" class="block text-[0.7rem] text-slate-600 mb-1">Doctor</label>
@@ -93,10 +95,8 @@
         </div>
         <div id="receptionAppointmentTimeWrap" class="self-start relative min-w-0">
             <label class="block text-[0.7rem] text-slate-600 mb-1">Time slot</label>
-             <div class="mb-1 text-[0.7rem] text-slate-500">&nbsp;</div>
             <input id="reception_appointment_time" type="hidden" required>
-            <div id="reception_available_days" class="mb-1 text-[0.7rem] text-slate-500"></div>
-            <button id="receptionTimeSlotTrigger" type="button" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 text-left focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none disabled:opacity-60" disabled>
+            <button id="receptionTimeSlotTrigger" type="button" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 text-left focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none disabled:opacity-60 mt-[1.35rem]" disabled>
                 Select a date first
             </button>
             <div id="receptionTimeSlotOverlay" class="hidden absolute left-0 right-0 bottom-full mb-1 z-50 rounded-xl border border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.12)]">
@@ -397,15 +397,43 @@
     <div class="w-full max-w-lg rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)]">
         <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
             <div>
-                <div class="text-sm font-semibold text-slate-900">Change Doctor</div>
-                <div class="text-[0.72rem] text-slate-500">Select an available doctor.</div>
+                <div class="text-sm font-semibold text-slate-900">Change Appointment</div>
+                <div id="recBookPickerSubtitle" class="text-[0.72rem] text-slate-500">Select a new date and time.</div>
             </div>
             <button id="receptionBookDocPickerClose" type="button" class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
                 <x-lucide-x class="w-[16px] h-[16px]" />
             </button>
         </div>
-        <div id="receptionBookDocPickerBody" class="px-4 py-3 max-h-72 overflow-y-auto scrollbar-hidden space-y-2">
-            <div class="text-[0.78rem] text-slate-400">No doctors available.</div>
+        {{-- Doctor toggle section --}}
+        <div class="px-4 py-2 border-b border-slate-50">
+            <button type="button" id="recBookToggleDoctor" class="inline-flex items-center gap-1.5 text-[0.72rem] font-medium text-slate-600 hover:text-green-600 transition-colors">
+                <x-lucide-user-plus class="w-[14px] h-[14px]" />
+                <span>Change Doctor</span>
+                <span id="recBookToggleDoctorCaret" class="text-[0.6rem] ml-1">&#x25BC;</span>
+            </button>
+            <div id="recBookCurrentDoctorLabel" class="text-[0.68rem] text-slate-400 mt-0.5"></div>
+        </div>
+        {{-- Doctor picker list (hidden by default) --}}
+        <div id="recBookDoctorListWrap" class="hidden px-4 py-3 max-h-56 overflow-y-auto scrollbar-hidden space-y-2 border-b border-slate-100">
+            <div id="receptionBookDocPickerBody" class="space-y-2">
+                <div class="text-[0.78rem] text-slate-400">Loading doctors...</div>
+            </div>
+        </div>
+        {{-- Date/Time slot selector (always shown) --}}
+        <div id="recBookSlotPicker" class="border-t border-slate-100">
+            <div class="px-4 py-3 space-y-3">
+                <div>
+                    <label class="text-[0.65rem] font-semibold text-slate-600 uppercase tracking-wider block mb-1.5">Select Date</label>
+                    <div id="recBookDateOptions" class="flex gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-slate-200"></div>
+                </div>
+                <div>
+                    <label class="text-[0.65rem] font-semibold text-slate-600 uppercase tracking-wider block mb-1.5">Select Time</label>
+                    <div id="recBookTimeOptions" class="flex flex-wrap gap-1.5"></div>
+                </div>
+                <button type="button" id="recBookConfirmSlotBtn" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-[0.78rem] font-semibold text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    Confirm Change
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -508,7 +536,6 @@ function setAppointmentTab(tab) {
         var timeWrap = document.getElementById('receptionAppointmentTimeWrap')
         var timeTrigger = document.getElementById('receptionTimeSlotTrigger')
         var timeOverlay = document.getElementById('receptionTimeSlotOverlay')
-        var availableDaysEl = document.getElementById('reception_available_days')
         var timeSlotsEl = document.getElementById('reception_time_slots')
         var services = []
         var doctors = []
@@ -523,6 +550,11 @@ function setAppointmentTab(tab) {
         var slotMinutes = 30
         var patientSearchTimer = null
         var selectedPatient = null
+        var bookServiceSearchPage = 1
+        var bookServiceSearchResults = []
+        var bookServiceSearchHasMore = false
+        var bookServiceSearchQuery = ''
+        var bookServiceSearchLoading = false
         var selectedServices = []
         var selectedDoctor = null
         var previousDoctorId = 0
@@ -1001,21 +1033,60 @@ function setAppointmentTab(tab) {
             return list.slice(0, 12)
         }
 
+        function fetchBookServicesPage(query, page) {
+            if (typeof apiFetch !== 'function') return Promise.resolve({ data: [], hasMore: false })
+            var params = 'per_page=15&page=' + page
+            if (query) params += '&search=' + encodeURIComponent(query)
+            return apiFetch("{{ url('/api/services') }}?" + params, { method: 'GET' })
+                .then(function (r) { return readResponse(r) })
+                .then(function (res) {
+                    if (!res.ok) return { data: [], hasMore: false }
+                    var items = Array.isArray(res.data.data) ? res.data.data : []
+                    return {
+                        data: items,
+                        hasMore: (res.data.current_page || 1) < (res.data.last_page || 1)
+                    }
+                })
+                .catch(function () { return { data: [], hasMore: false } })
+        }
+
         function renderSelectorServiceList() {
             if (!selectorListBody) return
-            var list = bookServiceSourceList()
-            var query = String(selectorSearch ? selectorSearch.value : '').trim()
-            selectorState.items = list
-            if (selectorListLabel) {
-                selectorListLabel.textContent = query ? 'Service search results' : 'Latest services'
+            var rawQuery = String(selectorSearch ? selectorSearch.value : '').trim()
+            var query = normalizeText(rawQuery)
+            var searchActive = !!query
+
+            if (searchActive) {
+                bookServiceSearchQuery = rawQuery
+                bookServiceSearchPage = 1
+                setSelectorLoading('Searching services…')
+                fetchBookServicesPage(rawQuery, 1).then(function (result) {
+                    if (selectorState.type !== 'service') return
+                    if (String(selectorSearch ? selectorSearch.value : '').trim() !== rawQuery) return
+                    bookServiceSearchResults = result.data
+                    bookServiceSearchHasMore = result.hasMore
+                    buildBookServiceList(result.data, rawQuery, result.hasMore)
+                })
+            } else {
+                bookServiceSearchQuery = ''
+                bookServiceSearchPage = 1
+                var list = bookServiceSourceList()
+                bookServiceSearchResults = list
+                bookServiceSearchHasMore = false
+                buildBookServiceList(list, '', false)
             }
-            if (!list.length) {
+        }
+
+        function buildBookServiceList(items, query, hasMore) {
+            if (!selectorListBody) return
+            if (selectorListLabel) { selectorListLabel.textContent = query ? 'Service search results' : 'Latest services' }
+            if (!items.length) {
                 selectorListBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No services found.</div>'
                 renderSelectorDetail()
                 return
             }
             var html = ''
-            list.forEach(function (service, idx) {
+            items.forEach(function (service, idx) {
                 var isSelected = (selectorState.stagedServices || []).some(function (entry) {
                     return String(entry && entry.service_id) === String(service && service.service_id)
                 })
@@ -1038,7 +1109,11 @@ function setAppointmentTab(tab) {
                         '</div>' +
                     '</button>'
             })
+            if (hasMore) {
+                html += '<button type="button" id="bookServiceLoadMoreBtn" class="w-full text-center py-2.5 mt-1 text-[0.75rem] font-semibold text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg border border-dashed border-slate-200 transition-colors">Load more services</button>'
+            }
             selectorListBody.innerHTML = html
+            selectorState.items = items
             Array.prototype.forEach.call(selectorListBody.querySelectorAll('.reception-selector-service'), function (btn) {
                 btn.addEventListener('click', function () {
                     var idx = parseInt(btn.getAttribute('data-index') || '-1', 10)
@@ -1059,6 +1134,25 @@ function setAppointmentTab(tab) {
                     renderSelectorDetail()
                 })
             })
+            var loadMoreBtn = document.getElementById('bookServiceLoadMoreBtn')
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', function () {
+                    if (bookServiceSearchLoading) return
+                    bookServiceSearchLoading = true
+                    bookServiceSearchPage++
+                    var page = bookServiceSearchPage
+                    loadMoreBtn.textContent = 'Loading…'
+                    loadMoreBtn.disabled = true
+                    fetchBookServicesPage(bookServiceSearchQuery, page).then(function (result) {
+                        if (result.data.length) {
+                            bookServiceSearchResults = bookServiceSearchResults.concat(result.data)
+                        }
+                        bookServiceSearchHasMore = result.hasMore
+                        bookServiceSearchLoading = false
+                        buildBookServiceList(bookServiceSearchResults, bookServiceSearchQuery, bookServiceSearchHasMore)
+                    })
+                })
+            }
             renderSelectorDetail()
         }
 
@@ -1565,7 +1659,6 @@ function setAppointmentTab(tab) {
                 dateRangeHint.classList.add('hidden')
             }
             if (dateInput) dateInput.value = ''
-            if (availableDaysEl) availableDaysEl.textContent = '\u00A0'
             if (timeSlotsEl) timeSlotsEl.innerHTML = ''
             datePickerMonth = (function () {
                 var now = new Date()
@@ -1612,21 +1705,37 @@ function setAppointmentTab(tab) {
             var list = Array.isArray(selectedServices) ? selectedServices : []
             syncSelectionTriggers()
             if (!list.length) {
-                selectedServicesEl.innerHTML = '<div class="text-[0.75rem] text-slate-500">No services selected.</div>'
+                var emptyMsg = document.getElementById('receptionSelectedServicesEmpty')
+                if (emptyMsg) {
+                    selectedServicesEl.innerHTML = ''
+                    emptyMsg.style.display = ''
+                    selectedServicesEl.appendChild(emptyMsg)
+                } else {
+                    selectedServicesEl.innerHTML = '<span id="receptionSelectedServicesEmpty" class="text-[0.78rem] text-slate-400">No selected services.</span>'
+                }
                 return
             }
 
             selectedServicesEl.innerHTML = list.map(function (s) {
-                var id = s && s.service_id != null ? parseInt(s.service_id, 10) : 0
-                var name = s && s.service_name ? String(s.service_name) : ('Service #' + id)
-                return (
-                    '<div class="flex items-center justify-between gap-2 py-1.5 border-b border-slate-200/60 last:border-0">' +
-                        '<div class="min-w-0 text-slate-700 text-[0.78rem] font-semibold truncate">' + escapeHtml(name) + '</div>' +
-                        '<button type="button" class="shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 reception-remove-service" data-service-id="' + escapeHtml(id) + '">' +
+                var id = parseInt(s && s.service_id != null ? s.service_id : 0, 10)
+                var name = String(s && s.service_name ? s.service_name : '').trim() || 'Service'
+                var fee = s && s.price != null ? '\u20B1' + String(s.price) : ''
+                var time = s && s.duration_minutes != null ? String(s.duration_minutes) + ' min' : ''
+                var desc = s && s.description != null ? String(s.description).trim() : ''
+                var parts = []
+                if (fee) parts.push('<span class="text-emerald-600">' + escapeHtml(fee) + '</span>')
+                if (time) parts.push('<span>' + escapeHtml(time) + '</span>')
+                if (desc) parts.push('<span class="text-slate-500">' + escapeHtml(desc) + '</span>')
+                return '' +
+                    '<div class="flex items-center gap-2 py-1.5 border-b border-slate-100 last:border-0">' +
+                        '<div class="flex-1 min-w-0">' +
+                            '<div class="text-[0.78rem] text-slate-800 font-semibold truncate">' + escapeHtml(name) + '</div>' +
+                            (parts.length ? '<div class="text-[0.68rem] text-slate-400">' + parts.join(' <span class="text-slate-300">|</span> ') + '</div>' : '') +
+                        '</div>' +
+                        '<button type="button" class="reception-remove-service shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-md border border-slate-200 bg-white text-slate-400 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-colors" data-service-id="' + escapeHtml(id) + '">' +
                             iconX +
                         '</button>' +
                     '</div>'
-                )
             }).join('')
 
             var buttons = selectedServicesEl.querySelectorAll('.reception-remove-service')
@@ -1832,7 +1941,7 @@ function setAppointmentTab(tab) {
                 var embedded = doctor.doctor_schedules
                 if (Array.isArray(embedded) && embedded.length) {
                     doctorSchedules = embedded.slice()
-                    renderAvailableDays()
+                    buildAvailableDaySet()
                     if (dateSelect) dateSelect.disabled = true
                     renderDatePicker()
                 }
@@ -1950,7 +2059,9 @@ function setAppointmentTab(tab) {
                     return
                 }
                 if (selectorState.type === 'service') {
-                    renderSelectorServiceList()
+                    selectorState.searchTimer = window.setTimeout(function () {
+                        renderSelectorServiceList()
+                    }, 250)
                     return
                 }
                 if (selectorState.type === 'doctor') {
@@ -2000,20 +2111,12 @@ function setAppointmentTab(tab) {
             })
         }
 
-        function renderAvailableDays() {
-            if (!availableDaysEl) return
-            if (!doctorSchedules.length) {
-                availableDaysEl.textContent = '\u00A0'
-                return
-            }
+        function buildAvailableDaySet() {
             doctorAvailableDaySet = {}
             doctorSchedules.forEach(function (s) {
                 var dayKey = normalizeDayKey(s && s.day_of_week != null ? s.day_of_week : '')
                 if (dayKey) doctorAvailableDaySet[dayKey] = true
             })
-            var order = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
-            var keys = Object.keys(doctorAvailableDaySet).sort(function (a, b) { return order.indexOf(a) - order.indexOf(b) })
-            availableDaysEl.textContent = keys.length ? ('Available days: ' + keys.map(dayLabelFromKey).join(', ')) : '\u00A0'
         }
 
         function formatDateIso(d) {
@@ -2412,7 +2515,7 @@ function setAppointmentTab(tab) {
                             dateSelect.innerHTML = '<option value=\"\">Failed to load schedules</option>'
                             dateSelect.disabled = true
                         }
-                        renderAvailableDays()
+                        buildAvailableDaySet()
                         renderDatePicker()
                         renderTimeSlots()
                         return
@@ -2420,7 +2523,7 @@ function setAppointmentTab(tab) {
 
                     var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
                     doctorSchedules = raw || []
-                    renderAvailableDays()
+                    buildAvailableDaySet()
                     if (dateSelect) dateSelect.disabled = true
                     renderDatePicker()
                     if (dateStr) {
@@ -2435,7 +2538,7 @@ function setAppointmentTab(tab) {
                         dateSelect.innerHTML = '<option value=\"\">Network error loading schedules</option>'
                         dateSelect.disabled = true
                     }
-                    renderAvailableDays()
+                    buildAvailableDaySet()
                     renderDatePicker()
                     renderTimeSlots()
                 })
@@ -2471,9 +2574,10 @@ function setAppointmentTab(tab) {
                 .then(function (result) {
                     var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
                     var allowedServiceNames = [
-                        
+                        'general surgeon',
+                        'obstetrician-gynecologist',
                         'obstetrician - gynecologist',
-                        'general surgeon'
+                        'internal medicine'
                     ]
                     services = (raw || []).filter(function (s) {
                         var name = normalizeText(s && s.service_name ? s.service_name : '')
@@ -2901,6 +3005,8 @@ function setAppointmentTab(tab) {
         var manageCurrentPage = 1
         var managePerPage = 10
         var manageVisibleCount = 5
+        var manageLastPage = 1
+        var manageTotal = 0
 
         var manageHistOverlay = document.getElementById('managePatientHistoryOverlay')
         var manageHistClose = document.getElementById('managePatientHistClose')
@@ -3171,10 +3277,7 @@ function updateManageTodayButton() {
                 ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border ' + statusClass + '">' + escapeHtml(statusLabel) + '</span>'
                 : '-'
 
-            var canChangeDoctor = statusKey === 'pending' || statusKey === 'confirmed'
-            var doctorCell = canChangeDoctor
-                ? '<button type="button" class="rec-book-change-doctor underline decoration-dotted underline-offset-2 hover:text-green-700 hover:decoration-green-400 text-left" data-appointment-id="' + escapeHtml(id) + '" data-doctor-id="' + escapeHtml(String(doctor && doctor.user_id != null ? doctor.user_id : '')) + '" data-doctor-name="' + escapeHtml(doctorName) + '">' + escapeHtml(doctorName) + '</button>'
-                : '<span class="text-slate-700">' + escapeHtml(doctorName) + '</span>'
+            var doctorCell = '<span class="text-slate-700">' + escapeHtml(doctorName) + '</span>'
 
             return (
                 '<tr data-appointment-id="' + escapeHtml(id) + '">' +
@@ -3292,6 +3395,9 @@ function updateManageTodayButton() {
                 else if (stKey === 'no_show') sc = 'border-slate-200 bg-slate-100 text-slate-600'
                 else if (stKey === 'pending') sc = 'border-amber-200 bg-amber-50 text-amber-700'
                 else sc = 'border-green-200 bg-green-50 text-green-700'
+                var apptType = String(a && a.appointment_type ? a.appointment_type : '').toLowerCase()
+                var typeLabel = (apptType === 'walk_in' || apptType === 'walk-in' || apptType === 'walk in') ? 'Walk In' : (apptType === 'scheduled' ? 'Scheduled' : apptType)
+                var typeBadge = apptType ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[0.6rem] font-medium bg-slate-100 text-slate-600 border border-slate-200 mr-1.5">' + escapeHtml(typeLabel) + '</span>' : ''
 
                 return (
                     '<button type="button" class="manage-hist-item-btn w-full text-left rounded-xl border border-slate-200 bg-white px-3 py-2 hover:border-green-300 hover:shadow-sm transition-all cursor-pointer active-appt-item" data-appointment-id="' + escapeHtml(aid) + '">' +
@@ -3299,7 +3405,7 @@ function updateManageTodayButton() {
                             '<div class="text-[0.78rem] font-semibold text-slate-800 truncate">' + escapeHtml(d) + ' ' + escapeHtml(t) + '</div>' +
                             '<span class="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[0.62rem] border ' + sc + '">' + escapeHtml(stLabel || '-') + '</span>' +
                         '</div>' +
-                        '<div class="text-[0.7rem] text-slate-500 mt-0.5 truncate">' + escapeHtml(srv) + '</div>' +
+                        '<div class="text-[0.7rem] text-slate-500 mt-0.5 truncate">' + typeBadge + escapeHtml(srv) + '</div>' +
                     '</button>'
                 )
             }).join('')
@@ -3326,6 +3432,11 @@ function updateManageTodayButton() {
             } else if (appt && Array.isArray(appt.services) && appt.services.length && appt.services[0].description) {
                 serviceDesc = appt.services[0].description
             }
+            var apptId = appt.id || appt.appointment_id || ''
+            var docId = doctor.user_id || doctor.doctor_id || ''
+
+            var apptTypeRaw = String(appt && appt.appointment_type ? appt.appointment_type : '').toLowerCase()
+            var apptTypeLabel = (apptTypeRaw === 'walk_in' || apptTypeRaw === 'walk-in' || apptTypeRaw === 'walk in') ? 'Walk In' : (apptTypeRaw === 'scheduled' ? 'Scheduled' : apptTypeRaw)
 
             manageHistDetailBody.innerHTML =
                 '<div class="space-y-3 text-[0.78rem]">' +
@@ -3334,9 +3445,13 @@ function updateManageTodayButton() {
                         '<div><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Doctor</span><span class="font-medium text-slate-800">' + escapeHtml(doctorName) + '</span></div>' +
                         '<div><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Date</span><span class="font-medium text-slate-800">' + escapeHtml(when ? (when.date || '') : '') + '</span></div>' +
                         '<div><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Time</span><span class="font-medium text-slate-800">' + escapeHtml(when && when.time ? formatTime12h(when.time) : '') + '</span></div>' +
-                        '<div class="col-span-2"><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Service</span><span class="font-medium text-slate-800">' + escapeHtml(srv) + (serviceDesc ? ' — <span class="text-slate-500 font-normal">' + escapeHtml(serviceDesc) + '</span>' : '') + '</span></div>' +
+                        '<div><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Type</span><span class="font-medium text-slate-800">' + escapeHtml(apptTypeLabel) + '</span></div>' +
+                        '<div class="col-span-2"><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Service(s)</span><span class="font-medium text-slate-800">' + escapeHtml(srv) + (serviceDesc ? ' — <span class="text-slate-500 font-normal">' + escapeHtml(serviceDesc) + '</span>' : '') + '</span></div>' +
                         '<div class="col-span-2"><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Status</span><span class="font-medium text-slate-800">' + escapeHtml(stLabel || '-') + '</span></div>' +
                     '</div>' +
+                    '<button type="button" class="rec-book-change-appt w-full mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-green-50 border border-green-200 px-3 py-2 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 transition-colors" data-appointment-id="' + escapeHtml(apptId) + '" data-doctor-id="' + escapeHtml(docId) + '">' +
+                        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[14px] h-[14px]"><path d="M11 10v4h4"/><path d="m11 14 1.535-1.605a5 5 0 0 1 8 1.5"/><path d="M16 2v4"/><path d="m21 18-1.535 1.605a5 5 0 0 1-8-1.5"/><path d="M21 22v-4h-4"/><path d="M21 8.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4.3"/><path d="M3 10h4"/><path d="M8 2v4"/></svg> Change Appointment' +
+                    '</button>' +
                 '</div>'
 
             // Enable status dropdown
@@ -3347,7 +3462,7 @@ function updateManageTodayButton() {
             }
             if (manageHistUpdateBtn) {
                 manageHistUpdateBtn.disabled = false
-                manageHistUpdateBtn.setAttribute('data-appointment-id', appt.id || appt.appointment_id || '')
+                manageHistUpdateBtn.setAttribute('data-appointment-id', apptId)
             }
         }
 
@@ -3357,20 +3472,28 @@ function updateManageTodayButton() {
                 manageHistUpdateBtn.disabled = true
                 manageHistUpdateBtn.textContent = 'Updating…'
             }
-            apiFetch("{{ url('/api/appointments') }}/" + encodeURIComponent(appointmentId) + "/status", {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            apiFetch("{{ url('/api/appointments') }}/" + encodeURIComponent(appointmentId), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus })
             })
-            .then(function () {
-                if (manageHistUpdateBtn) { manageHistUpdateBtn.disabled = false; manageHistUpdateBtn.textContent = 'Update Status' }
-                // Refresh both the modal list and the underlying table
-                if (manageHistoryPatientId) loadManagePatientHistory(manageHistoryPatientId)
-                loadManageAppointments()
+            .then(function (response) {
+                return readResponse(response).then(function (result) {
+                    if (manageHistUpdateBtn) { manageHistUpdateBtn.disabled = false; manageHistUpdateBtn.textContent = 'Update Status' }
+                    if (!result.ok) {
+                        var msg = (result.data && result.data.message) ? result.data.message : 'Failed to update status.'
+                        if (typeof showToast === 'function') showToast(msg, 'error')
+                        return
+                    }
+                    if (typeof showToast === 'function') showToast('Status updated successfully.', 'success')
+                    // Refresh both the modal list and the underlying table
+                    if (manageHistoryPatientId) loadManagePatientHistory(manageHistoryPatientId)
+                    loadManageAppointments()
+                })
             })
             .catch(function () {
                 if (manageHistUpdateBtn) { manageHistUpdateBtn.disabled = false; manageHistUpdateBtn.textContent = 'Update Status' }
-                showManageError('Failed to update status.')
+                if (typeof showToast === 'function') showToast('Network error while updating status.', 'error')
             })
         }
 
@@ -3439,24 +3562,20 @@ function updateManageTodayButton() {
                 if (pag) pag.innerHTML = ''
                 return
             }
-            var totalPages = Math.ceil(rows.length / managePerPage)
-            if (manageCurrentPage > totalPages) manageCurrentPage = totalPages
-            var start = (manageCurrentPage - 1) * managePerPage
-            var end = Math.min(start + managePerPage, rows.length)
-            var pageSlice = rows.slice(start, end)
-            manageTableBody.innerHTML = pageSlice.map(manageRowHtml).join('')
-            renderManagePagination(rows.length, totalPages)
+            manageTableBody.innerHTML = rows.map(manageRowHtml).join('')
+            renderManagePagination()
         }
 
-        function renderManagePagination(total, totalPages) {
+        function renderManagePagination() {
             var pag = document.getElementById('receptionManagePagination')
             if (!pag) return
-            if (total === 0) { pag.innerHTML = ''; return }
+            if (manageTotal === 0) { pag.innerHTML = ''; return }
+            var totalPages = manageLastPage
             var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border '
             var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer'
             var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default'
             var btnActive = btnBase + 'bg-green-600 text-white border-green-600'
-            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + manageTotal + ' entries</span>'
             html += '<button type="button" class="' + (manageCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-manage-page="prev"' + (manageCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
             var ws = Math.max(1, manageCurrentPage - Math.floor(manageVisibleCount / 2))
             var we = Math.min(ws + manageVisibleCount - 1, totalPages)
@@ -3482,15 +3601,16 @@ function updateManageTodayButton() {
             })
         }
 
-        function loadManageAppointments() {
+        function loadManageAppointments(page) {
             if (typeof apiFetch !== 'function') return
+            page = page || manageCurrentPage
             showManageError('')
             showManageSuccess('')
             showManageResult(null)
             setManageSubmitting(true)
             manageTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading appointments…</td></tr>'
 
-            var url = "{{ url('/api/appointments') }}" + '?per_page=15&appointment_type=scheduled'
+            var url = "{{ url('/api/appointments') }}" + '?per_page=10&page=' + page + '&appointment_type=scheduled'
             var order = manageSortSelect && manageSortSelect.value ? String(manageSortSelect.value) : 'latest'
             url += '&order=' + encodeURIComponent(order === 'oldest' ? 'oldest' : 'latest')
 
@@ -3531,67 +3651,18 @@ function updateManageTodayButton() {
                     var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
                     var rows = Array.isArray(raw) ? raw.slice() : []
 
-                    function statusRank(appt) {
-                        var s = String(appt && appt.status ? appt.status : '').toLowerCase()
-                        if (s === 'cancelled') return 3
-                        if (s === 'completed') return 2
-                        if (s === 'no_show') return 1
-                        return 0
-                    }
-
-                    rows.sort(function (a, b) {
-                        var ra = statusRank(a)
-                        var rb = statusRank(b)
-                        if (ra < rb) return -1
-                        if (ra > rb) return 1
-
-                        var da = a && a.appointment_datetime ? String(a.appointment_datetime) : ''
-                        var db = b && b.appointment_datetime ? String(b.appointment_datetime) : ''
-                        if (order === 'oldest') {
-                            if (da < db) return -1
-                            if (da > db) return 1
-                            return 0
-                        }
-                        if (da < db) return 1
-                        if (da > db) return -1
-                        return 0
-                    })
-
-                    // Deduplicate: keep only latest appointment per patient
-                    var manageSeen = {}
-                    var manageDeduped = []
-                    rows.forEach(function (appt) {
-                        var pid = appt && appt.patient && appt.patient.user_id
-                        if (pid == null) { manageDeduped.push(appt); return }
-                        var existing = manageSeen[pid]
-                        var currentDate = appt && appt.appointment_datetime ? String(appt.appointment_datetime) : ''
-                        var existingDate = existing && existing.appointment_datetime ? String(existing.appointment_datetime) : ''
-                        if (!existing || currentDate > existingDate) {
-                            manageSeen[pid] = appt
-                        }
-                    })
-                    for (var mk in manageSeen) {
-                        if (manageSeen.hasOwnProperty(mk)) manageDeduped.push(manageSeen[mk])
-                    }
-                    rows = manageDeduped
-                    // Re-sort deduped
-                    rows.sort(function (a, b) {
-                        var da = a && a.appointment_datetime ? String(a.appointment_datetime) : ''
-                        var db = b && b.appointment_datetime ? String(b.appointment_datetime) : ''
-                        if (order === 'oldest') {
-                            if (da < db) return -1; if (da > db) return 1; return 0
-                        }
-                        if (da < db) return 1; if (da > db) return -1; return 0
-                    })
+                    manageCurrentPage = result.data.current_page || page
+                    manageLastPage = result.data.last_page || 1
+                    manageTotal = result.data.total || rows.length
 
                     renderManageAppointments(rows)
 
                     if (manageMeta) {
                         if (manageShowTodayOnly) {
-                            manageMeta.textContent = 'Showing ' + String(rows.length) + ' appointments for ' + startIso + '.'
+                            manageMeta.textContent = 'Showing page ' + manageCurrentPage + ' of ' + manageLastPage + ' (' + manageTotal + ' appointments for ' + startIso + ').'
                         } else {
                             var monthLabel = startIso.slice(0, 7)
-                            manageMeta.textContent = 'Showing ' + String(rows.length) + ' appointments for ' + monthLabel + '.'
+                            manageMeta.textContent = 'Showing page ' + manageCurrentPage + ' of ' + manageLastPage + ' (' + manageTotal + ' appointments for ' + monthLabel + ').'
                         }
                     }
                 })
@@ -3615,6 +3686,7 @@ function updateManageTodayButton() {
                     var pickedName = picked && picked.service_name ? String(picked.service_name) : ''
                     if (normalizeText(manageServiceSearch.value) !== normalizeText(pickedName)) {
                         setManageServiceSelection(null)
+                        manageCurrentPage = 1
                         loadManageAppointments()
                     }
                 }
@@ -3630,6 +3702,7 @@ function updateManageTodayButton() {
                 var id = btn.getAttribute('data-service-id')
                 var picked = manageServices.find(function (s) { return String(s.service_id) === String(id) }) || null
                 setManageServiceSelection(picked)
+                manageCurrentPage = 1
                 loadManageAppointments()
             })
         }
@@ -3638,6 +3711,7 @@ function updateManageTodayButton() {
             manageSearchInput.addEventListener('input', function () {
                 if (manageSearchTimer) clearTimeout(manageSearchTimer)
                 manageSearchTimer = setTimeout(function () {
+                    manageCurrentPage = 1
                     loadManageAppointments()
                 }, 250)
             })
@@ -3645,17 +3719,20 @@ function updateManageTodayButton() {
 
         if (manageSortSelect) {
             manageSortSelect.addEventListener('change', function () {
+                manageCurrentPage = 1
                 loadManageAppointments()
             })
         }
         if (manageStatusSelect) {
             manageStatusSelect.addEventListener('change', function () {
+                manageCurrentPage = 1
                 loadManageAppointments()
             })
         }
 
         if (manageRefreshBtn) {
             manageRefreshBtn.addEventListener('click', function () {
+                manageCurrentPage = 1
                 loadManageAppointments()
             })
         }
@@ -3664,6 +3741,7 @@ function updateManageTodayButton() {
             manageTodayOnlyBtn.addEventListener('click', function () {
                 manageShowTodayOnly = !manageShowTodayOnly
                 updateManageTodayButton()
+                manageCurrentPage = 1
                 loadManageAppointments()
             })
         }
@@ -3805,116 +3883,365 @@ function updateManageTodayButton() {
             manageServiceResults.classList.add('hidden')
         })
 
-        // ── Doctor column clickable ──
+        // ── Change Appointment overlay state ──
         var recBookDocPickerOverlay = document.getElementById('receptionBookDocPickerOverlay')
         var recBookDocPickerBody = document.getElementById('receptionBookDocPickerBody')
         var recBookDocPickerClose = document.getElementById('receptionBookDocPickerClose')
         var recBookPendingDoctorId = null
         var recBookPendingAppointmentId = null
+        var recBookCurrentDoctor = null
+        var recBookPendingDoctorChanged = false
 
-        // Open doctor picker
+        var recBookSelectedDate = null
+        var recBookSelectedTime = null
+        var recBookDocPickerSubtitle = document.getElementById('recBookPickerSubtitle')
+        var recBookSlotPicker = document.getElementById('recBookSlotPicker')
+        var recBookDateOptions = document.getElementById('recBookDateOptions')
+        var recBookTimeOptions = document.getElementById('recBookTimeOptions')
+        var recBookConfirmSlotBtn = document.getElementById('recBookConfirmSlotBtn')
+        var recBookToggleDoctor = document.getElementById('recBookToggleDoctor')
+        var recBookToggleDoctorCaret = document.getElementById('recBookToggleDoctorCaret')
+        var recBookCurrentDoctorLabel = document.getElementById('recBookCurrentDoctorLabel')
+        var recBookDoctorListWrap = document.getElementById('recBookDoctorListWrap')
+
+        // Open change appointment overlay
         document.addEventListener('click', function (e) {
-            var btn = e.target.closest('.rec-book-change-doctor')
+            var btn = e.target.closest('.rec-book-change-appt')
             if (!btn) return
             var appointmentId = btn.getAttribute('data-appointment-id')
             var currentDoctorId = btn.getAttribute('data-doctor-id') || ''
             if (!appointmentId) return
             recBookPendingAppointmentId = appointmentId
 
-            var todayKey = dayKeyFromDate(localDateIso())
-            var allDoctors = (typeof doctors !== 'undefined' && Array.isArray(doctors))
-                ? doctors.filter(function (d) {
-                    var spec = String(d.specialization || '').trim().toLowerCase()
-                    var allowedSpecs = ['general surgeon', 'obstetrician-gynecologist', 'obstetrician - gynecologist', 'internal medicine']
-                    if (allowedSpecs.indexOf(spec) === -1) return false
-                    var schedules = Array.isArray(d.doctor_schedules) ? d.doctor_schedules : []
-                    return schedules.some(function (s) {
-                        return normalizeDayKey(s.day_of_week) === todayKey
-                    })
-                })
-                : []
-            if (recBookDocPickerBody) {
-                if (!allDoctors.length) {
-                    recBookDocPickerBody.innerHTML = '<div class="text-[0.78rem] text-slate-400">No doctors available.</div>'
-                } else {
-                    recBookDocPickerBody.innerHTML = allDoctors.map(function (d) {
-                        var isCurrent = String(d.user_id) === String(currentDoctorId)
-                        return '<button type="button" data-doc-id="' + escapeHtml(String(d.user_id)) + '"' +
-                            (isCurrent ? ' disabled' : '') +
-                            ' class="rec-book-pick-doctor w-full text-left px-3 py-2.5 rounded-xl border ' +
-                            (isCurrent ? 'border-green-300 bg-green-50 text-green-800 cursor-not-allowed opacity-60' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300') +
-                            '">' +
-                            '<div class="font-semibold text-[0.78rem]">' + escapeHtml(doctorDisplayName(d)) + '</div>' +
-                            '<div class="text-[0.68rem] text-slate-400">' + escapeHtml(doctorScheduleSummary(d)) + '</div>' +
-                            (isCurrent ? '<div class="text-[0.65rem] text-green-600 mt-0.5">Currently assigned</div>' : '') +
-                        '</button>'
-                    }).join('')
+            // Find current doctor object from doctors list
+            recBookCurrentDoctor = null
+            recBookPendingDoctorChanged = false
+            recBookPendingDoctorId = currentDoctorId
+            if (typeof doctors !== 'undefined' && Array.isArray(doctors)) {
+                for (var _ci = 0; _ci < doctors.length; _ci++) {
+                    if (String(doctors[_ci].user_id) === String(currentDoctorId)) {
+                        recBookCurrentDoctor = doctors[_ci]
+                        break
+                    }
                 }
             }
+
+            // Update subtitle
+            if (recBookDocPickerSubtitle) {
+                recBookDocPickerSubtitle.textContent = 'Select a new date and time.'
+            }
+            if (recBookCurrentDoctorLabel && recBookCurrentDoctor) {
+                recBookCurrentDoctorLabel.textContent = 'Current: ' + doctorDisplayName(recBookCurrentDoctor)
+            }
+
+            // Reset doctor toggle
+            if (recBookDoctorListWrap) recBookDoctorListWrap.classList.add('hidden')
+            if (recBookToggleDoctorCaret) recBookToggleDoctorCaret.textContent = '\u25BC'
+            recBookPendingDoctorChanged = false
+
+            // Reset date/time state
+            recBookSelectedDate = null
+            recBookSelectedTime = null
+
+            // Show date/time slot picker based on current doctor
+            if (recBookSlotPicker) recBookSlotPicker.classList.remove('hidden')
+            recBookRenderDateOptions()
+            if (recBookTimeOptions) recBookTimeOptions.innerHTML = ''
+            if (recBookConfirmSlotBtn) recBookConfirmSlotBtn.disabled = true
+
+            // Show the overlay
             if (recBookDocPickerOverlay) {
                 recBookDocPickerOverlay.classList.remove('hidden')
                 recBookDocPickerOverlay.classList.add('flex')
             }
         })
 
-        if (recBookDocPickerClose) {
-            recBookDocPickerClose.addEventListener('click', function () {
-                if (recBookDocPickerOverlay) { recBookDocPickerOverlay.classList.add('hidden'); recBookDocPickerOverlay.classList.remove('flex') }
-            })
-        }
-        if (recBookDocPickerOverlay) {
-            recBookDocPickerOverlay.addEventListener('click', function (e) {
-                if (e.target === recBookDocPickerOverlay) { recBookDocPickerOverlay.classList.add('hidden'); recBookDocPickerOverlay.classList.remove('flex') }
+        // Toggle doctor picker
+        if (recBookToggleDoctor) {
+            recBookToggleDoctor.addEventListener('click', function () {
+                if (!recBookDoctorListWrap) return
+                var isHidden = recBookDoctorListWrap.classList.contains('hidden')
+                if (isHidden) {
+                    recBookDoctorListWrap.classList.remove('hidden')
+                    if (recBookToggleDoctorCaret) recBookToggleDoctorCaret.textContent = '\u25B2'
+                    recBookRenderDoctorList()
+                } else {
+                    recBookDoctorListWrap.classList.add('hidden')
+                    if (recBookToggleDoctorCaret) recBookToggleDoctorCaret.textContent = '\u25BC'
+                    // Revert to current doctor
+                    recBookPendingDoctorChanged = false
+                    recBookPendingDoctorId = recBookCurrentDoctor ? String(recBookCurrentDoctor.user_id) : recBookPendingDoctorId
+                    recBookSelectedDate = null
+                    recBookSelectedTime = null
+                    recBookRenderDateOptions()
+                    if (recBookTimeOptions) recBookTimeOptions.innerHTML = ''
+                    if (recBookConfirmSlotBtn) recBookConfirmSlotBtn.disabled = true
+                }
             })
         }
 
-        // Doctor selected from picker → open confirm overlay via confirmAction
+        // Render doctor list (filtered by allowedSpecs and having schedules for any day)
+        function recBookRenderDoctorList() {
+            if (!recBookDocPickerBody || !recBookCurrentDoctor) return
+            var currentDoctorId = String(recBookCurrentDoctor.user_id)
+            var allDoctors = (typeof doctors !== 'undefined' && Array.isArray(doctors))
+                ? doctors.filter(function (d) {
+                    var spec = String(d.specialization || '').trim().toLowerCase()
+                    var allowedSpecs = ['general surgeon', 'obstetrician-gynecologist', 'obstetrician - gynecologist', 'internal medicine']
+                    if (allowedSpecs.indexOf(spec) === -1) return false
+                    var schedules = Array.isArray(d.doctor_schedules) ? d.doctor_schedules : []
+                    return schedules.length > 0
+                })
+                : []
+            if (!allDoctors.length) {
+                recBookDocPickerBody.innerHTML = '<div class="text-[0.78rem] text-slate-400">No doctors available.</div>'
+            } else {
+                recBookDocPickerBody.innerHTML = allDoctors.map(function (d) {
+                    var isCurrent = String(d.user_id) === currentDoctorId
+                    return '<button type="button" data-doc-id="' + escapeHtml(String(d.user_id)) + '"' +
+                        (isCurrent ? ' disabled' : '') +
+                        ' class="rec-book-pick-doctor w-full text-left px-3 py-2.5 rounded-xl border ' +
+                        (isCurrent ? 'border-green-300 bg-green-50 text-green-800 cursor-not-allowed opacity-60' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300') +
+                        '">' +
+                        '<div class="font-semibold text-[0.78rem]">' + escapeHtml(doctorDisplayName(d)) + '</div>' +
+                        '<div class="text-[0.68rem] text-slate-400">' + escapeHtml(doctorScheduleSummary(d)) + '</div>' +
+                        (isCurrent ? '<div class="text-[0.65rem] text-green-600 mt-0.5">Currently assigned</div>' : '') +
+                    '</button>'
+                }).join('')
+            }
+        }
+
+        // Doctor selected from picker → update date/time slots based on new doctor
         document.addEventListener('click', function (e) {
             var opt = e.target.closest('.rec-book-pick-doctor')
             if (!opt || opt.disabled) return
             var newDocId = opt.getAttribute('data-doc-id')
             if (!recBookPendingAppointmentId || !newDocId) return
             recBookPendingDoctorId = newDocId
+            recBookSelectedDate = null
+            recBookSelectedTime = null
+            recBookPendingDoctorChanged = true
 
-            if (recBookDocPickerOverlay) { recBookDocPickerOverlay.classList.add('hidden'); recBookDocPickerOverlay.classList.remove('flex') }
-
-            confirmAction('Are you sure you want to change the doctor for this patient?', { okText: 'Confirm', delayMs: 3000 })
-                .then(function (confirmed) {
-                    if (!confirmed) {
-                        recBookPendingDoctorId = null
-                        return
+            // Find the selected doctor object
+            var newDoctor = null
+            if (typeof doctors !== 'undefined' && Array.isArray(doctors)) {
+                for (var _di = 0; _di < doctors.length; _di++) {
+                    if (String(doctors[_di].user_id) === String(newDocId)) {
+                        newDoctor = doctors[_di]
+                        break
                     }
-                    recBookDoChangeDoctor()
-                })
+                }
+            }
+
+            if (recBookCurrentDoctorLabel && newDoctor) {
+                recBookCurrentDoctorLabel.textContent = 'Selected: ' + doctorDisplayName(newDoctor)
+            }
+
+            // Regenerate date options based on new doctor
+            recBookRenderDateOptions(newDoctor)
+            if (recBookTimeOptions) recBookTimeOptions.innerHTML = ''
+            if (recBookConfirmSlotBtn) recBookConfirmSlotBtn.disabled = true
         })
 
-        // Confirm action (overlay is closed by closeConfirm via confirmAction)
-        function recBookDoChangeDoctor() {
-            if (!recBookPendingAppointmentId || !recBookPendingDoctorId) return
+        // Render date options (uses provided doctor or current doctor)
+        function recBookRenderDateOptions(doctorObj) {
+            if (!recBookDateOptions) return
+            var activeDoctor = doctorObj || recBookCurrentDoctor
+            if (!activeDoctor) {
+                recBookDateOptions.innerHTML = '<span class="text-[0.72rem] text-slate-400">No schedule available.</span>'
+                return
+            }
+            var schedules = Array.isArray(activeDoctor.doctor_schedules) ? activeDoctor.doctor_schedules : []
+            if (!schedules.length) {
+                recBookDateOptions.innerHTML = '<span class="text-[0.72rem] text-slate-400">No schedule available.</span>'
+                return
+            }
+            var dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+            var availableDays = {}
+            schedules.forEach(function (s) {
+                var dayNorm = normalizeDayKey(s.day_of_week)
+                availableDays[dayNorm] = { start_time: s.start_time || '08:00', end_time: s.end_time || '17:00', schedule: s }
+            })
+            var html = ''
+            var today = new Date()
+            for (var d = 0; d < 14; d++) {
+                var dateObj = new Date(today)
+                dateObj.setDate(today.getDate() + d)
+                var dateStr = dateObj.toISOString().split('T')[0]
+                var dayIdx = dateObj.getDay()
+                var dayName = dayNames[dayIdx]
+                if (!availableDays[dayName]) continue
+                var label = d === 0 ? 'Today' : (d === 1 ? 'Tomorrow' : dateStr)
+                html += '<button type="button" class="rec-book-date-opt flex-shrink-0 px-3 py-1.5 rounded-lg border text-[0.72rem] font-medium border-slate-200 bg-white text-slate-700 hover:border-green-300 hover:bg-green-50" data-date="' + dateStr + '" data-day="' + dayName + '">' + label + '</button>'
+            }
+            recBookDateOptions.innerHTML = html || '<span class="text-[0.72rem] text-slate-400">No dates available.</span>'
+        }
 
+        // Date option clicked
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.rec-book-date-opt')
+            if (!btn) return
+            document.querySelectorAll('.rec-book-date-opt').forEach(function (b) {
+                b.classList.remove('border-green-500', 'bg-green-50', 'text-green-700')
+                b.classList.add('border-slate-200', 'bg-white', 'text-slate-700')
+            })
+            btn.classList.remove('border-slate-200', 'bg-white', 'text-slate-700')
+            btn.classList.add('border-green-500', 'bg-green-50', 'text-green-700')
+            recBookSelectedDate = btn.getAttribute('data-date')
+            recBookSelectedTime = null
+            recBookRenderTimeOptions(btn.getAttribute('data-day'))
+        })
+
+        // Render time options based on doctor schedule
+        function recBookRenderTimeOptions(dayName) {
+            if (!recBookTimeOptions) return
+            var activeDoctor = recBookPendingDoctorChanged ? null : recBookCurrentDoctor
+            if (recBookPendingDoctorChanged) {
+                if (typeof doctors !== 'undefined' && Array.isArray(doctors)) {
+                    for (var _di2 = 0; _di2 < doctors.length; _di2++) {
+                        if (String(doctors[_di2].user_id) === String(recBookPendingDoctorId)) {
+                            activeDoctor = doctors[_di2]
+                            break
+                        }
+                    }
+                }
+            }
+            if (!activeDoctor) {
+                recBookTimeOptions.innerHTML = '<span class="text-[0.72rem] text-slate-400">No doctor selected.</span>'
+                return
+            }
+            var schedules = Array.isArray(activeDoctor.doctor_schedules) ? activeDoctor.doctor_schedules : []
+            var schedule = null
+            for (var _s = 0; _s < schedules.length; _s++) {
+                if (normalizeDayKey(schedules[_s].day_of_week) === dayName) { schedule = schedules[_s]; break }
+            }
+            if (!schedule) {
+                recBookTimeOptions.innerHTML = '<span class="text-[0.72rem] text-slate-400">No time slots available.</span>'
+                return
+            }
+            var start = schedule.start_time || '08:00', end = schedule.end_time || '17:00'
+            var startMin = parseInt(start.split(':')[0], 10) * 60 + parseInt(start.split(':')[1], 10)
+            var endMin = parseInt(end.split(':')[0], 10) * 60 + parseInt(end.split(':')[1], 10)
+            var html = ''
+            for (var m = startMin; m < endMin; m += 30) {
+                var hh = String(Math.floor(m / 60)).padStart(2, '0'), mm = String(m % 60).padStart(2, '0')
+                var timeVal = hh + ':' + mm
+                var h = parseInt(hh, 10)
+                var display = (h === 0 ? '12' : (h > 12 ? h - 12 : h)) + ':' + mm + ' ' + (h < 12 ? 'AM' : h === 12 && parseInt(mm, 10) === 0 ? 'NN' : 'PM')
+                html += '<button type="button" class="rec-book-time-opt px-3 py-1.5 rounded-lg border text-[0.7rem] font-medium border-slate-200 bg-white text-slate-700 hover:border-green-300 hover:bg-green-50" data-time="' + timeVal + '">' + display + '</button>'
+            }
+            recBookTimeOptions.innerHTML = html || '<span class="text-[0.72rem] text-slate-400">No time slots available.</span>'
+        }
+
+        // Time option clicked
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.rec-book-time-opt')
+            if (!btn) return
+            document.querySelectorAll('.rec-book-time-opt').forEach(function (b) {
+                b.classList.remove('border-green-500', 'bg-green-50', 'text-green-700')
+                b.classList.add('border-slate-200', 'bg-white', 'text-slate-700')
+            })
+            btn.classList.remove('border-slate-200', 'bg-white', 'text-slate-700')
+            btn.classList.add('border-green-500', 'bg-green-50', 'text-green-700')
+            recBookSelectedTime = btn.getAttribute('data-time')
+            if (recBookConfirmSlotBtn) recBookConfirmSlotBtn.disabled = false
+        })
+
+        // Confirm slot button → confirmAction with 3s delay
+        if (recBookConfirmSlotBtn) {
+            recBookConfirmSlotBtn.addEventListener('click', function () {
+                if (!recBookSelectedDate || !recBookSelectedTime || !recBookPendingDoctorId) return
+                if (recBookDocPickerOverlay) { recBookDocPickerOverlay.classList.add('hidden'); recBookDocPickerOverlay.classList.remove('flex') }
+                var dateTimeStr = recBookSelectedDate + 'T' + recBookSelectedTime + ':00'
+                var activeDoctor = recBookCurrentDoctor
+                if (recBookPendingDoctorChanged && typeof doctors !== 'undefined' && Array.isArray(doctors)) {
+                    for (var _di3 = 0; _di3 < doctors.length; _di3++) {
+                        if (String(doctors[_di3].user_id) === String(recBookPendingDoctorId)) {
+                            activeDoctor = doctors[_di3]
+                            break
+                        }
+                    }
+                }
+                var docName = activeDoctor ? doctorDisplayName(activeDoctor) : 'selected'
+                var msg = 'Change appointment to <strong>' + escapeHtml(docName) + '</strong> on ' + recBookSelectedDate + ' at ' + recBookSelectedTime + '?'
+                confirmAction(msg, { okText: 'Confirm', delayMs: 3000 })
+                    .then(function (confirmed) {
+                        if (!confirmed) {
+                            recBookPendingDoctorId = null
+                            recBookSelectedDate = null
+                            recBookSelectedTime = null
+                            return
+                        }
+                        recBookDoChangeAppointment(dateTimeStr)
+                    })
+            })
+        }
+
+        // Reset picker state when closed
+        function recBookResetPicker() {
+            recBookPendingDoctorId = null
+            recBookPendingAppointmentId = null
+            recBookCurrentDoctor = null
+            recBookPendingDoctorChanged = false
+            recBookSelectedDate = null
+            recBookSelectedTime = null
+            if (recBookDoctorListWrap) recBookDoctorListWrap.classList.add('hidden')
+            if (recBookToggleDoctorCaret) recBookToggleDoctorCaret.textContent = '\u25BC'
+            if (recBookDocPickerSubtitle) recBookDocPickerSubtitle.textContent = 'Select a new date and time.'
+            if (recBookCurrentDoctorLabel) recBookCurrentDoctorLabel.textContent = ''
+            if (recBookDateOptions) recBookDateOptions.innerHTML = ''
+            if (recBookTimeOptions) recBookTimeOptions.innerHTML = ''
+            if (recBookConfirmSlotBtn) recBookConfirmSlotBtn.disabled = true
+        }
+
+        // Patch close/reset handlers
+        if (recBookDocPickerClose) {
+            recBookDocPickerClose.addEventListener('click', function () { recBookResetPicker(); if (recBookDocPickerOverlay) { recBookDocPickerOverlay.classList.add('hidden'); recBookDocPickerOverlay.classList.remove('flex') } })
+        }
+        if (recBookDocPickerOverlay) {
+            recBookDocPickerOverlay.addEventListener('click', function (e) {
+                if (e.target === recBookDocPickerOverlay) { recBookResetPicker(); recBookDocPickerOverlay.classList.add('hidden'); recBookDocPickerOverlay.classList.remove('flex') }
+            })
+        }
+
+        // Confirm change → API call
+        function recBookDoChangeAppointment(dateTimeStr) {
+            if (!recBookPendingAppointmentId || !recBookPendingDoctorId) return
             if (typeof apiFetch !== 'function') {
                 if (typeof showToast === 'function') showToast('API client unavailable.', 'error')
                 return
             }
+            var payload = {}
+            if (recBookPendingDoctorChanged) {
+                payload.doctor_id = parseInt(recBookPendingDoctorId, 10)
+            }
+            if (dateTimeStr) payload.appointment_datetime = dateTimeStr
             apiFetch("{{ url('/api/appointments') }}/" + encodeURIComponent(recBookPendingAppointmentId), {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ doctor_id: parseInt(recBookPendingDoctorId, 10) })
+                body: JSON.stringify(payload)
             })
             .then(function (response) {
-                return response.json().then(function (d) { return { ok: response.ok, status: response.status, data: d } }).catch(function () { return { ok: response.ok, status: response.status, data: null } })
+                return readResponse(response)
             })
             .then(function (result) {
                 if (!result.ok) {
-                    var msg = (result.data && result.data.message) ? result.data.message : 'Failed to change doctor.'
+                    var msg = (result.data && result.data.message) ? result.data.message : 'Failed to update appointment.'
                     if (typeof showToast === 'function') showToast(msg, 'error')
                     return
                 }
-                if (typeof showToast === 'function') showToast('Doctor changed successfully.', 'success')
+                if (typeof showToast === 'function') showToast('Appointment updated successfully.', 'success')
+                recBookPendingAppointmentId = null
+                recBookPendingDoctorId = null
+                recBookCurrentDoctor = null
+                recBookPendingDoctorChanged = false
+                recBookSelectedDate = null
+                recBookSelectedTime = null
                 if (typeof loadManageAppointments === 'function') loadManageAppointments()
+                if (manageHistoryPatientId && typeof loadManagePatientHistory === 'function') loadManagePatientHistory(manageHistoryPatientId)
             })
             .catch(function () {
-                if (typeof showToast === 'function') showToast('Network error while changing doctor.', 'error')
+                if (typeof showToast === 'function') showToast('Network error while updating appointment.', 'error')
             })
         }
 
@@ -3932,3 +4259,4 @@ function updateManageTodayButton() {
         }
     })
 </script>
+</div>

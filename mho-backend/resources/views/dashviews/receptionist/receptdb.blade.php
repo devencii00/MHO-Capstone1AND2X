@@ -175,7 +175,7 @@
                             </option>
                         @endforeach
                     </select>
-                    <button type="button" id="receptionNextQueueNextBtn" class="inline-flex   items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 text-white text-[0.72rem] font-semibold hover:bg-slate-700 transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none">
+                    <button type="button" id="receptionNextQueueNextBtn" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-600 text-white text-[0.65rem] font-semibold hover:bg-green-700 transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none whitespace-nowrap">
                         <span id="receptionNextQueueNextSpinner" class="hidden w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
                         <x-lucide-megaphone class="w-3.5 h-3.5" />
                         <span id="receptionNextQueueNextLabel">Call next</span>
@@ -185,8 +185,8 @@
 
             <div id="receptionNextQueueInlineMessage" class="hidden mt-3 rounded-lg border px-3 py-2 text-[0.7rem]"></div>
 
-            <div class="mt-3 flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50">
-                <ul id="receptionNextQueue" class="space-y-2">
+            <div class="mt-2 flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50 pt-1">
+                <ul id="receptionNextQueue" class="space-y-1">
                     <li class="text-center text-[0.7rem] text-slate-400 py-4">No patients in queue</li>
                 </ul>
             </div>
@@ -212,8 +212,8 @@
                 </div>
             </div>
 
-            <div class="mt-3 flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50">
-                <ul id="receptionNextAppointments" class="space-y-2">
+            <div class="mt-2 flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50 pt-1">
+                <ul id="receptionNextAppointments" class="space-y-1.5">
                     <li class="text-center text-[0.7rem] text-slate-400 py-4">No appointments scheduled</li>
                 </ul>
             </div>
@@ -308,7 +308,7 @@
                     var today = isoDate(now)
 
                     var queueSnapshotUrl = "{{ route('queue.display.data') }}" + '?date=' + encodeURIComponent(today)
-                    var apptsUrl = "{{ url('/api/appointments') }}" + '?start_date=' + encodeURIComponent(today) + '&end_date=' + encodeURIComponent(today) + '&status=confirmed&per_page=15'
+                    var apptsUrl = "{{ url('/api/appointments') }}" + '?start_date=' + encodeURIComponent(today) + '&end_date=' + encodeURIComponent(today) + '&status=confirmed&per_page=10'
 
                     Promise.all([
                         apiFetch(queueSnapshotUrl, { method: 'GET' }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d } }).catch(function () { return { ok: r.ok, data: null } }) }).catch(function () { return { ok: false, data: null } }),
@@ -336,15 +336,18 @@
                                 }).slice(0, 5)
 
                                 if (!upcoming.length) {
-                                    nextApptsList.innerHTML = '<li class="text-[0.78rem] text-slate-500">No upcoming appointments.</li>'
+                                    nextApptsList.innerHTML = '<li class="text-[0.72rem] text-slate-400">No upcoming appointments.</li>'
                                 } else {
                                     nextApptsList.innerHTML = upcoming.map(function (x) {
                                         var patient = x.row && x.row.patient ? nameForUser(x.row.patient) : 'Patient'
                                         var doctor = x.row && x.row.doctor ? nameForUser(x.row.doctor) : 'Doctor'
                                         var t = formatTime(x.dt)
-                                        return '<li class="flex items-start justify-between gap-3">' +
-                                            '<div class="text-slate-700"><span class="font-semibold">' + escapeHtml(t) + '</span> ' + escapeHtml(patient) + '</div>' +
-                                            '<div class="text-[0.72rem] text-slate-500 whitespace-nowrap">' + escapeHtml(doctor) + '</div>' +
+                                        return '<li class="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-lg bg-white border border-slate-100 shadow-sm">' +
+                                            '<div class="flex items-center gap-2.5 min-w-0">' +
+                                                '<span class="text-[0.72rem] font-semibold text-green-700 flex-shrink-0">' + escapeHtml(t) + '</span>' +
+                                                '<span class="text-[0.72rem] text-slate-700 font-medium truncate">' + escapeHtml(patient) + '</span>' +
+                                            '</div>' +
+                                            '<span class="text-[0.65rem] text-slate-400 flex-shrink-0">' + escapeHtml(doctor) + '</span>' +
                                         '</li>'
                                     }).join('')
                                 }
@@ -379,49 +382,47 @@
                                 })
 
                                 var html = ''
-                               const labels = nowServingLabels.length 
-    ? nowServingLabels.map(label => `<span class="bg-slate-100 px-2 py-0.5 rounded text-slate-800">${escapeHtml(label)}</span>`).join(' ')
-    : '<span class="text-slate-400">-</span>';
-
-html += `
-<li class="text-[0.78rem] flex items-start gap-2 py-2">
-    <span class="font-semibold text-slate-700 mt-0.5">Now serving:</span>
-    <div class="flex flex-wrap gap-1">
-        ${labels}
+                                html += `
+<li class="space-y-3 pt-1">
+    <div>
+        <div class="text-[0.65rem] font-semibold text-slate-500 uppercase tracking-wider mb-2.5">Now serving</div>
+        ${nowServingLabels.length 
+            ? nowServingLabels.map(label => `
+        <div class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-100 mb-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0"></span>
+            <span class="text-[0.72rem] text-emerald-800 font-medium">${escapeHtml(label)}</span>
+        </div>`).join('')
+            : '<div class="text-[0.72rem] text-slate-400 py-1.5">-</div>'
+        }
     </div>
 </li>`;
 
 if (!next.length) {
-    html += '<li class="text-[0.78rem] text-slate-500 py-2">No one waiting.</li>';
+    html += '<li class="text-[0.72rem] text-slate-400 pt-2">No one waiting.</li>';
 } else {
-    // Start the container with the single header
     html += `
-    <li class="flex items-start gap-2 py-2 border-t border-slate-50 mt-1">
-        <span class="text-[0.78rem] font-semibold text-slate-700 mt-1 shrink-0">Next in line:</span>
-        <div class="flex flex-col gap-2 w-full">
-            ${next.map(function (q) {
-                var nm = q && q.patient && q.patient.name ? String(q.patient.name) : 'Patient';
-                var qn = queueLabel(q);
-                var doctorName = q && q.doctor && q.doctor.name ? String(q.doctor.name) : 'Doctor';
-                var estLabel = waitLabel(q && q.estimated_wait_minutes != null ? q.estimated_wait_minutes : null);
-                estLabel = estLabel
-                    ? `<span class="text-slate-400 text-[0.7rem] block mt-0.5">${escapeHtml(estLabel)}</span>`
-                    : '';
-
-                return `
-                <div class="text-[0.78rem] leading-tight">
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="text-slate-700 px-1.5 py-0.5 rounded font-medium border border-indigo-100 text-[0.7rem]">
-                            #${escapeHtml(qn)}
-                        </span>
-                        <span class="text-slate-800 font-medium">${escapeHtml(nm)}</span>
-                        <span class="text-slate-400">- ${escapeHtml(doctorName)}</span>
-                    </div>
-                    ${estLabel}
-                </div>`;
-            }).join('')}
-        </div>
-    </li>`;
+<li class="space-y-2 pt-3">
+    <div class="text-[0.65rem] font-semibold text-slate-500 uppercase tracking-wider mb-2">Next in line</div>
+    <div class="space-y-1.5">
+        ${next.map(function (q) {
+            var nm = q && q.patient && q.patient.name ? String(q.patient.name) : 'Patient';
+            var qn = queueLabel(q);
+            var doctorName = q && q.doctor && q.doctor.name ? String(q.doctor.name) : 'Doctor';
+            var estLabel = waitLabel(q && q.estimated_wait_minutes != null ? q.estimated_wait_minutes : null);
+            return `
+        <div class="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-lg bg-white border border-slate-100 shadow-sm">
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[0.6rem] font-bold border border-indigo-100 text-indigo-700 bg-indigo-50 flex-shrink-0">
+                    #${escapeHtml(qn)}
+                </span>
+                <span class="text-[0.72rem] text-slate-700 font-medium truncate">${escapeHtml(nm)}</span>
+                <span class="text-[0.65rem] text-slate-400 hidden sm:inline">— ${escapeHtml(doctorName)}</span>
+            </div>
+            ${estLabel ? `<span class="text-[0.6rem] text-slate-400 flex-shrink-0">${escapeHtml(estLabel)}</span>` : ''}
+        </div>`;
+        }).join('')}
+    </div>
+</li>`;
 }
 
 
@@ -509,31 +510,32 @@ if (!next.length) {
                     })
                 }
 
-                // ── Today's Transactions with Pagination ──
+                // ── Today's Transactions with Server-side Pagination ──
                 var txTableBody = document.getElementById('receptionTodaysTransactionsTableBody')
                 var transactions = []
                 var txPerPage = 10
                 var txCurrentPage = 1
-                var txFiltered = []
                 var txVisibleCount = 6
+                var txLastPage = 1
+                var txTotal = 0
 
                 function renderTxPagination() {
                     var pagination = document.getElementById('receptionTransactionsPagination')
                     if (!pagination) return
-                    var total = txFiltered.length
-                    if (total === 0) {
+                    if (txTotal === 0) {
                         pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
                         return
                     }
-                    var totalPages = Math.ceil(total / txPerPage)
+                    var totalPages = txLastPage
                     var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border '
                     var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer'
                     var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default'
                     var btnActive = btnBase + 'bg-green-600 text-white border-green-600'
-                    var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+                    var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + txTotal + ' entries</span>'
                     html += '<button type="button" class="' + (txCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (txCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
-                    var windowStart = txCurrentPage
+                    var windowStart = Math.max(1, txCurrentPage - Math.floor(txVisibleCount / 2))
                     var windowEnd = Math.min(windowStart + txVisibleCount - 1, totalPages)
+                    if (windowEnd - windowStart + 1 < txVisibleCount) windowStart = Math.max(1, windowEnd - txVisibleCount + 1)
                     for (var i = windowStart; i <= windowEnd; i++) {
                         html += '<button type="button" class="' + (i === txCurrentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
                     }
@@ -545,34 +547,28 @@ if (!next.length) {
                     pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
                         btn.addEventListener('click', function () {
                             var p = btn.getAttribute('data-page')
-                            if (p === 'prev' && txCurrentPage > 1) { txCurrentPage--; renderTransactions() }
-                            else if (p === 'next' && txCurrentPage < totalPages) { txCurrentPage++; renderTransactions() }
+                            if (p === 'prev' && txCurrentPage > 1) { txCurrentPage--; loadTransactions() }
+                            else if (p === 'next' && txCurrentPage < totalPages) { txCurrentPage++; loadTransactions() }
                             else if (p === 'next-window') {
                                 var nextStart = Math.min(windowEnd + 1, totalPages)
                                 txCurrentPage = nextStart
-                                renderTransactions()
+                                loadTransactions()
                             }
-                            else if (p !== 'prev' && p !== 'next') { txCurrentPage = parseInt(p, 10); renderTransactions() }
+                            else if (p !== 'prev' && p !== 'next') { txCurrentPage = parseInt(p, 10); loadTransactions() }
                         })
                     })
                 }
 
                 function renderTransactions() {
                     if (!txTableBody) return
-                    txFiltered = transactions.slice()
-                    if (!txFiltered.length) {
+                    if (!transactions.length) {
                         txTableBody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-slate-400">No transactions recorded today.</td></tr>'
                         renderTxPagination()
                         return
                     }
-                    var totalPages = Math.ceil(txFiltered.length / txPerPage)
-                    if (txCurrentPage > totalPages) txCurrentPage = totalPages
-                    var start = (txCurrentPage - 1) * txPerPage
-                    var end = Math.min(start + txPerPage, txFiltered.length)
-                    var pageSlice = txFiltered.slice(start, end)
 
                     var html = ''
-                    pageSlice.forEach(function (tx) {
+                    transactions.forEach(function (tx) {
                         var dateStr = txDatePart(tx)
                         var ref = tx.transaction_reference || tx.reference_number || tx.invoice_number || '-'
                         var patient = txPatientName(tx)
@@ -618,14 +614,15 @@ if (!next.length) {
                     return names.join(', ')
                 }
 
-                function loadTransactions() {
+                function loadTransactions(page) {
                     if (typeof apiFetch !== 'function') return
+                    page = page || txCurrentPage
                     var now = new Date()
                     var yyyy = now.getFullYear()
                     var mm = String(now.getMonth() + 1).padStart(2, '0')
                     var dd = String(now.getDate()).padStart(2, '0')
                     var today = yyyy + '-' + mm + '-' + dd
-                    var url = "{{ url('/api/transactions') }}" + '?per_page=15&start_date=' + encodeURIComponent(today) + '&end_date=' + encodeURIComponent(today)
+                    var url = "{{ url('/api/transactions') }}" + '?per_page=10&page=' + page + '&start_date=' + encodeURIComponent(today) + '&end_date=' + encodeURIComponent(today)
 
                     apiFetch(url, { method: 'GET' })
                         .then(function (response) {
@@ -637,7 +634,9 @@ if (!next.length) {
                                 return
                             }
                             transactions = Array.isArray(result.data.data) ? result.data.data.slice() : (Array.isArray(result.data) ? result.data.slice() : [])
-                            txCurrentPage = 1
+                            txCurrentPage = result.data.current_page || page
+                            txLastPage = result.data.last_page || 1
+                            txTotal = result.data.total || transactions.length
                             renderTransactions()
                         })
                         .catch(function () {
@@ -645,7 +644,7 @@ if (!next.length) {
                         })
                 }
 
-                loadTransactions()
+                loadTransactions(1)
 
                 load()
 

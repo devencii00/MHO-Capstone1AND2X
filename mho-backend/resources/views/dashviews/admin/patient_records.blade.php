@@ -330,8 +330,8 @@
         var sortSelect = document.getElementById('admin_pr_sort')
         var patientsTableBody = document.getElementById('admin_pr_patients_table_body')
         var pagination = document.getElementById('adminPrPagination')
-        var patientsRows = []
-        var perPage = 15
+        var patientRows = []
+        var patientMeta = { current_page: 1, last_page: 1, total: 0, per_page: 15 }
         var currentPage = 1
         var visibleCount = 6
 
@@ -423,10 +423,6 @@
         var activeDependentVisitRows = null
         var activeDependentVitalRows = null
         var activeDependentVerification = null
-
-        function getPatientTableRows() {
-            return document.querySelectorAll('#admin_pr_patients_table_body .admin-pr-patient-row')
-        }
 
         function escapeHtml(text) {
             return String(text || '')
@@ -792,16 +788,16 @@
             var updatedId = String(updatedPatient.user_id)
             var merged = updatedPatient
             var found = false
-            for (var i = 0; i < patientsRows.length; i++) {
-                if (patientsRows[i] && String(patientsRows[i].user_id) === updatedId) {
-                    merged = Object.assign({}, patientsRows[i], updatedPatient)
-                    patientsRows[i] = merged
+            for (var i = 0; i < patientRows.length; i++) {
+                if (patientRows[i] && String(patientRows[i].user_id) === updatedId) {
+                    merged = Object.assign({}, patientRows[i], updatedPatient)
+                    patientRows[i] = merged
                     found = true
                     break
                 }
             }
             if (!found) {
-                patientsRows.push(updatedPatient)
+                patientRows.push(updatedPatient)
                 merged = updatedPatient
             }
 
@@ -1255,30 +1251,15 @@
             renderTabDrawerContent(key)
         }
 
-        function showPage(page) {
-            var rows = getPatientTableRows()
-            var total = rows.length
-            if (!total || !pagination) return
-            var totalPages = Math.ceil(total / perPage)
-            if (page < 1 || page > totalPages) return
-            currentPage = page
-            var start = (page - 1) * perPage
-            var end = Math.min(start + perPage, total)
-            rows.forEach(function (row, index) {
-                row.style.display = (index >= start && index < end) ? '' : 'none'
-            })
-            renderPagination()
-        }
-
         function renderPagination() {
             if (!pagination) return
-            var rows = getPatientTableRows()
-            var total = rows.length
+            var total = patientMeta.total
+            var totalPages = patientMeta.last_page
             if (total === 0) {
                 pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
                 return
             }
-            var totalPages = Math.ceil(total / perPage)
+            currentPage = patientMeta.current_page
             var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border '
             var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer'
             var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default'
@@ -1299,20 +1280,30 @@
             pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var page = btn.getAttribute('data-page')
-                    if (page === 'prev' && currentPage > 1) showPage(currentPage - 1)
-                    else if (page === 'next' && currentPage < totalPages) showPage(currentPage + 1)
-                    else if (page === 'next-window') showPage(Math.min(windowEnd + 1, totalPages))
-                    else if (page !== 'prev' && page !== 'next') showPage(parseInt(page, 10))
+                    if (page === 'prev' && currentPage > 1) loadPatients(currentPage - 1)
+                    else if (page === 'next' && currentPage < totalPages) loadPatients(currentPage + 1)
+                    else if (page === 'next-window') {
+                        var nextStart = Math.min(windowEnd + 1, totalPages)
+                        loadPatients(nextStart)
+                    }
+                    else if (page !== 'prev' && page !== 'next') loadPatients(parseInt(page, 10))
                 })
             })
         }
 
-        function loadPatients() {
+        function loadPatients(page) {
             if (!patientsTableBody) return
             patientsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading patients…</td></tr>'
             showInlineBox(patientsError, '')
+            page = page || 1
 
-            apiFetch(apiBaseUrl + "/patients?per_page=15", { method: 'GET' })
+            var query = patientsSearch ? String(patientsSearch.value || '').trim() : ''
+            var sortValue = sortSelect ? String(sortSelect.value || 'created_desc') : 'created_desc'
+            var params = 'per_page=10&page=' + page
+            if (query) params += '&search=' + encodeURIComponent(query)
+            if (activeAgeFilter !== 'all') params += '&age_filter=' + encodeURIComponent(activeAgeFilter)
+            params += '&order_by=' + encodeURIComponent(sortValue)
+            apiFetch(apiBaseUrl + "/patients?" + params, { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -1322,16 +1313,24 @@
                 })
                 .then(function (result) {
                     if (!result.ok || !result.data) {
-                        patientsRows = []
+                        patientRows = []
+                        patientMeta = { current_page: 1, last_page: 1, total: 0, per_page: 10 }
                         showInlineBox(patientsError, 'Failed to load patients.')
                         renderPatients()
                         return
                     }
-                    patientsRows = Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    patientRows = Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    patientMeta = {
+                        current_page: result.data.current_page || 1,
+                        last_page: result.data.last_page || 1,
+                        total: result.data.total || 0,
+                        per_page: result.data.per_page || 10
+                    }
                     renderPatients()
                 })
                 .catch(function () {
-                    patientsRows = []
+                    patientRows = []
+                    patientMeta = { current_page: 1, last_page: 1, total: 0, per_page: 10 }
                     showInlineBox(patientsError, 'Failed to load patients.')
                     renderPatients()
                 })
@@ -1339,70 +1338,16 @@
 
         function renderPatients() {
             if (!patientsTableBody) return
-            var query = patientsSearch ? String(patientsSearch.value || '').toLowerCase().trim() : ''
-            var sortValue = sortSelect ? String(sortSelect.value || 'name_asc') : 'name_asc'
-            var base = (patientsRows || []).slice()
+            var base = (patientRows || []).slice()
 
-            if (query) {
-                base = base.filter(function (patient) {
-                    var name = nameOnly(patient).toLowerCase()
-                    return name !== '' && name.indexOf(query) === 0
-                })
-            }
-
-            var counts = { all: 0, '1_5': 0, '6_12': 0, '13_18': 0, '19_30': 0, '31_up': 0 }
-            base.forEach(function (patient) {
-                var age = ageFromBirthdate(patient && patient.birthdate ? String(patient.birthdate) : null)
-                counts.all++
-                if (matchesAgeFilter(age, '1_5')) counts['1_5']++
-                if (matchesAgeFilter(age, '6_12')) counts['6_12']++
-                if (matchesAgeFilter(age, '13_18')) counts['13_18']++
-                if (matchesAgeFilter(age, '19_30')) counts['19_30']++
-                if (matchesAgeFilter(age, '31_up')) counts['31_up']++
-            })
-
-            setText(ageCountAll, counts.all)
-            setText(ageCount1_5, counts['1_5'])
-            setText(ageCount6_12, counts['6_12'])
-            setText(ageCount13_18, counts['13_18'])
-            setText(ageCount19_30, counts['19_30'])
-            setText(ageCount31Up, counts['31_up'])
-
-            var filtered = base.filter(function (patient) {
-                var age = ageFromBirthdate(patient && patient.birthdate ? String(patient.birthdate) : null)
-                return matchesAgeFilter(age, activeAgeFilter)
-            })
-
-            filtered.sort(function (a, b) {
-                if (sortValue === 'created_asc' || sortValue === 'created_desc') {
-                    var ta = a && a.created_at ? Date.parse(String(a.created_at)) : 0
-                    var tb = b && b.created_at ? Date.parse(String(b.created_at)) : 0
-                    if (isNaN(ta)) ta = 0
-                    if (isNaN(tb)) tb = 0
-                    if (ta < tb) return sortValue === 'created_asc' ? -1 : 1
-                    if (ta > tb) return sortValue === 'created_asc' ? 1 : -1
-                    return 0
-                }
-
-                var na = nameOnly(a).toLowerCase()
-                var nb = nameOnly(b).toLowerCase()
-                if (na < nb) return -1
-                if (na > nb) return 1
-                var ia = a && a.user_id != null ? parseInt(a.user_id, 10) : 0
-                var ib = b && b.user_id != null ? parseInt(b.user_id, 10) : 0
-                if (ia < ib) return -1
-                if (ia > ib) return 1
-                return 0
-            })
-
-            if (!filtered.length) {
+            if (!base.length) {
                 patientsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No patients found.</td></tr>'
                 renderPagination()
                 return
             }
 
             var html = ''
-            filtered.forEach(function (patient) {
+            base.forEach(function (patient) {
                 var patientId = patient && patient.user_id != null ? String(patient.user_id) : ''
                 var name = fullName(patient, 'Patient')
                 var address = patient && patient.address ? String(patient.address) : ''
@@ -1428,16 +1373,13 @@
                 '</tr>'
             })
             patientsTableBody.innerHTML = html
-
-            var totalPages = Math.ceil(filtered.length / perPage)
-            if (currentPage > totalPages) currentPage = totalPages
-            showPage(currentPage || 1)
+            renderPagination()
         }
 
         function findPatientById(patientId) {
             var value = String(patientId || '')
-            for (var i = 0; i < (patientsRows || []).length; i++) {
-                if (patientsRows[i] && String(patientsRows[i].user_id) === value) return patientsRows[i]
+            for (var i = 0; i < (patientRows || []).length; i++) {
+                if (patientRows[i] && String(patientRows[i].user_id) === value) return patientRows[i]
             }
             return null
         }
@@ -1597,7 +1539,7 @@
 
         function searchAndRender() {
             currentPage = 1
-            renderPatients()
+            loadPatients(1)
         }
 
         if (patientsSearch) patientsSearch.addEventListener('input', searchAndRender)
@@ -1783,7 +1725,7 @@
                     activeAgeFilter = this.getAttribute('data-age-filter') || 'all'
                     setAgeFilterActiveStyles()
                     currentPage = 1
-                    renderPatients()
+                    loadPatients(1)
                 })
             })
         }
@@ -1817,11 +1759,11 @@
         setAgeFilterActiveStyles()
         syncTabButtonState()
         closePanel()
-        loadPatients()
+        loadPatients(1)
 
         var prRefreshBtn = document.getElementById('adminPrRefreshBtn')
         if (prRefreshBtn) {
-            prRefreshBtn.addEventListener('click', function () { loadPatients() })
+            prRefreshBtn.addEventListener('click', function () { loadPatients(1) })
         }
     })
 </script>

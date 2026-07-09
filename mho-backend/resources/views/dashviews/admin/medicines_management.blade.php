@@ -198,20 +198,19 @@
 
         var medicines = []
         var editingId = null
-        var medPerPage = 10
         var medCurrentPage = 1
-        var medFiltered = []
+        var medMeta = { current_page: 1, last_page: 1, total: 0 }
 
         var medVisibleCount = 6;
         function renderMedPagination() {
             var pagination = document.getElementById('adminMedPagination')
             if (!pagination) return
-            var total = medFiltered.length
+            var total = medMeta.total
+            var totalPages = medMeta.last_page
             if (total === 0) {
                 pagination.innerHTML = '<span class="text-[0.7rem] text-slate-300">No entries</span>'
                 return
             }
-            var totalPages = Math.ceil(total / medPerPage)
             var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border ';
             var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer';
             var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default';
@@ -231,14 +230,13 @@
             pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var p = btn.getAttribute('data-page')
-                    if (p === 'prev' && medCurrentPage > 1) { medCurrentPage--; renderMedicines() }
-                    else if (p === 'next' && medCurrentPage < totalPages) { medCurrentPage++; renderMedicines() }
+                    if (p === 'prev' && medCurrentPage > 1) { loadMedicines(medCurrentPage - 1) }
+                    else if (p === 'next' && medCurrentPage < totalPages) { loadMedicines(medCurrentPage + 1) }
                     else if (p === 'next-window') {
                         var nextStart = Math.min(windowEnd + 1, totalPages);
-                        medCurrentPage = nextStart;
-                        renderMedicines();
+                        loadMedicines(nextStart);
                     }
-                    else if (p !== 'prev' && p !== 'next') { medCurrentPage = parseInt(p, 10); renderMedicines() }
+                    else if (p !== 'prev' && p !== 'next') { loadMedicines(parseInt(p, 10)) }
                 })
             })
         }
@@ -488,10 +486,12 @@
             setSaving(false)
         }
 
-        function loadMedicines() {
+        function loadMedicines(page) {
             if (!tableBody) return
             tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading medicines…</td></tr>'
-            apiFetch("{{ url('/api/medicines') }}?per_page=15", { method: 'GET' })
+            page = page || 1
+            medCurrentPage = page
+            apiFetch("{{ url('/api/medicines') }}?per_page=10&page=" + page, { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -501,15 +501,22 @@
                     if (!result.ok) {
                         showError('Failed to load medicines.')
                         medicines = []
+                        medMeta = { current_page: 1, last_page: 1, total: 0 }
                         renderMedicines()
                         return
                     }
                     medicines = Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    medMeta = {
+                        current_page: result.data.current_page || 1,
+                        last_page: result.data.last_page || 1,
+                        total: result.data.total || 0
+                    }
                     renderMedicines()
                 })
                 .catch(function () {
                     showError('Network error while loading medicines.')
                     medicines = []
+                    medMeta = { current_page: 1, last_page: 1, total: 0 }
                     renderMedicines()
                 })
         }
@@ -549,22 +556,14 @@
                 return 0
             })
 
-            medFiltered = filtered
-
             if (!filtered.length) {
                 tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No medicines found.</td></tr>'
                 renderMedPagination()
                 return
             }
 
-            var totalPages = Math.ceil(filtered.length / medPerPage)
-            if (medCurrentPage > totalPages) medCurrentPage = totalPages
-            var start = (medCurrentPage - 1) * medPerPage
-            var end = Math.min(start + medPerPage, filtered.length)
-            var pageSlice = filtered.slice(start, end)
-
             var html = ''
-            pageSlice.forEach(function (m) {
+            filtered.forEach(function (m) {
                 var active = !!m.is_active
                 var badge = active
                     ? '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border bg-emerald-50 text-emerald-700 border-emerald-100">Active</span>'
@@ -672,7 +671,7 @@
                     } else {
                         showSuccess('Medicine updated successfully.')
                     }
-                    loadMedicines()
+                    loadMedicines(medCurrentPage)
                     return true
                 })
                 .catch(function () {
@@ -760,7 +759,7 @@
                                     }
                                     showSuccess('Medicine added successfully.')
                                     resetForm()
-                                    loadMedicines()
+                                    loadMedicines(1)
                                 })
                                 .catch(function () {
                                     showError('Network error while saving medicine.')
@@ -782,17 +781,22 @@
             })
         }
 
+        function reloadMeds() {
+            medCurrentPage = 1
+            loadMedicines(1)
+        }
+
         if (searchInput) {
-            searchInput.addEventListener('input', renderMedicines)
+            searchInput.addEventListener('input', reloadMeds)
         }
         if (activeFilter) {
-            activeFilter.addEventListener('change', renderMedicines)
+            activeFilter.addEventListener('change', reloadMeds)
         }
         if (sortSelect) {
-            sortSelect.addEventListener('change', renderMedicines)
+            sortSelect.addEventListener('change', reloadMeds)
         }
 
         resetForm()
-        loadMedicines()
+        loadMedicines(1)
     })
 </script>

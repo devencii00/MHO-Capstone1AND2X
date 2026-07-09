@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!rows.length || !pagination) return;
 
-    var perPage = 15;
+    var perPage = 10;
     var total = rows.length;
     var totalPages = Math.ceil(total / perPage);
     var currentPage = 1;

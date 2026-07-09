@@ -32,17 +32,24 @@
 
         function showOverlay() { overlay.classList.remove('hidden'); }
 
+        function revealContent() {
+            var mc = document.getElementById('main-content');
+            if (mc) mc.style.display = '';
+        }
+
         if (typeof window.axios === 'function') {
             window.axios.get("{{ url('/api/user') }}", {
                 headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
             }).then(function (response) {
                 if (response.status !== 200) showOverlay();
+                else revealContent();
             }).catch(showOverlay);
         } else {
             fetch("{{ url('/api/user') }}", {
                 headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
             }).then(function (r) {
                 if (!r.ok) showOverlay();
+                else revealContent();
             }).catch(showOverlay);
         }
     })();
@@ -53,7 +60,7 @@
     <div class="flex-1 flex flex-col min-h-screen">
         <x-header :role="$role" />
 
-        <div id="main-content" class="flex-1 p-8 md:p-5">
+        <div id="main-content" class="flex-1 p-8 md:p-5" style="display:none">
             @php
                 $mapping = [
                     'admin' => 'admindb',

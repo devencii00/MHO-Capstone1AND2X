@@ -119,15 +119,14 @@
 </div>
 
     <div id="receptionWalkInPanelAccount" class="p-5 pt-4">
-    <div id="receptionWalkInAccountFormWrapper" class="rounded-2xl   p-4">
-        <div class="flex items-center justify-between mb-2">
-            <div>
-                <h3 class="text-xs font-semibold text-slate-900">Walk-in with account</h3>
-                <p class="text-[0.72rem] text-slate-500">Create a walk-in (or scheduled) visit for an existing patient.</p>
-            </div>
-            <span class="text-[0.68rem] text-slate-400 uppercase tracking-widest">Account</span>
+        <div class="flex items-center gap-3 px-1 mb-4">
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input id="receptionWalkInGuestToggle" type="checkbox" class="sr-only peer">
+                <div class="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:bg-green-500 peer-focus:ring-2 peer-focus:ring-green-200 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+            </label>
+            <span class="text-xs font-medium text-slate-700">Guest Walk-In</span>
         </div>
-
+    <div id="receptionWalkInAccountFormWrapper" class="rounded-2xl   p-4">
         <div id="receptionWalkInAccountError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
         <div id="receptionWalkInAccountSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
 
@@ -152,7 +151,9 @@
                         Browse
                     </button>
                 </div>
-                <div id="receptionWalkInSelectedServices" class="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.78rem] text-slate-700 max-h-24 overflow-y-auto overscroll-contain"></div>
+                <div id="receptionWalkInSelectedServices" class="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2 min-h-[3rem] max-h-24 overflow-y-auto overscroll-contain">
+                    <span id="receptionWalkInSelectedServicesEmpty" class="text-[0.78rem] text-slate-400">No selected services.</span>
+                </div>
             </div>
             <div class="min-w-0">
                 <label for="reception_walkin_doctor_id" class="block text-[0.7rem] text-slate-600 mb-1">Doctor</label>
@@ -204,23 +205,7 @@
         </form>
     </div>
 
-    <div class="mt-3 flex items-center gap-3 px-1">
-        <label class="relative inline-flex items-center cursor-pointer">
-            <input id="receptionWalkInGuestToggle" type="checkbox" class="sr-only peer">
-            <div class="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:bg-green-500 peer-focus:ring-2 peer-focus:ring-green-200 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
-        </label>
-        <span class="text-xs font-medium text-slate-700">Guest Walk-In</span>
-    </div>
-
-    <div id="receptionWalkInGuestForm" class="hidden mt-3 rounded-2xl border border-slate-100 bg-slate-50 p-4">
-        <div class="flex items-center justify-between mb-2">
-            <div>
-                <h3 class="text-xs font-semibold text-slate-900">Walk-in without account</h3>
-                <p class="text-[0.72rem] text-slate-500">Creates a patient account + walk-in appointment + queue entry.</p>
-            </div>
-            <span class="text-[0.68rem] text-slate-400 uppercase tracking-widest">Guest</span>
-        </div>
-
+    <div id="receptionWalkInGuestForm" class="hidden mt-3 rounded-2xl  p-4">
         <div id="receptionGuestWalkInError" class="hidden mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
         <div id="receptionGuestWalkInSuccess" class="hidden mb-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
         <div id="receptionGuestWalkInCreds" class="hidden mb-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.75rem] text-slate-700"></div>
@@ -581,6 +566,8 @@ function setWalkInTab(tab) {
         var walkinCurrentPage = 1
         var walkinPerPage = 10
         var walkinVisibleCount = 5
+        var walkinLastPage = 1
+        var walkinTotal = 0
 
         function normalizeText(value) {
             return String(value || '').trim().toLowerCase()
@@ -682,13 +669,8 @@ function setWalkInTab(tab) {
                 if (pag) pag.innerHTML = ''
                 return
             }
-            var totalPages = Math.ceil(list.length / walkinPerPage)
-            if (walkinCurrentPage > totalPages) walkinCurrentPage = totalPages
-            var start = (walkinCurrentPage - 1) * walkinPerPage
-            var end = Math.min(start + walkinPerPage, list.length)
-            var pageSlice = list.slice(start, end)
 
-            tableBody.innerHTML = pageSlice.map(function (appt) {
+            tableBody.innerHTML = list.map(function (appt) {
                 var when = safeIsoParts(appt && appt.appointment_datetime ? appt.appointment_datetime : '')
                 var patient = appt && appt.patient ? appt.patient : null
                 var doctor = appt && appt.doctor ? appt.doctor : null
@@ -708,18 +690,19 @@ function setWalkInTab(tab) {
                         '</td>' +
                     '</tr>'
             }).join('')
-            renderWalkinPagination(list.length, totalPages)
+            renderWalkinPagination()
         }
 
-        function renderWalkinPagination(total, totalPages) {
+        function renderWalkinPagination() {
             var pag = document.getElementById('receptionWalkInPagination')
             if (!pag) return
-            if (total === 0) { pag.innerHTML = ''; return }
+            if (walkinTotal === 0) { pag.innerHTML = ''; return }
+            var totalPages = walkinLastPage
             var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border '
             var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer'
             var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default'
             var btnActive = btnBase + 'bg-green-600 text-white border-green-600'
-            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + walkinTotal + ' entries</span>'
             html += '<button type="button" class="' + (walkinCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-walkin-page="prev"' + (walkinCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
             var ws = Math.max(1, walkinCurrentPage - Math.floor(walkinVisibleCount / 2))
             var we = Math.min(ws + walkinVisibleCount - 1, totalPages)
@@ -805,14 +788,15 @@ function setWalkInTab(tab) {
                 })
         }
 
-        function loadHistory() {
+        function loadHistory(page) {
             if (typeof apiFetch !== 'function') return
+            page = page || walkinCurrentPage
             showError('')
             tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading walk-in history…</td></tr>'
             var metaBox = document.getElementById('receptionWalkInHistoryMeta')
             if (metaBox) metaBox.textContent = 'Loading walk-in history…'
 
-            var url = "{{ url('/api/appointments') }}" + '?per_page=15&appointment_type=walk_in'
+            var url = "{{ url('/api/appointments') }}" + '?per_page=10&page=' + page + '&appointment_type=walk_in'
             var order = sortSelect && sortSelect.value === 'oldest' ? 'oldest' : 'latest'
             url += '&order=' + encodeURIComponent(order)
 
@@ -848,59 +832,13 @@ function setWalkInTab(tab) {
 
                     var rows = result.data && Array.isArray(result.data.data) ? result.data.data.slice() : (Array.isArray(result.data) ? result.data.slice() : [])
 
-                    function statusRank(appt) {
-                        var key = normalizeText(appt && appt.status ? appt.status : '')
-                        if (key === 'cancelled') return 3
-                        if (key === 'completed') return 2
-                        if (key === 'no_show') return 1
-                        return 0
-                    }
+                    walkinCurrentPage = result.data.current_page || page
+                    walkinLastPage = result.data.last_page || 1
+                    walkinTotal = result.data.total || rows.length
 
-                    rows.sort(function (a, b) {
-                        var rankA = statusRank(a)
-                        var rankB = statusRank(b)
-                        if (rankA < rankB) return -1
-                        if (rankA > rankB) return 1
-
-                        var dateA = a && a.appointment_datetime ? String(a.appointment_datetime) : ''
-                        var dateB = b && b.appointment_datetime ? String(b.appointment_datetime) : ''
-                        if (order === 'oldest') {
-                            if (dateA < dateB) return -1
-                            if (dateA > dateB) return 1
-                            return 0
-                        }
-                        if (dateA < dateB) return 1
-                        if (dateA > dateB) return -1
-                        return 0
-                    })
-
-                    // Keep only latest appointment per patient
-                    var seen = {}
-                    var latestPerPatient = []
-                    rows.forEach(function (appt) {
-                        var pid = appt && appt.patient && appt.patient.user_id
-                        if (pid == null) { latestPerPatient.push(appt); return }
-                        var existing = seen[pid]
-                        var currentDate = appt && appt.appointment_datetime ? String(appt.appointment_datetime) : ''
-                        var existingDate = existing && existing.appointment_datetime ? String(existing.appointment_datetime) : ''
-                        if (!existing || currentDate > existingDate) {
-                            seen[pid] = appt
-                        }
-                    })
-                    // Put the latest-per-patient entries into an array
-                    var deduped = []
-                    for (var key in seen) {
-                        if (seen.hasOwnProperty(key)) deduped.push(seen[key])
-                    }
-                    // Also include appts without a patient
-                    rows.forEach(function (appt) {
-                        var pid = appt && appt.patient && appt.patient.user_id
-                        if (pid == null) deduped.push(appt)
-                    })
-
-                    renderRows(deduped)
+                    renderRows(rows)
                     var metaBox = document.getElementById('receptionWalkInHistoryMeta')
-                    metaBox.textContent = 'Showing ' + String(deduped.length) + ' walk-in(s) for today.'
+                    metaBox.textContent = 'Showing page ' + walkinCurrentPage + ' of ' + walkinLastPage + ' (' + walkinTotal + ' walk-in(s) for today).'
                 })
                 .catch(function () {
                     showError('Network error while loading walk-in history.')
@@ -1099,6 +1037,7 @@ function setWalkInTab(tab) {
         if (refreshBtn) {
             refreshBtn.addEventListener('click', function (e) {
                 e.preventDefault()
+                walkinCurrentPage = 1
                 loadHistory()
             })
         }
@@ -1107,17 +1046,24 @@ function setWalkInTab(tab) {
             searchInput.addEventListener('input', function () {
                 if (searchTimer) clearTimeout(searchTimer)
                 searchTimer = setTimeout(function () {
+                    walkinCurrentPage = 1
                     loadHistory()
                 }, 250)
             })
         }
 
         if (sortSelect) {
-            sortSelect.addEventListener('change', loadHistory)
+            sortSelect.addEventListener('change', function () {
+                walkinCurrentPage = 1
+                loadHistory()
+            })
         }
 
         if (statusSelect) {
-            statusSelect.addEventListener('change', loadHistory)
+            statusSelect.addEventListener('change', function () {
+                walkinCurrentPage = 1
+                loadHistory()
+            })
         }
 
         if (serviceSearch) {
@@ -1150,6 +1096,7 @@ function setWalkInTab(tab) {
                     return String(item && item.service_id) === String(id)
                 }) || null
                 setServiceSelection(picked)
+                walkinCurrentPage = 1
                 loadHistory()
             })
         }
@@ -2312,6 +2259,11 @@ function setWalkInTab(tab) {
         var slotMinutes = 60
         var patientSearchTimer = null
         var selectedPatient = null
+        var walkInServiceSearchPage = 1
+        var walkInServiceSearchResults = []
+        var walkInServiceSearchHasMore = false
+        var walkInServiceSearchQuery = ''
+        var walkInServiceSearchLoading = false
         var selectedServices = []
         var selectedDoctor = null
         var dateCursorFirstIso = null
@@ -2807,19 +2759,60 @@ function setWalkInTab(tab) {
             return list.slice(0, 12)
         }
 
+        function fetchWalkInServicesPage(query, page) {
+            if (typeof apiFetch !== 'function') return Promise.resolve({ data: [], hasMore: false })
+            var params = 'per_page=15&page=' + page
+            if (query) params += '&search=' + encodeURIComponent(query)
+            return apiFetch("{{ url('/api/services') }}?" + params, { method: 'GET' })
+                .then(function (r) { return readResponse(r) })
+                .then(function (res) {
+                    if (!res.ok) return { data: [], hasMore: false }
+                    var items = Array.isArray(res.data.data) ? res.data.data : []
+                    return {
+                        data: items,
+                        hasMore: (res.data.current_page || 1) < (res.data.last_page || 1)
+                    }
+                })
+                .catch(function () { return { data: [], hasMore: false } })
+        }
+
         function renderSelectorServiceList() {
             if (!selectorListBody) return
-            var list = walkInServiceSourceList()
-            var query = String(selectorSearch ? selectorSearch.value : '').trim()
-            selectorState.items = list
+            var rawQuery = String(selectorSearch ? selectorSearch.value : '').trim()
+            var query = normalizeText(rawQuery)
+            var searchActive = !!query
+
+            if (searchActive) {
+                walkInServiceSearchQuery = rawQuery
+                walkInServiceSearchPage = 1
+                setSelectorLoading('Searching services…')
+                fetchWalkInServicesPage(rawQuery, 1).then(function (result) {
+                    if (selectorState.type !== 'service') return
+                    if (String(selectorSearch ? selectorSearch.value : '').trim() !== rawQuery) return
+                    walkInServiceSearchResults = result.data
+                    walkInServiceSearchHasMore = result.hasMore
+                    buildSelectorServiceList(result.data, rawQuery, result.hasMore)
+                })
+            } else {
+                walkInServiceSearchQuery = ''
+                walkInServiceSearchPage = 1
+                var list = walkInServiceSourceList()
+                walkInServiceSearchResults = list
+                walkInServiceSearchHasMore = false
+                buildSelectorServiceList(list, '', false)
+            }
+        }
+
+        function buildSelectorServiceList(items, query, hasMore) {
+            if (!selectorListBody) return
             if (selectorListLabel) selectorListLabel.textContent = query ? 'Service search results' : 'Latest services'
-            if (!list.length) {
+            if (!items.length) {
                 selectorListBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No services found.</div>'
                 renderSelectorDetail()
                 return
             }
             var html = ''
-            list.forEach(function (service, idx) {
+            items.forEach(function (service, idx) {
                 var isSelected = (selectorState.stagedServices || []).some(function (entry) {
                     return String(entry && entry.service_id) === String(service && service.service_id)
                 })
@@ -2843,7 +2836,11 @@ function setWalkInTab(tab) {
                         '</div>' +
                     '</button>'
             })
+            if (hasMore) {
+                html += '<button type="button" id="walkInServiceLoadMoreBtn" class="w-full text-center py-2.5 mt-1 text-[0.75rem] font-semibold text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg border border-dashed border-slate-200 transition-colors">Load more services</button>'
+            }
             selectorListBody.innerHTML = html
+            selectorState.items = items
             Array.prototype.forEach.call(selectorListBody.querySelectorAll('.reception-selector-service'), function (btn) {
                 btn.addEventListener('click', function () {
                     var idx = parseInt(btn.getAttribute('data-index') || '-1', 10)
@@ -2864,6 +2861,26 @@ function setWalkInTab(tab) {
                     renderSelectorDetail()
                 })
             })
+            var loadMoreBtn = document.getElementById('walkInServiceLoadMoreBtn')
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', function () {
+                    if (walkInServiceSearchLoading) return
+                    walkInServiceSearchLoading = true
+                    walkInServiceSearchPage++
+                    var page = walkInServiceSearchPage
+                    var originalText = loadMoreBtn.textContent
+                    loadMoreBtn.textContent = 'Loading…'
+                    loadMoreBtn.disabled = true
+                    fetchWalkInServicesPage(walkInServiceSearchQuery, page).then(function (result) {
+                        if (result.data.length) {
+                            walkInServiceSearchResults = walkInServiceSearchResults.concat(result.data)
+                        }
+                        walkInServiceSearchHasMore = result.hasMore
+                        walkInServiceSearchLoading = false
+                        buildSelectorServiceList(walkInServiceSearchResults, walkInServiceSearchQuery, walkInServiceSearchHasMore)
+                    })
+                })
+            }
             renderSelectorDetail()
         }
 
@@ -3340,23 +3357,34 @@ function setWalkInTab(tab) {
             var list = Array.isArray(selectedServices) ? selectedServices : []
             syncSelectionTriggers()
             if (!list.length) {
-                selectedServicesEl.innerHTML = '<div class="text-[0.75rem] text-slate-500">No services selected.</div>'
+                var emptyMsg = document.getElementById('receptionWalkInSelectedServicesEmpty')
+                if (emptyMsg) {
+                    selectedServicesEl.innerHTML = ''
+                    emptyMsg.style.display = ''
+                    selectedServicesEl.appendChild(emptyMsg)
+                } else {
+                    selectedServicesEl.innerHTML = '<span id="receptionWalkInSelectedServicesEmpty" class="text-[0.78rem] text-slate-400">No selected services.</span>'
+                }
                 return
             }
 
             selectedServicesEl.innerHTML = list.map(function (s) {
                 var id = parseInt(s && s.service_id != null ? s.service_id : 0, 10)
                 var name = String(s && s.service_name ? s.service_name : '').trim() || 'Service'
-                var meta = []
-                if (s && s.duration_minutes != null) meta.push(String(s.duration_minutes) + ' min')
-                if (s && s.price != null) meta.push('₱' + String(s.price))
+                var fee = s && s.price != null ? '\u20B1' + String(s.price) : ''
+                var time = s && s.duration_minutes != null ? String(s.duration_minutes) + ' min' : ''
+                var desc = s && s.description != null ? String(s.description).trim() : ''
+                var parts = []
+                if (fee) parts.push('<span class="text-emerald-600">' + escapeHtml(fee) + '</span>')
+                if (time) parts.push('<span>' + escapeHtml(time) + '</span>')
+                if (desc) parts.push('<span class="text-slate-500">' + escapeHtml(desc) + '</span>')
                 return '' +
-                    '<div class="flex items-center justify-between gap-2 py-1.5 border-b border-slate-200 last:border-0">' +
-                        '<div class="min-w-0">' +
+                    '<div class="flex items-center gap-2 py-1.5 border-b border-slate-100 last:border-0">' +
+                        '<div class="flex-1 min-w-0">' +
                             '<div class="text-[0.78rem] text-slate-800 font-semibold truncate">' + escapeHtml(name) + '</div>' +
-                            '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || '-') + '</div>' +
+                            (parts.length ? '<div class="text-[0.68rem] text-slate-400">' + parts.join(' <span class="text-slate-300">|</span> ') + '</div>' : '') +
                         '</div>' +
-                        '<button type="button" class="reception-remove-service inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 text-slate-600 hover:bg-white" data-service-id="' + escapeHtml(id) + '">' +
+                        '<button type="button" class="reception-remove-service shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-md border border-slate-200 bg-white text-slate-400 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-colors" data-service-id="' + escapeHtml(id) + '">' +
                             window.receptionWalkInsIconX +
                         '</button>' +
                     '</div>'
@@ -3739,7 +3767,9 @@ function setWalkInTab(tab) {
                     return
                 }
                 if (selectorState.type === 'service') {
-                    renderSelectorServiceList()
+                    selectorState.searchTimer = window.setTimeout(function () {
+                        renderSelectorServiceList()
+                    }, 250)
                     return
                 }
                 if (selectorState.type === 'doctor') {

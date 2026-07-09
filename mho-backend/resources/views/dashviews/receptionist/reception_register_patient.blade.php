@@ -1327,6 +1327,8 @@
         var recPerPage = 10
         var recCurrentPage = 1
         var recVisibleCount = 6
+        var recLastPage = 1
+        var recTotal = 0
 
         var recActiveAgeFilter = 'all'
         var recAgeFilterButtons = Array.prototype.slice.call(document.querySelectorAll('.reception-pr-age-filter'))
@@ -1534,24 +1536,27 @@
         function recIsValidName(value) { var v = String(value || '').trim(); if (v === '') return true; return /^[A-Za-z][A-Za-z\s.'-]*$/.test(v) }
 
    
-        function recLoadPatients() {
+        function recLoadPatients(page) {
             if (!recPatientsTableBody) return
+            page = page || recCurrentPage
             recPatientsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading patients…</td></tr>'
             recShowInlineBox(recPatientsError, '')
-            var url = "{{ url('/api/patients') }}" + '?per_page=15'
+            var url = "{{ url('/api/patients') }}" + '?per_page=10&page=' + page
             apiFetch(url, { method: 'GET' })
                 .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d } }).catch(function () { return { ok: false, data: null } }) })
                 .then(function (r) {
-                    if (!r.ok || !r.data) { recPatientsRows = []; recCurrentPage = 1; recRenderPatientTable(); return }
+                    if (!r.ok || !r.data) { recPatientsRows = []; recCurrentPage = 1; recLastPage = 1; recTotal = 0; recRenderPatientTable(); return }
                     var raw = Array.isArray(r.data.data) ? r.data.data.slice() : (Array.isArray(r.data) ? r.data.slice() : [])
                     recPatientsRows = raw.map(function (p) {
                         return { user_id: p.user_id, firstname: p.firstname || '', middlename: p.middlename || '', lastname: p.lastname || '', birthdate: p.birthdate || '', sex: p.sex || '', address: p.address || '', contact_number: p.contact_number || '', email: p.email || '', account_type: p.account_type || '', verification_status: p.verification_status || '', verification_id: p.verification_id || '', philhealth_number: p.philhealth_number || '', nationality: p.nationality || '', civil_status: p.civil_status || '', occupation: p.occupation || '', emergency_contact: p.emergency_contact || '', emergency_contact_number: p.emergency_contact_number || '', profile_photo_url: p.profile_photo_url || '' }
                     })
-                    recCurrentPage = 1
+                    recCurrentPage = r.data.current_page || page
+                    recLastPage = r.data.last_page || 1
+                    recTotal = r.data.total || raw.length
                     recUpdateAgeCounts()
                     recRenderPatientTable()
                 })
-                .catch(function () { recPatientsRows = []; recCurrentPage = 1; recRenderPatientTable() })
+                .catch(function () { recPatientsRows = []; recCurrentPage = 1; recLastPage = 1; recTotal = 0; recRenderPatientTable() })
         }
 
         function recUpdateAgeCounts() {
@@ -1566,28 +1571,31 @@
             recSetText(recAgeCount13_18, counts['13_18']); recSetText(recAgeCount19_30, counts['19_30']); recSetText(recAgeCount31Up, counts['31_up'])
         }
 
-        function recFilterPatients() {
+        function recFilterPatients(page) {
             if (!recPatientsTableBody) return
+            page = page || 1
             recPatientsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading patients…</td></tr>'
             recShowInlineBox(recPatientsError, '')
             var q = (recPatientsSearch && recPatientsSearch.value ? String(recPatientsSearch.value).trim() : '')
             var sort = (recSortSelect && recSortSelect.value ? String(recSortSelect.value) : '')
-            var url = "{{ url('/api/patients') }}" + '?per_page=15'
+            var url = "{{ url('/api/patients') }}" + '?per_page=10&page=' + page
             if (q) url += '&search=' + encodeURIComponent(q)
             if (sort) url += '&sort=' + encodeURIComponent(sort)
             apiFetch(url, { method: 'GET' })
                 .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d } }).catch(function () { return { ok: false, data: null } }) })
                 .then(function (r) {
-                    if (!r.ok || !r.data) { recPatientsRows = []; recCurrentPage = 1; recRenderPatientTable(); return }
+                    if (!r.ok || !r.data) { recPatientsRows = []; recCurrentPage = 1; recLastPage = 1; recTotal = 0; recRenderPatientTable(); return }
                     var raw = Array.isArray(r.data.data) ? r.data.data.slice() : (Array.isArray(r.data) ? r.data.slice() : [])
                     recPatientsRows = raw.map(function (p) {
                         return { user_id: p.user_id, firstname: p.firstname || '', middlename: p.middlename || '', lastname: p.lastname || '', birthdate: p.birthdate || '', sex: p.sex || '', address: p.address || '', contact_number: p.contact_number || '', email: p.email || '', account_type: p.account_type || '', verification_status: p.verification_status || '', verification_id: p.verification_id || '', philhealth_number: p.philhealth_number || '', nationality: p.nationality || '', civil_status: p.civil_status || '', occupation: p.occupation || '', emergency_contact: p.emergency_contact || '', emergency_contact_number: p.emergency_contact_number || '', profile_photo_url: p.profile_photo_url || '' }
                     })
-                    recCurrentPage = 1
+                    recCurrentPage = r.data.current_page || page
+                    recLastPage = r.data.last_page || 1
+                    recTotal = r.data.total || raw.length
                     recUpdateAgeCounts()
                     recRenderPatientTable()
                 })
-                .catch(function () { recPatientsRows = []; recCurrentPage = 1; recRenderPatientTable() })
+                .catch(function () { recPatientsRows = []; recCurrentPage = 1; recLastPage = 1; recTotal = 0; recRenderPatientTable() })
         }
 
         function recRenderPatientTable() {
@@ -1601,13 +1609,8 @@
                 if (recPagination) recPagination.innerHTML = ''
                 return
             }
-            var totalPages = Math.ceil(filtered.length / recPerPage)
-            if (recCurrentPage > totalPages) recCurrentPage = totalPages
-            var start = (recCurrentPage - 1) * recPerPage
-            var end = Math.min(start + recPerPage, filtered.length)
-            var pageSlice = filtered.slice(start, end)
             var html = ''
-            pageSlice.forEach(function (p) {
+            filtered.forEach(function (p) {
                 var patientId = p && p.user_id != null ? String(p.user_id) : ''
                 var name = recNameOnly(p) || ('Patient #' + p.user_id)
                 var address = p && p.address ? String(p.address) : ''
@@ -1635,21 +1638,23 @@
                 '</tr>'
             })
             recPatientsTableBody.innerHTML = html
-            recRenderPagination(filtered.length, totalPages)
+            recRenderPagination()
             recBindPatientRowClicks()
         }
 
-        function recRenderPagination(total, totalPages) {
+        function recRenderPagination() {
             if (!recPagination) return
-            if (total === 0) { recPagination.innerHTML = ''; return }
+            if (recTotal === 0) { recPagination.innerHTML = ''; return }
+            var totalPages = recLastPage
             var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border '
             var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer'
             var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default'
             var btnActive = btnBase + 'bg-green-600 text-white border-green-600'
-            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + total + ' entries</span>'
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + recTotal + ' entries</span>'
             html += '<button type="button" class="' + (recCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (recCurrentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>'
-            var ws = recCurrentPage
+            var ws = Math.max(1, recCurrentPage - Math.floor(recVisibleCount / 2))
             var we = Math.min(ws + recVisibleCount - 1, totalPages)
+            if (we - ws + 1 < recVisibleCount) ws = Math.max(1, we - recVisibleCount + 1)
             for (var i = ws; i <= we; i++) {
                 html += '<button type="button" class="' + (i === recCurrentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>'
             }
@@ -1659,10 +1664,13 @@
             recPagination.querySelectorAll('button[data-page]').forEach(function (b) {
                 b.addEventListener('click', function () {
                     var p = b.getAttribute('data-page')
-                    if (p === 'prev' && recCurrentPage > 1) { recCurrentPage--; recRenderPatientTable() }
-                    else if (p === 'next' && recCurrentPage < totalPages) { recCurrentPage++; recRenderPatientTable() }
-                    else if (p === 'next-window') { var ns = Math.min(we + 1, totalPages); recCurrentPage = ns; recRenderPatientTable() }
-                    else if (p !== 'prev' && p !== 'next') { recCurrentPage = parseInt(p, 10); recRenderPatientTable() }
+                    if (p === 'prev' && recCurrentPage > 1) { recCurrentPage-- }
+                    else if (p === 'next' && recCurrentPage < totalPages) { recCurrentPage++ }
+                    else if (p === 'next-window') { recCurrentPage = Math.min(we + 1, totalPages) }
+                    else if (p !== 'prev' && p !== 'next') { recCurrentPage = parseInt(p, 10) }
+                    else return
+                    var q = (recPatientsSearch && recPatientsSearch.value ? String(recPatientsSearch.value).trim() : '')
+                    if (q) { recFilterPatients(recCurrentPage) } else { recLoadPatients(recCurrentPage) }
                 })
             })
         }

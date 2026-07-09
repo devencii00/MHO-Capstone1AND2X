@@ -412,7 +412,7 @@
 
         function buildQuery(page) {
             var params = []
-            params.push('per_page=15')
+            params.push('per_page=10')
             params.push('page=' + encodeURIComponent(page || 1))
 
             var status = statusFilter ? statusFilter.value : ''
