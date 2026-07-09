@@ -16,7 +16,6 @@
 
     <div id="receptionAppointmentPanelBook" class="p-5">
         <div id="receptionBookAppointmentError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
-        <div id="receptionBookAppointmentSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
 
         <form id="receptionBookAppointmentForm" class="grid gap-3 grid-cols-1 md:grid-cols-3 items-start mb-4">
         <div class="min-w-0">
@@ -525,7 +524,6 @@ function setAppointmentTab(tab) {
 
         var form = document.getElementById('receptionBookAppointmentForm')
         var errorBox = document.getElementById('receptionBookAppointmentError')
-        var successBox = document.getElementById('receptionBookAppointmentSuccess')
         var submitBtn = document.getElementById('receptionBookAppointmentSubmit')
         var submitSpinner = document.getElementById('receptionBookAppointmentSpinner')
         var submitLabel = document.getElementById('receptionBookAppointmentSubmitLabel')
@@ -636,13 +634,7 @@ function setAppointmentTab(tab) {
         }
 
         function showBookAppointmentSuccess(message) {
-            if (!successBox) return
-            successBox.textContent = message || ''
-            if (message) {
-                successBox.classList.remove('hidden')
-            } else {
-                successBox.classList.add('hidden')
-            }
+            if (message && typeof showToast === 'function') showToast(message, 'success')
         }
 
         function normalizeText(value) {
@@ -2491,18 +2483,23 @@ function setAppointmentTab(tab) {
             })
 
             var appts = Array.isArray(doctorAppointments) ? doctorAppointments : []
+            if (window.console) console.log('[renderScheduleTimeSlotsInModal] doctorAppointments count:', appts.length, 'dateInput.value:', dateInput ? dateInput.value : 'null')
             var bookedSet = {}
             appts.forEach(function (a) {
                 if (!a || !a.appointment_datetime) return
                 if (String(a.status || '').toLowerCase() === 'cancelled') return
                 if (a.appointment_type && String(a.appointment_type) !== 'scheduled') return
-                var dt = String(a.appointment_datetime).replace('T', ' ').slice(0, 16)
-                if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(dt)) return
-                var datePart = dt.slice(0, 10)
-                var timePart = dt.slice(11, 16)
+                var d = new Date(a.appointment_datetime)
+                if (isNaN(d.getTime())) return
+                var y = d.getFullYear()
+                var m = String(d.getMonth() + 1).padStart(2, '0')
+                var dd = String(d.getDate()).padStart(2, '0')
+                var datePart = y + '-' + m + '-' + dd
+                var timePart = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
                 if (datePart !== dateInput.value) return
                 bookedSet[timePart] = true
             })
+            if (window.console) console.log('[renderScheduleTimeSlotsInModal] bookedSet keys:', Object.keys(bookedSet))
 
             var slots = []
             merged.forEach(function (block) {
@@ -2620,14 +2617,23 @@ function setAppointmentTab(tab) {
 
         function loadDoctorAppointments(doctorId, dateStr) {
             if (!doctorId || !dateStr || typeof apiFetch !== 'function') return
-            apiFetch("{{ url('/api/appointments') }}?doctor_id=" + encodeURIComponent(doctorId) + "&start_date=" + encodeURIComponent(dateStr) + "&end_date=" + encodeURIComponent(dateStr) + "&per_page=15", { method: 'GET' })
+            apiFetch("{{ url('/api/appointments') }}?doctor_id=" + encodeURIComponent(doctorId) + "&start_date=" + encodeURIComponent(dateStr) + "&end_date=" + encodeURIComponent(dateStr) + "&per_page=30", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                    if (window.console) {
+                        console.log('[loadDoctorAppointments] raw count:', raw ? raw.length : 0)
+                        if (raw && raw.length) {
+                            raw.forEach(function (a, i) {
+                                console.log('[loadDoctorAppointments] appointment ' + i + ':', JSON.stringify({ id: a.appointment_id, dt: a.appointment_datetime, type: a.appointment_type, status: a.status }))
+                            })
+                        }
+                    }
                     doctorAppointments = raw || []
                     renderScheduleTimeSlotsInModal()
                 })
                 .catch(function () {
+                    if (window.console) console.log('[loadDoctorAppointments] fetch failed, resetting')
                     doctorAppointments = []
                     renderScheduleTimeSlotsInModal()
                 })
@@ -2648,8 +2654,11 @@ function setAppointmentTab(tab) {
                     raw.forEach(function (a) {
                         if (!a || !a.appointment_datetime) return
                         if (String(a.status || '').toLowerCase() === 'cancelled') return
-                        var datePart = String(a.appointment_datetime).slice(0, 10)
-                        map[datePart] = (map[datePart] || 0) + 1
+                        var d = new Date(a.appointment_datetime)
+                        if (!isNaN(d.getTime())) {
+                            var datePart = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+                            map[datePart] = (map[datePart] || 0) + 1
+                        }
                     })
                     doctorMonthAppointments = map
                     renderScheduleDatePicker()
@@ -2808,9 +2817,9 @@ function setAppointmentTab(tab) {
                 selectedSlotStart = null
                 timeInput.value = ''
                 if (scheduleSetBtn) scheduleSetBtn.disabled = true
-                loadDoctorAppointments(doctorSelect ? doctorSelect.value : '', dateIso)
+                if (scheduleTimeHint) scheduleTimeHint.textContent = 'Loading appointments…'
                 renderScheduleDatePicker()
-                renderScheduleTimeSlotsInModal()
+                loadDoctorAppointments(doctorSelect ? doctorSelect.value : '', dateIso)
             })
         }
 
