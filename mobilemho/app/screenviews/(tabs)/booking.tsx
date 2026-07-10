@@ -1,5 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -15,15 +17,12 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
 
 const T = {
   green500: '#06b6d4',
   green600: '#16A34A',
   green700: '#15803D',
   green400: '#22d3ee',
-  green100: '#cffafe',
   slate50: '#f8fafc',
   slate100: '#f1f5f9',
   slate200: '#e2e8f0',
@@ -36,7 +35,6 @@ const T = {
   slate900: '#0f172a',
   white: '#ffffff',
   green100: 'rgba(34,197,94,0.12)',
-  green700: '#15803d',
   red100: 'rgba(239,68,68,0.12)',
   red700: '#b91c1c',
   amber100: 'rgba(245,158,11,0.12)',
@@ -1273,7 +1271,7 @@ const styles = StyleSheet.create({
   },
 
    eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
-  eyebrowDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.green500 },
+  eyebrowDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.green600 },
   eyebrowText: { fontSize: 9, fontWeight: '700', letterSpacing: 0.9, textTransform: 'uppercase', color: T.green600 },
   headerTitle: {
     fontSize: 30,

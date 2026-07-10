@@ -60,6 +60,29 @@
     <div class="flex-1 flex flex-col min-h-screen">
         <x-header :role="$role" />
 
+        @if (strtolower($role ?? '') === 'doctor')
+        <!-- Queue Modal (outside header component to access view data) -->
+        <div id="doctorQueueModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/70">
+            <div class="w-full max-w-4xl h-[85vh] mx-4 rounded-2xl bg-white border border-slate-200 shadow-[0_20px_80px_rgba(15,23,42,0.35)] flex flex-col overflow-hidden">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0">
+                    <div>
+                        <h2 class="text-sm font-semibold text-slate-900">My Queue</h2>
+                        <p class="text-xs text-slate-500">Only today's queue entries assigned to you are shown here.</p>
+                    </div>
+                    <button type="button" id="doctorQueueModalClose" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex-1 min-h-0 p-5 flex flex-col">
+                    @include('dashviews.doctor.doctor_queue')
+                </div>
+            </div>
+        </div>
+        @endif
+
         <div id="main-content" class="flex-1 p-8 md:p-5" style="display:none">
             @php
                 $mapping = [
@@ -174,6 +197,24 @@
             }
         }
         if (typeof apiFetch !== 'function') return
+
+        // Preserve user_uuid in all sidebar nav links
+        ;(function () {
+            var uuidMatch = window.location.search.match(/[?&]user_uuid=([^&]+)/)
+            var uuid = uuidMatch ? decodeURIComponent(uuidMatch[1]) : null
+            if (uuid) {
+                var sidebar = document.querySelector('[data-sidebar]') || document.querySelector('nav, .sidebar, aside')
+                if (sidebar) {
+                    sidebar.querySelectorAll('a[href*="/dashboard/"]').forEach(function (link) {
+                        var url = new URL(link.href, window.location.origin)
+                        if (!url.searchParams.has('user_uuid')) {
+                            url.searchParams.set('user_uuid', uuid)
+                            link.href = url.toString()
+                        }
+                    })
+                }
+            }
+        })()
 
         apiFetch("{{ request()->getBasePath() }}/api/user", { method: 'GET' })
             .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, status: r.status, data: d } }).catch(function () { return { ok: r.ok, status: r.status, data: null } }) })

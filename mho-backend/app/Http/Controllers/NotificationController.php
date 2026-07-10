@@ -221,7 +221,23 @@ class NotificationController extends Controller
         if ($abstractRoute) {
             $navData['route'] = $abstractRoute;
 
-            if ($abstractRoute === 'messages' && $role === 'receptionist') {
+            // Doctor: appointment & queue notifications → consultation view
+            if ($role === 'doctor' && in_array($abstractRoute, ['appointments', 'queue'], true)) {
+                $appointmentId = null;
+                if ($abstractRoute === 'appointments') {
+                    $appointmentId = $refId;
+                } elseif ($abstractRoute === 'queue') {
+                    $queue = \App\Models\Queue::find($refId);
+                    $appointmentId = $queue?->appointment_id;
+                }
+                $navData['section'] = 'consultation';
+                $navData['label'] = 'Start Consultation';
+                $navData['navigate_url'] = route('dashboard', [
+                    'role' => $role,
+                    'section' => 'consultation',
+                    'appointment_id' => $appointmentId,
+                ], false);
+            } elseif ($abstractRoute === 'messages' && $role === 'receptionist') {
                 $navData['action'] = 'open-messages-modal';
                 $navData['label'] = 'Open Messages';
             } else {

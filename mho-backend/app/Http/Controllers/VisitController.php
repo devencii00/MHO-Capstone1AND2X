@@ -47,6 +47,13 @@ class VisitController extends Controller
             );
         }
 
+        if ($request->filled('doctor_id')) {
+            $doctorId = (int) $request->input('doctor_id');
+            $query->whereHas('appointment', function ($q) use ($doctorId) {
+                $q->where('doctor_id', $doctorId);
+            });
+        }
+
         return $query->orderByDesc('visit_datetime')->orderByDesc('transaction_id')->paginate($perPage);
     }
 

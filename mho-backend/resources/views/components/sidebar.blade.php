@@ -18,6 +18,18 @@
         $currentSection = 'patient-records';
     }
 
+    // Preserve user_uuid across all sidebar navigation links
+    $uuidParam = request()->query('user_uuid');
+    $uuidParam = $uuidParam ?: request()->query('user_id');
+    function dashUrl($role, $extra = []) {
+        $uuid = request()->query('user_uuid') ?: request()->query('user_id');
+        $params = array_merge(['role' => $role], $extra);
+        if ($uuid) {
+            $params['user_uuid'] = $uuid;
+        }
+        return route('dashboard', $params);
+    }
+
     $navBase = 'flex items-center gap-2.5 p-2 rounded-xl text-[0.87rem] font-medium mb-1 relative';
     $navInactive = 'text-slate-600 hover:bg-slate-50 hover:text-slate-900';
     $navActive = 'bg-gradient-to-br from-green-50/20 to-green-100/10 text-green-700 relative';
@@ -212,7 +224,7 @@
                 </a>
 
                 <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'patient-records']) }}" class="{{ $navBase }} {{ $isPatientRecords ? $navActive : $navInactive }}">
-                    <x-lucide-clipboard class="w-[18px] h-[18px] {{ $isPatientRecords ? 'text-green-600' : '' }}" />
+                    <x-lucide-folder-open class="w-[18px] h-[18px] {{ $isPatientRecords ? 'text-green-600' : '' }}" />
                     Patient Records
                     @if ($isPatientRecords)
                         
@@ -425,10 +437,10 @@
         @elseif ($roleKey === 'doctor')
             @php
                 $isDoctorSchedule = $currentSection === 'my-schedule';
-                $isDoctorQueue = $currentSection === 'queue';
                 $isDoctorConsultation = $currentSection === 'consultation';
                 $isDoctorPrescription = $currentSection === 'prescriptions';
                 $isDoctorHistory = $currentSection === 'history';
+                $isDoctorPatientRecords = $currentSection === 'patient-records';
                 $isDoctorSettings = $currentSection === 'settings-doctor';
             @endphp
 
@@ -436,16 +448,8 @@
 
             <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'my-schedule']) }}" class="{{ $navBase }} {{ $isDoctorSchedule ? $navActive : $navInactive }}">
                 <x-lucide-file-text class="w-[18px] h-[18px] {{ $isDoctorSchedule ? 'text-green-600' : '' }}" />
-                My Schedule
+                My Appointments
                 @if ($isDoctorSchedule)
-                    
-                @endif
-            </a>
-
-            <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'queue']) }}" class="{{ $navBase }} {{ $isDoctorQueue ? $navActive : $navInactive }}">
-                <x-lucide-list class="w-[18px] h-[18px] {{ $isDoctorQueue ? 'text-green-600' : '' }}" />
-                Queue
-                @if ($isDoctorQueue)
                     
                 @endif
             </a>
@@ -470,6 +474,14 @@
                 <x-lucide-history class="w-[18px] h-[18px] {{ $isDoctorHistory ? 'text-green-600' : '' }}" />
                 History
                 @if ($isDoctorHistory)
+                    
+                @endif
+            </a>
+
+            <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'patient-records']) }}" class="{{ $navBase }} {{ $isDoctorPatientRecords ? $navActive : $navInactive }} mb-3">
+                <x-lucide-folder-open class="w-[18px] h-[18px] {{ $isDoctorPatientRecords ? 'text-green-600' : '' }}" />
+                Patient Records
+                @if ($isDoctorPatientRecords)
                     
                 @endif
             </a>

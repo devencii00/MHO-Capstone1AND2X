@@ -7,23 +7,23 @@
        
     </p>
 
-    <div id="adminPrPatientsError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
+    <div id="doctorPrPatientsError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
 
     <div class="mb-3 flex flex-col gap-2 md:flex-row md:items-end">
         <div class="flex-1">
-            <label for="admin_pr_patients_search" class="block text-[0.7rem] text-slate-600 mb-1">Search patient name</label>
-            <input id="admin_pr_patients_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search by name (starts with)">
+            <label for="doctor_pr_patients_search" class="block text-[0.7rem] text-slate-600 mb-1">Search patient name</label>
+            <input id="doctor_pr_patients_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search by name (starts with)">
         </div>
         <div class="w-full md:w-44">
-            <label for="admin_pr_sort" class="block text-[0.7rem] text-slate-600 mb-1">Sort</label>
-            <select id="admin_pr_sort" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+            <label for="doctor_pr_sort" class="block text-[0.7rem] text-slate-600 mb-1">Sort</label>
+            <select id="doctor_pr_sort" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                 <option value="name_asc">Name A-Z</option>
                 <option value="created_desc">Newest first</option>
                 <option value="created_asc">Oldest first</option>
             </select>
         </div>
         <div class="w-full md:w-28 pt-1">
-            <button type="button" id="adminPrRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+            <button type="button" id="doctorPrRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
                 <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
                 Refresh
             </button>
@@ -33,29 +33,29 @@
     <div class="mb-4">
         <div class="text-[0.7rem] text-slate-600 mb-1">Age filter</div>
         <div class="flex flex-wrap items-center gap-2">
-            <button type="button" class="admin-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-green-600 text-white text-[0.72rem] font-semibold" data-age-filter="all">
+            <button type="button" class="doctor-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-green-600 text-white text-[0.72rem] font-semibold" data-age-filter="all">
                 All
-                <span id="adminPrAgeCountAll" class="ml-1 inline-flex items-center rounded-full bg-white/15 px-2 py-0.5 text-[0.68rem] font-semibold">0</span>
+                <span id="doctorPrAgeCountAll" class="ml-1 inline-flex items-center rounded-full bg-white/15 px-2 py-0.5 text-[0.68rem] font-semibold">0</span>
             </button>
-            <button type="button" class="admin-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="0_5">
+            <button type="button" class="doctor-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="0_5">
                 Infants/Toddlers&nbsp;(0–5)
-                <span id="adminPrAgeCount0_5" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
+                <span id="doctorPrAgeCount0_5" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
             </button>
-            <button type="button" class="admin-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="6_12">
+            <button type="button" class="doctor-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="6_12">
                 School Age&nbsp;(6–12)
-                <span id="adminPrAgeCount6_12" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
+                <span id="doctorPrAgeCount6_12" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
             </button>
-            <button type="button" class="admin-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="13_19">
+            <button type="button" class="doctor-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="13_19">
                 Adolescents&nbsp;(13–19)
-                <span id="adminPrAgeCount13_19" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
+                <span id="doctorPrAgeCount13_19" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
             </button>
-            <button type="button" class="admin-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="20_64">
+            <button type="button" class="doctor-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="20_64">
                 Adults&nbsp;(20–64)
-                <span id="adminPrAgeCount20_64" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
+                <span id="doctorPrAgeCount20_64" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
             </button>
-            <button type="button" class="admin-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="65_up">
+            <button type="button" class="doctor-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="65_up">
                 Senior Citizens&nbsp;(65+)
-                <span id="adminPrAgeCount65Up" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
+                <span id="doctorPrAgeCount65Up" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
             </button>
         </div>
     </div>
@@ -73,7 +73,7 @@
                     <th class="py-2 pr-4 font-semibold">Action</th>
                 </tr>
             </thead>
-            <tbody id="admin_pr_patients_table_body">
+            <tbody id="doctor_pr_patients_table_body">
                 <tr>
                     <td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">
                         Loading patients…
@@ -82,42 +82,42 @@
             </tbody>
         </table>
     </div>
-    <div id="adminPrPagination" class="flex items-center justify-center gap-3 pt-3 pb-1 flex-wrap"></div>
+    <div id="doctorPrPagination" class="flex items-center justify-center gap-3 pt-3 pb-1 flex-wrap"></div>
 </div>
 
-<div id="adminPrViewOverlay" class="hidden fixed inset-0 z-[60] bg-slate-900/40 items-center justify-center p-4">
+<div id="doctorPrViewOverlay" class="hidden fixed inset-0 z-[60] bg-slate-900/40 items-center justify-center p-4">
     <div class="w-full max-w-4xl max-h-[90vh] rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] flex flex-col">
         <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
             <div>
                 <div class="text-sm font-semibold text-slate-900">Patient Details</div>
-                <div id="adminPrViewSubtitle" class="text-[0.72rem] text-slate-500">View patient profile information.</div>
+                <div id="doctorPrViewSubtitle" class="text-[0.72rem] text-slate-500">View patient profile information.</div>
             </div>
-            <button type="button" id="adminPrViewClose" class="text-slate-400 hover:text-slate-600">
+            <button type="button" id="doctorPrViewClose" class="text-slate-400 hover:text-slate-600">
                 <x-lucide-x class="w-[20px] h-[20px]" />
             </button>
         </div>
 
         <div class="px-5 py-3 border-b border-slate-100 flex items-center gap-1.5 overflow-x-auto scrollbar-hidden shrink-0">
-            <button type="button" class="admin-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-green-600 bg-green-600 text-white" data-view-tab="profile">Profile Info</button>
-            <button type="button" class="admin-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="verification">Type &amp; Verification</button>
-            <button type="button" class="admin-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="background">Medical Background</button>
-            <button type="button" class="admin-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="visits">Visit History</button>
-            <button type="button" class="admin-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="vitals">Vitals History</button>
-            <button type="button" class="admin-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="dependents">Dependents</button>
+            <button type="button" class="doctor-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-green-600 bg-green-600 text-white" data-view-tab="profile">Profile Info</button>
+            <button type="button" class="doctor-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="verification">Type &amp; Verification</button>
+            <button type="button" class="doctor-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="background">Medical Background</button>
+            <button type="button" class="doctor-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="visits">Visit History</button>
+            <button type="button" class="doctor-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="vitals">Vitals History</button>
+            <button type="button" class="doctor-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="dependents">Dependents</button>
         </div>
 
-        <div id="adminPrViewBody" class="p-5 overflow-y-auto flex-1">
+        <div id="doctorPrViewBody" class="p-5 overflow-y-auto flex-1">
             {{-- Profile Info Tab --}}
-            <div id="adminPrViewTabProfile" class="admin-pr-view-tab-content min-h-[420px]">
+            <div id="doctorPrViewTabProfile" class="doctor-pr-view-tab-content min-h-[420px]">
                 {{-- Edit mode toggle --}}
                 <div class="flex gap-2 mb-4">
-                    <button type="button" id="adminPrViewEditBtn" class="inline-flex items-center gap-1 text-[0.78rem] font-semibold text-green-700 hover:text-green-800 transition-colors">
+                    <button type="button" id="doctorPrViewEditBtn" class="inline-flex items-center gap-1 text-[0.78rem] font-semibold text-green-700 hover:text-green-800 transition-colors">
                         Edit Info
                     </button>
                 </div>
 
                 {{-- ===== DISPLAY MODE ===== --}}
-                <div id="adminPrViewProfileDisplay">
+                <div id="doctorPrViewProfileDisplay">
                     <div class="grid grid-cols-1 md:grid-cols-5 gap-5">
                         <div class="md:col-span-3 space-y-3">
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -182,7 +182,7 @@
                             <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-5 text-center">
                                 <div class="text-[0.72rem] font-semibold text-slate-700 mb-3">Profile Photo</div>
                                 <div class="w-32 h-32 mx-auto rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 overflow-hidden">
-                                    <div id="adminPrViewProfilePic">
+                                    <div id="doctorPrViewProfilePic">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                     </div>
                                 </div>
@@ -196,22 +196,22 @@
                 </div>
 
                 {{-- ===== EDIT MODE ===== --}}
-                <div id="adminPrViewProfileEdit" class="hidden">
-                    <div id="adminPrViewEditError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
-                    <form id="adminPrViewEditForm" class="grid grid-cols-1 md:grid-cols-5 gap-5">
+                <div id="doctorPrViewProfileEdit" class="hidden">
+                    <div id="doctorPrViewEditError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
+                    <form id="doctorPrViewEditForm" class="grid grid-cols-1 md:grid-cols-5 gap-5">
                         <div class="md:col-span-3 space-y-3">
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
-                                    <label for="adminPrViewEditLastname" class="block text-[0.7rem] text-slate-600 mb-1">Last name</label>
-                                    <input id="adminPrViewEditLastname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                    <label for="doctorPrViewEditLastname" class="block text-[0.7rem] text-slate-600 mb-1">Last name</label>
+                                    <input id="doctorPrViewEditLastname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                                 </div>
                                 <div>
-                                    <label for="adminPrViewEditFirstname" class="block text-[0.7rem] text-slate-600 mb-1">First name</label>
-                                    <input id="adminPrViewEditFirstname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                    <label for="doctorPrViewEditFirstname" class="block text-[0.7rem] text-slate-600 mb-1">First name</label>
+                                    <input id="doctorPrViewEditFirstname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                                 </div>
                                 <div>
-                                    <label for="adminPrViewEditMiddlename" class="block text-[0.7rem] text-slate-600 mb-1">Middle name <span class="text-slate-400">(optional)</span></label>
-                                    <input id="adminPrViewEditMiddlename" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="N/A">
+                                    <label for="doctorPrViewEditMiddlename" class="block text-[0.7rem] text-slate-600 mb-1">Middle name <span class="text-slate-400">(optional)</span></label>
+                                    <input id="doctorPrViewEditMiddlename" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="N/A">
                                 </div>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -219,20 +219,20 @@
                                     <label class="block text-[0.7rem] text-slate-600 mb-1">Sex</label>
                                     <div class="flex items-center gap-4 pt-1">
                                         <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
-                                            <input type="radio" name="adminPrViewEditSex" value="Male" class="rounded-full text-green-600 focus:ring-green-500"> Male
+                                            <input type="radio" name="doctorPrViewEditSex" value="Male" class="rounded-full text-green-600 focus:ring-green-500"> Male
                                         </label>
                                         <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
-                                            <input type="radio" name="adminPrViewEditSex" value="Female" class="rounded-full text-green-600 focus:ring-green-500"> Female
+                                            <input type="radio" name="doctorPrViewEditSex" value="Female" class="rounded-full text-green-600 focus:ring-green-500"> Female
                                         </label>
                                     </div>
                                 </div>
                                 <div>
-                                    <label for="adminPrViewEditBirthdate" class="block text-[0.7rem] text-slate-600 mb-1">Birthdate</label>
-                                    <input id="adminPrViewEditBirthdate" type="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                    <label for="doctorPrViewEditBirthdate" class="block text-[0.7rem] text-slate-600 mb-1">Birthdate</label>
+                                    <input id="doctorPrViewEditBirthdate" type="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                                 </div>
                                 <div>
-                                    <label for="adminPrViewEditCivilStatus" class="block text-[0.7rem] text-slate-600 mb-1">Civil status</label>
-                                    <select id="adminPrViewEditCivilStatus" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                    <label for="doctorPrViewEditCivilStatus" class="block text-[0.7rem] text-slate-600 mb-1">Civil status</label>
+                                    <select id="doctorPrViewEditCivilStatus" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                                         <option value="">Select</option>
                                         <option value="Single">Single</option>
                                         <option value="Married">Married</option>
@@ -245,65 +245,65 @@
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
-                                    <label for="adminPrViewEditNationalitySelect" class="block text-[0.7rem] text-slate-600 mb-1">Nationality</label>
-                                    <div id="adminPrViewEditNationalityField" class="flex gap-2">
-                                        <select id="adminPrViewEditNationalitySelect" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                    <label for="doctorPrViewEditNationalitySelect" class="block text-[0.7rem] text-slate-600 mb-1">Nationality</label>
+                                    <div id="doctorPrViewEditNationalityField" class="flex gap-2">
+                                        <select id="doctorPrViewEditNationalitySelect" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                                             <option value="">None</option>
                                             <option value="Filipino">Filipino</option>
                                             <option value="__others__">Other/s specify</option>
                                         </select>
-                                        <input id="adminPrViewEditNationality" type="text" class="w-0 hidden rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Please specify">
+                                        <input id="doctorPrViewEditNationality" type="text" class="w-0 hidden rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Please specify">
                                     </div>
                                 </div>
                                 <div>
-                                    <label for="adminPrViewEditOccupation" class="block text-[0.7rem] text-slate-600 mb-1">Occupation</label>
-                                    <input id="adminPrViewEditOccupation" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                    <label for="doctorPrViewEditOccupation" class="block text-[0.7rem] text-slate-600 mb-1">Occupation</label>
+                                    <input id="doctorPrViewEditOccupation" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                                 </div>
                             </div>
                             <div>
-                                <label for="adminPrViewEditAddress" class="block text-[0.7rem] text-slate-600 mb-1">Address</label>
-                                <textarea id="adminPrViewEditAddress" rows="3" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none resize-y" placeholder="Street, barangay, municipality"></textarea>
+                                <label for="doctorPrViewEditAddress" class="block text-[0.7rem] text-slate-600 mb-1">Address</label>
+                                <textarea id="doctorPrViewEditAddress" rows="3" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none resize-y" placeholder="Street, barangay, municipality"></textarea>
                             </div>
                             <hr class="border-slate-100">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
-                                    <label for="adminPrViewEditPhilhealth" class="block text-[0.7rem] text-slate-600 mb-1">PHIC Number</label>
-                                    <input id="adminPrViewEditPhilhealth" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="01-234567890-1" maxlength="14">
+                                    <label for="doctorPrViewEditPhilhealth" class="block text-[0.7rem] text-slate-600 mb-1">PHIC Number</label>
+                                    <input id="doctorPrViewEditPhilhealth" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="01-234567890-1" maxlength="14">
                                 </div>
                                 <div>
-                                    <label for="adminPrViewEditEmergencyContact" class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact</label>
-                                    <input id="adminPrViewEditEmergencyContact" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                    <label for="doctorPrViewEditEmergencyContact" class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact</label>
+                                    <input id="doctorPrViewEditEmergencyContact" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                                 </div>
                             </div>
                             <div>
-                                <label for="adminPrViewEditEmergencyContactNumber" class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact number</label>
-                                <input id="adminPrViewEditEmergencyContactNumber" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
+                                <label for="doctorPrViewEditEmergencyContactNumber" class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact number</label>
+                                <input id="doctorPrViewEditEmergencyContactNumber" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
                             </div>
                         </div>
                         <div class="md:col-span-2">
                             <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-5 text-center">
                                 <div class="text-[0.72rem] font-semibold text-slate-700 mb-3">Profile Photo</div>
-                                <div id="adminPrViewEditProfilePreview" class="w-32 h-32 mx-auto rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 overflow-hidden">
+                                <div id="doctorPrViewEditProfilePreview" class="w-32 h-32 mx-auto rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 overflow-hidden">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                 </div>
                                 <div class="mt-3">
-                                    <label for="adminPrViewEditProfileUpload" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-green-200 bg-green-50 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 cursor-pointer">
+                                    <label for="doctorPrViewEditProfileUpload" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-green-200 bg-green-50 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 cursor-pointer">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                                         Upload photo
                                     </label>
-                                    <input id="adminPrViewEditProfileUpload" type="file" accept="image/*" class="hidden">
+                                    <input id="doctorPrViewEditProfileUpload" type="file" accept="image/*" class="hidden">
                                 </div>
                                 <div class="mt-4 text-left">
-                                    <label for="adminPrViewEditContact" class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>
-                                    <input id="adminPrViewEditContact" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
+                                    <label for="doctorPrViewEditContact" class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>
+                                    <input id="doctorPrViewEditContact" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
                                 </div>
                             </div>
                         </div>
                         <div class="md:col-span-5 flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                            <button type="button" id="adminPrViewEditCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
-                            <button type="submit" id="adminPrViewEditSave" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 disabled:hover:bg-green-600">
-                                <span id="adminPrViewEditSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                                <span id="adminPrViewEditSaveLabel">Save changes</span>
+                            <button type="button" id="doctorPrViewEditCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+                            <button type="submit" id="doctorPrViewEditSave" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 disabled:hover:bg-green-600">
+                                <span id="doctorPrViewEditSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                                <span id="doctorPrViewEditSaveLabel">Save changes</span>
                             </button>
                         </div>
                     </form>
@@ -311,62 +311,62 @@
             </div>
 
             {{-- Type & Verification Tab --}}
-            <div id="adminPrViewTabVerification" class="hidden admin-pr-view-tab-content min-h-[420px]">
+            <div id="doctorPrViewTabVerification" class="hidden doctor-pr-view-tab-content min-h-[420px]">
                 <div class="space-y-3">
                     <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
                         <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification status</div>
-                        <div id="adminPrViewVerificationStatus" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
+                        <div id="doctorPrViewVerificationStatus" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
                     </div>
                     <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
                         <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient type</div>
-                        <div id="adminPrViewPatientType" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
+                        <div id="doctorPrViewPatientType" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
                     </div>
                     <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
                         <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification ID</div>
-                        <div id="adminPrViewVerificationId" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
+                        <div id="doctorPrViewVerificationId" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
                     </div>
                 </div>
             </div>
 
             {{-- Medical Background Tab --}}
-            <div id="adminPrViewTabBackground" class="hidden admin-pr-view-tab-content min-h-[420px]"></div>
+            <div id="doctorPrViewTabBackground" class="hidden doctor-pr-view-tab-content min-h-[420px]"></div>
             {{-- Visit History Tab --}}
-            <div id="adminPrViewTabVisits" class="hidden admin-pr-view-tab-content min-h-[420px]"></div>
+            <div id="doctorPrViewTabVisits" class="hidden doctor-pr-view-tab-content min-h-[420px]"></div>
             {{-- Vitals History Tab --}}
-            <div id="adminPrViewTabVitals" class="hidden admin-pr-view-tab-content min-h-[420px]"></div>
+            <div id="doctorPrViewTabVitals" class="hidden doctor-pr-view-tab-content min-h-[420px]"></div>
             {{-- Dependents Tab --}}
-            <div id="adminPrViewTabDependents" class="hidden admin-pr-view-tab-content min-h-[420px]"></div>
+            <div id="doctorPrViewTabDependents" class="hidden doctor-pr-view-tab-content min-h-[420px]"></div>
         </div>
     </div>
 </div>
 
-<div id="adminPrEditOverlay" class="hidden fixed inset-0 z-[60] bg-slate-900/40 items-center justify-center p-4">
+<div id="doctorPrEditOverlay" class="hidden fixed inset-0 z-[60] bg-slate-900/40 items-center justify-center p-4">
     <div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)]">
         <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <div>
                 <div class="text-sm font-semibold text-slate-900">Edit Patient Info</div>
-                <div id="adminPrEditSubtitle" class="text-[0.72rem] text-slate-500">Update patient profile information.</div>
+                <div id="doctorPrEditSubtitle" class="text-[0.72rem] text-slate-500">Update patient profile information.</div>
             </div>
-            <button type="button" id="adminPrEditClose" class="text-slate-400 hover:text-slate-600">
+            <button type="button" id="doctorPrEditClose" class="text-slate-400 hover:text-slate-600">
                 <x-lucide-x class="w-[20px] h-[20px]" />
             </button>
         </div>
         <div class="p-5">
-            <div id="adminPrEditError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
-            <form id="adminPrEditForm" class="grid grid-cols-1 md:grid-cols-5 gap-5">
+            <div id="doctorPrEditError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
+            <form id="doctorPrEditForm" class="grid grid-cols-1 md:grid-cols-5 gap-5">
                 <div class="md:col-span-3 space-y-3">
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                            <label for="adminPrEditLastname" class="block text-[0.7rem] text-slate-600 mb-1">Last name</label>
-                            <input id="adminPrEditLastname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            <label for="doctorPrEditLastname" class="block text-[0.7rem] text-slate-600 mb-1">Last name</label>
+                            <input id="doctorPrEditLastname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                         </div>
                         <div>
-                            <label for="adminPrEditFirstname" class="block text-[0.7rem] text-slate-600 mb-1">First name</label>
-                            <input id="adminPrEditFirstname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            <label for="doctorPrEditFirstname" class="block text-[0.7rem] text-slate-600 mb-1">First name</label>
+                            <input id="doctorPrEditFirstname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                         </div>
                         <div>
-                            <label for="adminPrEditMiddlename" class="block text-[0.7rem] text-slate-600 mb-1">Middle name <span class="text-slate-400">(optional)</span></label>
-                            <input id="adminPrEditMiddlename" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="N/A">
+                            <label for="doctorPrEditMiddlename" class="block text-[0.7rem] text-slate-600 mb-1">Middle name <span class="text-slate-400">(optional)</span></label>
+                            <input id="doctorPrEditMiddlename" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="N/A">
                         </div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -374,20 +374,20 @@
                             <label class="block text-[0.7rem] text-slate-600 mb-1">Sex</label>
                             <div class="flex items-center gap-4 pt-1">
                                 <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
-                                    <input type="radio" name="adminPrEditSex" value="Male" class="rounded-full text-green-600 focus:ring-green-500"> Male
+                                    <input type="radio" name="doctorPrEditSex" value="Male" class="rounded-full text-green-600 focus:ring-green-500"> Male
                                 </label>
                                 <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
-                                    <input type="radio" name="adminPrEditSex" value="Female" class="rounded-full text-green-600 focus:ring-green-500"> Female
+                                    <input type="radio" name="doctorPrEditSex" value="Female" class="rounded-full text-green-600 focus:ring-green-500"> Female
                                 </label>
                             </div>
                         </div>
                         <div>
-                            <label for="adminPrEditBirthdate" class="block text-[0.7rem] text-slate-600 mb-1">Birthdate</label>
-                            <input id="adminPrEditBirthdate" type="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            <label for="doctorPrEditBirthdate" class="block text-[0.7rem] text-slate-600 mb-1">Birthdate</label>
+                            <input id="doctorPrEditBirthdate" type="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                         </div>
                         <div>
-                            <label for="adminPrEditCivilStatus" class="block text-[0.7rem] text-slate-600 mb-1">Civil status</label>
-                            <select id="adminPrEditCivilStatus" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            <label for="doctorPrEditCivilStatus" class="block text-[0.7rem] text-slate-600 mb-1">Civil status</label>
+                            <select id="doctorPrEditCivilStatus" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                                 <option value="">Select</option>
                                 <option value="Single">Single</option>
                                 <option value="Married">Married</option>
@@ -400,65 +400,65 @@
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label for="adminPrEditNationalitySelect" class="block text-[0.7rem] text-slate-600 mb-1">Nationality</label>
-                            <div id="adminPrEditNationalityField" class="flex gap-2">
-                                <select id="adminPrEditNationalitySelect" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            <label for="doctorPrEditNationalitySelect" class="block text-[0.7rem] text-slate-600 mb-1">Nationality</label>
+                            <div id="doctorPrEditNationalityField" class="flex gap-2">
+                                <select id="doctorPrEditNationalitySelect" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                                     <option value="">None</option>
                                     <option value="Filipino">Filipino</option>
                                     <option value="__others__">Other/s specify</option>
                                 </select>
-                                <input id="adminPrEditNationality" type="text" class="w-0 hidden rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Please specify">
+                                <input id="doctorPrEditNationality" type="text" class="w-0 hidden rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Please specify">
                             </div>
                         </div>
                         <div>
-                            <label for="adminPrEditOccupation" class="block text-[0.7rem] text-slate-600 mb-1">Occupation</label>
-                            <input id="adminPrEditOccupation" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            <label for="doctorPrEditOccupation" class="block text-[0.7rem] text-slate-600 mb-1">Occupation</label>
+                            <input id="doctorPrEditOccupation" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                         </div>
                     </div>
                     <div>
-                        <label for="adminPrEditAddress" class="block text-[0.7rem] text-slate-600 mb-1">Address</label>
-                        <textarea id="adminPrEditAddress" rows="3" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none resize-y" placeholder="Street, barangay, municipality"></textarea>
+                        <label for="doctorPrEditAddress" class="block text-[0.7rem] text-slate-600 mb-1">Address</label>
+                        <textarea id="doctorPrEditAddress" rows="3" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none resize-y" placeholder="Street, barangay, municipality"></textarea>
                     </div>
                     <hr class="border-slate-100">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label for="adminPrEditPhilhealth" class="block text-[0.7rem] text-slate-600 mb-1">PHIC Number</label>
-                            <input id="adminPrEditPhilhealth" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="01-234567890-1" maxlength="14">
+                            <label for="doctorPrEditPhilhealth" class="block text-[0.7rem] text-slate-600 mb-1">PHIC Number</label>
+                            <input id="doctorPrEditPhilhealth" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="01-234567890-1" maxlength="14">
                         </div>
                         <div>
-                            <label for="adminPrEditEmergencyContact" class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact</label>
-                            <input id="adminPrEditEmergencyContact" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            <label for="doctorPrEditEmergencyContact" class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact</label>
+                            <input id="doctorPrEditEmergencyContact" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                         </div>
                     </div>
                     <div>
-                        <label for="adminPrEditEmergencyContactNumber" class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact number</label>
-                        <input id="adminPrEditEmergencyContactNumber" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
+                        <label for="doctorPrEditEmergencyContactNumber" class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact number</label>
+                        <input id="doctorPrEditEmergencyContactNumber" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
                     </div>
                 </div>
                 <div class="md:col-span-2">
                     <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-5 text-center">
                         <div class="text-[0.72rem] font-semibold text-slate-700 mb-3">Profile Photo</div>
-                        <div id="adminPrEditProfilePreview" class="w-32 h-32 mx-auto rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 overflow-hidden">
+                        <div id="doctorPrEditProfilePreview" class="w-32 h-32 mx-auto rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 overflow-hidden">
                             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                         </div>
                         <div class="mt-3">
-                            <label for="adminPrEditProfileUpload" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-green-200 bg-green-50 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 cursor-pointer">
+                            <label for="doctorPrEditProfileUpload" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-green-200 bg-green-50 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 cursor-pointer">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                                 Upload photo
                             </label>
-                            <input id="adminPrEditProfileUpload" type="file" accept="image/*" class="hidden">
+                            <input id="doctorPrEditProfileUpload" type="file" accept="image/*" class="hidden">
                         </div>
                         <div class="mt-4 text-left">
-                            <label for="adminPrEditContact" class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>
-                            <input id="adminPrEditContact" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
+                            <label for="doctorPrEditContact" class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>
+                            <input id="doctorPrEditContact" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
                         </div>
                     </div>
                 </div>
                 <div class="md:col-span-5 flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                    <button type="button" id="adminPrEditCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
-                    <button type="submit" id="adminPrEditSave" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 disabled:hover:bg-green-600">
-                        <span id="adminPrEditSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                        <span id="adminPrEditSaveLabel">Save changes</span>
+                    <button type="button" id="doctorPrEditCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+                    <button type="submit" id="doctorPrEditSave" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 disabled:hover:bg-green-600">
+                        <span id="doctorPrEditSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                        <span id="doctorPrEditSaveLabel">Save changes</span>
                     </button>
                 </div>
             </form>
@@ -466,7 +466,7 @@
     </div>
 </div>
 
-<div id="adminPrEditConfirmOverlay" class="hidden fixed inset-0 z-[70] bg-slate-900/40 items-center justify-center p-4">
+<div id="doctorPrEditConfirmOverlay" class="hidden fixed inset-0 z-[70] bg-slate-900/40 items-center justify-center p-4">
     <div class="w-full max-w-sm rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] p-4">
         <div class="flex items-start gap-3">
             <div class="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-700">
@@ -474,96 +474,96 @@
             </div>
             <div class="flex-1">
                 <div class="text-sm font-semibold text-slate-900">Confirm</div>
-                <div id="adminPrEditConfirmMessage" class="text-[0.78rem] text-slate-600 mt-0.5">Are you sure?</div>
+                <div id="doctorPrEditConfirmMessage" class="text-[0.78rem] text-slate-600 mt-0.5">Are you sure?</div>
             </div>
         </div>
         <div class="mt-4 flex items-center justify-end gap-2">
-            <button type="button" id="adminPrEditConfirmCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
-            <button type="button" id="adminPrEditConfirmOk" class="px-3 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700">Confirm</button>
+            <button type="button" id="doctorPrEditConfirmCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button type="button" id="doctorPrEditConfirmOk" class="px-3 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700">Confirm</button>
         </div>
     </div>
 </div>
 
-<div id="adminPrTabDrawer" class="fixed top-0 right-0 md:right-[560px] z-[49] h-full w-full max-w-[480px] bg-white border-l border-slate-200 shadow-xl hidden">
+<div id="doctorPrTabDrawer" class="fixed top-0 right-0 md:right-[560px] z-[49] h-full w-full max-w-[480px] bg-white border-l border-slate-200 shadow-xl hidden">
     <div class="h-full flex flex-col">
         <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 shrink-0">
             <div>
                 <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient records</div>
-                <div id="adminPrTabDrawerTitle" class="text-[0.82rem] font-semibold text-slate-900 mt-1">Medical background</div>
+                <div id="doctorPrTabDrawerTitle" class="text-[0.82rem] font-semibold text-slate-900 mt-1">Medical background</div>
             </div>
-            <button type="button" id="adminPrTabDrawerClose" class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800">
+            <button type="button" id="doctorPrTabDrawerClose" class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800">
                 <x-lucide-x class="w-[16px] h-[16px]" />
             </button>
         </div>
-        <div id="adminPrTabDrawerBody" class="flex-1 overflow-y-auto p-4 scrollbar-hidden">
+        <div id="doctorPrTabDrawerBody" class="flex-1 overflow-y-auto p-4 scrollbar-hidden">
             <div class="text-center text-[0.78rem] text-slate-400 py-8">Select a tab to view records.</div>
         </div>
     </div>
 </div>
 
 {{-- ===== GENERATE PATIENT RECORDS REPORT MODAL ===== --}}
-<div id="adminPrReportModal" class="hidden fixed inset-0 z-[90] bg-slate-950/45 backdrop-blur-sm p-4 sm:p-6">
+<div id="doctorPrReportModal" class="hidden fixed inset-0 z-[90] bg-slate-950/45 backdrop-blur-sm p-4 sm:p-6">
     <div class="min-h-full flex items-center justify-center">
-        <div id="adminPrReportModalCard" class="w-full max-w-lg rounded-3xl border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.22)] transition-all duration-200">
+        <div id="doctorPrReportModalCard" class="w-full max-w-lg rounded-3xl border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.22)] transition-all duration-200">
             <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
                 <div>
-                    <h3 id="adminPrReportModalTitle" class="text-sm font-semibold text-slate-900">Generate patient medical record</h3>
-                    <p id="adminPrReportModalSubtitle" class="mt-1 text-[0.78rem] text-slate-500">Choose a single date or a custom date range, then generate a report preview inside this window.</p>
+                    <h3 id="doctorPrReportModalTitle" class="text-sm font-semibold text-slate-900">Generate patient medical record</h3>
+                    <p id="doctorPrReportModalSubtitle" class="mt-1 text-[0.78rem] text-slate-500">Choose a single date or a custom date range, then generate a report preview inside this window.</p>
                 </div>
-                <button type="button" id="adminPrReportModalCloseBtn" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700">
+                <button type="button" id="doctorPrReportModalCloseBtn" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700">
                     <x-lucide-x class="w-4 h-4" />
                 </button>
             </div>
 
-            <div id="adminPrReportModalForm" class="px-5 py-4 space-y-4">
+            <div id="doctorPrReportModalForm" class="px-5 py-4 space-y-4">
                 <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
                     <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient</div>
-                    <div id="adminPrReportPatientName" class="text-[0.82rem] font-semibold text-slate-800 mt-0.5">-</div>
+                    <div id="doctorPrReportPatientName" class="text-[0.82rem] font-semibold text-slate-800 mt-0.5">-</div>
                 </div>
 
-                <div id="adminPrReportFormFields">
-                    <label for="adminPrReportType" class="block text-[0.72rem] text-slate-600 mb-1">Report type</label>
-                    <select id="adminPrReportType" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                <div id="doctorPrReportFormFields">
+                    <label for="doctorPrReportType" class="block text-[0.72rem] text-slate-600 mb-1">Report type</label>
+                    <select id="doctorPrReportType" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                         <option value="date">Single date</option>
                         <option value="range">Date range</option>
                     </select>
                 </div>
 
-                <div id="adminPrReportSingleDateWrap">
-                    <label for="adminPrReportDate" class="block text-[0.72rem] text-slate-600 mb-1">Date</label>
-                    <input id="adminPrReportDate" type="date" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                <div id="doctorPrReportSingleDateWrap">
+                    <label for="doctorPrReportDate" class="block text-[0.72rem] text-slate-600 mb-1">Date</label>
+                    <input id="doctorPrReportDate" type="date" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                 </div>
 
-                <div id="adminPrReportRangeWrap" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div id="doctorPrReportRangeWrap" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label for="adminPrReportStartDate" class="block text-[0.72rem] text-slate-600 mb-1">Starting date</label>
-                        <input id="adminPrReportStartDate" type="date" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        <label for="doctorPrReportStartDate" class="block text-[0.72rem] text-slate-600 mb-1">Starting date</label>
+                        <input id="doctorPrReportStartDate" type="date" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                     </div>
                     <div>
-                        <label for="adminPrReportEndDate" class="block text-[0.72rem] text-slate-600 mb-1">End date</label>
-                        <input id="adminPrReportEndDate" type="date" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        <label for="doctorPrReportEndDate" class="block text-[0.72rem] text-slate-600 mb-1">End date</label>
+                        <input id="doctorPrReportEndDate" type="date" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                     </div>
                 </div>
 
-                <div id="adminPrReportFeedback" class="hidden rounded-2xl border px-3 py-2 text-[0.78rem]"></div>
+                <div id="doctorPrReportFeedback" class="hidden rounded-2xl border px-3 py-2 text-[0.78rem]"></div>
             </div>
 
-            <div id="adminPrReportPreviewWrap" class="hidden px-5 py-4">
+            <div id="doctorPrReportPreviewWrap" class="hidden px-5 py-4">
                 <div class="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
-                    <iframe id="adminPrReportPreviewFrame" title="Patient medical record preview" class="block w-full h-[68vh] bg-white"></iframe>
+                    <iframe id="doctorPrReportPreviewFrame" title="Patient medical record preview" class="block w-full h-[68vh] bg-white"></iframe>
                 </div>
             </div>
 
-            <div id="adminPrReportInitialActions" class="flex items-center justify-end gap-2 border-t border-slate-100 px-5 py-4">
-                <button type="button" id="adminPrReportCancelBtn" class="px-3 py-2 rounded-xl border border-slate-200 text-[0.78rem] font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
-                <button type="button" id="adminPrReportSubmitBtn" class="px-3 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700">Generate Report</button>
+            <div id="doctorPrReportInitialActions" class="flex items-center justify-end gap-2 border-t border-slate-100 px-5 py-4">
+                <button type="button" id="doctorPrReportCancelBtn" class="px-3 py-2 rounded-xl border border-slate-200 text-[0.78rem] font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="button" id="doctorPrReportSubmitBtn" class="px-3 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700">Generate Report</button>
             </div>
 
-            <div id="adminPrReportPreviewActions" class="hidden items-center justify-between gap-2 border-t border-slate-100 px-5 py-4">
-                <button type="button" id="adminPrReportResetBtn" class="px-3 py-2 rounded-xl border border-slate-200 text-[0.78rem] font-semibold text-slate-600 hover:bg-slate-50">Generate Another Report</button>
+            <div id="doctorPrReportPreviewActions" class="hidden items-center justify-between gap-2 border-t border-slate-100 px-5 py-4">
+                <button type="button" id="doctorPrReportResetBtn" class="px-3 py-2 rounded-xl border border-slate-200 text-[0.78rem] font-semibold text-slate-600 hover:bg-slate-50">Generate Another Report</button>
                 <div class="flex items-center gap-2">
-                    <button type="button" id="adminPrReportPreviewCloseBtn" class="px-3 py-2 rounded-xl border border-slate-200 text-[0.78rem] font-semibold text-slate-600 hover:bg-slate-50">Close</button>
-                    <button type="button" id="adminPrReportPrintBtn" class="px-3 py-2 rounded-xl bg-green-700 text-white text-[0.78rem] font-semibold hover:bg-green-800">Download / Print</button>
+                    <button type="button" id="doctorPrReportPreviewCloseBtn" class="px-3 py-2 rounded-xl border border-slate-200 text-[0.78rem] font-semibold text-slate-600 hover:bg-slate-50">Close</button>
+                    <button type="button" id="doctorPrReportPrintBtn" class="px-3 py-2 rounded-xl bg-green-700 text-white text-[0.78rem] font-semibold hover:bg-green-800">Download / Print</button>
                 </div>
             </div>
         </div>
@@ -574,34 +574,34 @@
     document.addEventListener('DOMContentLoaded', function () {
         var apiBaseUrl = "{{ request()->getBasePath() }}/api"
         var defaultProfilePicHtml = '<div class="w-full h-full flex items-center justify-center text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>'
-        var patientsError = document.getElementById('adminPrPatientsError')
-        var patientsSearch = document.getElementById('admin_pr_patients_search')
-        var sortSelect = document.getElementById('admin_pr_sort')
-        var patientsTableBody = document.getElementById('admin_pr_patients_table_body')
-        var pagination = document.getElementById('adminPrPagination')
+        var patientsError = document.getElementById('doctorPrPatientsError')
+        var patientsSearch = document.getElementById('doctor_pr_patients_search')
+        var sortSelect = document.getElementById('doctor_pr_sort')
+        var patientsTableBody = document.getElementById('doctor_pr_patients_table_body')
+        var pagination = document.getElementById('doctorPrPagination')
         var patientRows = []
         var patientMeta = { current_page: 1, last_page: 1, total: 0, per_page: 15 }
         var currentPage = 1
         var visibleCount = 6
 
         var activeAgeFilter = 'all'
-        var ageFilterButtons = Array.prototype.slice.call(document.querySelectorAll('.admin-pr-age-filter'))
-        var ageCountAll = document.getElementById('adminPrAgeCountAll')
-        var ageCount0_5 = document.getElementById('adminPrAgeCount0_5')
-        var ageCount6_12 = document.getElementById('adminPrAgeCount6_12')
-        var ageCount13_19 = document.getElementById('adminPrAgeCount13_19')
-        var ageCount20_64 = document.getElementById('adminPrAgeCount20_64')
-        var ageCount65Up = document.getElementById('adminPrAgeCount65Up')
+        var ageFilterButtons = Array.prototype.slice.call(document.querySelectorAll('.doctor-pr-age-filter'))
+        var ageCountAll = document.getElementById('doctorPrAgeCountAll')
+        var ageCount0_5 = document.getElementById('doctorPrAgeCount0_5')
+        var ageCount6_12 = document.getElementById('doctorPrAgeCount6_12')
+        var ageCount13_19 = document.getElementById('doctorPrAgeCount13_19')
+        var ageCount20_64 = document.getElementById('doctorPrAgeCount20_64')
+        var ageCount65Up = document.getElementById('doctorPrAgeCount65Up')
 
-        var viewOverlay = document.getElementById('adminPrViewOverlay')
-        var viewClose = document.getElementById('adminPrViewClose')
-        var viewProfilePic = document.getElementById('adminPrViewProfilePic')
-        var viewEditBtn = document.getElementById('adminPrViewEditBtn')
-        var viewTabButtons = Array.prototype.slice.call(document.querySelectorAll('.admin-pr-view-tab'))
+        var viewOverlay = document.getElementById('doctorPrViewOverlay')
+        var viewClose = document.getElementById('doctorPrViewClose')
+        var viewProfilePic = document.getElementById('doctorPrViewProfilePic')
+        var viewEditBtn = document.getElementById('doctorPrViewEditBtn')
+        var viewTabButtons = Array.prototype.slice.call(document.querySelectorAll('.doctor-pr-view-tab'))
         var viewTabContents = {}
-        document.querySelectorAll('.admin-pr-view-tab-content').forEach(function (el) {
+        document.querySelectorAll('.doctor-pr-view-tab-content').forEach(function (el) {
             var id = el.getAttribute('id') || ''
-            var key = id.replace('adminPrViewTab', '').toLowerCase()
+            var key = id.replace('doctorPrViewTab', '').toLowerCase()
             viewTabContents[key] = el
         })
         var prDetailFirstname = document.getElementById('prDetailFirstname')
@@ -617,51 +617,51 @@
         var prDetailOccupation = document.getElementById('prDetailOccupation')
         var prDetailEmergContact = document.getElementById('prDetailEmergContact')
         var prDetailEmergNumber = document.getElementById('prDetailEmergNumber')
-        var viewVerificationStatus = document.getElementById('adminPrViewVerificationStatus')
-        var viewPatientType = document.getElementById('adminPrViewPatientType')
-        var viewVerificationId = document.getElementById('adminPrViewVerificationId')
+        var viewVerificationStatus = document.getElementById('doctorPrViewVerificationStatus')
+        var viewPatientType = document.getElementById('doctorPrViewPatientType')
+        var viewVerificationId = document.getElementById('doctorPrViewVerificationId')
 
         var currentViewTab = 'profile'
 
-        var patientEditOverlay = document.getElementById('adminPrEditOverlay')
-        var patientEditClose = document.getElementById('adminPrEditClose')
-        var patientEditCancel = document.getElementById('adminPrEditCancel')
-        var patientEditForm = document.getElementById('adminPrEditForm')
-        var patientEditError = document.getElementById('adminPrEditError')
-        var patientEditSubtitle = document.getElementById('adminPrEditSubtitle')
-        var patientEditFirstname = document.getElementById('adminPrEditFirstname')
-        var patientEditMiddlename = document.getElementById('adminPrEditMiddlename')
-        var patientEditLastname = document.getElementById('adminPrEditLastname')
-        var patientEditSexMale = document.querySelector('input[name="adminPrEditSex"][value="Male"]')
-        var patientEditSexFemale = document.querySelector('input[name="adminPrEditSex"][value="Female"]')
-        var patientEditBirthdate = document.getElementById('adminPrEditBirthdate')
-        var patientEditCivilStatus = document.getElementById('adminPrEditCivilStatus')
-        var patientEditNationalitySelect = document.getElementById('adminPrEditNationalitySelect')
-        var patientEditNationality = document.getElementById('adminPrEditNationality')
-        var patientEditNationalityField = document.getElementById('adminPrEditNationalityField')
-        var patientEditAddress = document.getElementById('adminPrEditAddress')
-        var patientEditContact = document.getElementById('adminPrEditContact')
-        var patientEditPhilhealth = document.getElementById('adminPrEditPhilhealth')
-        var patientEditOccupation = document.getElementById('adminPrEditOccupation')
-        var patientEditEmergencyContact = document.getElementById('adminPrEditEmergencyContact')
-        var patientEditEmergencyContactNumber = document.getElementById('adminPrEditEmergencyContactNumber')
-        var patientEditProfileUpload = document.getElementById('adminPrEditProfileUpload')
-        var patientEditProfilePreview = document.getElementById('adminPrEditProfilePreview')
-        var patientEditSave = document.getElementById('adminPrEditSave')
-        var patientEditSpinner = document.getElementById('adminPrEditSpinner')
-        var patientEditSaveLabel = document.getElementById('adminPrEditSaveLabel')
+        var patientEditOverlay = document.getElementById('doctorPrEditOverlay')
+        var patientEditClose = document.getElementById('doctorPrEditClose')
+        var patientEditCancel = document.getElementById('doctorPrEditCancel')
+        var patientEditForm = document.getElementById('doctorPrEditForm')
+        var patientEditError = document.getElementById('doctorPrEditError')
+        var patientEditSubtitle = document.getElementById('doctorPrEditSubtitle')
+        var patientEditFirstname = document.getElementById('doctorPrEditFirstname')
+        var patientEditMiddlename = document.getElementById('doctorPrEditMiddlename')
+        var patientEditLastname = document.getElementById('doctorPrEditLastname')
+        var patientEditSexMale = document.querySelector('input[name="doctorPrEditSex"][value="Male"]')
+        var patientEditSexFemale = document.querySelector('input[name="doctorPrEditSex"][value="Female"]')
+        var patientEditBirthdate = document.getElementById('doctorPrEditBirthdate')
+        var patientEditCivilStatus = document.getElementById('doctorPrEditCivilStatus')
+        var patientEditNationalitySelect = document.getElementById('doctorPrEditNationalitySelect')
+        var patientEditNationality = document.getElementById('doctorPrEditNationality')
+        var patientEditNationalityField = document.getElementById('doctorPrEditNationalityField')
+        var patientEditAddress = document.getElementById('doctorPrEditAddress')
+        var patientEditContact = document.getElementById('doctorPrEditContact')
+        var patientEditPhilhealth = document.getElementById('doctorPrEditPhilhealth')
+        var patientEditOccupation = document.getElementById('doctorPrEditOccupation')
+        var patientEditEmergencyContact = document.getElementById('doctorPrEditEmergencyContact')
+        var patientEditEmergencyContactNumber = document.getElementById('doctorPrEditEmergencyContactNumber')
+        var patientEditProfileUpload = document.getElementById('doctorPrEditProfileUpload')
+        var patientEditProfilePreview = document.getElementById('doctorPrEditProfilePreview')
+        var patientEditSave = document.getElementById('doctorPrEditSave')
+        var patientEditSpinner = document.getElementById('doctorPrEditSpinner')
+        var patientEditSaveLabel = document.getElementById('doctorPrEditSaveLabel')
 
-        var patientEditConfirmOverlay = document.getElementById('adminPrEditConfirmOverlay')
-        var patientEditConfirmMessage = document.getElementById('adminPrEditConfirmMessage')
-        var patientEditConfirmOk = document.getElementById('adminPrEditConfirmOk')
-        var patientEditConfirmCancel = document.getElementById('adminPrEditConfirmCancel')
+        var patientEditConfirmOverlay = document.getElementById('doctorPrEditConfirmOverlay')
+        var patientEditConfirmMessage = document.getElementById('doctorPrEditConfirmMessage')
+        var patientEditConfirmOk = document.getElementById('doctorPrEditConfirmOk')
+        var patientEditConfirmCancel = document.getElementById('doctorPrEditConfirmCancel')
         var patientEditConfirmResolver = null
         var editingPatientId = null
 
-        var tabDrawer = document.getElementById('adminPrTabDrawer')
-        var tabDrawerTitle = document.getElementById('adminPrTabDrawerTitle')
-        var tabDrawerBody = document.getElementById('adminPrTabDrawerBody')
-        var tabDrawerClose = document.getElementById('adminPrTabDrawerClose')
+        var tabDrawer = document.getElementById('doctorPrTabDrawer')
+        var tabDrawerTitle = document.getElementById('doctorPrTabDrawerTitle')
+        var tabDrawerBody = document.getElementById('doctorPrTabDrawerBody')
+        var tabDrawerClose = document.getElementById('doctorPrTabDrawerClose')
 
         var cachedMedBgRows = null
         var cachedVisitRows = null
@@ -1209,13 +1209,13 @@
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(dateText) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(formatCurrency(visit && visit.amount != null ? visit.amount : '')) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem]">' +
-                        '<button type="button" class="admin-pr-open-vitals-tab inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.72rem] font-semibold hover:bg-slate-50">Open Vitals</button>' +
+                        '<button type="button" class="doctor-pr-open-vitals-tab inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.72rem] font-semibold hover:bg-slate-50">Open Vitals</button>' +
                     '</td>' +
                 '</tr>'
             })
             renderDrawerTable(headers, rowsHtml, 'No visits found.')
 
-            tabDrawerBody.querySelectorAll('.admin-pr-open-vitals-tab').forEach(function (btn) {
+            tabDrawerBody.querySelectorAll('.doctor-pr-open-vitals-tab').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     setPanelTab('vitals')
                 })
@@ -1268,7 +1268,7 @@
                 var dependentId = dependent && dependent.user_id != null ? String(dependent.user_id) : ''
                 var age = ageFromBirthdate(dependent && dependent.birthdate ? String(dependent.birthdate) : null)
                 var profileImg = dependent && dependent.prof_path_url ? String(dependent.prof_path_url) : ''
-                html += '<button type="button" class="admin-pr-dependent-card w-full text-left rounded-2xl border border-slate-200 bg-white p-4 hover:bg-slate-50 transition-colors" data-dependent-id="' + escapeHtml(dependentId) + '">' +
+                html += '<button type="button" class="doctor-pr-dependent-card w-full text-left rounded-2xl border border-slate-200 bg-white p-4 hover:bg-slate-50 transition-colors" data-dependent-id="' + escapeHtml(dependentId) + '">' +
                     '<div class="flex items-center gap-4">' +
                         '<div class="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">' +
                             (profileImg
@@ -1286,7 +1286,7 @@
             html += '</div>'
             tabDrawerBody.innerHTML = html
 
-            tabDrawerBody.querySelectorAll('.admin-pr-dependent-card').forEach(function (card) {
+            tabDrawerBody.querySelectorAll('.doctor-pr-dependent-card').forEach(function (card) {
                 card.addEventListener('click', function () {
                     var dependentId = this.getAttribute('data-dependent-id')
                     if (!dependentId) return
@@ -1337,7 +1337,7 @@
             var html = ''
             html += '<div class="space-y-4">'
             html += '<div class="flex items-center justify-between gap-3">' +
-                '<button type="button" class="admin-pr-dependent-back inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.76rem] font-semibold hover:bg-slate-50">' +
+                '<button type="button" class="doctor-pr-dependent-back inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.76rem] font-semibold hover:bg-slate-50">' +
                     '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>' +
                     'Back' +
                 '</button>' +
@@ -1379,9 +1379,9 @@
                 '<div class="px-4 pt-4 pb-3 border-b border-slate-100">' +
                     '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Patient records</div>' +
                     '<div class="flex flex-wrap items-center gap-2">' +
-                        '<button type="button" class="admin-pr-dependent-tab px-3 py-2 rounded-xl text-[0.78rem] font-semibold border ' + (activeDependentTab === 'background' ? 'border-green-600 bg-green-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50') + '" data-dependent-tab="background">Medical background</button>' +
-                        '<button type="button" class="admin-pr-dependent-tab px-3 py-2 rounded-xl text-[0.78rem] font-semibold border ' + (activeDependentTab === 'visits' ? 'border-green-600 bg-green-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50') + '" data-dependent-tab="visits">Visit history</button>' +
-                        '<button type="button" class="admin-pr-dependent-tab px-3 py-2 rounded-xl text-[0.78rem] font-semibold border ' + (activeDependentTab === 'vitals' ? 'border-green-600 bg-green-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50') + '" data-dependent-tab="vitals">Vitals history</button>' +
+                        '<button type="button" class="doctor-pr-dependent-tab px-3 py-2 rounded-xl text-[0.78rem] font-semibold border ' + (activeDependentTab === 'background' ? 'border-green-600 bg-green-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50') + '" data-dependent-tab="background">Medical background</button>' +
+                        '<button type="button" class="doctor-pr-dependent-tab px-3 py-2 rounded-xl text-[0.78rem] font-semibold border ' + (activeDependentTab === 'visits' ? 'border-green-600 bg-green-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50') + '" data-dependent-tab="visits">Visit history</button>' +
+                        '<button type="button" class="doctor-pr-dependent-tab px-3 py-2 rounded-xl text-[0.78rem] font-semibold border ' + (activeDependentTab === 'vitals' ? 'border-green-600 bg-green-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50') + '" data-dependent-tab="vitals">Vitals history</button>' +
                     '</div>' +
                 '</div>' +
                 '<div class="px-4 py-4 space-y-3 border-b border-slate-100">' +
@@ -1395,7 +1395,7 @@
 
             tabDrawerBody.innerHTML = html
 
-            var backBtn = tabDrawerBody.querySelector('.admin-pr-dependent-back')
+            var backBtn = tabDrawerBody.querySelector('.doctor-pr-dependent-back')
             if (backBtn) {
                 backBtn.addEventListener('click', function () {
                     activeDependentRecord = null
@@ -1408,14 +1408,14 @@
                 })
             }
 
-            tabDrawerBody.querySelectorAll('.admin-pr-dependent-tab').forEach(function (btn) {
+            tabDrawerBody.querySelectorAll('.doctor-pr-dependent-tab').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     activeDependentTab = this.getAttribute('data-dependent-tab') || 'background'
                     renderDependentRecordView()
                 })
             })
 
-            tabDrawerBody.querySelectorAll('.admin-pr-dependent-open-vitals-tab').forEach(function (btn) {
+            tabDrawerBody.querySelectorAll('.doctor-pr-dependent-open-vitals-tab').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     activeDependentTab = 'vitals'
                     renderDependentRecordView()
@@ -1454,7 +1454,7 @@
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(fullName(doctor, 'Doctor')) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(dateText) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(formatCurrency(visit && visit.amount != null ? visit.amount : '')) + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem]"><button type="button" class="admin-pr-dependent-open-vitals-tab inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.72rem] font-semibold hover:bg-slate-50">Open Vitals</button></td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem]"><button type="button" class="doctor-pr-dependent-open-vitals-tab inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.72rem] font-semibold hover:bg-slate-50">Open Vitals</button></td>' +
                 '</tr>'
             })
             return rowsHtml
@@ -1701,7 +1701,7 @@
                 var sex = patient && patient.sex ? String(patient.sex) : ''
                 var verificationType = patient && patient.verification_type ? String(patient.verification_type) : ''
                 var profileImg = patient && patient.prof_path_url ? String(patient.prof_path_url) : ''
-                html += '<tr class="admin-pr-patient-row border-b border-slate-50 last:border-0">' +
+                html += '<tr class="doctor-pr-patient-row border-b border-slate-50 last:border-0">' +
                     '<td class="py-2 pr-4">' +
                         (profileImg
                             ? '<img src="' + profileImg.replace(/"/g, '&quot;') + '" alt="" class="w-10 h-10 rounded-lg object-cover border border-slate-200">'
@@ -1714,8 +1714,8 @@
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (sex ? escapeHtml(sex.charAt(0).toUpperCase() + sex.slice(1)) : '<span class="text-slate-400">-</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (verificationType ? escapeHtml(verificationType.charAt(0).toUpperCase() + verificationType.slice(1)) : '<span class="text-slate-400">-</span>') + '</td>' +
                     '<td class="py-2 pr-4">' +
-                        '<button type="button" class="admin-pr-open-panel inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.78rem] font-semibold hover:bg-slate-50" data-patient-id="' + escapeHtml(patientId) + '">View Details and History</button>' +
-                        '<button type="button" class="admin-pr-generate-records ml-2 inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-green-200 bg-green-50 text-green-700 text-[0.72rem] font-semibold hover:bg-green-100" data-patient-id="' + escapeHtml(patientId) + '">Generate Records</button>' +
+                        '<button type="button" class="doctor-pr-open-panel inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.78rem] font-semibold hover:bg-slate-50" data-patient-id="' + escapeHtml(patientId) + '">View Details and History</button>' +
+                        '<button type="button" class="doctor-pr-generate-records ml-2 inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-green-200 bg-green-50 text-green-700 text-[0.72rem] font-semibold hover:bg-green-100" data-patient-id="' + escapeHtml(patientId) + '">Generate Records</button>' +
                     '</td>' +
                 '</tr>'
             })
@@ -1901,14 +1901,14 @@
         setupPhoneFormat(patientEditEmergencyContactNumber)
 
         // View edit form - phone formatting
-        var viewEditContact = document.getElementById('adminPrViewEditContact')
-        var viewEditEmergNumber = document.getElementById('adminPrViewEditEmergencyContactNumber')
+        var viewEditContact = document.getElementById('doctorPrViewEditContact')
+        var viewEditEmergNumber = document.getElementById('doctorPrViewEditEmergencyContactNumber')
         setupPhoneFormat(viewEditContact)
         setupPhoneFormat(viewEditEmergNumber)
 
         // View edit form - nationality select
-        var viewEditNationalitySelect = document.getElementById('adminPrViewEditNationalitySelect')
-        var viewEditNationality = document.getElementById('adminPrViewEditNationality')
+        var viewEditNationalitySelect = document.getElementById('doctorPrViewEditNationalitySelect')
+        var viewEditNationality = document.getElementById('doctorPrViewEditNationality')
         if (viewEditNationalitySelect && viewEditNationality) {
             viewEditNationalitySelect.addEventListener('change', function () {
                 if (this.value === '__others__') {
@@ -1925,7 +1925,7 @@
         }
 
         // View edit form - philhealth formatting
-        var viewEditPhilhealth = document.getElementById('adminPrViewEditPhilhealth')
+        var viewEditPhilhealth = document.getElementById('doctorPrViewEditPhilhealth')
         if (viewEditPhilhealth) {
             viewEditPhilhealth.addEventListener('input', function () {
                 var raw = this.value.replace(/[^\d]/g, '')
@@ -1992,21 +1992,21 @@
         function populateViewEditForm(patient) {
             if (!patient) return
             var ev = function (input) { return (input != null && input !== '') ? String(input) : '' }
-            var editLastname = document.getElementById('adminPrViewEditLastname')
-            var editFirstname = document.getElementById('adminPrViewEditFirstname')
-            var editMiddlename = document.getElementById('adminPrViewEditMiddlename')
-            var editBirthdate = document.getElementById('adminPrViewEditBirthdate')
-            var editCivilStatus = document.getElementById('adminPrViewEditCivilStatus')
-            var editNationalitySelect = document.getElementById('adminPrViewEditNationalitySelect')
-            var editNationality = document.getElementById('adminPrViewEditNationality')
-            var editOccupation = document.getElementById('adminPrViewEditOccupation')
-            var editAddress = document.getElementById('adminPrViewEditAddress')
-            var editPhilhealth = document.getElementById('adminPrViewEditPhilhealth')
-            var editEmergencyContact = document.getElementById('adminPrViewEditEmergencyContact')
-            var editEmergencyContactNumber = document.getElementById('adminPrViewEditEmergencyContactNumber')
-            var editContact = document.getElementById('adminPrViewEditContact')
-            var editProfilePreview = document.getElementById('adminPrViewEditProfilePreview')
-            var editProfileUpload = document.getElementById('adminPrViewEditProfileUpload')
+            var editLastname = document.getElementById('doctorPrViewEditLastname')
+            var editFirstname = document.getElementById('doctorPrViewEditFirstname')
+            var editMiddlename = document.getElementById('doctorPrViewEditMiddlename')
+            var editBirthdate = document.getElementById('doctorPrViewEditBirthdate')
+            var editCivilStatus = document.getElementById('doctorPrViewEditCivilStatus')
+            var editNationalitySelect = document.getElementById('doctorPrViewEditNationalitySelect')
+            var editNationality = document.getElementById('doctorPrViewEditNationality')
+            var editOccupation = document.getElementById('doctorPrViewEditOccupation')
+            var editAddress = document.getElementById('doctorPrViewEditAddress')
+            var editPhilhealth = document.getElementById('doctorPrViewEditPhilhealth')
+            var editEmergencyContact = document.getElementById('doctorPrViewEditEmergencyContact')
+            var editEmergencyContactNumber = document.getElementById('doctorPrViewEditEmergencyContactNumber')
+            var editContact = document.getElementById('doctorPrViewEditContact')
+            var editProfilePreview = document.getElementById('doctorPrViewEditProfilePreview')
+            var editProfileUpload = document.getElementById('doctorPrViewEditProfileUpload')
 
             if (editLastname) editLastname.value = ev(patient && patient.lastname)
             if (editFirstname) editFirstname.value = ev(patient && patient.firstname)
@@ -2014,7 +2014,7 @@
             if (editBirthdate) editBirthdate.value = patient && patient.birthdate ? String(patient.birthdate).substring(0, 10) : ''
             if (editCivilStatus) editCivilStatus.value = patient && patient.civil_status ? String(patient.civil_status) : ''
             // Sex radio
-            var sexRadios = document.querySelectorAll('input[name="adminPrViewEditSex"]')
+            var sexRadios = document.querySelectorAll('input[name="doctorPrViewEditSex"]')
             var patientSex = patient && patient.sex ? String(patient.sex) : ''
             sexRadios.forEach(function (r) { r.checked = r.value === patientSex })
 
@@ -2067,9 +2067,9 @@
         }
 
         function viewEditModeToggle(showEdit) {
-            var display = document.getElementById('adminPrViewProfileDisplay')
-            var edit = document.getElementById('adminPrViewProfileEdit')
-            var editBtn = document.getElementById('adminPrViewEditBtn')
+            var display = document.getElementById('doctorPrViewProfileDisplay')
+            var edit = document.getElementById('doctorPrViewProfileEdit')
+            var editBtn = document.getElementById('doctorPrViewEditBtn')
             if (display) display.classList.toggle('hidden', showEdit)
             if (edit) edit.classList.toggle('hidden', !showEdit)
             if (editBtn) {
@@ -2088,7 +2088,7 @@
         if (viewEditBtn) {
             viewEditBtn.addEventListener('click', function () {
                 if (!currentPatientId) return
-                var isEditing = document.getElementById('adminPrViewProfileEdit') && !document.getElementById('adminPrViewProfileEdit').classList.contains('hidden')
+                var isEditing = document.getElementById('doctorPrViewProfileEdit') && !document.getElementById('doctorPrViewProfileEdit').classList.contains('hidden')
                 if (isEditing) {
                     // Cancel - switch back to display
                     viewEditModeToggle(false)
@@ -2103,51 +2103,51 @@
         }
 
         // View edit form submit
-        var adminPrViewEditForm = document.getElementById('adminPrViewEditForm')
-        var adminPrViewEditSave = document.getElementById('adminPrViewEditSave')
-        var adminPrViewEditSpinner = document.getElementById('adminPrViewEditSpinner')
-        var adminPrViewEditSaveLabel = document.getElementById('adminPrViewEditSaveLabel')
-        var adminPrViewEditError = document.getElementById('adminPrViewEditError')
-        var adminPrViewEditCancel = document.getElementById('adminPrViewEditCancel')
+        var doctorPrViewEditForm = document.getElementById('doctorPrViewEditForm')
+        var doctorPrViewEditSave = document.getElementById('doctorPrViewEditSave')
+        var doctorPrViewEditSpinner = document.getElementById('doctorPrViewEditSpinner')
+        var doctorPrViewEditSaveLabel = document.getElementById('doctorPrViewEditSaveLabel')
+        var doctorPrViewEditError = document.getElementById('doctorPrViewEditError')
+        var doctorPrViewEditCancel = document.getElementById('doctorPrViewEditCancel')
 
-        if (adminPrViewEditCancel) {
-            adminPrViewEditCancel.addEventListener('click', function () {
+        if (doctorPrViewEditCancel) {
+            doctorPrViewEditCancel.addEventListener('click', function () {
                 viewEditModeToggle(false)
-                if (adminPrViewEditError) {
-                    adminPrViewEditError.classList.add('hidden')
-                    adminPrViewEditError.textContent = ''
+                if (doctorPrViewEditError) {
+                    doctorPrViewEditError.classList.add('hidden')
+                    doctorPrViewEditError.textContent = ''
                 }
             })
         }
 
-        if (adminPrViewEditForm) {
-            adminPrViewEditForm.addEventListener('submit', function (e) {
+        if (doctorPrViewEditForm) {
+            doctorPrViewEditForm.addEventListener('submit', function (e) {
                 e.preventDefault()
                 if (!currentPatientId) return
-                if (adminPrViewEditError) {
-                    adminPrViewEditError.classList.add('hidden')
-                    adminPrViewEditError.textContent = ''
+                if (doctorPrViewEditError) {
+                    doctorPrViewEditError.classList.add('hidden')
+                    doctorPrViewEditError.textContent = ''
                 }
-                if (adminPrViewEditSave) adminPrViewEditSave.disabled = true
-                if (adminPrViewEditSpinner) adminPrViewEditSpinner.classList.remove('hidden')
-                if (adminPrViewEditSaveLabel) adminPrViewEditSaveLabel.textContent = 'Saving...'
+                if (doctorPrViewEditSave) doctorPrViewEditSave.disabled = true
+                if (doctorPrViewEditSpinner) doctorPrViewEditSpinner.classList.remove('hidden')
+                if (doctorPrViewEditSaveLabel) doctorPrViewEditSaveLabel.textContent = 'Saving...'
 
-                var firstname = document.getElementById('adminPrViewEditFirstname')
-                var lastname = document.getElementById('adminPrViewEditLastname')
-                var middlename = document.getElementById('adminPrViewEditMiddlename')
-                var birthdate = document.getElementById('adminPrViewEditBirthdate')
-                var civilStatus = document.getElementById('adminPrViewEditCivilStatus')
-                var editNationalitySelect = document.getElementById('adminPrViewEditNationalitySelect')
-                var editNationality = document.getElementById('adminPrViewEditNationality')
-                var occupation = document.getElementById('adminPrViewEditOccupation')
-                var address = document.getElementById('adminPrViewEditAddress')
-                var philhealth = document.getElementById('adminPrViewEditPhilhealth')
-                var emergencyContact = document.getElementById('adminPrViewEditEmergencyContact')
-                var emergencyContactNumber = document.getElementById('adminPrViewEditEmergencyContactNumber')
-                var contact = document.getElementById('adminPrViewEditContact')
+                var firstname = document.getElementById('doctorPrViewEditFirstname')
+                var lastname = document.getElementById('doctorPrViewEditLastname')
+                var middlename = document.getElementById('doctorPrViewEditMiddlename')
+                var birthdate = document.getElementById('doctorPrViewEditBirthdate')
+                var civilStatus = document.getElementById('doctorPrViewEditCivilStatus')
+                var editNationalitySelect = document.getElementById('doctorPrViewEditNationalitySelect')
+                var editNationality = document.getElementById('doctorPrViewEditNationality')
+                var occupation = document.getElementById('doctorPrViewEditOccupation')
+                var address = document.getElementById('doctorPrViewEditAddress')
+                var philhealth = document.getElementById('doctorPrViewEditPhilhealth')
+                var emergencyContact = document.getElementById('doctorPrViewEditEmergencyContact')
+                var emergencyContactNumber = document.getElementById('doctorPrViewEditEmergencyContactNumber')
+                var contact = document.getElementById('doctorPrViewEditContact')
 
                 var sexVal = ''
-                document.querySelectorAll('input[name="adminPrViewEditSex"]').forEach(function (r) {
+                document.querySelectorAll('input[name="doctorPrViewEditSex"]').forEach(function (r) {
                     if (r.checked) sexVal = r.value
                 })
 
@@ -2174,7 +2174,7 @@
                     contact_number: contact ? contact.value.trim() : '',
                 }
 
-                var uploadInput = document.getElementById('adminPrViewEditProfileUpload')
+                var uploadInput = document.getElementById('doctorPrViewEditProfileUpload')
                 var fd = new FormData()
                 fd.append('_method', 'PUT')
                 for (var key in payload) {
@@ -2198,15 +2198,15 @@
                         })
                     })
                     .then(function (result) {
-                        if (adminPrViewEditSave) adminPrViewEditSave.disabled = false
-                        if (adminPrViewEditSpinner) adminPrViewEditSpinner.classList.add('hidden')
-                        if (adminPrViewEditSaveLabel) adminPrViewEditSaveLabel.textContent = 'Save changes'
+                        if (doctorPrViewEditSave) doctorPrViewEditSave.disabled = false
+                        if (doctorPrViewEditSpinner) doctorPrViewEditSpinner.classList.add('hidden')
+                        if (doctorPrViewEditSaveLabel) doctorPrViewEditSaveLabel.textContent = 'Save changes'
 
                         if (!result || !result.ok) {
                             var msg = (result && result.data && result.data.message) ? String(result.data.message) : 'Failed to save patient info.'
-                            if (adminPrViewEditError) {
-                                adminPrViewEditError.textContent = msg
-                                adminPrViewEditError.classList.remove('hidden')
+                            if (doctorPrViewEditError) {
+                                doctorPrViewEditError.textContent = msg
+                                doctorPrViewEditError.classList.remove('hidden')
                             }
                             if (typeof showToast === 'function') showToast(msg, 'error')
                             return
@@ -2219,12 +2219,12 @@
                         if (typeof showToast === 'function') showToast('Patient updated successfully.', 'success')
                     })
                     .catch(function (err) {
-                        if (adminPrViewEditSave) adminPrViewEditSave.disabled = false
-                        if (adminPrViewEditSpinner) adminPrViewEditSpinner.classList.add('hidden')
-                        if (adminPrViewEditSaveLabel) adminPrViewEditSaveLabel.textContent = 'Save changes'
-                        if (adminPrViewEditError) {
-                            adminPrViewEditError.textContent = 'An unexpected error occurred.'
-                            adminPrViewEditError.classList.remove('hidden')
+                        if (doctorPrViewEditSave) doctorPrViewEditSave.disabled = false
+                        if (doctorPrViewEditSpinner) doctorPrViewEditSpinner.classList.add('hidden')
+                        if (doctorPrViewEditSaveLabel) doctorPrViewEditSaveLabel.textContent = 'Save changes'
+                        if (doctorPrViewEditError) {
+                            doctorPrViewEditError.textContent = 'An unexpected error occurred.'
+                            doctorPrViewEditError.classList.remove('hidden')
                         }
                         if (typeof showToast === 'function') showToast('Network error.', 'error')
                     })
@@ -2352,7 +2352,7 @@
         if (patientsTableBody) {
             patientsTableBody.addEventListener('click', function (event) {
                 var target = event && event.target ? event.target : null
-                var btn = target && target.closest ? target.closest('.admin-pr-open-panel') : null
+                var btn = target && target.closest ? target.closest('.doctor-pr-open-panel') : null
                 if (!btn) return
 
                 var patientId = btn.getAttribute('data-patient-id')
@@ -2389,7 +2389,7 @@
         closeViewModal()
         loadPatients(1)
 
-        var prRefreshBtn = document.getElementById('adminPrRefreshBtn')
+        var prRefreshBtn = document.getElementById('doctorPrRefreshBtn')
         if (prRefreshBtn) {
             prRefreshBtn.addEventListener('click', function () { loadPatients(1) })
         }
@@ -2414,29 +2414,29 @@
             return fetch(url, options)
         }
 
-        var prReportModal = document.getElementById('adminPrReportModal')
-        var prReportModalCard = document.getElementById('adminPrReportModalCard')
-        var prReportModalCloseBtn = document.getElementById('adminPrReportModalCloseBtn')
-        var prReportModalTitle = document.getElementById('adminPrReportModalTitle')
-        var prReportModalSubtitle = document.getElementById('adminPrReportModalSubtitle')
-        var prReportModalForm = document.getElementById('adminPrReportModalForm')
-        var prReportPreviewWrap = document.getElementById('adminPrReportPreviewWrap')
-        var prReportPreviewFrame = document.getElementById('adminPrReportPreviewFrame')
-        var prReportInitialActions = document.getElementById('adminPrReportInitialActions')
-        var prReportPreviewActions = document.getElementById('adminPrReportPreviewActions')
-        var prReportCancelBtn = document.getElementById('adminPrReportCancelBtn')
-        var prReportSubmitBtn = document.getElementById('adminPrReportSubmitBtn')
-        var prReportResetBtn = document.getElementById('adminPrReportResetBtn')
-        var prReportPreviewCloseBtn = document.getElementById('adminPrReportPreviewCloseBtn')
-        var prReportPrintBtn = document.getElementById('adminPrReportPrintBtn')
-        var prReportType = document.getElementById('adminPrReportType')
-        var prReportDate = document.getElementById('adminPrReportDate')
-        var prReportStartDate = document.getElementById('adminPrReportStartDate')
-        var prReportEndDate = document.getElementById('adminPrReportEndDate')
-        var prReportSingleDateWrap = document.getElementById('adminPrReportSingleDateWrap')
-        var prReportRangeWrap = document.getElementById('adminPrReportRangeWrap')
-        var prReportFeedback = document.getElementById('adminPrReportFeedback')
-        var prReportPatientName = document.getElementById('adminPrReportPatientName')
+        var prReportModal = document.getElementById('doctorPrReportModal')
+        var prReportModalCard = document.getElementById('doctorPrReportModalCard')
+        var prReportModalCloseBtn = document.getElementById('doctorPrReportModalCloseBtn')
+        var prReportModalTitle = document.getElementById('doctorPrReportModalTitle')
+        var prReportModalSubtitle = document.getElementById('doctorPrReportModalSubtitle')
+        var prReportModalForm = document.getElementById('doctorPrReportModalForm')
+        var prReportPreviewWrap = document.getElementById('doctorPrReportPreviewWrap')
+        var prReportPreviewFrame = document.getElementById('doctorPrReportPreviewFrame')
+        var prReportInitialActions = document.getElementById('doctorPrReportInitialActions')
+        var prReportPreviewActions = document.getElementById('doctorPrReportPreviewActions')
+        var prReportCancelBtn = document.getElementById('doctorPrReportCancelBtn')
+        var prReportSubmitBtn = document.getElementById('doctorPrReportSubmitBtn')
+        var prReportResetBtn = document.getElementById('doctorPrReportResetBtn')
+        var prReportPreviewCloseBtn = document.getElementById('doctorPrReportPreviewCloseBtn')
+        var prReportPrintBtn = document.getElementById('doctorPrReportPrintBtn')
+        var prReportType = document.getElementById('doctorPrReportType')
+        var prReportDate = document.getElementById('doctorPrReportDate')
+        var prReportStartDate = document.getElementById('doctorPrReportStartDate')
+        var prReportEndDate = document.getElementById('doctorPrReportEndDate')
+        var prReportSingleDateWrap = document.getElementById('doctorPrReportSingleDateWrap')
+        var prReportRangeWrap = document.getElementById('doctorPrReportRangeWrap')
+        var prReportFeedback = document.getElementById('doctorPrReportFeedback')
+        var prReportPatientName = document.getElementById('doctorPrReportPatientName')
 
         var prReportSelectedPatientId = null
         var prReportPreviewLoaded = false
@@ -2622,7 +2622,7 @@
         if (patientsTableBody) {
             patientsTableBody.addEventListener('click', function (event) {
                 var target = event && event.target ? event.target : null
-                var btn = target && target.closest ? target.closest('.admin-pr-generate-records') : null
+                var btn = target && target.closest ? target.closest('.doctor-pr-generate-records') : null
                 if (!btn) return
                 var patientId = btn.getAttribute('data-patient-id')
                 if (!patientId) return

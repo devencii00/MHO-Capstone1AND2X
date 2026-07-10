@@ -40,7 +40,7 @@ class PatientController extends Controller
             'per_page' => ['nullable', 'integer', 'min:1', 'max:15'],
             'sort' => ['nullable', 'in:asc,desc'],
             'order_by' => ['nullable', 'in:name_asc,name_desc,created_asc,created_desc'],
-            'age_filter' => ['nullable', 'in:all,1_5,6_12,13_18,19_30,31_up'],
+            'age_filter' => ['nullable', 'in:all,0_5,6_12,13_19,20_64,65_up'],
         ]);
 
         $search = trim((string) $request->query('search', ''));
@@ -84,11 +84,11 @@ class PatientController extends Controller
         $ageFilter = $request->query('age_filter', 'all');
         if ($ageFilter !== 'all') {
             $ageRanges = [
-                '1_5' => [1, 5],
+                '0_5' => [0, 5],
                 '6_12' => [6, 12],
-                '13_18' => [13, 18],
-                '19_30' => [19, 30],
-                '31_up' => [31, 999],
+                '13_19' => [13, 19],
+                '20_64' => [20, 64],
+                '65_up' => [65, 999],
             ];
             if (isset($ageRanges[$ageFilter])) {
                 [$minAge, $maxAge] = $ageRanges[$ageFilter];

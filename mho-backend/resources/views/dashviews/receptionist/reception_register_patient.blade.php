@@ -152,25 +152,25 @@
                         All
                         <span id="receptionPrAgeCountAll" class="ml-1 inline-flex items-center rounded-full bg-white/15 px-2 py-0.5 text-[0.68rem] font-semibold">0</span>
                     </button>
-                    <button type="button" class="reception-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="1_5">
-                        1–5
-                        <span id="receptionPrAgeCount1_5" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
+                    <button type="button" class="reception-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="0_5">
+                        Infants/Toddlers&nbsp;(0–5)
+                        <span id="receptionPrAgeCount0_5" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
                     </button>
                     <button type="button" class="reception-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="6_12">
-                        6–12
+                        School Age&nbsp;(6–12)
                         <span id="receptionPrAgeCount6_12" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
                     </button>
-                    <button type="button" class="reception-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="13_18">
-                        13–18
-                        <span id="receptionPrAgeCount13_18" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
+                    <button type="button" class="reception-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="13_19">
+                        Adolescents&nbsp;(13–19)
+                        <span id="receptionPrAgeCount13_19" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
                     </button>
-                    <button type="button" class="reception-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="19_30">
-                        19–30
-                        <span id="receptionPrAgeCount19_30" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
+                    <button type="button" class="reception-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="20_64">
+                        Adults&nbsp;(20–64)
+                        <span id="receptionPrAgeCount20_64" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
                     </button>
-                    <button type="button" class="reception-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="31_up">
-                        31+
-                        <span id="receptionPrAgeCount31Up" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
+                    <button type="button" class="reception-pr-age-filter px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[0.72rem] font-semibold" data-age-filter="65_up">
+                        Senior Citizens&nbsp;(65+)
+                        <span id="receptionPrAgeCount65Up" class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700">0</span>
                     </button>
                 </div>
             </div>
@@ -202,77 +202,257 @@
     </div>
 </div>
 
-<div id="receptionPrSlideoverOverlay" class="fixed inset-0 z-40 bg-black/30 opacity-0 pointer-events-none transition-opacity duration-300 ease-out"></div>
-
-<div id="receptionPrSlideoverPanel" class="fixed top-0 right-0 z-50 h-full w-full max-w-[560px] bg-white border-l border-slate-200 shadow-2xl translate-x-full transition-transform duration-300 ease-out">
-    <div class="h-full flex flex-col">
-        <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 shrink-0">
-            <div class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Patient Details</div>
-            <button type="button" id="receptionPrPanelClose" class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 flex-shrink-0">
-                <x-lucide-x class="w-[16px] h-[16px]" />
+<div id="receptionPrViewOverlay" class="hidden fixed inset-0 z-[60] bg-slate-900/40 items-center justify-center p-4">
+    <div class="w-full max-w-4xl max-h-[90vh] rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] flex flex-col">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+            <div>
+                <div class="text-sm font-semibold text-slate-900">Patient Details</div>
+                <div id="receptionPrViewSubtitle" class="text-[0.72rem] text-slate-500">View patient profile information.</div>
+            </div>
+            <button type="button" id="receptionPrViewClose" class="text-slate-400 hover:text-slate-600">
+                <x-lucide-x class="w-[20px] h-[20px]" />
             </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto scrollbar-hidden">
-            <div class="px-5 py-4 border-b border-slate-100">
-                <div class="flex gap-4">
-                    <div class="flex w-20 flex-shrink-0 self-start flex-col items-center gap-2">
-                        <div id="receptionPrPanelProfilePic" class="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden">
-                            <div class="w-full h-full flex items-center justify-center text-slate-400">
-                                <x-lucide-user class="w-9 h-9" />
+        <div class="px-5 py-3 border-b border-slate-100 flex items-center gap-1.5 overflow-x-auto scrollbar-hidden shrink-0">
+            <button type="button" class="reception-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-green-600 bg-green-600 text-white" data-view-tab="profile">Profile Info</button>
+            <button type="button" class="reception-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="verification">Type &amp; Verification</button>
+            <button type="button" class="reception-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="background">Medical Background</button>
+            <button type="button" class="reception-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="visits">Visit History</button>
+            <button type="button" class="reception-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="vitals">Vitals History</button>
+            <button type="button" class="reception-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="dependents">Dependents</button>
+        </div>
+
+        <div id="receptionPrViewBody" class="p-5 overflow-y-auto flex-1">
+            {{-- Profile Info Tab --}}
+            <div id="receptionPrViewTabProfile" class="reception-pr-view-tab-content min-h-[420px]">
+                {{-- Edit mode toggle --}}
+                <div class="flex gap-2 mb-4">
+                    <button type="button" id="receptionPrViewEditBtn" class="inline-flex items-center gap-1 text-[0.78rem] font-semibold text-green-700 hover:text-green-800 transition-colors">
+                        Edit Info
+                    </button>
+                </div>
+
+                {{-- ===== DISPLAY MODE ===== --}}
+                <div id="receptionPrViewProfileDisplay">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-5">
+                        <div class="md:col-span-3 space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-[0.7rem] text-slate-600 mb-1">Last name</label>
+                                    <div id="receptionPrDetailLastname" class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">-</div>
+                                </div>
+                                <div>
+                                    <label class="block text-[0.7rem] text-slate-600 mb-1">First name</label>
+                                    <div id="receptionPrDetailFirstname" class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">-</div>
+                                </div>
+                                <div>
+                                    <label class="block text-[0.7rem] text-slate-600 mb-1">Middle name</label>
+                                    <div id="receptionPrDetailMiddlename" class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">-</div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-[0.7rem] text-slate-600 mb-1">Sex</label>
+                                    <div id="receptionPrDetailSex" class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">-</div>
+                                </div>
+                                <div>
+                                    <label class="block text-[0.7rem] text-slate-600 mb-1">Birthdate</label>
+                                    <div id="receptionPrDetailBirthdate" class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">-</div>
+                                </div>
+                                <div>
+                                    <label class="block text-[0.7rem] text-slate-600 mb-1">Civil status</label>
+                                    <div id="receptionPrDetailCivilStatus" class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">-</div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[0.7rem] text-slate-600 mb-1">Nationality</label>
+                                    <div id="receptionPrDetailNationality" class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">-</div>
+                                </div>
+                                <div>
+                                    <label class="block text-[0.7rem] text-slate-600 mb-1">Occupation</label>
+                                    <div id="receptionPrDetailOccupation" class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">-</div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[0.7rem] text-slate-600 mb-1">Address</label>
+                                <div id="receptionPrDetailAddress" class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg min-h-[2.5rem]">-</div>
+                            </div>
+                            <hr class="border-slate-100">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[0.7rem] text-slate-600 mb-1">PHIC Number</label>
+                                    <div id="receptionPrDetailPhic" class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">-</div>
+                                </div>
+                                <div>
+                                    <label class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact</label>
+                                    <div id="receptionPrDetailEmergContact" class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">-</div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact number</label>
+                                <div id="receptionPrDetailEmergNumber" class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">-</div>
                             </div>
                         </div>
-                        <button type="button" id="receptionPrPanelEditInfoBtn" class="inline-flex items-center justify-center rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 transition-colors">
-                            Edit Info
-                        </button>
+                        <div class="md:col-span-2">
+                            <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-5 text-center">
+                                <div class="text-[0.72rem] font-semibold text-slate-700 mb-3">Profile Photo</div>
+                                <div class="w-32 h-32 mx-auto rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 overflow-hidden">
+                                    <div id="receptionPrViewProfilePic">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                    </div>
+                                </div>
+                                <div class="mt-4 text-left">
+                                    <label class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>
+                                    <div id="receptionPrDetailContact" class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">-</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex-1 flex gap-x-5 gap-y-[3px] text-[0.78rem]">
-                        <div class="flex-1 space-y-[3px]">
-                            <div><span class="text-slate-500">First name:</span> <span id="receptionPrDetailFirstname" class="text-slate-800 ml-1">-</span></div>
-                            <div><span class="text-slate-500">Middle Name:</span> <span id="receptionPrDetailMiddlename" class="text-slate-800 ml-1">-</span></div>
-                            <div><span class="text-slate-500">Last Name:</span> <span id="receptionPrDetailLastname" class="text-slate-800 ml-1">-</span></div>
-                            <div><span class="text-slate-500">Date Of Birth:</span> <span id="receptionPrDetailBirthdate" class="text-slate-800 ml-1">-</span></div>
-                            <div><span class="text-slate-500">Address:</span> <span id="receptionPrDetailAddress" class="text-slate-800 ml-1">-</span></div>
-                            <div><span class="text-slate-500">Sex:</span> <span id="receptionPrDetailSex" class="text-slate-800 ml-1">-</span></div>
-                            <div><span class="text-slate-500">Civil status:</span> <span id="receptionPrDetailCivilStatus" class="text-slate-800 ml-1">-</span></div>
+                </div>
+
+                {{-- ===== EDIT MODE ===== --}}
+                <div id="receptionPrViewProfileEdit" class="hidden">
+                    <div id="receptionPrViewEditError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
+                    <form id="receptionPrViewEditForm" class="grid grid-cols-1 md:grid-cols-5 gap-5">
+                        <div class="md:col-span-3 space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label for="receptionPrViewEditLastname" class="block text-[0.7rem] text-slate-600 mb-1">Last name</label>
+                                    <input id="receptionPrViewEditLastname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                </div>
+                                <div>
+                                    <label for="receptionPrViewEditFirstname" class="block text-[0.7rem] text-slate-600 mb-1">First name</label>
+                                    <input id="receptionPrViewEditFirstname" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                </div>
+                                <div>
+                                    <label for="receptionPrViewEditMiddlename" class="block text-[0.7rem] text-slate-600 mb-1">Middle name <span class="text-slate-400">(optional)</span></label>
+                                    <input id="receptionPrViewEditMiddlename" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="N/A">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-[0.7rem] text-slate-600 mb-1">Sex</label>
+                                    <div class="flex items-center gap-4 pt-1">
+                                        <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                                            <input type="radio" name="receptionPrViewEditSex" value="Male" class="rounded-full text-green-600 focus:ring-green-500"> Male
+                                        </label>
+                                        <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                                            <input type="radio" name="receptionPrViewEditSex" value="Female" class="rounded-full text-green-600 focus:ring-green-500"> Female
+                                        </label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="receptionPrViewEditBirthdate" class="block text-[0.7rem] text-slate-600 mb-1">Birthdate</label>
+                                    <input id="receptionPrViewEditBirthdate" type="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                </div>
+                                <div>
+                                    <label for="receptionPrViewEditCivilStatus" class="block text-[0.7rem] text-slate-600 mb-1">Civil status</label>
+                                    <select id="receptionPrViewEditCivilStatus" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                        <option value="">Select</option>
+                                        <option value="Single">Single</option>
+                                        <option value="Married">Married</option>
+                                        <option value="Annulled">Annulled</option>
+                                        <option value="Legally Separated">Legally Separated</option>
+                                        <option value="Widowed">Widowed</option>
+                                        <option value="Divorced">Divorced</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label for="receptionPrViewEditNationalitySelect" class="block text-[0.7rem] text-slate-600 mb-1">Nationality</label>
+                                    <div id="receptionPrViewEditNationalityField" class="flex gap-2">
+                                        <select id="receptionPrViewEditNationalitySelect" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                            <option value="">None</option>
+                                            <option value="Filipino">Filipino</option>
+                                            <option value="__others__">Other/s specify</option>
+                                        </select>
+                                        <input id="receptionPrViewEditNationality" type="text" class="w-0 hidden rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Please specify">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="receptionPrViewEditOccupation" class="block text-[0.7rem] text-slate-600 mb-1">Occupation</label>
+                                    <input id="receptionPrViewEditOccupation" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="receptionPrViewEditAddress" class="block text-[0.7rem] text-slate-600 mb-1">Address</label>
+                                <textarea id="receptionPrViewEditAddress" rows="3" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none resize-y" placeholder="Street, barangay, municipality"></textarea>
+                            </div>
+                            <hr class="border-slate-100">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label for="receptionPrViewEditPhilhealth" class="block text-[0.7rem] text-slate-600 mb-1">PHIC Number</label>
+                                    <input id="receptionPrViewEditPhilhealth" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="01-234567890-1" maxlength="14">
+                                </div>
+                                <div>
+                                    <label for="receptionPrViewEditEmergencyContact" class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact</label>
+                                    <input id="receptionPrViewEditEmergencyContact" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="receptionPrViewEditEmergencyContactNumber" class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact number</label>
+                                <input id="receptionPrViewEditEmergencyContactNumber" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
+                            </div>
                         </div>
-                        <div class="flex-1 space-y-[3px]">
-                            <div><span class="text-slate-500">Nationality:</span> <span id="receptionPrDetailNationality" class="text-slate-800 ml-1">-</span></div>
-                            <div><span class="text-slate-500">Contact Number:</span> <span id="receptionPrDetailContact" class="text-slate-800 ml-1">-</span></div>
-                            <div><span class="text-slate-500">PHIC #:</span> <span id="receptionPrDetailPhic" class="text-slate-800 ml-1">-</span></div>
-                            <div><span class="text-slate-500">Occupation:</span> <span id="receptionPrDetailOccupation" class="text-slate-800 ml-1">-</span></div>
-                            <div><span class="text-slate-500">Emergency contact:</span> <span id="receptionPrDetailEmergContact" class="text-slate-800 ml-1">-</span></div>
-                            <div><span class="text-slate-500">Emergency Contact Number:</span> <span id="receptionPrDetailEmergNumber" class="text-slate-800 ml-1">-</span></div>
+                        <div class="md:col-span-2">
+                            <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-5 text-center">
+                                <div class="text-[0.72rem] font-semibold text-slate-700 mb-3">Profile Photo</div>
+                                <div id="receptionPrViewEditProfilePreview" class="w-32 h-32 mx-auto rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 overflow-hidden">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                </div>
+                                <div class="mt-3">
+                                    <label for="receptionPrViewEditProfileUpload" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-green-200 bg-green-50 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 cursor-pointer">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                        Upload photo
+                                    </label>
+                                    <input id="receptionPrViewEditProfileUpload" type="file" accept="image/*" class="hidden">
+                                </div>
+                                <div class="mt-4 text-left">
+                                    <label for="receptionPrViewEditContact" class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>
+                                    <input id="receptionPrViewEditContact" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
+                                </div>
+                            </div>
                         </div>
+                        <div class="md:col-span-5 flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                            <button type="button" id="receptionPrViewEditCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+                            <button type="submit" id="receptionPrViewEditSave" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 disabled:hover:bg-green-600">
+                                <span id="receptionPrViewEditSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                                <span id="receptionPrViewEditSaveLabel">Save changes</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {{-- Type & Verification Tab --}}
+            <div id="receptionPrViewTabVerification" class="hidden reception-pr-view-tab-content min-h-[420px]">
+                <div class="space-y-3">
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                        <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification status</div>
+                        <div id="receptionPrViewVerificationStatus" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                        <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient type</div>
+                        <div id="receptionPrViewPatientType" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                        <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification ID</div>
+                        <div id="receptionPrViewVerificationId" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
                     </div>
                 </div>
             </div>
 
-            <div class="px-5 pt-4 pb-3 border-b border-slate-100">
-                <div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Patient records</div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <button type="button" id="receptionPrPanelTabBackground" class="px-3 py-2 rounded-xl text-[0.78rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">Medical background</button>
-                    <button type="button" id="receptionPrPanelTabVisits" class="px-3 py-2 rounded-xl text-[0.78rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">Visit history</button>
-                    <button type="button" id="receptionPrPanelTabVitals" class="px-3 py-2 rounded-xl text-[0.78rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">Vitals history</button>
-                    <button type="button" id="receptionPrPanelTabDependents" class="px-3 py-2 rounded-xl text-[0.78rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">Dependents</button>
-                </div>
-                <p class="mt-2 text-[0.74rem] text-slate-500">Select a tab to open the matching records panel beside this profile.</p>
-            </div>
-
-            <div class="px-5 py-4 space-y-3">
-                <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                    <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification status</div>
-                    <div id="receptionPrPanelVerificationStatus" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
-                </div>
-                <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                    <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient type</div>
-                    <div id="receptionPrPanelPatientType" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
-                </div>
-                <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                    <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification ID</div>
-                    <div id="receptionPrPanelVerificationId" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
-                </div>
-            </div>
+            {{-- Medical Background Tab --}}
+            <div id="receptionPrViewTabBackground" class="hidden reception-pr-view-tab-content min-h-[420px]"></div>
+            {{-- Visit History Tab --}}
+            <div id="receptionPrViewTabVisits" class="hidden reception-pr-view-tab-content min-h-[420px]"></div>
+            {{-- Vitals History Tab --}}
+            <div id="receptionPrViewTabVitals" class="hidden reception-pr-view-tab-content min-h-[420px]"></div>
+            {{-- Dependents Tab --}}
+            <div id="receptionPrViewTabDependents" class="hidden reception-pr-view-tab-content min-h-[420px]"></div>
         </div>
     </div>
 </div>
@@ -1333,17 +1513,23 @@
         var recActiveAgeFilter = 'all'
         var recAgeFilterButtons = Array.prototype.slice.call(document.querySelectorAll('.reception-pr-age-filter'))
         var recAgeCountAll = document.getElementById('receptionPrAgeCountAll')
-        var recAgeCount1_5 = document.getElementById('receptionPrAgeCount1_5')
+        var recAgeCount0_5 = document.getElementById('receptionPrAgeCount0_5')
         var recAgeCount6_12 = document.getElementById('receptionPrAgeCount6_12')
-        var recAgeCount13_18 = document.getElementById('receptionPrAgeCount13_18')
-        var recAgeCount19_30 = document.getElementById('receptionPrAgeCount19_30')
-        var recAgeCount31Up = document.getElementById('receptionPrAgeCount31Up')
+        var recAgeCount13_19 = document.getElementById('receptionPrAgeCount13_19')
+        var recAgeCount20_64 = document.getElementById('receptionPrAgeCount20_64')
+        var recAgeCount65Up = document.getElementById('receptionPrAgeCount65Up')
 
-        var recOverlay = document.getElementById('receptionPrSlideoverOverlay')
-        var recPanel = document.getElementById('receptionPrSlideoverPanel')
-        var recPanelClose = document.getElementById('receptionPrPanelClose')
-        var recPanelProfilePic = document.getElementById('receptionPrPanelProfilePic')
-        var recPanelEditInfoBtn = document.getElementById('receptionPrPanelEditInfoBtn')
+        var recViewOverlay = document.getElementById('receptionPrViewOverlay')
+        var recViewClose = document.getElementById('receptionPrViewClose')
+        var recViewProfilePic = document.getElementById('receptionPrViewProfilePic')
+        var recViewEditBtn = document.getElementById('receptionPrViewEditBtn')
+        var recViewTabButtons = Array.prototype.slice.call(document.querySelectorAll('.reception-pr-view-tab'))
+        var recViewTabContents = {}
+        document.querySelectorAll('.reception-pr-view-tab-content').forEach(function (el) {
+            var id = el.getAttribute('id') || ''
+            var key = id.replace('receptionPrViewTab', '').toLowerCase()
+            recViewTabContents[key] = el
+        })
         var recPrDetailFirstname = document.getElementById('receptionPrDetailFirstname')
         var recPrDetailMiddlename = document.getElementById('receptionPrDetailMiddlename')
         var recPrDetailLastname = document.getElementById('receptionPrDetailLastname')
@@ -1357,14 +1543,9 @@
         var recPrDetailOccupation = document.getElementById('receptionPrDetailOccupation')
         var recPrDetailEmergContact = document.getElementById('receptionPrDetailEmergContact')
         var recPrDetailEmergNumber = document.getElementById('receptionPrDetailEmergNumber')
-        var recPanelVerificationStatus = document.getElementById('receptionPrPanelVerificationStatus')
-        var recPanelPatientType = document.getElementById('receptionPrPanelPatientType')
-        var recPanelVerificationId = document.getElementById('receptionPrPanelVerificationId')
-
-        var recPanelTabBackground = document.getElementById('receptionPrPanelTabBackground')
-        var recPanelTabVisits = document.getElementById('receptionPrPanelTabVisits')
-        var recPanelTabVitals = document.getElementById('receptionPrPanelTabVitals')
-        var recPanelTabDependents = document.getElementById('receptionPrPanelTabDependents')
+        var recViewVerificationStatus = document.getElementById('receptionPrViewVerificationStatus')
+        var recViewPatientType = document.getElementById('receptionPrViewPatientType')
+        var recViewVerificationId = document.getElementById('receptionPrViewVerificationId')
 
         var recPatientEditOverlay = document.getElementById('receptionPrEditOverlay')
         var recPatientEditClose = document.getElementById('receptionPrEditClose')
@@ -1411,6 +1592,7 @@
         var recCachedVitalRows = null
         var recCachedDependentRows = null
         var recCurrentPatientId = null
+        var recCurrentViewTab = 'profile'
         var recCurrentPanelTab = null
         var recActiveDependentRecord = null
         var recActiveDependentTab = 'background'
@@ -1452,9 +1634,9 @@
 
         function recMatchesAgeFilter(age, filterKey) {
             if (filterKey === 'all') return true; if (age == null) return false
-            if (filterKey === '1_5') return age >= 1 && age <= 5; if (filterKey === '6_12') return age >= 6 && age <= 12
-            if (filterKey === '13_18') return age >= 13 && age <= 18; if (filterKey === '19_30') return age >= 19 && age <= 30
-            if (filterKey === '31_up') return age >= 31; return true
+            if (filterKey === '0_5') return age >= 0 && age <= 5; if (filterKey === '6_12') return age >= 6 && age <= 12
+            if (filterKey === '13_19') return age >= 13 && age <= 19; if (filterKey === '20_64') return age >= 20 && age <= 64
+            if (filterKey === '65_up') return age >= 65; return true
         }
 
         function recDisplayValue(value) { return (value != null && value !== '') ? String(value) : '-' }
@@ -1471,41 +1653,34 @@
 
         function recSetText(el, text) { if (!el) return; el.textContent = text == null ? '' : String(text) }
 
-        function recSetTabButtonActive(btn, isActive) {
-            if (!btn) return; btn.classList.remove('bg-green-600', 'text-white', 'border-green-600', 'bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50')
-            if (isActive) btn.classList.add('bg-green-600', 'text-white', 'border-green-600')
-            else btn.classList.add('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50')
-        }
-
-        function recSyncTabButtonState() {
-            recSetTabButtonActive(recPanelTabBackground, recCurrentPanelTab === 'background')
-            recSetTabButtonActive(recPanelTabVisits, recCurrentPanelTab === 'visits')
-            recSetTabButtonActive(recPanelTabVitals, recCurrentPanelTab === 'vitals')
-            recSetTabButtonActive(recPanelTabDependents, recCurrentPanelTab === 'dependents')
+        function recSetViewTabActive(tabKey) {
+            recViewTabButtons.forEach(function (btn) {
+                var key = btn.getAttribute('data-view-tab') || ''
+                btn.classList.remove('bg-green-600', 'text-white', 'border-green-600', 'bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50')
+                if (key === tabKey) {
+                    btn.classList.add('bg-green-600', 'text-white', 'border-green-600')
+                } else {
+                    btn.classList.add('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50')
+                }
+            })
         }
 
         function recFormatRecordedAt(value) { var raw = value ? String(value) : ''; if (!raw) return '-'; return raw.replace('T', ' ').slice(0, 16) }
         function recFormatNumeric(value, decimals) { if (value == null || value === '') return '-'; var num = typeof value === 'number' ? value : parseFloat(value); if (isNaN(num)) return '-'; return num.toFixed(decimals == null ? 1 : decimals) }
         function recFormatCurrency(value) { if (value == null || value === '') return '-'; var num = typeof value === 'number' ? value : parseFloat(value); if (isNaN(num)) return '-'; return 'PHP ' + num.toFixed(2) }
 
-        function recOpenPanel() {
-            if (recOverlay) { recOverlay.classList.remove('opacity-0', 'pointer-events-none'); recOverlay.classList.add('opacity-100', 'pointer-events-auto') }
-            if (recPanel) { recPanel.classList.remove('translate-x-full'); recPanel.classList.add('translate-x-0') }
-        }
-
         function recCloseTabDrawer() {
             if (recTabDrawer) recTabDrawer.classList.add('hidden')
             recCurrentPanelTab = null; recActiveDependentRecord = null; recActiveDependentTab = 'background'
             recActiveDependentMedBgRows = null; recActiveDependentVisitRows = null; recActiveDependentVitalRows = null; recActiveDependentVerification = null
-            recSyncTabButtonState()
         }
 
         function recOpenTabDrawer() { if (recTabDrawer) recTabDrawer.classList.remove('hidden') }
 
-        function recClosePanel() {
-            recCurrentPatientId = null; recCachedMedBgRows = null; recCachedVisitRows = null; recCachedVitalRows = null; recCachedDependentRows = null; recCloseTabDrawer()
-            if (recOverlay) { recOverlay.classList.add('opacity-0', 'pointer-events-none'); recOverlay.classList.remove('opacity-100', 'pointer-events-auto') }
-            if (recPanel) { recPanel.classList.add('translate-x-full'); recPanel.classList.remove('translate-x-0') }
+        function recResetPanelMetaFields() {
+            if (recViewVerificationStatus) recViewVerificationStatus.textContent = '-'
+            if (recViewPatientType) recViewPatientType.textContent = '-'
+            if (recViewVerificationId) recViewVerificationId.textContent = '-'
         }
 
         function recSetPatientEditSubmitting(isSubmitting) {
@@ -1560,15 +1735,15 @@
         }
 
         function recUpdateAgeCounts() {
-            var counts = { all: 0, '1_5': 0, '6_12': 0, '13_18': 0, '19_30': 0, '31_up': 0 }
+            var counts = { all: 0, '0_5': 0, '6_12': 0, '13_19': 0, '20_64': 0, '65_up': 0 }
             recPatientsRows.forEach(function (p) {
                 var age = recAgeFromBirthdate(p.birthdate)
                 counts.all++
                 if (age == null) return
-                ['1_5', '6_12', '13_18', '19_30', '31_up'].forEach(function (k) { if (recMatchesAgeFilter(age, k)) counts[k]++ })
+                ['0_5', '6_12', '13_19', '20_64', '65_up'].forEach(function (k) { if (recMatchesAgeFilter(age, k)) counts[k]++ })
             })
-            recSetText(recAgeCountAll, counts.all); recSetText(recAgeCount1_5, counts['1_5']); recSetText(recAgeCount6_12, counts['6_12'])
-            recSetText(recAgeCount13_18, counts['13_18']); recSetText(recAgeCount19_30, counts['19_30']); recSetText(recAgeCount31Up, counts['31_up'])
+            recSetText(recAgeCountAll, counts.all); recSetText(recAgeCount0_5, counts['0_5']); recSetText(recAgeCount6_12, counts['6_12'])
+            recSetText(recAgeCount13_19, counts['13_19']); recSetText(recAgeCount20_64, counts['20_64']); recSetText(recAgeCount65Up, counts['65_up'])
         }
 
         function recFilterPatients(page) {
@@ -1689,6 +1864,7 @@
 
         function recOpenPatientPanel(patientId) {
             recCurrentPatientId = patientId
+            recViewEditModeToggle(false)
             recCachedMedBgRows = null; recCachedVisitRows = null; recCachedVitalRows = null; recCachedDependentRows = null
             recCloseTabDrawer()
             var row = recPatientsTableBody ? recPatientsTableBody.querySelector('.reception-pr-patient-row[data-patient-id="' + patientId + '"]') : null
@@ -1703,49 +1879,141 @@
             recSetText(recPrDetailFirstname, patientData.firstname || '-')
             recSetText(recPrDetailMiddlename, patientData.middlename || '-')
             recSetText(recPrDetailLastname, patientData.lastname || '-')
-            recSetText(recPrDetailBirthdate, patientData.birthdate || '-')
+            var birthdateStr = patientData && patientData.birthdate ? String(patientData.birthdate) : ''
+            if (birthdateStr) {
+                var age = recAgeFromBirthdate(birthdateStr)
+                recSetText(recPrDetailBirthdate, birthdateStr.substring(0, 10) + (age != null ? ' (Age: ' + age + ')' : ''))
+            } else {
+                recSetText(recPrDetailBirthdate, '-')
+            }
             recSetText(recPrDetailAddress, patientData.address || '-')
             recSetText(recPrDetailSex, recSexLabel(patientData.sex))
             recSetText(recPrDetailContact, recFormatPhone(patientData.contact_number))
-            if (recPanelProfilePic) recPanelProfilePic.innerHTML = patientData.profile_photo_url ? '<img src="' + String(patientData.profile_photo_url).replace(/"/g, '&quot;') + '" class="w-full h-full object-cover" alt="">' : recDefaultProfilePicHtml
+            if (recViewProfilePic) recViewProfilePic.innerHTML = patientData.profile_photo_url ? '<img src="' + String(patientData.profile_photo_url).replace(/"/g, '&quot;') + '" class="w-full h-full object-cover" alt="">' : recDefaultProfilePicHtml
             recSetText(recPrDetailCivilStatus, patientData.civil_status || '-')
             recSetText(recPrDetailNationality, patientData.nationality || '-')
             recSetText(recPrDetailPhic, recFormatPhilhealth(patientData.philhealth_number))
             recSetText(recPrDetailOccupation, patientData.occupation || '-')
             recSetText(recPrDetailEmergContact, patientData.emergency_contact || '-')
             recSetText(recPrDetailEmergNumber, recFormatPhone(patientData.emergency_contact_number))
-            recOpenPanel()
-            recShowPanelTabsForPatient(patientId)
+            recOpenViewModal()
+            recLoadPatientPanelData(patientId)
         }
 
-        function recShowPanelTabsForPatient(patientId) {
-            recCloseTabDrawer()
+        function recLoadPatientPanelData(patientId) {
             recCurrentPatientId = patientId
             recCachedMedBgRows = null; recCachedVisitRows = null; recCachedVitalRows = null; recCachedDependentRows = null
-            recSetText(recPanelVerificationStatus, 'Loading…')
-            recSetText(recPanelPatientType, 'Loading…')
-            recSetText(recPanelVerificationId, 'Loading…')
-            var url = "{{ url('/api/patients') }}/" + encodeURIComponent(patientId) + '/verification'
-            apiFetch(url, { method: 'GET' })
-                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d } }).catch(function () { return { ok: false, data: null } }) })
-                .then(function (r) {
-                    var patient = r.ok && r.data && r.data.patient ? r.data.patient : null
-                    var d = r.ok && r.data && r.data.dependents_data ? r.data.dependents_data : null
-                    if (patient) {
-                        recSetText(recPanelVerificationStatus, String(patient.verification_status || 'unverified').charAt(0).toUpperCase() + String(patient.verification_status || 'unverified').slice(1))
-                        recSetText(recPanelPatientType, String(patient.account_type || 'patient').charAt(0).toUpperCase() + String(patient.account_type || 'patient').slice(1))
-                        recSetText(recPanelVerificationId, patient.verification_id || '-')
-                    } else { recSetText(recPanelVerificationStatus, '-'); recSetText(recPanelPatientType, '-'); recSetText(recPanelVerificationId, '-') }
+            recResetPanelMetaFields()
+            var apiBaseUrl = "{{ url('/api') }}"
+
+            var medBgReq = apiFetch(apiBaseUrl + "/medical-backgrounds?per_page=15&patient_id=" + encodeURIComponent(patientId), { method: 'GET' })
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        return { ok: response.ok, data: data }
+                    }).catch(function () {
+                        return { ok: response.ok, data: null }
+                    })
                 })
-                .catch(function () { recSetText(recPanelVerificationStatus, '-'); recSetText(recPanelPatientType, '-'); recSetText(recPanelVerificationId, '-') })
-            recCurrentPanelTab = null
-            recSyncTabButtonState()
+
+            var visitsReq = apiFetch(apiBaseUrl + "/visits?per_page=15&patient_id=" + encodeURIComponent(patientId), { method: 'GET' })
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        return { ok: response.ok, data: data }
+                    }).catch(function () {
+                        return { ok: response.ok, data: null }
+                    })
+                })
+
+            var vitalsReq = apiFetch(apiBaseUrl + "/vitals?per_page=15&patient_id=" + encodeURIComponent(patientId), { method: 'GET' })
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        return { ok: response.ok, data: data }
+                    }).catch(function () {
+                        return { ok: response.ok, data: null }
+                    })
+                })
+
+            var verificationReq = apiFetch(apiBaseUrl + "/patient-verifications?per_page=1&patient_id=" + encodeURIComponent(patientId), { method: 'GET' })
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        return { ok: response.ok, data: data }
+                    }).catch(function () {
+                        return { ok: response.ok, data: null }
+                    })
+                })
+
+            var dependentsReq = apiFetch(apiBaseUrl + "/users/" + encodeURIComponent(patientId) + "/dependents", { method: 'GET' })
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        return { ok: response.ok, data: data }
+                    }).catch(function () {
+                        return { ok: response.ok, data: null }
+                    })
+                })
+
+            Promise.all([medBgReq, visitsReq, vitalsReq, verificationReq, dependentsReq])
+                .then(function (results) {
+                    if (String(patientId || '') !== String(recCurrentPatientId || '')) return
+
+                    var medBgRes = results[0]
+                    recCachedMedBgRows = (!medBgRes || !medBgRes.ok || !medBgRes.data)
+                        ? []
+                        : (Array.isArray(medBgRes.data.data) ? medBgRes.data.data : (Array.isArray(medBgRes.data) ? medBgRes.data : []))
+
+                    var visitsRes = results[1]
+                    recCachedVisitRows = (!visitsRes || !visitsRes.ok || !visitsRes.data)
+                        ? []
+                        : (Array.isArray(visitsRes.data.data) ? visitsRes.data.data : (Array.isArray(visitsRes.data) ? visitsRes.data : []))
+
+                    var vitalsRes = results[2]
+                    recCachedVitalRows = (!vitalsRes || !vitalsRes.ok || !vitalsRes.data)
+                        ? []
+                        : (Array.isArray(vitalsRes.data.data) ? vitalsRes.data.data : (Array.isArray(vitalsRes.data) ? vitalsRes.data : []))
+
+                    var verRes = results[3]
+                    if (!verRes || !verRes.ok || !verRes.data) {
+                        if (recViewVerificationStatus) recViewVerificationStatus.textContent = '-'
+                        if (recViewPatientType) recViewPatientType.textContent = '-'
+                        if (recViewVerificationId) recViewVerificationId.textContent = '-'
+                    } else {
+                        var verRows = Array.isArray(verRes.data.data) ? verRes.data.data : (Array.isArray(verRes.data) ? verRes.data : [])
+                        var latest = verRows && verRows.length ? verRows[0] : null
+                        var verStatus = latest && latest.status ? String(latest.status) : 'Not submitted'
+                        if (recViewVerificationStatus) recViewVerificationStatus.textContent = verStatus
+                        if (recViewPatientType) recViewPatientType.textContent = latest && latest.type ? String(latest.type) : '-'
+                        var isVerified = verStatus.toLowerCase() === 'verified' || verStatus.toLowerCase() === 'approved'
+                        if (recViewVerificationId) {
+                            if (isVerified && latest && latest.document_url) {
+                                var docUrl = String(latest.document_url)
+                                recViewVerificationId.innerHTML = '<a href="' + docUrl.replace(/"/g, '&quot;') + '" target="_blank" class="text-green-700 underline hover:text-green-800">View ID</a>'
+                            } else {
+                                recViewVerificationId.textContent = isVerified ? '-' : '—'
+                            }
+                        }
+                    }
+
+                    var dependentsRes = results[4]
+                    recCachedDependentRows = (!dependentsRes || !dependentsRes.ok || !dependentsRes.data)
+                        ? []
+                        : (Array.isArray(dependentsRes.data) ? dependentsRes.data : (Array.isArray(dependentsRes.data.data) ? dependentsRes.data.data : []))
+
+                    // Re-render current view tab if it's a data-driven tab
+                    if (recCurrentViewTab && recCurrentViewTab !== 'profile' && recCurrentViewTab !== 'verification') {
+                        recSetViewTab(recCurrentViewTab)
+                    }
+                })
+                .catch(function () {
+                    if (String(patientId || '') !== String(recCurrentPatientId || '')) return
+                    recCachedMedBgRows = []
+                    recCachedVisitRows = []
+                    recCachedVitalRows = []
+                    recCachedDependentRows = []
+                })
         }
 
         function recLoadAndShowTab(tabKey, patientId) {
             if (!recTabDrawerBody) return
             recCurrentPanelTab = tabKey
-            recSyncTabButtonState()
             recOpenTabDrawer()
             if (tabKey === 'background') { recSetText(recTabDrawerTitle, 'Medical background'); recTabDrawerBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading…</div>'; recLoadMedicalBackground(patientId) }
             else if (tabKey === 'visits') { recSetText(recTabDrawerTitle, 'Visit history'); recTabDrawerBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading…</div>'; recLoadVisitHistory(patientId) }
@@ -1890,8 +2158,6 @@
                 .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d } }).catch(function () { return { ok: false, data: null } }) })
                 .then(function (r) { recActiveDependentMedBgRows = r.ok && r.data && Array.isArray(r.data.records) ? r.data.records : []; if (recActiveDependentTab === 'background') recRenderMedBg(recActiveDependentMedBgRows) })
                 .catch(function () { recActiveDependentMedBgRows = []; if (recActiveDependentTab === 'background') recRenderMedBg([]) })
-            recCurrentPanelTab = null
-            recSyncTabButtonState()
         }
 
         // ── Edit Patient Modal ──
@@ -1948,6 +2214,248 @@
             if (recPatientEditConfirmResolver) { recPatientEditConfirmResolver(value); recPatientEditConfirmResolver = null }
         }
 
+        // ── View modal tab rendering functions ──
+        function recBuildTableHtml(headers, rowsHtml, emptyMessage, loadingMessage) {
+            var headerHtml = headers.map(function (header) {
+                return '<th class="py-2 pr-4 font-semibold">' + recEscHtml(header) + '</th>'
+            }).join('')
+            var bodyHtml = rowsHtml
+            if (!bodyHtml) {
+                var message = loadingMessage || emptyMessage
+                bodyHtml = '<tr><td colspan="' + headers.length + '" class="py-4 text-center text-[0.78rem] text-slate-400">' + recEscHtml(message) + '</td></tr>'
+            }
+            return '<div class="overflow-x-auto"><table class="min-w-full text-left text-xs text-slate-600"><thead><tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">' + headerHtml + '</tr></thead><tbody>' + bodyHtml + '</tbody></table></div>'
+        }
+
+        function recRenderViewTabContent(tabKey) {
+            var container = recViewTabContents[tabKey]
+            if (!container) return
+            if (tabKey === 'background') {
+                var headers = ['Category', 'Name', 'Diagnosis Date', 'Procedure Date', 'Notes']
+                if (recCachedMedBgRows == null) {
+                    container.innerHTML = recBuildTableHtml(headers, '', 'No medical background entries found.', 'Loading medical background entries...')
+                    return
+                }
+                var rowsHtml = ''
+                recCachedMedBgRows.forEach(function (row) {
+                    var diagnosisDate = row && row.diagnosis_date ? String(row.diagnosis_date) : ''
+                    var diagnosisTime = row && row.diagnosis_time ? String(row.diagnosis_time) : ''
+                    if (diagnosisDate || diagnosisTime) diagnosisDate = (diagnosisDate || '') + (diagnosisTime ? ' ' + diagnosisTime.slice(0, 5) : '')
+                    var procedureDate = row && row.procedure_date ? String(row.procedure_date) : ''
+                    rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + recEscHtml(recCategoryLabel(row.category)) + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + recEscHtml(row && row.name ? String(row.name) : '-') + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosisDate ? recEscHtml(diagnosisDate) : '<span class="text-slate-400">-</span>') + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (procedureDate ? recEscHtml(procedureDate) : '<span class="text-slate-400">-</span>') + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (row && row.notes ? recEscHtml(String(row.notes)) : '<span class="text-slate-400">-</span>') + '</td>' +
+                    '</tr>'
+                })
+                container.innerHTML = recBuildTableHtml(headers, rowsHtml, 'No medical background entries found.')
+            } else if (tabKey === 'visits') {
+                var headers = ['Doctor', 'Visit date', 'Fees', 'Action']
+                if (recCachedVisitRows == null) {
+                    container.innerHTML = recBuildTableHtml(headers, '', 'No visits found.', 'Loading visit history...')
+                    return
+                }
+                var rowsHtml = ''
+                recCachedVisitRows.forEach(function (visit) {
+                    var appointment = visit && visit.appointment ? visit.appointment : null
+                    var doctor = appointment && appointment.doctor ? appointment.doctor : null
+                    var dateRaw = visit && (visit.visit_datetime || visit.transaction_datetime) ? String(visit.visit_datetime || visit.transaction_datetime) : ''
+                    var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
+                    rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + recEscHtml(recFullName(doctor, 'Doctor')) + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + recEscHtml(dateText) + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + recEscHtml(recFormatCurrency(visit && visit.amount != null ? visit.amount : '')) + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem]">-</td>' +
+                    '</tr>'
+                })
+                container.innerHTML = recBuildTableHtml(headers, rowsHtml, 'No visits found.')
+            } else if (tabKey === 'vitals') {
+                var headers = ['Recorded', 'Height (cm)', 'Weight (kg)', 'BP', 'Temp', 'Pulse']
+                if (recCachedVitalRows == null) {
+                    container.innerHTML = recBuildTableHtml(headers, '', 'No vitals found.', 'Loading vitals history...')
+                    return
+                }
+                var rowsHtml = ''
+                recCachedVitalRows.forEach(function (vital) {
+                    var recorded = recFormatRecordedAt(vital && vital.recorded_at ? vital.recorded_at : (vital && vital.appointment_datetime ? vital.appointment_datetime : ''))
+                    var height = vital && vital.height_cm != null ? recFormatNumeric(vital.height_cm, 1) : '-'
+                    var weight = vital && vital.weight_kg != null ? recFormatNumeric(vital.weight_kg, 1) : '-'
+                    var bp = vital && vital.blood_pressure ? String(vital.blood_pressure) : '-'
+                    var temp = vital && vital.temperature != null ? recFormatNumeric(vital.temperature, 1) : '-'
+                    var pulse = vital && vital.pulse_rate != null ? String(vital.pulse_rate) : '-'
+                    rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + recEscHtml(recorded) + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + recEscHtml(height) + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + recEscHtml(weight) + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + recEscHtml(bp) + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + recEscHtml(temp) + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + recEscHtml(pulse) + '</td>' +
+                    '</tr>'
+                })
+                container.innerHTML = recBuildTableHtml(headers, rowsHtml, 'No vitals found.')
+            } else if (tabKey === 'dependents') {
+                if (recCachedDependentRows == null) {
+                    container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-[0.78rem] text-slate-600">Loading dependents...</div></div>'
+                    return
+                }
+                if (!recCachedDependentRows.length) {
+                    container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-[0.78rem] text-slate-600">No dependents found for this patient.</div></div>'
+                    return
+                }
+                var html = '<div class="space-y-3">'
+                recCachedDependentRows.forEach(function (dependent) {
+                    var dependentId = dependent && dependent.user_id != null ? String(dependent.user_id) : ''
+                    var age = recAgeFromBirthdate(dependent && dependent.birthdate ? String(dependent.birthdate) : null)
+                    var profileImg = dependent && dependent.prof_path_url ? String(dependent.prof_path_url) : ''
+                    html += '<div class="rounded-2xl border border-slate-200 bg-white p-4">' +
+                        '<div class="flex items-center gap-4">' +
+                            '<div class="w-14 h-14 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">' +
+                                (profileImg
+                                    ? '<img src="' + profileImg.replace(/"/g, '&quot;') + '" alt="" class="w-full h-full object-cover">'
+                                    : '<div class="w-full h-full flex items-center justify-center text-slate-400">...</div>') +
+                            '</div>' +
+                            '<div class="flex-1 min-w-0 space-y-1">' +
+                                '<div class="text-[0.82rem] font-semibold text-slate-900 truncate">' + recEscHtml(recFullName(dependent, 'Dependent')) + '</div>' +
+                                '<div class="text-[0.76rem] text-slate-500">Age: <span class="text-slate-700">' + recEscHtml(age == null ? '-' : String(age)) + '</span> &middot; Sex: <span class="text-slate-700">' + recEscHtml(recSexLabel(dependent && dependent.sex)) + '</span></div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>'
+                })
+                html += '</div>'
+                container.innerHTML = html
+            }
+        }
+
+        function recSetViewTab(tabKey) {
+            if (!tabKey || !recCurrentPatientId) return
+            recCurrentViewTab = tabKey
+            recSetViewTabActive(tabKey)
+            Object.keys(recViewTabContents).forEach(function (key) {
+                if (recViewTabContents[key]) {
+                    recViewTabContents[key].classList.toggle('hidden', key !== tabKey)
+                }
+            })
+            recRenderViewTabContent(tabKey)
+        }
+
+        function recOpenViewModal() {
+            if (recViewOverlay) {
+                recViewOverlay.classList.remove('hidden')
+                recViewOverlay.classList.add('flex')
+            }
+            recSetViewTab('profile')
+        }
+
+        function recCloseViewModal() {
+            recCurrentPatientId = null
+            recCachedMedBgRows = null
+            recCachedVisitRows = null
+            recCachedVitalRows = null
+            recCachedDependentRows = null
+            recViewEditModeToggle(false)
+            if (recViewOverlay) {
+                recViewOverlay.classList.add('hidden')
+                recViewOverlay.classList.remove('flex')
+            }
+        }
+
+        // ── View edit mode functions ──
+        function recPopulateViewEditForm(patient) {
+            if (!patient) return
+            var ev = function (input) { return (input != null && input !== '') ? String(input) : '' }
+            var editLastname = document.getElementById('receptionPrViewEditLastname')
+            var editFirstname = document.getElementById('receptionPrViewEditFirstname')
+            var editMiddlename = document.getElementById('receptionPrViewEditMiddlename')
+            var editBirthdate = document.getElementById('receptionPrViewEditBirthdate')
+            var editCivilStatus = document.getElementById('receptionPrViewEditCivilStatus')
+            var editNationalitySelect = document.getElementById('receptionPrViewEditNationalitySelect')
+            var editNationality = document.getElementById('receptionPrViewEditNationality')
+            var editOccupation = document.getElementById('receptionPrViewEditOccupation')
+            var editAddress = document.getElementById('receptionPrViewEditAddress')
+            var editPhilhealth = document.getElementById('receptionPrViewEditPhilhealth')
+            var editEmergencyContact = document.getElementById('receptionPrViewEditEmergencyContact')
+            var editEmergencyContactNumber = document.getElementById('receptionPrViewEditEmergencyContactNumber')
+            var editContact = document.getElementById('receptionPrViewEditContact')
+            var editProfilePreview = document.getElementById('receptionPrViewEditProfilePreview')
+            var editProfileUpload = document.getElementById('receptionPrViewEditProfileUpload')
+
+            if (editLastname) editLastname.value = ev(patient && patient.lastname)
+            if (editFirstname) editFirstname.value = ev(patient && patient.firstname)
+            if (editMiddlename) editMiddlename.value = ev(patient && patient.middlename)
+            if (editBirthdate) editBirthdate.value = patient && patient.birthdate ? String(patient.birthdate).substring(0, 10) : ''
+            if (editCivilStatus) editCivilStatus.value = patient && patient.civil_status ? String(patient.civil_status) : ''
+            // Sex radio
+            var sexRadios = document.querySelectorAll('input[name="receptionPrViewEditSex"]')
+            var patientSex = patient && patient.sex ? String(patient.sex) : ''
+            sexRadios.forEach(function (r) { r.checked = r.value === patientSex })
+
+            // Nationality
+            var natl = patient && patient.nationality ? String(patient.nationality) : ''
+            if (editNationalitySelect && editNationality) {
+                var isOther = natl && natl !== 'Filipino'
+                editNationalitySelect.value = isOther ? '__others__' : (natl || '')
+                if (isOther) {
+                    editNationalitySelect.className = 'w-[30%] rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none'
+                    editNationality.className = 'w-[70%] rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none'
+                    editNationality.classList.remove('hidden')
+                    editNationality.value = natl
+                } else {
+                    editNationalitySelect.className = 'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none'
+                    editNationality.classList.add('hidden')
+                    editNationality.value = ''
+                }
+            }
+            if (editOccupation) editOccupation.value = ev(patient && patient.occupation)
+            if (editAddress) editAddress.value = patient && patient.address ? String(patient.address) : ''
+            if (editPhilhealth) editPhilhealth.value = patient && patient.philhealth_number ? String(patient.philhealth_number) : ''
+            if (editEmergencyContact) editEmergencyContact.value = ev(patient && patient.emergency_contact)
+            if (editEmergencyContactNumber) editEmergencyContactNumber.value = ev(patient && patient.emergency_contact_number)
+            if (editContact) editContact.value = patient && patient.contact_number ? String(patient.contact_number) : ''
+
+            var profileImg = patient && patient.prof_path_url ? String(patient.prof_path_url) : ''
+            if (editProfilePreview) {
+                editProfilePreview.innerHTML = profileImg
+                    ? '<img src="' + profileImg.replace(/"/g, '&quot;') + '" alt="" class="w-full h-full object-cover">'
+                    : '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+            }
+
+            if (editProfileUpload) {
+                editProfileUpload.value = ''
+                editProfileUpload.onchange = function () {
+                    var file = this.files && this.files[0]
+                    if (!file) return
+                    var reader = new FileReader()
+                    reader.onload = function (e) {
+                        if (editProfilePreview) {
+                            editProfilePreview.innerHTML = '<img src="' + e.target.result + '" alt="" class="w-full h-full object-cover">'
+                        }
+                    }
+                    reader.readAsDataURL(file)
+                }
+            }
+        }
+
+        function recViewEditModeToggle(showEdit) {
+            var display = document.getElementById('receptionPrViewProfileDisplay')
+            var edit = document.getElementById('receptionPrViewProfileEdit')
+            var editBtn = document.getElementById('receptionPrViewEditBtn')
+            if (display) display.classList.toggle('hidden', showEdit)
+            if (edit) edit.classList.toggle('hidden', !showEdit)
+            if (editBtn) {
+                if (showEdit) {
+                    editBtn.innerHTML = 'Cancel'
+                    editBtn.classList.add('text-slate-500', 'hover:text-slate-700')
+                    editBtn.classList.remove('text-green-700', 'hover:text-green-800')
+                } else {
+                    editBtn.innerHTML = 'Edit Info'
+                    editBtn.classList.remove('text-slate-500', 'hover:text-slate-700')
+                    editBtn.classList.add('text-green-700', 'hover:text-green-800')
+                }
+            }
+        }
+
         // ── Event Listeners ──
         if (recPatientsSearch) { var recSearchTimer = null; recPatientsSearch.addEventListener('input', function () { if (recSearchTimer) clearTimeout(recSearchTimer); recSearchTimer = setTimeout(function () { recFilterPatients() }, 300) }) }
         if (recSortSelect) recSortSelect.addEventListener('change', function () { recFilterPatients() })
@@ -1963,15 +2471,27 @@
 
         if (document.getElementById('receptionPrRefreshBtn')) document.getElementById('receptionPrRefreshBtn').addEventListener('click', function () { recLoadPatients() })
 
-        if (recPanelClose) recPanelClose.addEventListener('click', function () { recClosePanel() })
-        if (recOverlay) recOverlay.addEventListener('click', function () { recClosePanel() })
+        if (recViewClose) recViewClose.addEventListener('click', recCloseViewModal)
+        if (recViewOverlay) recViewOverlay.addEventListener('click', function (e) { if (e.target === recViewOverlay) recCloseViewModal() })
 
-        if (recPanelEditInfoBtn) recPanelEditInfoBtn.addEventListener('click', function () { if (recCurrentPatientId) recOpenEditModal(recCurrentPatientId) })
+        if (recViewEditBtn) recViewEditBtn.addEventListener('click', function () {
+            if (!recCurrentPatientId) return
+            var isEditing = !document.getElementById('receptionPrViewProfileEdit').classList.contains('hidden')
+            if (isEditing) {
+                recViewEditModeToggle(false)
+            } else {
+                var patient = recFindPatientById(recCurrentPatientId)
+                if (patient) { recPopulateViewEditForm(patient); recViewEditModeToggle(true) }
+            }
+        })
 
-        if (recPanelTabBackground) recPanelTabBackground.addEventListener('click', function () { if (recCurrentPatientId) recLoadAndShowTab('background', recCurrentPatientId) })
-        if (recPanelTabVisits) recPanelTabVisits.addEventListener('click', function () { if (recCurrentPatientId) recLoadAndShowTab('visits', recCurrentPatientId) })
-        if (recPanelTabVitals) recPanelTabVitals.addEventListener('click', function () { if (recCurrentPatientId) recLoadAndShowTab('vitals', recCurrentPatientId) })
-        if (recPanelTabDependents) recPanelTabDependents.addEventListener('click', function () { if (recCurrentPatientId) recLoadAndShowTab('dependents', recCurrentPatientId) })
+        recViewTabButtons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var tabKey = this.getAttribute('data-view-tab') || 'profile'
+                recSetViewTab(tabKey)
+            })
+        })
+
         if (recTabDrawerClose) recTabDrawerClose.addEventListener('click', function () { recCloseTabDrawer() })
 
         if (recPatientEditClose) recPatientEditClose.addEventListener('click', function () { recCloseEditModal() })
@@ -2024,6 +2544,181 @@
             })
         }
 
+        // ── View Edit Form Submit ──
+        var recViewEditForm = document.getElementById('receptionPrViewEditForm')
+        var recViewEditSave = document.getElementById('receptionPrViewEditSave')
+        var recViewEditSpinner = document.getElementById('receptionPrViewEditSpinner')
+        var recViewEditSaveLabel = document.getElementById('receptionPrViewEditSaveLabel')
+        var recViewEditError = document.getElementById('receptionPrViewEditError')
+        if (recViewEditForm) {
+            recViewEditForm.addEventListener('submit', function (e) {
+                e.preventDefault()
+                if (!recCurrentPatientId) return
+                if (recViewEditError) { recViewEditError.classList.add('hidden'); recViewEditError.textContent = '' }
+                if (recViewEditSave) recViewEditSave.disabled = true
+                if (recViewEditSpinner) recViewEditSpinner.classList.remove('hidden')
+                if (recViewEditSaveLabel) recViewEditSaveLabel.textContent = 'Saving...'
+
+                var firstname = document.getElementById('receptionPrViewEditFirstname')
+                var lastname = document.getElementById('receptionPrViewEditLastname')
+                var middlename = document.getElementById('receptionPrViewEditMiddlename')
+                var birthdate = document.getElementById('receptionPrViewEditBirthdate')
+                var civilStatus = document.getElementById('receptionPrViewEditCivilStatus')
+                var editNationalitySelect = document.getElementById('receptionPrViewEditNationalitySelect')
+                var editNationality = document.getElementById('receptionPrViewEditNationality')
+                var occupation = document.getElementById('receptionPrViewEditOccupation')
+                var address = document.getElementById('receptionPrViewEditAddress')
+                var philhealth = document.getElementById('receptionPrViewEditPhilhealth')
+                var emergencyContact = document.getElementById('receptionPrViewEditEmergencyContact')
+                var emergencyContactNumber = document.getElementById('receptionPrViewEditEmergencyContactNumber')
+                var contact = document.getElementById('receptionPrViewEditContact')
+
+                var sexVal = ''
+                document.querySelectorAll('input[name="receptionPrViewEditSex"]').forEach(function (r) {
+                    if (r.checked) sexVal = r.value
+                })
+
+                var natlVal = ''
+                if (editNationalitySelect) {
+                    natlVal = editNationalitySelect.value === '__others__'
+                        ? (editNationality ? editNationality.value : '')
+                        : editNationalitySelect.value
+                }
+
+                var payload = {
+                    firstname: firstname ? firstname.value.trim() : '',
+                    lastname: lastname ? lastname.value.trim() : '',
+                    middlename: middlename ? middlename.value.trim() : '',
+                    birthdate: birthdate ? birthdate.value : null,
+                    sex: sexVal,
+                    civil_status: civilStatus ? civilStatus.value : '',
+                    nationality: natlVal,
+                    occupation: occupation ? occupation.value.trim() : '',
+                    address: address ? address.value.trim() : '',
+                    philhealth_number: philhealth ? philhealth.value.trim() : '',
+                    emergency_contact: emergencyContact ? emergencyContact.value.trim() : '',
+                    emergency_contact_number: emergencyContactNumber ? emergencyContactNumber.value.trim() : '',
+                    contact_number: contact ? contact.value.trim() : '',
+                }
+
+                var uploadInput = document.getElementById('receptionPrViewEditProfileUpload')
+                var fd = new FormData()
+                fd.append('_method', 'PUT')
+                for (var key in payload) {
+                    if (payload.hasOwnProperty(key)) {
+                        fd.append(key, payload[key] === null ? '' : payload[key])
+                    }
+                }
+                if (uploadInput && uploadInput.files && uploadInput.files[0]) {
+                    fd.append('profile_photo', uploadInput.files[0])
+                }
+
+                var url = "{{ url('/api/patients') }}/" + encodeURIComponent(recCurrentPatientId)
+                apiFetch(url, { method: 'POST', body: fd }, false)
+                    .then(function (response) {
+                        return response.json().then(function (data) {
+                            return { ok: response.ok, data: data }
+                        }).catch(function () {
+                            return { ok: false, data: null }
+                        })
+                    })
+                    .then(function (r) {
+                        if (recViewEditSave) recViewEditSave.disabled = false
+                        if (recViewEditSpinner) recViewEditSpinner.classList.add('hidden')
+                        if (recViewEditSaveLabel) recViewEditSaveLabel.textContent = 'Save changes'
+
+                        if (!r || !r.ok) {
+                            var msg = (r && r.data && r.data.message) ? String(r.data.message) : 'Failed to save patient info.'
+                            if (recViewEditError) {
+                                recViewEditError.textContent = msg
+                                recViewEditError.classList.remove('hidden')
+                            }
+                            if (typeof showToast === 'function') showToast(msg, 'error')
+                            return
+                        }
+
+                        if (typeof showToast === 'function') showToast('Patient updated successfully.', 'success')
+                        // Update display and switch back
+                        var merged = r.data && r.data.patient ? r.data.patient : (r.data || {})
+                        if (merged && merged.user_id != null) {
+                            var found = recPatientsRows.find(function (p) { return String(p.user_id) === String(recCurrentPatientId) })
+                            if (found) {
+                                Object.assign(found, merged)
+                            }
+                        }
+                        recViewEditModeToggle(false)
+                        recRenderPatientTable()
+                        if (recCurrentPatientId) recOpenPatientPanel(recCurrentPatientId)
+                    })
+                    .catch(function () {
+                        if (recViewEditSave) recViewEditSave.disabled = false
+                        if (recViewEditSpinner) recViewEditSpinner.classList.add('hidden')
+                        if (recViewEditSaveLabel) recViewEditSaveLabel.textContent = 'Save changes'
+                        if (recViewEditError) {
+                            recViewEditError.textContent = 'An unexpected error occurred.'
+                            recViewEditError.classList.remove('hidden')
+                        }
+                        if (typeof showToast === 'function') showToast('Network error.', 'error')
+                    })
+            })
+        }
+
+        // ── View edit cancel button ──
+        var recViewEditCancel = document.getElementById('receptionPrViewEditCancel')
+        if (recViewEditCancel) {
+            recViewEditCancel.addEventListener('click', function () {
+                recViewEditModeToggle(false)
+                if (recViewEditError) {
+                    recViewEditError.classList.add('hidden')
+                    recViewEditError.textContent = ''
+                }
+            })
+        }
+
+        // ── View edit philhealth formatting ──
+        var recViewEditPhilhealth = document.getElementById('receptionPrViewEditPhilhealth')
+        if (recViewEditPhilhealth) {
+            recViewEditPhilhealth.addEventListener('input', function () {
+                var raw = this.value.replace(/[^\d]/g, '')
+                if (raw.length > 12) raw = raw.slice(0, 12)
+                this.value = recFormatPhilhealth(raw)
+            })
+        }
+
+        // ── View edit nationality select toggle ──
+        var recViewEditNationalitySelect = document.getElementById('receptionPrViewEditNationalitySelect')
+        var recViewEditNationality = document.getElementById('receptionPrViewEditNationality')
+        if (recViewEditNationalitySelect) {
+            recViewEditNationalitySelect.addEventListener('change', function () {
+                if (this.value === '__others__') {
+                    if (recViewEditNationality) {
+                        recViewEditNationality.classList.remove('hidden')
+                        this.className = 'w-[30%] rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none'
+                        recViewEditNationality.className = 'w-[70%] rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none'
+                    }
+                } else {
+                    if (recViewEditNationality) {
+                        recViewEditNationality.classList.add('hidden')
+                        this.className = 'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none'
+                        recViewEditNationality.value = ''
+                    }
+                }
+            })
+        }
+
+        // ── View edit phone formatting ──
+        var recViewEditContact = document.getElementById('receptionPrViewEditContact')
+        if (recViewEditContact) setupPhoneFormat(recViewEditContact)
+        var recViewEditEmergNumber = document.getElementById('receptionPrViewEditEmergencyContactNumber')
+        if (recViewEditEmergNumber) setupPhoneFormat(recViewEditEmergNumber)
+
+        // ── Helper: find patient by ID ──
+        function recFindPatientById(id) {
+            if (!recPatientsRows) return null
+            return recPatientsRows.find(function (p) { return String(p.user_id) === String(id) }) || null
+        }
+
+        recSetViewTabActive('profile')
         recSetAgeFilterActiveStyles()
         recUpdateAgeCounts()
         recLoadPatients()

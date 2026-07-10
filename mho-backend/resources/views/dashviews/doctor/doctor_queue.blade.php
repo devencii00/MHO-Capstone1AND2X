@@ -5,8 +5,8 @@
             $rank = match ($status) {
                 'serving' => 0,
                 'waiting' => 1,
-                'skipped' => 2,
-                'on_hold' => 3,
+                'skipped' => 1,
+                'on_hold' => 2,
                 'consulted' => 4,
                 'done' => 5,
                 'cancelled' => 6,
@@ -25,28 +25,131 @@
     $doctorUserId = (int) ($currentUser->user_id ?? request()->query('user_id') ?? 0);
 @endphp
 
-<div class="space-y-4">
-    <div class="flex items-center justify-between gap-3">
-        <div>
-            <h2 class="text-sm font-semibold text-slate-900">My Queue</h2>
-            <p class="text-xs text-slate-500">Only today&apos;s queue entries assigned to you are shown here.</p>
+@php
+    $formatUserName = function ($user) {
+        if (! $user) {
+            return '';
+        }
+        $parts = array_filter([
+            $user->firstname ?? null,
+            $user->middlename ?? null,
+            $user->lastname ?? null,
+        ], function ($v) {
+            return (string) $v !== '';
+        });
+        $name = trim(implode(' ', $parts));
+        if ($name !== '') {
+            return $name;
+        }
+        $email = trim((string) ($user->email ?? ''));
+        return $email !== '' ? $email : 'Patient';
+    };
+
+    $servingEntry = collect($doctorTodayQueue ?? [])->first(fn($q) => strtolower((string) ($q->status ?? '')) === 'serving');
+    $onHoldQueueForCards = collect($doctorTodayQueue ?? [])->filter(fn($q) => strtolower((string) ($q->status ?? '')) === 'on_hold')->values();
+@endphp
+
+<div class="flex flex-col flex-1 min-h-0 gap-4">
+    {{-- ══════ Serving + On Hold display cards ══════ --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-shrink-0">
+        {{-- Currently Serving --}}
+        <div id="doctorQueueServingCard" class="bg-white border border-slate-100 rounded-2xl shadow-xl overflow-hidden h-[11rem] flex flex-col">
+            <div class="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-blue-50/60 to-white flex-shrink-0">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                            <x-lucide-user-check class="w-4 h-4" />
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-semibold text-slate-800 tracking-tight">Currently Serving</h2>
+                            <p class="text-[0.7rem] text-slate-500 mt-0.5">Patient being attended</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50">
+                @if ($servingEntry)
+                    @php
+                        $patientName = $formatUserName(optional(optional($servingEntry->appointment)->patient));
+                        $timeKey = optional($servingEntry->queue_datetime)->format('H:i') ?? '-';
+                    @endphp
+                    <div class="flex flex-col items-center justify-center h-full px-5 py-6">
+                        <span class="inline-flex items-center gap-1.5 text-2xl font-bold text-slate-800">
+                            <x-lucide-hash class="w-5 h-5 text-slate-400" />
+                            {{ $servingEntry->queue_code }}
+                        </span>
+                        <span class="mt-1 text-[0.9rem] text-slate-600 font-medium">{{ $patientName }}</span>
+                        <span class="mt-1 text-xs text-slate-400">{{ $timeKey }}</span>
+                    </div>
+                @else
+                    <div class="flex flex-col items-center justify-center h-full px-4 text-center">
+                        <div class="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center mb-2">
+                            <x-lucide-user-check class="w-5 h-5 text-blue-300" />
+                        </div>
+                        <p class="text-[0.78rem] font-medium text-slate-500">No one being served</p>
+                        <p class="text-[0.68rem] text-slate-400 mt-0.5">Call the next patient</p>
+                    </div>
+                @endif
+            </div>
         </div>
-        <div class="flex items-center gap-2">
-            <button id="doctorQueueCallNextButton" type="button" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-[0.8rem] font-semibold hover:bg-slate-800 transition-colors disabled:opacity-60 disabled:hover:bg-slate-900 min-w-[130px] relative">
-                <span id="doctorQueueCallNextSpinner" class="hidden absolute w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                <span id="doctorQueueCallNextContent" class="inline-flex items-center gap-2">
-                    <x-lucide-megaphone class="w-[18px] h-[18px]" />
-                    Call next
-                </span>
-            </button>
+
+        {{-- On Hold (display only, no action buttons) --}}
+        <div id="doctorQueueOnHoldCard" class="bg-white border border-slate-100 rounded-2xl shadow-xl overflow-hidden h-[11rem] flex flex-col">
+            <div class="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-purple-50/60 to-white flex-shrink-0">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600">
+                            <x-lucide-pause class="w-4 h-4" />
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-semibold text-slate-800 tracking-tight">On Hold</h2>
+                            <p class="text-[0.7rem] text-slate-500 mt-0.5">Patients currently on hold</p>
+                        </div>
+                    </div>
+                    @if (count($onHoldQueueForCards))
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-purple-50 border border-purple-100 text-purple-700 text-[0.7rem] font-semibold">
+                            {{ count($onHoldQueueForCards) }} {{ Str::plural('patient', count($onHoldQueueForCards)) }}
+                        </span>
+                    @endif
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50">
+                @if (count($onHoldQueueForCards))
+                    <div class="divide-y divide-slate-100">
+                        @foreach ($onHoldQueueForCards as $queue)
+                            @php
+                                $patientName = $formatUserName(optional(optional($queue->appointment)->patient));
+                                $timeKey = optional($queue->queue_datetime)->format('H:i') ?? '-';
+                            @endphp
+                            <div class="px-5 py-3.5 hover:bg-slate-50/50 transition-all duration-150">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="inline-flex items-center gap-1.5 text-[0.75rem] font-semibold text-slate-700">
+                                            <x-lucide-hash class="w-3 h-3 text-slate-400" />
+                                            {{ $queue->queue_code }}
+                                        </span>
+                                        <span class="text-[0.72rem] text-slate-600 truncate">{{ $patientName }}</span>
+                                    </div>
+                                    <span class="text-[0.65rem] text-slate-400 flex-shrink-0">{{ $timeKey }}</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="flex flex-col items-center justify-center h-full px-4 text-center">
+                        <div class="w-10 h-10 rounded-full bg-purple-50 border border-purple-100 flex items-center justify-center mb-2">
+                            <x-lucide-pause class="w-5 h-5 text-purple-300" />
+                        </div>
+                        <p class="text-[0.78rem] font-medium text-slate-500">No patients on hold</p>
+                        <p class="text-[0.68rem] text-slate-400 mt-0.5">On hold queue is empty</p>
+                    </div>
+                @endif
+            </div>
         </div>
     </div>
 
-    <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
-        <div id="doctorQueueError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
-        <div id="doctorQueueSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
-
-        <div class="mb-3 flex flex-col gap-2 md:flex-row md:items-end">
+    <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] flex flex-col flex-1 min-h-0">
+        <div class="mb-3 flex-shrink-0 flex flex-col gap-2 md:flex-row md:items-end">
             <div class="flex-1">
                 <label for="doctor_queue_search" class="block text-[0.7rem] text-slate-600 mb-1">Search queue</label>
                 <input id="doctor_queue_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Queue number or patient">
@@ -61,14 +164,23 @@
             </div>
             <div class="w-full md:w-auto">
                 <label class="block text-[0.7rem] text-slate-600 mb-1">&nbsp;</label>
-                <button type="button" id="docQueueRefreshBtn" class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
-                    <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
-                    Refresh
-                </button>
+                <div class="flex gap-2">
+                    <button id="doctorQueueCallNextButton" type="button" class="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 disabled:hover:bg-green-600 min-w-[110px] relative">
+                        <span id="doctorQueueCallNextSpinner" class="hidden absolute w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                        <span id="doctorQueueCallNextContent" class="inline-flex items-center gap-1">
+                            <x-lucide-megaphone class="w-[16px] h-[16px]" />
+                            Call next
+                        </span>
+                    </button>
+                    <button type="button" id="docQueueRefreshBtn" class="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+                        <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+                        Refresh
+                    </button>
+                </div>
             </div>
         </div>
 
-    <div class="overflow-x-auto overflow-y-auto scrollbar-hidden h-[330px]">
+    <div class="overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50 flex-1 min-h-0">
             <table class="min-w-full text-left text-xs text-slate-600">
                 <thead>
                     <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
@@ -89,6 +201,22 @@
                             $dateKey = optional($queue->queue_datetime)->format('Y-m-d') ?? '';
                             $timeKey = optional($queue->queue_datetime)->format('H:i') ?? '';
                             $dateTimeKey = optional($queue->queue_datetime)->format('Y-m-d H:i:s') ?? '';
+                            $statusDropdownColor = match($statusName) {
+                                'serving' => 'text-green-700 border-green-300 bg-green-50',
+                                'on_hold' => 'text-purple-700 border-purple-300 bg-purple-50',
+                                default => 'text-slate-700 border-slate-200 bg-white',
+                            };
+                            $statusBadgeColor = match($statusName) {
+                                'waiting' => 'bg-amber-50 text-amber-700 border-amber-100',
+                                'serving' => 'bg-green-50 text-green-700 border-green-100',
+                                'consulted' => 'bg-blue-50 text-blue-700 border-blue-100',
+                                'done' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                                'cancelled' => 'bg-red-50 text-red-700 border-red-100',
+                                'no_show' => 'bg-slate-100 text-slate-600 border-slate-200',
+                                'skipped' => 'bg-orange-50 text-orange-700 border-orange-100',
+                                'on_hold' => 'bg-purple-50 text-purple-700 border-purple-100',
+                                default => 'bg-slate-50 text-slate-700 border-slate-100',
+                            };
                         @endphp
                         <tr class="border-b border-slate-50 last:border-0 doctor-queue-row"
                             data-queue-id="{{ $queueId }}"
@@ -108,31 +236,41 @@
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-500">{{ $dateKey ?: '-' }}</td>
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-500">{{ $timeKey ?: '-' }}</td>
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border bg-slate-50 border-slate-100 text-slate-700">
+                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border {{ $statusBadgeColor }}">
                                     {{ ucfirst(str_replace('_', ' ', $statusName ?: 'unknown')) }}
                                 </span>
                             </td>
                             <td class="py-2 pr-4 text-right">
                                 @if ($queueId && ! in_array($statusName, ['done', 'cancelled', 'no_show'], true))
                                     <div class="inline-flex items-center gap-1.5">
-                                        @if (in_array($statusName, ['waiting', 'skipped', 'on_hold'], true))
-                                            <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-[0.7rem] text-slate-600 hover:bg-slate-50 doctor-queue-status" data-queue-id="{{ $queueId }}" data-status="serving">
-                                                <x-lucide-play class="w-[16px] h-[16px]" />
-                                                Serve
+                                        <div class="relative reception-status-dropdown-container">
+                                            <button type="button" class="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[0.7rem] hover:bg-slate-50 reception-status-dropdown-trigger {{ $statusDropdownColor }}">
+                                                <span class="font-medium">{{ ucfirst(str_replace('_', ' ', $statusName)) }}</span>
+                                                <x-lucide-chevron-down class="w-[14px] h-[14px] text-slate-400" />
                                             </button>
-                                        @endif
-                                        @if ($statusName !== 'skipped')
-                                            <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-orange-200 px-2 py-1 text-[0.7rem] text-orange-700 hover:bg-orange-50 doctor-queue-status" data-queue-id="{{ $queueId }}" data-status="skipped">
-                                                <x-lucide-skip-forward class="w-[16px] h-[16px]" />
-                                                Skipped
-                                            </button>
-                                        @endif
-                                        @if ($statusName !== 'on_hold')
-                                            <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-purple-200 px-2 py-1 text-[0.7rem] text-purple-700 hover:bg-purple-50 doctor-queue-status" data-queue-id="{{ $queueId }}" data-status="on_hold">
-                                                <x-lucide-pause class="w-[16px] h-[16px]" />
-                                                On hold
-                                            </button>
-                                        @endif
+                                            <div class="hidden absolute right-0 top-full mt-1 w-[140px] rounded-lg border border-slate-200 bg-white shadow-lg z-50 reception-status-dropdown-menu">
+                                                <div class="py-1">
+                                                    @if ($statusName !== 'serving')
+                                                    <button type="button" class="w-full text-left px-3 py-1.5 text-[0.72rem] text-slate-700 hover:bg-slate-50 reception-queue-status flex items-center gap-2" data-queue-id="{{ $queueId }}" data-status="serving">
+                                                        <x-lucide-play class="w-[14px] h-[14px] text-emerald-500" />
+                                                        Serve
+                                                    </button>
+                                                    @endif
+                                                    @if ($statusName !== 'skipped')
+                                                    <button type="button" class="w-full text-left px-3 py-1.5 text-[0.72rem] text-slate-700 hover:bg-slate-50 reception-queue-status flex items-center gap-2" data-queue-id="{{ $queueId }}" data-status="skipped">
+                                                        <x-lucide-skip-forward class="w-[14px] h-[14px] text-orange-500" />
+                                                        Skipped
+                                                    </button>
+                                                    @endif
+                                                    @if ($statusName !== 'on_hold')
+                                                    <button type="button" class="w-full text-left px-3 py-1.5 text-[0.72rem] text-slate-700 hover:bg-slate-50 reception-queue-status flex items-center gap-2" data-queue-id="{{ $queueId }}" data-status="on_hold">
+                                                        <x-lucide-pause class="w-[14px] h-[14px] text-purple-500" />
+                                                        On hold
+                                                    </button>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
                                         @if ($statusName === 'consulted')
                                             <span class="inline-flex items-center rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-[0.68rem] font-medium text-green-700">
                                                 Waiting for payment
@@ -162,8 +300,6 @@
         var searchInput = document.getElementById('doctor_queue_search')
         var sortSelect = document.getElementById('doctor_queue_sort')
         var rows = Array.prototype.slice.call(document.querySelectorAll('.doctor-queue-row'))
-        var errorBox = document.getElementById('doctorQueueError')
-        var successBox = document.getElementById('doctorQueueSuccess')
         var callNextButton = document.getElementById('doctorQueueCallNextButton')
         var callNextSpinner = document.getElementById('doctorQueueCallNextSpinner')
         var callNextContent = document.getElementById('doctorQueueCallNextContent')
@@ -219,14 +355,13 @@
 
                 function statusRank(status) {
                     if (status === 'serving') return 0
-                    if (status === 'waiting') return 1
-                    if (status === 'skipped') return 2
-                    if (status === 'on_hold') return 3
-                    if (status === 'consulted') return 4
-                    if (status === 'done') return 5
-                    if (status === 'cancelled') return 6
-                    if (status === 'no_show') return 7
-                    return 8
+                    if (status === 'waiting' || status === 'skipped') return 1
+                    if (status === 'on_hold') return 2
+                    if (status === 'consulted') return 3
+                    if (status === 'done') return 4
+                    if (status === 'cancelled') return 5
+                    if (status === 'no_show') return 6
+                    return 7
                 }
 
                 var ra = statusRank(sa)
@@ -278,19 +413,46 @@
                     }
 
                     showSuccess(successMessage || 'Queue updated.')
-                    window.location.reload()
                 })
                 .catch(function () {
                     showError('Network error while updating queue.')
                 })
         }
 
-        document.querySelectorAll('.doctor-queue-status').forEach(function (button) {
-            button.addEventListener('click', function () {
-                var queueId = button.getAttribute('data-queue-id')
-                var status = button.getAttribute('data-status')
+        // Event delegation: status dropdown toggle + status option clicks
+        document.addEventListener('click', function (e) {
+            var trigger = e.target && e.target.closest ? e.target.closest('.reception-status-dropdown-trigger') : null
+            if (trigger) {
+                var container = trigger.closest('.reception-status-dropdown-container')
+                if (container) {
+                    var menu = container.querySelector('.reception-status-dropdown-menu')
+                    if (menu) {
+                        document.querySelectorAll('.reception-status-dropdown-menu').forEach(function (m) {
+                            if (m !== menu) m.classList.add('hidden')
+                        })
+                        menu.classList.toggle('hidden')
+                    }
+                }
+                return
+            }
+            var statusBtn = e.target && e.target.closest ? e.target.closest('.reception-queue-status') : null
+            if (statusBtn) {
+                e.stopPropagation()
+                var queueId = statusBtn.getAttribute('data-queue-id')
+                var status = statusBtn.getAttribute('data-status')
                 if (!queueId || !status) return
-                updateQueueStatus(queueId, status, 'Queue status updated.')
+                var container = statusBtn.closest('.reception-status-dropdown-container')
+                if (container) {
+                    var menu = container.querySelector('.reception-status-dropdown-menu')
+                    if (menu) menu.classList.add('hidden')
+                }
+                updateQueueStatus(queueId, status, 'Queue status updated to ' + String(status).replace(/_/g, ' ') + '.')
+                return
+            }
+            document.querySelectorAll('.reception-status-dropdown-menu:not(.hidden)').forEach(function (menu) {
+                if (!menu.contains(e.target) && !(e.target && e.target.closest && e.target.closest('.reception-status-dropdown-trigger'))) {
+                    menu.classList.add('hidden')
+                }
             })
         })
 
@@ -313,15 +475,18 @@
                     if (freshBody) {
                         tableBodyEl.innerHTML = freshBody.innerHTML
                     }
+                    // Also refresh serving and on-hold display cards
+                    var servingCard = document.getElementById('doctorQueueServingCard')
+                    var onHoldCard = document.getElementById('doctorQueueOnHoldCard')
+                    if (servingCard) {
+                        var freshServing = doc.getElementById('doctorQueueServingCard')
+                        if (freshServing) servingCard.outerHTML = freshServing.outerHTML
+                    }
+                    if (onHoldCard) {
+                        var freshOnHold = doc.getElementById('doctorQueueOnHoldCard')
+                        if (freshOnHold) onHoldCard.outerHTML = freshOnHold.outerHTML
+                    }
                     rows = Array.prototype.slice.call(document.querySelectorAll('.doctor-queue-row'))
-                    document.querySelectorAll('.doctor-queue-status').forEach(function (button) {
-                        button.addEventListener('click', function () {
-                            var queueId = button.getAttribute('data-queue-id')
-                            var status = button.getAttribute('data-status')
-                            if (!queueId || !status) return
-                            updateQueueStatus(queueId, status, 'Queue status updated.')
-                        })
-                    })
                     applyDoctorQueueFilters()
                 })
                 .catch(function () {
@@ -362,7 +527,7 @@
                         }
 
                         showSuccess('The next patient in your queue is now marked as serving.')
-                        window.location.reload()
+                        setCallNextSubmitting(false)
                     })
                     .catch(function () {
                         showError('Network error while calling next patient.')
@@ -373,8 +538,9 @@
 
         applyDoctorQueueFilters()
 
-        if (typeof window.Echo !== 'undefined' && window.Echo && doctorUserId) {
+        if (typeof window.Echo !== 'undefined' && window.Echo && doctorUserId && !window.__doctorQueueInited) {
             try {
+                window.__doctorQueueInited = true
                 window.Echo.private('queue.' + doctorUserId)
                     .listen('.queue.updated', function (data) {
                         var timeReceived = Date.now();

@@ -58,12 +58,13 @@
 
     $sectionTitles = [
         'my-patients' => 'My patients',
-        'appointments' => 'My Schedule',
+        'appointments' => 'My Appointments',
         'queue' => 'Queue',
         'visits' => 'History',
         'history' => 'History',
         'prescriptions' => 'Prescription',
         'my-activity' => 'My activity',
+        'patient-records' => 'Patient Records',
         'consultation' => 'Consultation',
         'settings-doctor' => 'Settings',
     ];
@@ -76,6 +77,7 @@
         'history' => 'View past patient visits and records.',
         'prescriptions' => 'Review prescriptions you have issued.',
         'my-activity' => 'High-level view of your recent clinical activity.',
+        'patient-records' => 'View and manage patient records.',
         'consultation' => 'Consult with a selected patient and record notes.',
         'settings-doctor' => 'Update your profile, password, and signature.',
     ];
@@ -141,6 +143,20 @@
                                         $statusLabel = $appointment->status ? ucfirst(str_replace('_', ' ', $appointment->status)) : '-';
                                         $statusKey = strtolower((string) ($appointment->status ?? ''));
                                     }
+                                    $apptStatusColors = [
+                                        'pending' => 'bg-amber-50 text-amber-700 border-amber-200',
+                                        'confirmed' => 'bg-blue-50 text-blue-700 border-blue-200',
+                                        'completed' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                        'cancelled' => 'bg-red-50 text-red-700 border-red-200',
+                                        'no_show' => 'bg-slate-100 text-slate-600 border-slate-200',
+                                        'consulted' => 'bg-green-50 text-green-700 border-green-100',
+                                        'waiting' => 'bg-amber-50 text-amber-700 border-amber-100',
+                                        'serving' => 'bg-blue-50 text-blue-700 border-blue-100',
+                                        'done' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                                        'skipped' => 'bg-orange-50 text-orange-700 border-orange-100',
+                                        'on_hold' => 'bg-purple-50 text-purple-700 border-purple-100',
+                                    ];
+                                    $apptStatusColor = $apptStatusColors[$statusKey] ?? 'bg-slate-50 text-slate-600 border-slate-100';
                                     $showScheduleActions = $statusKey !== 'completed';
                                     $consultationParams = [
                                         'role' => 'doctor',
@@ -155,7 +171,11 @@
                                     <td class="py-2 px-3 text-[0.78rem] text-slate-500">{{ $time }}</td>
                                     <td class="py-2 px-3 text-[0.78rem] text-slate-700">{{ $patientName }}</td>
                                     <td class="py-2 px-3 text-[0.78rem] text-slate-500">{{ $typeLabel }}</td>
-                                    <td class="py-2 px-3 text-[0.78rem] text-slate-500">{{ $statusLabel }}</td>
+                                    <td class="py-2 px-3">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] font-medium border {{ $apptStatusColor }}">
+                                            {{ $statusLabel }}
+                                        </span>
+                                    </td>
                                     <td class="py-2 px-3">
                                         @if ($showScheduleActions)
                                             <div class="flex flex-wrap gap-1.5">
@@ -166,6 +186,7 @@
                                                     Details
                                                 </button>
                                                 <a href="{{ route('dashboard', $consultationParams) }}"
+                                                    data-spa-nav="1"
                                                     class="inline-flex items-center justify-center gap-1 rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-[0.7rem] font-semibold text-green-700 hover:bg-green-100">
                                                     <x-lucide-play class="w-3.5 h-3.5" />
                                                     Start
@@ -190,47 +211,17 @@
 
                 <div class="mt-5 flex-1 flex flex-col min-h-0">
                     <div class="p-3.5 rounded-xl border border-slate-100 bg-slate-50 flex-1 flex flex-col">
-                        <div class="flex items-center justify-between mb-1 flex-shrink-0">
+                        <div class="flex items-center justify-between mb-2 flex-shrink-0">
                             <div class="text-xs font-semibold text-slate-700">Upcoming appointments</div>
+                            <span id="doctorUpcomingCounter" class="text-[0.6rem] text-slate-400"></span>
                         </div>
                         <div class="flex-1 overflow-y-auto scrollbar-hidden" style="min-height:0">
                             <div id="doctorUpcomingAppointmentsAll">
-                            @if (count($todayUpcomingAppointments))
-                                <ul class="space-y-2 text-xs text-slate-600">
-                                    @foreach ($todayUpcomingAppointments as $appointment)
-                                        @php
-                                            $patientName = $formatUserName($appointment->patient);
-                                            $dateKey = optional($appointment->appointment_datetime)->format('Y-m-d') ?? '-';
-                                            $timeKey = optional($appointment->appointment_datetime)->format('H:i') ?? '-';
-                                        @endphp
-                                        <li class="flex items-start justify-between gap-2">
-                                            <div>
-                                                <div class="font-semibold text-slate-900 text-[0.8rem]">
-                                                    {{ $patientName }}
-                                                </div>
-                                                <div class="text-[0.7rem] text-slate-500">
-                                                    {{ \Illuminate\Support\Str::limit($appointment->reason_for_visit ?? 'No reason specified', 60) }}
-                                                </div>
-                                            </div>
-                                            <div class="flex items-center gap-2">
-                                                <div class="text-[0.7rem] text-slate-400 text-right">
-                                                    <div>{{ $dateKey }}</div>
-                                                    <div>{{ $timeKey }}</div>
-                                                </div>
-                                                <button type="button"
-                                                    class="doc-details-btn inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.68rem] font-medium text-slate-600 hover:bg-slate-50"
-                                                    data-appointment='@json($appointment)'>
-                                                    <x-lucide-info class="w-3 h-3" />
-                                                    Details
-                                                </button>
-                                            </div>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            @else
-                                <p class="text-[0.72rem] text-slate-400">No scheduled appointments found.</p>
-                            @endif
+                                <p class="text-[0.72rem] text-slate-400 animate-pulse">Loading…</p>
                             </div>
+                        </div>
+                        <div class="flex-shrink-0 mt-2 text-center">
+                            <button id="doctorUpcomingSeeMore" type="button" class="text-[0.7rem] font-medium text-green-600 hover:text-green-700 disabled:text-slate-300 disabled:cursor-default cursor-pointer" disabled>See more</button>
                         </div>
                     </div>
                 </div>
@@ -419,7 +410,6 @@
                     </div>
                     <div>
                         <div class="text-sm font-semibold text-slate-900" id="modalPatientName">-</div>
-                        <div class="text-[0.68rem] text-slate-500" id="modalPatientId">Patient ID: -</div>
                     </div>
                 </div>
                 <div class="space-y-2 text-[0.75rem]">
@@ -455,7 +445,7 @@
                     </div>
                     <div class="flex justify-between py-1.5 border-b border-slate-50">
                         <span class="text-slate-500">Status</span>
-                        <span class="text-slate-800 font-medium" id="modalApptStatus">-</span>
+                        <span id="modalApptStatus">-</span>
                     </div>
                     <div class="flex justify-between py-1.5 border-b border-slate-50">
                         <span class="text-slate-500">Date</span>
@@ -489,6 +479,107 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function () {
+                function escapeHtml(value) {
+                    return String(value == null ? '' : value)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;')
+                }
+
+                // ── Upcoming Appointments Pagination ─────────────────────────
+                var upcomingCurrentPage = 1
+                var upcomingPerPage = 10
+                var upcomingLastPage = 1
+                var upcomingTotal = 0
+                var doctorIdForApi = {{ (int) ($currentUser->user_id ?? 0) }}
+
+                function loadUpcomingAppointments(page) {
+                    var container = document.getElementById('doctorUpcomingAppointmentsAll')
+                    if (!container) return
+                    container.innerHTML = '<p class="text-[0.72rem] text-slate-400 animate-pulse">Loading…</p>'
+
+                    apiFetch("{{ url('/api/appointments') }}?per_page=" + upcomingPerPage + "&page=" + page + "&doctor_id=" + doctorIdForApi + "&appointment_type=scheduled&upcoming_only=1")
+                        .then(function (r) { return r.json() })
+                        .then(function (result) {
+                            if (!result || !result.data) {
+                                container.innerHTML = '<p class="text-[0.72rem] text-slate-400">No scheduled appointments found.</p>'
+                                updateUpcomingSeeMore()
+                                return
+                            }
+                            var data = result.data
+                            upcomingCurrentPage = result.current_page || page
+                            upcomingLastPage = result.last_page || 1
+                            upcomingTotal = result.total || 0
+
+                            if (!data.length) {
+                                container.innerHTML = '<p class="text-[0.72rem] text-slate-400">No scheduled appointments found.</p>'
+                            } else {
+                                var statusColors = {
+                                    pending: 'bg-amber-50 text-amber-700 border-amber-200',
+                                    confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
+                                    completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                    cancelled: 'bg-red-50 text-red-700 border-red-200',
+                                    no_show: 'bg-slate-100 text-slate-600 border-slate-200',
+                                    consulted: 'bg-green-50 text-green-700 border-green-100'
+                                }
+                                var html = '<table class="min-w-full text-left text-[0.7rem] text-slate-600">' +
+                                    '<thead>' +
+                                    '<tr class="border-b border-slate-200 text-[0.6rem] uppercase tracking-widest text-slate-400">' +
+                                    '<th class="py-1.5 pr-3 font-semibold">Date</th>' +
+                                    '<th class="py-1.5 pr-3 font-semibold">Time</th>' +
+                                    '<th class="py-1.5 pr-3 font-semibold">Patient</th>' +
+                                    '<th class="py-1.5 pr-3 font-semibold">Status</th>' +
+                                    '<th class="py-1.5 font-semibold">Actions</th>' +
+                                    '</tr></thead><tbody>'
+                                data.forEach(function (a) {
+                                    var patient = a.patient || {}
+                                    var parts = [patient.firstname, patient.middlename, patient.lastname].filter(function (v) { return v && String(v).trim() !== '' })
+                                    var patientName = parts.length ? parts.join(' ') : (patient.email || 'Patient')
+                                    var dateStr = a.appointment_datetime ? new Date(a.appointment_datetime).toLocaleDateString() : '-'
+                                    var timeStr = a.appointment_datetime ? new Date(a.appointment_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'
+                                    var statusKey = (a.status || '').toLowerCase()
+                                    var statusLabel = a.status ? String(a.status).replace(/_/g, ' ') : '-'
+                                    var sc = statusColors[statusKey] || 'bg-slate-50 text-slate-600 border-slate-100'
+                                    var apptJson = JSON.stringify(a).replace(/'/g, '&#39;')
+                                    html += '<tr class="border-b border-slate-100 last:border-0">' +
+                                        '<td class="py-1.5 pr-3 text-slate-500">' + escapeHtml(dateStr) + '</td>' +
+                                        '<td class="py-1.5 pr-3 text-slate-500">' + escapeHtml(timeStr) + '</td>' +
+                                        '<td class="py-1.5 pr-3 text-slate-700 font-medium">' + escapeHtml(patientName) + '</td>' +
+                                        '<td class="py-1.5 pr-3"><span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[0.6rem] font-medium border ' + sc + '">' + escapeHtml(statusLabel) + '</span></td>' +
+                                        '<td class="py-1.5">' +
+                                        '<button type="button" class="doc-details-btn inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem] font-medium text-slate-600 hover:bg-slate-50" data-appointment=\'' + apptJson + '\'>' +
+                                        '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>' +
+                                        ' Details</button></td></tr>'
+                                })
+                                html += '</tbody></table>'
+                                container.innerHTML = html
+                            }
+                            updateUpcomingSeeMore()
+                            var counter = document.getElementById('doctorUpcomingCounter')
+                            if (counter) counter.textContent = upcomingTotal + ' entries'
+                        })
+                        .catch(function () {
+                            container.innerHTML = '<p class="text-[0.72rem] text-slate-400">Failed to load appointments.</p>'
+                            updateUpcomingSeeMore()
+                        })
+                }
+
+                function updateUpcomingSeeMore() {
+                    var btn = document.getElementById('doctorUpcomingSeeMore')
+                    if (!btn) return
+                    var disabled = upcomingCurrentPage >= upcomingLastPage || upcomingTotal === 0
+                    btn.disabled = disabled
+                }
+
+                // Initial load
+                loadUpcomingAppointments(1)
+                document.getElementById('doctorUpcomingSeeMore').addEventListener('click', function () {
+                    if (this.disabled) return
+                    loadUpcomingAppointments(upcomingCurrentPage + 1)
+                })
+
                 // ── Queue Call Next ──────────────────────────────────────────
                 var queueCallNextButton = document.getElementById('doctorOverviewCallNextButton')
                 var queueCallNextSpinner = document.getElementById('doctorOverviewCallNextSpinner')
@@ -523,7 +614,8 @@
                                     setQueueCallNextSubmitting(false)
                                     return
                                 }
-                                window.location.reload()
+                                if (typeof showToast === 'function') showToast('Next patient called successfully.', 'success')
+                                setQueueCallNextSubmitting(false)
                             })
                             .catch(function () {
                                 if (typeof showToast === 'function') showToast('Network error while calling next patient.', 'error')
@@ -560,7 +652,7 @@
                                 return
                             }
                             if (typeof showToast === 'function') showToast('Patient called successfully.', 'success')
-                            refreshAllCards()
+                            btn.disabled = false
                         })
                         .catch(function () {
                             if (typeof showToast === 'function') showToast('Network error while calling patient.', 'error')
@@ -631,7 +723,6 @@
 
                     // Left panel – patient profile
                     document.getElementById('modalPatientName').textContent = formatPatientName(patient)
-                    document.getElementById('modalPatientId').textContent = 'Patient ID: ' + (patient.user_id || patient.patient_id || '-')
                     document.getElementById('modalPatientContact').textContent = patient.contact_no || patient.contact || '-'
                     document.getElementById('modalPatientSex').textContent = patient.sex || '-'
                     document.getElementById('modalPatientBirthdate').textContent = patient.birthdate ? new Date(patient.birthdate).toLocaleDateString() : '-'
@@ -643,9 +734,29 @@
                     var apptTime = a.appointment_datetime ? new Date(a.appointment_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'
                     var typeLabel = a.appointment_type ? a.appointment_type.replace(/_/g, ' ') : '-'
                     var statusLabel = a.status ? a.status.replace(/_/g, ' ') : '-'
+                    var statusKey = a.status ? a.status.toLowerCase() : ''
+                    var modalStatusColors = {
+                        pending: 'bg-amber-50 text-amber-700 border-amber-200',
+                        confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
+                        completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                        cancelled: 'bg-red-50 text-red-700 border-red-200',
+                        no_show: 'bg-slate-100 text-slate-600 border-slate-200',
+                        consulted: 'bg-green-50 text-green-700 border-green-100',
+                        waiting: 'bg-amber-50 text-amber-700 border-amber-100',
+                        serving: 'bg-blue-50 text-blue-700 border-blue-100',
+                        done: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                        skipped: 'bg-orange-50 text-orange-700 border-orange-100',
+                        on_hold: 'bg-purple-50 text-purple-700 border-purple-100'
+                    }
+                    var statusColor = modalStatusColors[statusKey] || 'bg-slate-50 text-slate-600 border-slate-100'
 
                     document.getElementById('modalApptType').textContent = typeLabel
-                    document.getElementById('modalApptStatus').textContent = statusLabel
+                    var statusBadgeEl = document.createElement('span')
+                    statusBadgeEl.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] font-medium border ' + statusColor
+                    statusBadgeEl.textContent = statusLabel
+                    var modalStatusContainer = document.getElementById('modalApptStatus')
+                    modalStatusContainer.innerHTML = ''
+                    modalStatusContainer.appendChild(statusBadgeEl)
                     document.getElementById('modalApptDate').textContent = apptDate
                     document.getElementById('modalApptTime').textContent = apptTime
                     document.getElementById('modalQueueCode').textContent = queue.queue_code || 'N/A'
@@ -671,11 +782,11 @@
                     var activeQEl = document.getElementById('doctorActiveQueueContainer')
                     if (activeQEl) activeQEl.innerHTML = '<div class="py-10 text-center text-[0.78rem] text-slate-400 animate-pulse">Loading…</div>'
 
-                    var upcomingEl = document.getElementById('doctorUpcomingAppointmentsAll')
-                    if (upcomingEl) upcomingEl.innerHTML = '<p class="text-[0.72rem] text-slate-400 animate-pulse">Loading…</p>'
-
                     var onHoldEl = document.getElementById('doctorOnHoldContainer')
                     if (onHoldEl) onHoldEl.innerHTML = '<div class="py-10 text-center text-[0.78rem] text-slate-400 animate-pulse">Loading…</div>'
+
+                    // Upcoming appointments: reload from API
+                    loadUpcomingAppointments(1)
 
                     var url = window.location.href.split('#')[0]
                     url += (url.indexOf('?') > -1 ? '&' : '?') + '_t=' + Date.now()
@@ -701,12 +812,7 @@
                             var curActiveQ = document.getElementById('doctorActiveQueueContainer')
                             if (freshActiveQ && curActiveQ) curActiveQ.innerHTML = freshActiveQ.innerHTML
 
-                            // 4. Upcoming appointments
-                            var freshUpcoming = doc.getElementById('doctorUpcomingAppointmentsAll')
-                            var curUpcoming = document.getElementById('doctorUpcomingAppointmentsAll')
-                            if (freshUpcoming && curUpcoming) curUpcoming.innerHTML = freshUpcoming.innerHTML
-
-                            // 5. On Hold list
+                            // 4. On Hold list (removed upcoming — loaded via API above)
                             var freshOnHold = doc.getElementById('doctorOnHoldContainer')
                             var curOnHold = document.getElementById('doctorOnHoldContainer')
                             if (freshOnHold && curOnHold) curOnHold.innerHTML = freshOnHold.innerHTML
@@ -724,8 +830,9 @@
                 if (refreshBtn) refreshBtn.addEventListener('click', refreshAllCards)
 
                 // ── Realtime queue updates via Reverb ──
-                if (typeof window.Echo !== 'undefined' && window.Echo) {
+                if (typeof window.Echo !== 'undefined' && window.Echo && !window.__doctorDashboardQueueInited) {
                     try {
+                        window.__doctorDashboardQueueInited = true
                         window.Echo.private('queue.all')
                             .listen('.queue.updated', function () {
                                 refreshAllCards()
@@ -752,8 +859,6 @@
             @include('dashviews.doctor.doctor_my_patients')
         @elseif ($effectiveSectionKey === 'appointments')
             @include('dashviews.doctor.doctor_appointments')
-        @elseif ($effectiveSectionKey === 'queue')
-            @include('dashviews.doctor.doctor_queue')
         @elseif ($effectiveSectionKey === 'visits')
             @include('dashviews.doctor.doctor_visits')
         @elseif ($effectiveSectionKey === 'prescriptions')
@@ -762,6 +867,8 @@
             @include('dashviews.doctor.doctor_my_activity')
         @elseif ($effectiveSectionKey === 'consultation')
             @include('dashviews.doctor.doctor_consultation')
+        @elseif ($effectiveSectionKey === 'patient-records')
+            @include('dashviews.doctor.doctor_patient_records')
         @elseif ($effectiveSectionKey === 'settings-doctor')
             @include('dashviews.doctor.doctor_settings')
         @endif

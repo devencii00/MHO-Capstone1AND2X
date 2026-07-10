@@ -35,6 +35,21 @@
         </button>
         @endif
 
+        @if ($roleKey === 'doctor')
+        <!-- Queue Button -->
+        <button id="headerQueueButton" class="px-3.5 h-8.5 rounded-lg border border-slate-200 bg-white flex items-center gap-2 text-slate-500 hover:border-green-400 hover:text-green-600 relative">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6"/>
+                <line x1="8" y1="12" x2="21" y2="12"/>
+                <line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6" x2="3.01" y2="6"/>
+                <line x1="3" y1="12" x2="3.01" y2="12"/>
+                <line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+            <span class="text-[0.78rem] font-semibold text-slate-600">My Queue</span>
+        </button>
+        @endif
+
         <!-- Notifications Button -->
         <button id="headerNotificationButton" class="px-3.5 h-8.5 rounded-lg border border-slate-200 bg-white flex items-center gap-2 text-slate-500 hover:border-green-400 hover:text-green-600 relative">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -272,28 +287,13 @@
                 return
             }
 
-            // Standard navigation: find sidebar link and click it (uses page roller)
+            // Use SPA navigation (page roller) — avoids full page reload
             if (navigateUrl) {
-                var sidebar = document.getElementById('sidebar-aside')
-                if (sidebar) {
-                    // Normalize both URLs for comparison (handles relative vs absolute mismatch)
-                    var normalizedNavUrl = new URL(navigateUrl, window.location.origin).href.toLowerCase()
-                    var links = sidebar.querySelectorAll('nav a[href]')
-                    var found = false
-                    Array.prototype.some.call(links, function (link) {
-                        try {
-                            var linkUrl = new URL(link.getAttribute('href'), window.location.origin).href.toLowerCase()
-                            if (linkUrl === normalizedNavUrl) {
-                                link.click()
-                                found = true
-                                return true
-                            }
-                        } catch (e) {}
-                        return false
-                    })
-                    if (found) return
+                if (typeof window.navigateSpa === 'function') {
+                    window.navigateSpa(navigateUrl)
+                    return
                 }
-                // Fallback to full page reload if sidebar link not found
+                // Fallback to full page reload if navigateSpa not available
                 window.location.href = navigateUrl
                 return
             }
@@ -666,15 +666,44 @@
                     }
                 })
             }
+
+            // ── Queue Modal toggle (for doctors) ──
+            var queueBtn = document.getElementById('headerQueueButton')
+            var queueModal = document.getElementById('doctorQueueModal')
+            var queueCloseBtn = document.getElementById('doctorQueueModalClose')
+            if (queueBtn && queueModal) {
+                queueBtn.addEventListener('click', function (e) {
+                    e.stopPropagation()
+                    queueModal.classList.remove('hidden')
+                    queueModal.classList.add('flex')
+                })
+                if (queueCloseBtn) {
+                    queueCloseBtn.addEventListener('click', function () {
+                        queueModal.classList.add('hidden')
+                        queueModal.classList.remove('flex')
+                    })
+                }
+                queueModal.addEventListener('click', function (e) {
+                    if (e.target === queueModal) {
+                        queueModal.classList.add('hidden')
+                        queueModal.classList.remove('flex')
+                    }
+                })
+            }
         })
 
-        // ── Escape key closes messages modal ──
+        // ── Escape key closes modals ──
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 var msgModal = document.getElementById('headerMessagesModal');
                 if (msgModal && !msgModal.classList.contains('hidden')) {
                     msgModal.classList.add('hidden');
                     msgModal.classList.remove('flex');
+                }
+                var queueModal = document.getElementById('doctorQueueModal');
+                if (queueModal && !queueModal.classList.contains('hidden')) {
+                    queueModal.classList.add('hidden');
+                    queueModal.classList.remove('flex');
                 }
             }
         });

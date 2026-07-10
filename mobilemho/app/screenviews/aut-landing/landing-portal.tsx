@@ -1,29 +1,29 @@
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Dimensions,
   Animated,
-  StatusBar,
+  Dimensions,
   Image,
-  Platform,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
   TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-const { width, height } = Dimensions.get('window');
 import {
   fetchChatbotConfig,
   getChildChatbotOptions,
   type ChatbotOption,
 } from '../../../lib/chatbot';
+const { width, height } = Dimensions.get('window');
 
 type ChatMessage = {
   id: string;
@@ -241,7 +241,7 @@ export default function HomeLanding() {
         {/* Clinic name */}
         <Animated.View style={[styles.nameBlock, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
           <Text style={styles.tagline}>TRUSTED HEALTHCARE SINCE</Text>
-          <Text style={styles.clinicName}>Opol Doctors{'\n'}Medical Clinic</Text>
+          <Text style={styles.clinicName}>Opol Primary{'\n'}Healthcare Facility</Text>
           <View style={styles.dividerLine} />
           <Text style={styles.clinicSubtitle}>Your health, our commitment</Text>
         </Animated.View>
@@ -477,8 +477,9 @@ const styles = StyleSheet.create({
     fontSize: 56,
   },
   logoImage: {
-    width: 100,
-    height: 100,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
   },
 
   // Clinic name block

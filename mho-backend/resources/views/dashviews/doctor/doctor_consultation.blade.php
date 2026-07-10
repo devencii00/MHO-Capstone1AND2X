@@ -50,7 +50,7 @@
             </div>
 
             <div id="consultSnapshotLoading" class="hidden mb-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600">Loading patient snapshot…</div>
-            <div id="consultSnapshotError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
+
 
             <div class="border border-slate-100 rounded-xl bg-slate-50 p-3 space-y-3">
                 <div class="flex items-start justify-between gap-2">
@@ -144,15 +144,7 @@
                 </div>
             </div>
 
-            <div id="consultSaveError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
-            <div id="consultSaveSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700">
-                <div class="flex items-center justify-between gap-3">
-                    <span id="consultSaveSuccessText"></span>
-                    <button type="button" id="consultPrintReceipt" class="hidden inline-flex items-center justify-center rounded-xl border border-emerald-300 bg-white px-3 py-1.5 text-[0.78rem] font-semibold text-emerald-700 hover:bg-emerald-100">
-                        Print receipt
-                    </button>
-                </div>
-            </div>
+
             <div id="consultSafetyBox" class="hidden mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-800 whitespace-pre-line"></div>
             <div id="consultVitalsSummary" class="mb-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-700">
                 No vitals recorded yet. This step is optional.
@@ -230,7 +222,7 @@
             </div>
 
             <div id="consultHistoryLoading" class="hidden mb-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600">Loading history…</div>
-            <div id="consultHistoryError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
+
 
             <div id="consultHistoryTimeline" class="space-y-2 max-h-[38rem] overflow-y-auto pr-1 scrollbar-hidden"></div>
         </div>
@@ -279,7 +271,6 @@
                 </button>
             </div>
             <div class="px-5 py-4 space-y-4">
-                <div id="consultVitalsModalError" class="hidden rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
                 <div class="grid gap-3 md:grid-cols-2">
                     <div>
                         <label for="consult_height_cm" class="block text-[0.7rem] text-slate-600 mb-1">Height (cm)</label>
@@ -390,10 +381,6 @@
     document.addEventListener('DOMContentLoaded', function () {
         var appointmentSelect = document.getElementById('consult_appointment')
         var snapshotLoading = document.getElementById('consultSnapshotLoading')
-        var snapshotError = document.getElementById('consultSnapshotError')
-        var saveError = document.getElementById('consultSaveError')
-        var saveSuccess = document.getElementById('consultSaveSuccess')
-        var saveSuccessText = document.getElementById('consultSaveSuccessText')
         var safetyBox = document.getElementById('consultSafetyBox')
         var vitalsSummary = document.getElementById('consultVitalsSummary')
         var vitalsFeedback = document.getElementById('consultVitalsFeedback')
@@ -404,9 +391,9 @@
         var saveBtn = document.getElementById('consultSave')
         var saveSpinner = document.getElementById('consultSaveSpinner')
         var saveLabel = document.getElementById('consultSaveLabel')
-        var printBtn = document.getElementById('consultPrintReceipt')
         var addMedBtn = document.getElementById('consultAddMedicine')
         var prescriptionBody = document.getElementById('consultPrescriptionBody')
+        var printBtn = document.getElementById('consultPrintReceipt')
         var acknowledgeEl = document.getElementById('consultAcknowledgeConflicts')
         var safetyModal = document.getElementById('consultSafetyModal')
         var safetyModalBody = document.getElementById('consultSafetyModalBody')
@@ -418,7 +405,6 @@
         var vitalsSave = document.getElementById('consultVitalsSave')
         var vitalsSaveSpinner = document.getElementById('consultVitalsSaveSpinner')
         var vitalsSaveLabel = document.getElementById('consultVitalsSaveLabel')
-        var vitalsModalError = document.getElementById('consultVitalsModalError')
         var heightEl = document.getElementById('consult_height_cm')
         var weightEl = document.getElementById('consult_weight_kg')
         var bloodPressureEl = document.getElementById('consult_blood_pressure')
@@ -433,7 +419,6 @@
         var confirmPrescription = document.getElementById('consultConfirmPrescription')
         var historyFilter = document.getElementById('consultHistoryFilter')
         var historyLoading = document.getElementById('consultHistoryLoading')
-        var historyError = document.getElementById('consultHistoryError')
         var historyTimeline = document.getElementById('consultHistoryTimeline')
 
         var elPatientName = document.getElementById('consultPatientName')
@@ -515,9 +500,9 @@
         }
 
         function setVitalsModalError(message) {
-            if (!vitalsModalError) return
-            vitalsModalError.textContent = message || ''
-            setVisible(vitalsModalError, !!message)
+            if (message && typeof showToast === 'function') {
+                showToast(message, 'error')
+            }
         }
 
         function setVitalsLoading(isLoading) {
@@ -634,11 +619,9 @@
 
         function openVitalsModal() {
             if (!state.appointmentId) {
-                saveError.textContent = 'Select an appointment first.'
-                setVisible(saveError, true)
+                if (typeof showToast === 'function') showToast('Select an appointment first.', 'error')
                 return
             }
-            setVisible(saveError, false)
             setVitalsModalError('')
             applyVitalsToForm(state.vitals)
             setVisible(vitalsModal, true)
@@ -736,9 +719,6 @@
             if (treatmentEl) treatmentEl.value = ''
             if (prescriptionBody) prescriptionBody.innerHTML = ''
             if (historyTimeline) historyTimeline.innerHTML = ''
-            setVisible(snapshotError, false)
-            setVisible(saveError, false)
-            setVisible(saveSuccess, false)
             setVisible(safetyBox, false)
             setVitalsFeedback('')
             renderVitalsSummary()
@@ -1030,7 +1010,6 @@
         }
 
         function loadAppointment(appointmentId) {
-            setVisible(snapshotError, false)
             setVisible(snapshotLoading, true)
             return api('{{ url('/api/appointments') }}/' + appointmentId).then(function (appt) {
                 state.appointmentId = appt.appointment_id
@@ -1075,8 +1054,7 @@
                 setText(elParentName, '')
                 setText(elParentMeta, '')
             }).catch(function (err) {
-                snapshotError.textContent = err && err.body ? err.body : 'Unable to load appointment details.'
-                setVisible(snapshotError, true)
+                if (typeof showToast === 'function') showToast(err && err.body ? err.body : 'Unable to load appointment details.', 'error')
                 throw err
             }).finally(function () {
                 setVisible(snapshotLoading, false)
@@ -1133,7 +1111,6 @@
         }
 
         function loadHistory(patientId) {
-            setVisible(historyError, false)
             setVisible(historyLoading, true)
             return Promise.all([
                 api('{{ url('/api/visits') }}?patient_id=' + patientId + '&per_page=15'),
@@ -1147,8 +1124,7 @@
                 setText(elLastVisit, dt ? dt.toString().slice(0, 10) : '-')
                 renderHistory()
             }).catch(function (err) {
-                historyError.textContent = err && err.body ? err.body : 'Unable to load patient history.'
-                setVisible(historyError, true)
+                if (typeof showToast === 'function') showToast(err && err.body ? err.body : 'Unable to load patient history.', 'error')
             }).finally(function () {
                 setVisible(historyLoading, false)
             })
@@ -1229,20 +1205,16 @@
         }
 
         function saveAll() {
-            setVisible(saveError, false)
-            setVisible(saveSuccess, false)
             clearSuccessTimer()
 
             if (!state.appointmentId) {
-                saveError.textContent = 'Select an appointment first.'
-                setVisible(saveError, true)
+                if (typeof showToast === 'function') showToast('Select an appointment first.', 'error')
                 return Promise.resolve(false)
             }
 
             var conflicts = computeConflicts()
             if (conflicts.length && (!acknowledgeEl || !acknowledgeEl.checked)) {
-                saveError.textContent = 'Safety warnings detected. Check "Override safety warnings" to proceed.'
-                setVisible(saveError, true)
+                if (typeof showToast === 'function') showToast('Safety warnings detected. Check "Override safety warnings" to proceed.', 'error')
                 return Promise.resolve(false)
             }
 
@@ -1335,8 +1307,7 @@
             }).then(function () {
                 return true
             }).catch(function (err) {
-                saveError.textContent = err && err.body ? err.body : 'Unable to save consultation.'
-                setVisible(saveError, true)
+                if (typeof showToast === 'function') showToast(err && err.body ? err.body : 'Unable to save consultation.', 'error')
                 return false
             })
         }
@@ -1447,8 +1418,6 @@
                 if (treatmentEl) treatmentEl.value = ''
                 if (prescriptionBody) prescriptionBody.innerHTML = ''
                 ensureRow()
-                setVisible(saveSuccess, false)
-                setVisible(saveError, false)
                 setVitalsFeedback('')
                 renderSafety()
                 setPrintVisible(false)
@@ -1465,20 +1434,16 @@
         if (saveBtn) {
             saveBtn.addEventListener('click', function () {
                 if (saveBtn.disabled) return
-                setVisible(saveError, false)
-                setVisible(saveSuccess, false)
                 clearSuccessTimer()
 
                 if (!state.appointmentId) {
-                    saveError.textContent = 'Select an appointment first.'
-                    setVisible(saveError, true)
+                    if (typeof showToast === 'function') showToast('Select an appointment first.', 'error')
                     return
                 }
 
                 var conflicts = computeConflicts()
                 if (conflicts.length && (!acknowledgeEl || !acknowledgeEl.checked)) {
-                    saveError.textContent = 'Safety warnings detected. Check "Override safety warnings" to proceed.'
-                    setVisible(saveError, true)
+                    if (typeof showToast === 'function') showToast('Safety warnings detected. Check "Override safety warnings" to proceed.', 'error')
                     return
                 }
 
@@ -1505,8 +1470,7 @@
                 ensureRow()
             }
         }).catch(function () {
-            snapshotError.textContent = 'Unable to load medicines or user profile.'
-            setVisible(snapshotError, true)
+            if (typeof showToast === 'function') showToast('Unable to load medicines or user profile.', 'error')
         })
     })
 </script>

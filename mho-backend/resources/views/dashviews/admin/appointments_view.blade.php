@@ -85,7 +85,7 @@
 
 <!-- Appointment History Modal -->
 <div id="adminApptHistoryOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/40 items-center justify-center p-4">
-    <div class="w-full max-w-4xl h-[90px] max-h-none rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] flex overflow-hidden">
+    <div class="w-full max-w-4xl h-[90vh] max-h-none rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] flex overflow-hidden">
         <!-- History list (left) -->
         <div class="w-1/2 border-r border-slate-200 flex flex-col min-h-0">
             <div class="px-4 py-3 border-b border-slate-100 shrink-0 flex items-center justify-between">
@@ -133,6 +133,19 @@
             </div>
             <div id="adminApptDetailBody" class="flex-1 overflow-y-auto p-4">
                 <div class="text-center text-[0.78rem] text-slate-400 py-8">Select an appointment to view details.</div>
+            </div>
+            <div class="px-4 py-3 border-t border-slate-200 shrink-0 bg-white flex items-center gap-3">
+                <div class="flex-1">
+                    <label class="block text-[0.6rem] text-slate-500 mb-0.5">Change Status</label>
+                    <select id="adminApptDetailStatusSelect" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.78rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" disabled>
+                        <option value="">Select status</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                        <option value="no_show">No-show</option>
+                    </select>
+                </div>
+                <button id="adminApptDetailUpdateBtn" type="button" class="shrink-0 self-end px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed" disabled>Update Status</button>
             </div>
         </div>
     </div>
@@ -245,6 +258,8 @@
         var historyStatus = document.getElementById('adminApptHistoryStatus')
         var historyType = document.getElementById('adminApptHistoryType')
         var detailBody = document.getElementById('adminApptDetailBody')
+        var detailStatusSelect = document.getElementById('adminApptDetailStatusSelect')
+        var detailUpdateBtn = document.getElementById('adminApptDetailUpdateBtn')
         var historyPatientId = null
         var historyAppointments = []
 
@@ -256,6 +271,9 @@
             if (historyDate) historyDate.value = ''
             if (historyStatus) historyStatus.value = ''
             if (historyType) historyType.value = ''
+            if (detailStatusSelect) { detailStatusSelect.value = ''; detailStatusSelect.disabled = true }
+            if (detailUpdateBtn) detailUpdateBtn.disabled = true
+            window.__adminCurrentApptId = null
             if (historyOverlay) {
                 historyOverlay.classList.remove('hidden')
                 historyOverlay.classList.add('flex')
@@ -270,6 +288,9 @@
             }
             historyPatientId = null
             historyAppointments = []
+            if (detailStatusSelect) { detailStatusSelect.value = ''; detailStatusSelect.disabled = true }
+            if (detailUpdateBtn) detailUpdateBtn.disabled = true
+            window.__adminCurrentApptId = null
         }
 
         function loadPatientHistory(patientId) {
@@ -401,6 +422,14 @@
 
         function renderAppointmentDetail(appt) {
             if (!detailBody) return
+            if (!appt) {
+                detailBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select an appointment to view details.</div>'
+                if (detailStatusSelect) { detailStatusSelect.value = ''; detailStatusSelect.disabled = true }
+                if (detailUpdateBtn) detailUpdateBtn.disabled = true
+                return
+            }
+            var patient = appt.patient || {}
+            var patientName = personLabel(patient, 'N/A')
             var dt = appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
             var tx = appt.transaction || null
             var services = Array.isArray(appt.services) ? appt.services : []
@@ -416,6 +445,8 @@
                 '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
                     '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Appointment</div>' +
                     '<div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[0.78rem]">' +
+                        '<div class="text-slate-500">Patient</div>' +
+                        '<div class="text-slate-800 font-medium">' + escapeHtml(patientName) + '</div>' +
                         '<div class="text-slate-500">Date & Time</div>' +
                         '<div class="text-slate-800 font-medium">' + escapeHtml(dt) + '</div>' +
                         '<div class="text-slate-500">Doctor</div>' +
@@ -458,6 +489,59 @@
                 '</div>' +
             '</div>'
             detailBody.innerHTML = html
+
+            // Enable status select
+            var currentStatus = String(appt && appt.status ? appt.status : '').toLowerCase()
+            if (detailStatusSelect) {
+                detailStatusSelect.value = currentStatus
+                detailStatusSelect.disabled = false
+            }
+            if (detailUpdateBtn) {
+                detailUpdateBtn.disabled = false
+            }
+            // Store current appointment ID for status update
+            window.__adminCurrentApptId = appt.appointment_id || appt.id || null
+        }
+
+        // ── Status update handler ──
+        if (detailUpdateBtn) {
+            detailUpdateBtn.addEventListener('click', function () {
+                var apptId = window.__adminCurrentApptId
+                if (!apptId) return
+                var newStatus = detailStatusSelect ? detailStatusSelect.value : ''
+                if (!newStatus) {
+                    if (typeof showToast === 'function') showToast('Please select a status.', 'error')
+                    return
+                }
+                detailUpdateBtn.disabled = true
+                detailUpdateBtn.textContent = 'Updating...'
+                apiFetch("{{ url('/api/appointments') }}/" + encodeURIComponent(apptId) + "/status", {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                    .then(function (response) {
+                        return response.json().then(function (data) {
+                            return { ok: response.ok, data: data }
+                        }).catch(function () { return { ok: false, data: null } })
+                    })
+                    .then(function (r) {
+                        if (!r.ok) {
+                            if (typeof showToast === 'function') showToast(r.data && r.data.message ? r.data.message : 'Failed to update status.', 'error')
+                            return
+                        }
+                        if (typeof showToast === 'function') showToast('Status updated successfully.', 'success')
+                        loadAppointments()
+                        loadAppointmentDetail(apptId)
+                    })
+                    .catch(function () {
+                        if (typeof showToast === 'function') showToast('Network error.', 'error')
+                    })
+                    .finally(function () {
+                        detailUpdateBtn.disabled = false
+                        detailUpdateBtn.textContent = 'Update Status'
+                    })
+            })
         }
 
         // ── Modal event bindings ──

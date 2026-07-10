@@ -30,9 +30,9 @@
         </div>
     </div>
 
-<div class="overflow-x-auto overflow-y-auto scrollbar-hidden h-[300px]">
+<div class="overflow-x-auto overflow-y-auto scrollbar-hidden" style="max-height:300px">
         <table class="min-w-full text-left text-xs text-slate-600">
-            <thead>
+            <thead class="sticky top-0 bg-white z-10">
                 <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
                     <th class="py-2 pr-4 font-semibold">Prescription ID</th>
                     <th class="py-2 pr-4 font-semibold">Patient</th>
@@ -43,86 +43,13 @@
                 </tr>
             </thead>
             <tbody id="doctorPrescriptionTbody">
-                @forelse ($doctorRecentPrescriptions ?? [] as $prescription)
-                    @php
-                        $patientParts = array_filter([
-                            optional(optional(optional($prescription->transaction)->appointment)->patient)->firstname,
-                            optional(optional(optional($prescription->transaction)->appointment)->patient)->middlename,
-                            optional(optional(optional($prescription->transaction)->appointment)->patient)->lastname,
-                        ], function ($v) {
-                            return (string) $v !== '';
-                        });
-                        $patientName = trim(implode(' ', $patientParts));
-                        $dateKey = optional($prescription->prescribed_datetime)->format('Y-m-d') ?? '';
-                        $itemsCount = $prescription->items ? $prescription->items->count() : 0;
-                        $itemPayload = ($prescription->items ?? collect())->map(function ($item) {
-                            $medicine = $item->medicine ?? null;
-                            $medicineName = trim(implode(' ', array_filter([
-                                $medicine->generic_name ?? null,
-                                isset($medicine->brand_name) && (string) $medicine->brand_name !== '' ? '(' . $medicine->brand_name . ')' : null,
-                            ])));
-
-                            return [
-                                'medicine' => $medicineName !== '' ? $medicineName : ('Medicine #' . ($item->medicine_id ?? '')),
-                                'dosage' => $item->dosage,
-                                'frequency' => $item->frequency,
-                                'duration' => $item->duration,
-                                'instructions' => $item->instructions,
-                            ];
-                        })->values();
-                    @endphp
-                    <tr class="border-b border-slate-50 last:border-0 doctor-prescription-row"
-                        data-prescription-id="{{ $prescription->prescription_id }}"
-                        data-patient="{{ strtolower($patientName) }}"
-                        data-date="{{ $dateKey }}">
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-500">#{{ $prescription->prescription_id }}</td>
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-700">
-                            @if ($patientName)
-                                {{ $patientName }}
-                            @else
-                                <span class="text-slate-400">Patient</span>
-                            @endif
-                        </td>
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                            {{ $dateKey }}
-                        </td>
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                            @if ($itemsCount > 0)
-                                {{ $itemsCount }} item{{ $itemsCount === 1 ? '' : 's' }}
-                            @else
-                                <span class="text-[0.7rem] text-slate-400">No items</span>
-                            @endif
-                        </td>
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                            @if ($prescription->notes)
-                                {{ \Illuminate\Support\Str::limit($prescription->notes, 80) }}
-                            @else
-                                <span class="text-[0.7rem] text-slate-400">No notes</span>
-                            @endif
-                        </td>
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                            <button
-                                type="button"
-                                class="doctor-prescription-view-items inline-flex items-center justify-center rounded-xl border border-green-200 bg-green-50 px-3 py-1.5 text-[0.74rem] font-semibold text-green-700 hover:bg-green-100"
-                                data-prescription-id="{{ $prescription->prescription_id }}"
-                                data-patient-name="{{ $patientName !== '' ? $patientName : 'Patient' }}"
-                                data-prescribed-date="{{ $dateKey !== '' ? $dateKey : '-' }}"
-                                data-items='@json($itemPayload)'
-                            >
-                                View items
-                            </button>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">
-                            No prescriptions found yet.
-                        </td>
-                    </tr>
-                @endforelse
+                <tr>
+                    <td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading…</td>
+                </tr>
             </tbody>
         </table>
     </div>
+    <div id="doctorPrescriptionPagination" class="mt-3 flex items-center justify-center gap-1"></div>
 </div>
 
 <div id="doctorPrescriptionItemsOverlay" class="hidden fixed inset-0 z-[70] bg-slate-900/40"></div>
@@ -150,10 +77,15 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var searchInput = document.getElementById('doctor_prescription_search')
-        var sortSelect = document.getElementById('doctor_prescription_sort')
-        var rows = Array.prototype.slice.call(document.querySelectorAll('.doctor-prescription-row'))
-        var viewButtons = Array.prototype.slice.call(document.querySelectorAll('.doctor-prescription-view-items'))
+        // ── Pagination state ────────────────────────────────────────────
+        var prescCurrentPage = 1
+        var prescPerPage = 10
+        var prescVisibleCount = 5
+        var prescLastPage = 1
+        var prescTotal = 0
+        var prescDoctorId = {{ (int) (($currentUser->user_id ?? 0)) }}
+        var prescSearchQuery = ''
+
         var overlay = document.getElementById('doctorPrescriptionItemsOverlay')
         var panel = document.getElementById('doctorPrescriptionItemsPanel')
         var closeButton = document.getElementById('doctorPrescriptionItemsClose')
@@ -161,11 +93,10 @@
         var panelSubtitle = document.getElementById('doctorPrescriptionItemsSubtitle')
         var panelMeta = document.getElementById('doctorPrescriptionItemsMeta')
         var panelList = document.getElementById('doctorPrescriptionItemsList')
-
-        function setVisible(el, visible) {
-            if (!el) return
-            el.classList.toggle('hidden', !visible)
-        }
+        var tbody = document.getElementById('doctorPrescriptionTbody')
+        var pagEl = document.getElementById('doctorPrescriptionPagination')
+        var searchInput = document.getElementById('doctor_prescription_search')
+        var sortSelect = document.getElementById('doctor_prescription_sort')
 
         function escapeHtml(value) {
             return String(value == null ? '' : value)
@@ -174,6 +105,11 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;')
+        }
+
+        function setVisible(el, visible) {
+            if (!el) return
+            el.classList.toggle('hidden', !visible)
         }
 
         function openPanel() {
@@ -193,7 +129,6 @@
                 { label: 'Duration', value: item && item.duration ? item.duration : '-' },
                 { label: 'Instructions', value: item && item.instructions ? item.instructions : '-' },
             ]
-
             return '' +
                 '<div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">' +
                     '<div class="flex items-start justify-between gap-3">' +
@@ -216,18 +151,15 @@
 
         function showPrescriptionItems(button) {
             if (!button) return
-
             var prescriptionId = button.getAttribute('data-prescription-id') || ''
             var patientName = button.getAttribute('data-patient-name') || 'Patient'
             var prescribedDate = button.getAttribute('data-prescribed-date') || '-'
             var items = []
-
             try {
                 items = JSON.parse(button.getAttribute('data-items') || '[]')
             } catch (error) {
                 items = []
             }
-
             if (panelTitle) panelTitle.textContent = 'Prescription #' + prescriptionId
             if (panelSubtitle) panelSubtitle.textContent = patientName + ' • ' + prescribedDate
             if (panelMeta) {
@@ -241,119 +173,167 @@
                     ? items.map(renderItemCard).join('')
                     : '<div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-4 text-[0.78rem] text-slate-500">No prescription items recorded for this prescription.</div>'
             }
-
             openPanel()
         }
 
-        function applyDoctorPrescriptionFilters() {
-            var query = searchInput ? searchInput.value.toLowerCase().trim() : ''
+        // ── API Load ─────────────────────────────────────────────────────
+        function loadPrescriptions(page) {
+            if (!tbody) return
+            tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400 animate-pulse">Loading…</td></tr>'
 
-            rows.forEach(function (row) {
-                var id = row.getAttribute('data-prescription-id') || ''
-                var patient = row.getAttribute('data-patient') || ''
-                var date = row.getAttribute('data-date') || ''
+            apiFetch("{{ url('/api/prescriptions') }}?per_page=" + prescPerPage + "&page=" + page + "&doctor_id=" + prescDoctorId)
+                .then(function (r) { return r.json() })
+                .then(function (result) {
+                    if (!result || !result.data) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No prescriptions found.</td></tr>'
+                        prescTotal = 0
+                        prescLastPage = 1
+                        renderPrescriptionPagination()
+                        return
+                    }
+                    var data = result.data
+                    prescCurrentPage = result.current_page || page
+                    prescLastPage = result.last_page || 1
+                    prescTotal = result.total || 0
 
-                var matches = true
-                if (query) {
-                    matches =
-                        ('#' + id).indexOf(query) !== -1 ||
-                        patient.indexOf(query) !== -1 ||
-                        date.indexOf(query) !== -1
-                }
+                    if (!data.length) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No prescriptions found.</td></tr>'
+                    } else {
+                        var html = ''
+                        data.forEach(function (p) {
+                            var transaction = p.transaction || {}
+                            var appointment = transaction.appointment || {}
+                            var patient = appointment.patient || {}
+                            var parts = [patient.firstname, patient.middlename, patient.lastname].filter(function (v) { return v && String(v).trim() !== '' })
+                            var patientName = parts.length ? parts.join(' ') : (patient.email || 'Patient')
+                            var dateKey = p.prescribed_datetime ? p.prescribed_datetime.slice(0, 10) : ''
+                            var itemsArr = Array.isArray(p.items) ? p.items : []
+                            var itemsCount = itemsArr.length
+                            var itemPayload = itemsArr.map(function (item) {
+                                var medicine = item.medicine || {}
+                                var mn = [medicine.generic_name, medicine.brand_name ? '(' + medicine.brand_name + ')' : ''].filter(Boolean).join(' ').trim()
+                                return {
+                                    medicine: mn || ('Medicine #' + (item.medicine_id || '')),
+                                    dosage: item.dosage,
+                                    frequency: item.frequency,
+                                    duration: item.duration,
+                                    instructions: item.instructions,
+                                }
+                            })
+                            var notes = p.notes || ''
+                            var notesDisplay = notes.length > 80 ? notes.slice(0, 80) + '…' : (notes || '')
 
-                row.style.display = matches ? '' : 'none'
-            })
-
-            applyDoctorPrescriptionSort()
+                            html += '<tr class="border-b border-slate-50 last:border-0">' +
+                                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">#' + escapeHtml(p.prescription_id) + '</td>' +
+                                '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(patientName) + '</td>' +
+                                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(dateKey) + '</td>' +
+                                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (itemsCount > 0 ? itemsCount + ' item' + (itemsCount === 1 ? '' : 's') : '<span class="text-[0.7rem] text-slate-400">No items</span>') + '</td>' +
+                                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (notes ? escapeHtml(notesDisplay) : '<span class="text-[0.7rem] text-slate-400">No notes</span>') + '</td>' +
+                                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' +
+                                '<button type="button" class="doctor-prescription-view-items inline-flex items-center justify-center rounded-xl border border-green-200 bg-green-50 px-3 py-1.5 text-[0.74rem] font-semibold text-green-700 hover:bg-green-100" ' +
+                                'data-prescription-id="' + escapeHtml(p.prescription_id) + '" ' +
+                                'data-patient-name="' + escapeHtml(patientName) + '" ' +
+                                'data-prescribed-date="' + escapeHtml(dateKey || '-') + '" ' +
+                                "data-items='" + JSON.stringify(itemPayload).replace(/'/g, '&#39;') + "'>View items</button></td></tr>"
+                        })
+                        tbody.innerHTML = html
+                        // Re-attach view items listeners
+                        tbody.querySelectorAll('.doctor-prescription-view-items').forEach(function (btn) {
+                            btn.addEventListener('click', function () { showPrescriptionItems(btn) })
+                        })
+                    }
+                    renderPrescriptionPagination()
+                })
+                .catch(function () {
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Failed to load prescriptions.</td></tr>'
+                    renderPrescriptionPagination()
+                })
         }
 
-        function applyDoctorPrescriptionSort() {
-            if (!sortSelect) {
-                return
-            }
-            var value = sortSelect.value
-            var tbody = rows.length ? rows[0].parentNode : null
-            if (!tbody) {
-                return
-            }
+        // ── Pagination UI ────────────────────────────────────────────────
+        function renderPrescriptionPagination() {
+            if (!pagEl) return
+            var totalPages = prescLastPage
+            var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border '
+            var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer'
+            var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default'
+            var btnActive = btnBase + 'bg-green-600 text-white border-green-600'
 
-            var visibleRows = rows.filter(function (row) {
-                return row.style.display !== 'none'
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + prescTotal + ' entries</span>'
+            html += '<button type="button" class="' + (prescCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-presc-page="prev"' + (prescCurrentPage === 1 ? ' disabled' : '') + '>&lsaquo; Prev</button>'
+
+            var ws = Math.max(1, prescCurrentPage - Math.floor(prescVisibleCount / 2))
+            var we = Math.min(ws + prescVisibleCount - 1, totalPages)
+            if (we - ws + 1 < prescVisibleCount) ws = Math.max(1, we - prescVisibleCount + 1)
+            for (var i = ws; i <= we; i++) {
+                html += '<button type="button" class="' + (i === prescCurrentPage ? btnActive : btnInactive) + '" data-presc-page="' + i + '">' + i + '</button>'
+            }
+            if (we < totalPages) {
+                html += '<button type="button" class="' + btnInactive + '" data-presc-page="next-window" title="Next set">&hellip;</button>'
+            }
+            html += '<button type="button" class="' + (prescCurrentPage === totalPages ? btnDisabled : btnInactive) + '" data-presc-page="next"' + (prescCurrentPage === totalPages ? ' disabled' : '') + '>Next &rsaquo;</button>'
+
+            pagEl.innerHTML = html
+            pagEl.querySelectorAll('button[data-presc-page]').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    var p = b.getAttribute('data-presc-page')
+                    if (p === 'prev' && prescCurrentPage > 1) { prescCurrentPage-- }
+                    else if (p === 'next' && prescCurrentPage < totalPages) { prescCurrentPage++ }
+                    else if (p === 'next-window') { prescCurrentPage = Math.min(we + 1, totalPages) }
+                    else if (p !== 'prev' && p !== 'next') { prescCurrentPage = parseInt(p, 10) }
+                    else return
+                    loadPrescriptions(prescCurrentPage)
+                })
             })
+        }
 
-            visibleRows.sort(function (a, b) {
-                var pa = a.getAttribute('data-patient') || ''
-                var pb = b.getAttribute('data-patient') || ''
-                var da = a.getAttribute('data-date') || ''
-                var db = b.getAttribute('data-date') || ''
+        // ── Initial load ─────────────────────────────────────────────────
+        loadPrescriptions(1)
 
+        // ── Search / Sort (client-side on current page) ──────────────────
+        function applyClientFilter() {
+            var query = searchInput ? searchInput.value.toLowerCase().trim() : ''
+            var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'))
+            rows.forEach(function (row) {
+                var text = (row.textContent || '').toLowerCase()
+                row.style.display = query ? (text.indexOf(query) !== -1 ? '' : 'none') : ''
+            })
+        }
+        function applyClientSort() {
+            if (!sortSelect || !tbody) return
+            var value = sortSelect.value
+            var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'))
+            var visible = rows.filter(function (r) { return r.style.display !== 'none' })
+            visible.sort(function (a, b) {
+                var pa = (a.cells[1] ? a.cells[1].textContent || '' : '').toLowerCase()
+                var pb = (b.cells[1] ? b.cells[1].textContent || '' : '').toLowerCase()
+                var da = (a.cells[2] ? a.cells[2].textContent || '' : '').toLowerCase()
+                var db = (b.cells[2] ? b.cells[2].textContent || '' : '').toLowerCase()
                 if (value === 'patient_asc' || value === 'patient_desc') {
                     if (pa < pb) return value === 'patient_asc' ? -1 : 1
                     if (pa > pb) return value === 'patient_asc' ? 1 : -1
                     return 0
                 }
-
-                if (da < db) return value === 'date_asc' ? -1 : 1
-                if (da > db) return value === 'date_asc' ? 1 : -1
-                return 0
+                return value === 'date_asc' ? (da < db ? -1 : da > db ? 1 : 0) : (da > db ? -1 : da < db ? 1 : 0)
             })
+            visible.forEach(function (r) { tbody.appendChild(r) })
+        }
+        if (searchInput) searchInput.addEventListener('input', function () { applyClientFilter(); applyClientSort() })
+        if (sortSelect) sortSelect.addEventListener('change', applyClientSort)
 
-            visibleRows.forEach(function (row) {
-                tbody.appendChild(row)
-            })
-        }
-
-        if (searchInput) {
-            searchInput.addEventListener('input', applyDoctorPrescriptionFilters)
-        }
-        if (sortSelect) {
-            sortSelect.addEventListener('change', applyDoctorPrescriptionSort)
-        }
-        if (closeButton) {
-            closeButton.addEventListener('click', closePanel)
-        }
-        if (overlay) {
-            overlay.addEventListener('click', closePanel)
-        }
-        viewButtons.forEach(function (button) {
-            button.addEventListener('click', function () {
-                showPrescriptionItems(button)
-            })
-        })
+        // ── Panel close ──────────────────────────────────────────────────
+        if (closeButton) closeButton.addEventListener('click', closePanel)
+        if (overlay) overlay.addEventListener('click', closePanel)
         document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') {
-                closePanel()
-            }
+            if (event.key === 'Escape') closePanel()
         })
 
-        applyDoctorPrescriptionFilters()
-
-        function refreshTableFromServer(tableBodyEl) {
-            if (!tableBodyEl) return
-            tableBodyEl.innerHTML = '<tr><td colspan="999" class="py-4 text-center text-[0.78rem] text-slate-400">Loading…</td></tr>'
-            var url = window.location.href
-            fetch(url)
-                .then(function (r) { return r.text() })
-                .then(function (html) {
-                    var parser = new DOMParser()
-                    var doc = parser.parseFromString(html, 'text/html')
-                    var freshBody = doc.getElementById(tableBodyEl.id)
-                    if (freshBody) {
-                        tableBodyEl.innerHTML = freshBody.innerHTML
-                    }
-                    rows = Array.prototype.slice.call(document.querySelectorAll('.doctor-prescription-row'))
-                    viewButtons = Array.prototype.slice.call(document.querySelectorAll('.doctor-prescription-view-items'))
-                    viewButtons.forEach(function (button) {
-                        button.addEventListener('click', function () {
-                            showPrescriptionItems(button)
-                        })
-                    })
-                    applyDoctorPrescriptionFilters()
-                })
-                .catch(function () {
-                    tableBodyEl.innerHTML = '<tr><td colspan="999" class="py-4 text-center text-[0.78rem] text-slate-400 text-red-500">Refresh failed.</td></tr>'
-                })
+        // ── Refresh button ───────────────────────────────────────────────
+        if (document.getElementById('docPrescriptionRefreshBtn')) {
+            document.getElementById('docPrescriptionRefreshBtn').addEventListener('click', function () {
+                prescCurrentPage = 1
+                loadPrescriptions(1)
+            })
         }
-        if (document.getElementById('docPrescriptionRefreshBtn')) document.getElementById('docPrescriptionRefreshBtn').addEventListener('click', function () { refreshTableFromServer(document.getElementById('doctorPrescriptionTbody')) })
     })
 </script>

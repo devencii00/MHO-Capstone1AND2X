@@ -36,9 +36,9 @@
         </div>
     </div>
 
-   <div class="overflow-x-auto overflow-y-auto scrollbar-hidden h-[300px]">
+   <div class="overflow-x-auto overflow-y-auto scrollbar-hidden" style="max-height:300px">
         <table class="min-w-full text-left text-xs text-slate-600">
-            <thead>
+            <thead class="sticky top-0 bg-white z-10">
                 <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
                     <th class="py-2 pr-4 font-semibold">Visit ID</th>
                     <th class="py-2 pr-4 font-semibold">Patient</th>
@@ -49,67 +49,13 @@
                 </tr>
             </thead>
             <tbody id="doctorVisitTbody">
-                @forelse ($doctorRecentVisits ?? [] as $visit)
-                    @php
-                        $patientParts = array_filter([
-                            optional(optional($visit->appointment)->patient)->firstname,
-                            optional(optional($visit->appointment)->patient)->middlename,
-                            optional(optional($visit->appointment)->patient)->lastname,
-                        ], function ($v) {
-                            return (string) $v !== '';
-                        });
-                        $patientName = trim(implode(' ', $patientParts));
-                        $dateKey = optional($visit->visit_datetime)->format('Y-m-d') ?? (optional($visit->transaction_datetime)->format('Y-m-d') ?? '');
-                        $patientId = (int) (optional($visit->appointment)->patient_id ?? 0);
-                    @endphp
-                    <tr class="border-b border-slate-50 last:border-0 doctor-visit-row"
-                        data-visit-id="{{ $visit->transaction_id }}"
-                        data-patient-id="{{ $patientId }}"
-                        data-patient="{{ strtolower($patientName) }}"
-                        data-date="{{ $dateKey }}"
-                        data-diagnosis="{{ strtolower($visit->diagnosis ?? '') }}">
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-500">#{{ $visit->transaction_id }}</td>
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-700">
-                            @if ($patientName)
-                                {{ $patientName }}
-                            @else
-                                <span class="text-slate-400">Patient #{{ optional($visit->appointment)->patient_id }}</span>
-                            @endif
-                        </td>
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                            {{ $dateKey }}
-                        </td>
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                            {{ \Illuminate\Support\Str::limit(optional($visit->appointment)->reason_for_visit ?? '-', 50) }}
-                        </td>
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                            @if ($visit->diagnosis)
-                                {{ \Illuminate\Support\Str::limit($visit->diagnosis, 80) }}
-                            @else
-                                <span class="text-[0.7rem] text-slate-400">No diagnosis recorded</span>
-                            @endif
-                        </td>
-                        <td class="py-2 pr-4 text-right">
-                            @if ($patientId > 0)
-                                <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-[0.72rem] font-medium text-slate-700 hover:bg-slate-50 doctor-visit-view">
-                                    <x-lucide-panel-right-open class="w-3.5 h-3.5" />
-                                    View information
-                                </button>
-                            @else
-                                <span class="text-[0.7rem] text-slate-400">-</span>
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">
-                            No visits found yet.
-                        </td>
-                    </tr>
-                @endforelse
+                <tr>
+                    <td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading…</td>
+                </tr>
             </tbody>
         </table>
     </div>
+    <div id="doctorVisitPagination" class="mt-3 flex items-center justify-center gap-1"></div>
 </div>
 
 <div id="doctorVisitInfoOverlay" class="hidden fixed inset-0 z-[70] bg-slate-900/40"></div>
@@ -131,8 +77,6 @@
         <div id="doctorVisitPanelLoading" class="hidden mx-5 mt-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.78rem] text-slate-600">
             Loading patient information...
         </div>
-        <div id="doctorVisitPanelError" class="hidden mx-5 mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.78rem] text-red-700"></div>
-
         <div class="flex-1 overflow-y-auto px-5 py-4">
             <div class="grid gap-4 md:grid-cols-2">
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -170,16 +114,21 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // ── Pagination state ────────────────────────────────────────────
+        var visitCurrentPage = 1
+        var visitPerPage = 10
+        var visitVisibleCount = 5
+        var visitLastPage = 1
+        var visitTotal = 0
+        var visitDoctorId = {{ (int) (($currentUser->user_id ?? 0)) }}
+
         var searchInput = document.getElementById('doctor_visit_search')
         var sortSelect = document.getElementById('doctor_visit_sort')
         var todayToggle = document.getElementById('doctor_visit_today_toggle')
-        var rows = Array.prototype.slice.call(document.querySelectorAll('.doctor-visit-row'))
-        var viewButtons = Array.prototype.slice.call(document.querySelectorAll('.doctor-visit-view'))
         var overlay = document.getElementById('doctorVisitInfoOverlay')
         var panel = document.getElementById('doctorVisitInfoPanel')
         var closeButton = document.getElementById('doctorVisitPanelClose')
         var loadingBox = document.getElementById('doctorVisitPanelLoading')
-        var errorBox = document.getElementById('doctorVisitPanelError')
         var panelTitle = document.getElementById('doctorVisitPanelTitle')
         var panelSubtitle = document.getElementById('doctorVisitPanelSubtitle')
         var patientNameEl = document.getElementById('doctorVisitPatientName')
@@ -191,6 +140,8 @@
         var prescriptionsTab = document.getElementById('doctorVisitTabPrescriptions')
         var visitsPanel = document.getElementById('doctorVisitTabPanelVisits')
         var prescriptionsPanel = document.getElementById('doctorVisitTabPanelPrescriptions')
+        var tbody = document.getElementById('doctorVisitTbody')
+        var pagEl = document.getElementById('doctorVisitPagination')
         var todayOnly = false
         var activeTab = 'visits'
 
@@ -212,7 +163,6 @@
             if (typeof apiFetch !== 'function') {
                 return Promise.reject(new Error('API client is not available.'))
             }
-
             return apiFetch(url, { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
@@ -281,7 +231,6 @@
                 backgroundEl.innerHTML = '<span class="text-[0.74rem] text-slate-400">No medical background recorded.</span>'
                 return
             }
-
             backgroundEl.innerHTML = rows.map(function (item) {
                 var category = String(item.category || '')
                 var tone = category === 'allergy_drug' ? 'danger' : (category === 'allergy_food' ? 'warn' : 'default')
@@ -295,7 +244,6 @@
                 visitsPanel.innerHTML = '<div class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-[0.78rem] text-slate-500">No visit history found.</div>'
                 return
             }
-
             visitsPanel.innerHTML = rows.map(function (visit) {
                 var when = String(visit.visit_datetime || visit.transaction_datetime || '').replace('T', ' ').slice(0, 16) || '-'
                 var reason = visit.appointment && visit.appointment.reason_for_visit ? visit.appointment.reason_for_visit : 'No reason recorded'
@@ -303,7 +251,6 @@
                 var appointmentType = visit.appointment && visit.appointment.appointment_type
                     ? String(visit.appointment.appointment_type).replace(/_/g, '-')
                     : '-'
-
                 return '' +
                     '<div class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 mb-3">' +
                         '<div class="flex items-start justify-between gap-3">' +
@@ -321,7 +268,6 @@
 
         function renderPrescriptionHistory(visits) {
             if (!prescriptionsPanel) return
-
             var entries = []
             visits.forEach(function (visit) {
                 var prescriptions = Array.isArray(visit.prescriptions) ? visit.prescriptions : []
@@ -334,12 +280,10 @@
                     })
                 })
             })
-
             if (!entries.length) {
                 prescriptionsPanel.innerHTML = '<div class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-[0.78rem] text-slate-500">No prescription history found.</div>'
                 return
             }
-
             prescriptionsPanel.innerHTML = entries.map(function (entry) {
                 var when = String(entry.prescribed_datetime || '').replace('T', ' ').slice(0, 16) || '-'
                 var doctorName = entry.doctor
@@ -357,7 +301,6 @@
                         return '<li>' + escapeHtml(line) + '</li>'
                     }).join('') + '</ul>'
                     : '<div class="mt-2 text-[0.74rem] text-slate-400">No items recorded.</div>'
-
                 return '' +
                     '<div class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 mb-3">' +
                         '<div class="flex items-start justify-between gap-3">' +
@@ -386,7 +329,6 @@
                 if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birthdate.getDate())) age--
                 age = age >= 0 ? String(age) + ' yrs' : ''
             }
-
             if (panelTitle) panelTitle.textContent = patientName || 'Patient details'
             if (panelSubtitle) panelSubtitle.textContent = 'Review patient information, medical background, and prescription records.'
             if (patientNameEl) patientNameEl.textContent = patientName || 'Patient'
@@ -408,17 +350,14 @@
             if (patientAddressEl) {
                 patientAddressEl.textContent = patient && patient.address ? patient.address : '-'
             }
-
             renderMedicalBackground(backgrounds)
             renderVisitsHistory(visits)
             renderPrescriptionHistory(visits)
         }
 
         function loadVisitInformation(visitId, patientId) {
-            setVisible(errorBox, false)
             setVisible(loadingBox, true)
             openPanel()
-
             Promise.all([
                 api("{{ url('/api/visits') }}/" + encodeURIComponent(visitId)),
                 api("{{ url('/api/medical-backgrounds') }}?patient_id=" + encodeURIComponent(patientId) + '&per_page=15'),
@@ -432,10 +371,7 @@
                     setTab(activeTab)
                 })
                 .catch(function (error) {
-                    if (errorBox) {
-                        errorBox.textContent = error && error.message ? error.message : 'Failed to load patient information.'
-                    }
-                    setVisible(errorBox, true)
+                    if (typeof showToast === 'function') showToast(error && error.message ? error.message : 'Failed to load patient information.', 'error')
                 })
                 .finally(function () {
                     setVisible(loadingBox, false)
@@ -462,145 +398,176 @@
             todayToggle.classList.toggle('hover:bg-slate-50', !todayOnly)
         }
 
-        function applyDoctorVisitFilters() {
-            var query = searchInput ? searchInput.value.toLowerCase().trim() : ''
-            var todayKey = localDateIso()
+        // ── API Load ─────────────────────────────────────────────────────
+        function loadVisits(page) {
+            if (!tbody) return
+            tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400 animate-pulse">Loading…</td></tr>'
 
-            rows.forEach(function (row) {
-                var id = row.getAttribute('data-visit-id') || ''
-                var patient = row.getAttribute('data-patient') || ''
-                var diagnosis = row.getAttribute('data-diagnosis') || ''
-                var date = row.getAttribute('data-date') || ''
+            apiFetch("{{ url('/api/visits') }}?per_page=" + visitPerPage + "&page=" + page + "&doctor_id=" + visitDoctorId)
+                .then(function (r) { return r.json() })
+                .then(function (result) {
+                    if (!result || !result.data) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No visits found.</td></tr>'
+                        visitTotal = 0
+                        visitLastPage = 1
+                        renderVisitPagination()
+                        return
+                    }
+                    var data = result.data
+                    visitCurrentPage = result.current_page || page
+                    visitLastPage = result.last_page || 1
+                    visitTotal = result.total || 0
 
-                var matches = true
-                if (query) {
-                    matches =
-                        ('#' + id).indexOf(query) !== -1 ||
-                        patient.indexOf(query) !== -1 ||
-                        diagnosis.indexOf(query) !== -1
-                }
+                    if (!data.length) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No visits found.</td></tr>'
+                    } else {
+                        var html = ''
+                        data.forEach(function (v) {
+                            var appointment = v.appointment || {}
+                            var patient = appointment.patient || {}
+                            var parts = [patient.firstname, patient.middlename, patient.lastname].filter(function (x) { return x && String(x).trim() !== '' })
+                            var patientName = parts.length ? parts.join(' ') : (patient.email || 'Patient')
+                            var patientId = patient.patient_id || patient.user_id || 0
+                            var dateKey = (v.visit_datetime || v.transaction_datetime || '').slice(0, 10)
+                            var reason = appointment.reason_for_visit || '-'
+                            var reasonDisplay = reason.length > 50 ? reason.slice(0, 50) + '…' : reason
+                            var diagnosis = v.diagnosis || ''
+                            var diagnosisDisplay = diagnosis.length > 80 ? diagnosis.slice(0, 80) + '…' : (diagnosis || '')
 
-                if (matches && todayOnly) {
-                    matches = date === todayKey
-                }
-
-                row.style.display = matches ? '' : 'none'
-            })
-
-            applyDoctorVisitSort()
+                            html += '<tr class="border-b border-slate-50 last:border-0 doctor-visit-row" ' +
+                                'data-visit-id="' + escapeHtml(v.transaction_id) + '" ' +
+                                'data-patient-id="' + escapeHtml(patientId) + '">' +
+                                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">#' + escapeHtml(v.transaction_id) + '</td>' +
+                                '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(patientName) + '</td>' +
+                                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(dateKey) + '</td>' +
+                                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(reasonDisplay) + '</td>' +
+                                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosis ? escapeHtml(diagnosisDisplay) : '<span class="text-[0.7rem] text-slate-400">No diagnosis recorded</span>') + '</td>' +
+                                '<td class="py-2 pr-4 text-right">' +
+                                (patientId > 0
+                                    ? '<button type="button" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-[0.72rem] font-medium text-slate-700 hover:bg-slate-50 doctor-visit-view">' +
+                                    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="M9 18l6-6-6-6"/></svg>' +
+                                    ' View information</button>'
+                                    : '<span class="text-[0.7rem] text-slate-400">-</span>') +
+                                '</td></tr>'
+                        })
+                        tbody.innerHTML = html
+                        // Re-attach view listeners
+                        tbody.querySelectorAll('.doctor-visit-view').forEach(function (btn) {
+                            btn.addEventListener('click', function () {
+                                var row = btn.closest('.doctor-visit-row')
+                                if (!row) return
+                                var vid = row.getAttribute('data-visit-id')
+                                var pid = row.getAttribute('data-patient-id')
+                                if (!vid || !pid) return
+                                loadVisitInformation(vid, pid)
+                            })
+                        })
+                    }
+                    applyClientFilter()
+                    renderVisitPagination()
+                })
+                .catch(function () {
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Failed to load visits.</td></tr>'
+                    renderVisitPagination()
+                })
         }
 
-        function applyDoctorVisitSort() {
-            if (!sortSelect) {
-                return
-            }
-            var value = sortSelect.value
-            var tbody = rows.length ? rows[0].parentNode : null
-            if (!tbody) {
-                return
-            }
+        // ── Pagination UI ────────────────────────────────────────────────
+        function renderVisitPagination() {
+            if (!pagEl) return
+            var totalPages = visitLastPage
+            var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border '
+            var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer'
+            var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default'
+            var btnActive = btnBase + 'bg-green-600 text-white border-green-600'
 
-            var visibleRows = rows.filter(function (row) {
-                return row.style.display !== 'none'
+            var html = '<span class="text-[0.7rem] text-slate-400 mr-2">' + visitTotal + ' entries</span>'
+            html += '<button type="button" class="' + (visitCurrentPage === 1 ? btnDisabled : btnInactive) + '" data-visit-page="prev"' + (visitCurrentPage === 1 ? ' disabled' : '') + '>&lsaquo; Prev</button>'
+
+            var ws = Math.max(1, visitCurrentPage - Math.floor(visitVisibleCount / 2))
+            var we = Math.min(ws + visitVisibleCount - 1, totalPages)
+            if (we - ws + 1 < visitVisibleCount) ws = Math.max(1, we - visitVisibleCount + 1)
+            for (var i = ws; i <= we; i++) {
+                html += '<button type="button" class="' + (i === visitCurrentPage ? btnActive : btnInactive) + '" data-visit-page="' + i + '">' + i + '</button>'
+            }
+            if (we < totalPages) {
+                html += '<button type="button" class="' + btnInactive + '" data-visit-page="next-window" title="Next set">&hellip;</button>'
+            }
+            html += '<button type="button" class="' + (visitCurrentPage === totalPages ? btnDisabled : btnInactive) + '" data-visit-page="next"' + (visitCurrentPage === totalPages ? ' disabled' : '') + '>Next &rsaquo;</button>'
+
+            pagEl.innerHTML = html
+            pagEl.querySelectorAll('button[data-visit-page]').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    var p = b.getAttribute('data-visit-page')
+                    if (p === 'prev' && visitCurrentPage > 1) { visitCurrentPage-- }
+                    else if (p === 'next' && visitCurrentPage < totalPages) { visitCurrentPage++ }
+                    else if (p === 'next-window') { visitCurrentPage = Math.min(we + 1, totalPages) }
+                    else if (p !== 'prev' && p !== 'next') { visitCurrentPage = parseInt(p, 10) }
+                    else return
+                    loadVisits(visitCurrentPage)
+                })
             })
+        }
 
-            visibleRows.sort(function (a, b) {
-                var pa = a.getAttribute('data-patient') || ''
-                var pb = b.getAttribute('data-patient') || ''
-                var da = a.getAttribute('data-date') || ''
-                var db = b.getAttribute('data-date') || ''
-
+        // ── Client-side filter / sort on current page ────────────────────
+        function applyClientFilter() {
+            var query = searchInput ? searchInput.value.toLowerCase().trim() : ''
+            var todayKey = localDateIso()
+            var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'))
+            rows.forEach(function (row) {
+                var text = (row.textContent || '').toLowerCase()
+                var date = row.getAttribute('data-date') || ''
+                var matches = query ? text.indexOf(query) !== -1 : true
+                if (matches && todayOnly) matches = date === todayKey
+                row.style.display = matches ? '' : 'none'
+            })
+        }
+        function applyClientSort() {
+            if (!sortSelect || !tbody) return
+            var value = sortSelect.value
+            var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'))
+            var visible = rows.filter(function (r) { return r.style.display !== 'none' })
+            visible.sort(function (a, b) {
+                var pa = (a.cells[1] ? a.cells[1].textContent || '' : '').toLowerCase()
+                var pb = (b.cells[1] ? b.cells[1].textContent || '' : '').toLowerCase()
+                var da = (a.cells[2] ? a.cells[2].textContent || '' : '').toLowerCase()
+                var db = (b.cells[2] ? b.cells[2].textContent || '' : '').toLowerCase()
                 if (value === 'patient_asc' || value === 'patient_desc') {
                     if (pa < pb) return value === 'patient_asc' ? -1 : 1
                     if (pa > pb) return value === 'patient_asc' ? 1 : -1
                     return 0
                 }
-
-                if (da < db) return value === 'date_asc' ? -1 : 1
-                if (da > db) return value === 'date_asc' ? 1 : -1
-                return 0
+                return value === 'date_asc' ? (da < db ? -1 : da > db ? 1 : 0) : (da > db ? -1 : da < db ? 1 : 0)
             })
-
-            visibleRows.forEach(function (row) {
-                tbody.appendChild(row)
-            })
+            visible.forEach(function (r) { tbody.appendChild(r) })
         }
 
-        if (searchInput) {
-            searchInput.addEventListener('input', applyDoctorVisitFilters)
-        }
-        if (sortSelect) {
-            sortSelect.addEventListener('change', applyDoctorVisitSort)
-        }
+        // ── Init ─────────────────────────────────────────────────────────
+        loadVisits(1)
+
+        if (searchInput) searchInput.addEventListener('input', function () { applyClientFilter(); applyClientSort() })
+        if (sortSelect) sortSelect.addEventListener('change', applyClientSort)
         if (todayToggle) {
             todayToggle.addEventListener('click', function () {
                 todayOnly = !todayOnly
                 applyTodayToggleUi()
-                applyDoctorVisitFilters()
+                applyClientFilter()
             })
         }
-        if (visitsTab) {
-            visitsTab.addEventListener('click', function () {
-                setTab('visits')
-            })
-        }
-        if (prescriptionsTab) {
-            prescriptionsTab.addEventListener('click', function () {
-                setTab('prescriptions')
-            })
-        }
-        if (closeButton) {
-            closeButton.addEventListener('click', closePanel)
-        }
-        if (overlay) {
-            overlay.addEventListener('click', closePanel)
-        }
-        viewButtons.forEach(function (button) {
-            button.addEventListener('click', function () {
-                var row = button.closest('.doctor-visit-row')
-                if (!row) return
-                var visitId = row.getAttribute('data-visit-id')
-                var patientId = row.getAttribute('data-patient-id')
-                if (!visitId || !patientId) return
-                loadVisitInformation(visitId, patientId)
-            })
-        })
+        if (visitsTab) visitsTab.addEventListener('click', function () { setTab('visits') })
+        if (prescriptionsTab) prescriptionsTab.addEventListener('click', function () { setTab('prescriptions') })
+        if (closeButton) closeButton.addEventListener('click', closePanel)
+        if (overlay) overlay.addEventListener('click', closePanel)
 
         setTab('visits')
         applyTodayToggleUi()
-        applyDoctorVisitFilters()
 
-        function refreshTableFromServer(tableBodyEl) {
-            if (!tableBodyEl) return
-            tableBodyEl.innerHTML = '<tr><td colspan="999" class="py-4 text-center text-[0.78rem] text-slate-400">Loading…</td></tr>'
-            var url = window.location.href
-            fetch(url)
-                .then(function (r) { return r.text() })
-                .then(function (html) {
-                    var parser = new DOMParser()
-                    var doc = parser.parseFromString(html, 'text/html')
-                    var freshBody = doc.getElementById(tableBodyEl.id)
-                    if (freshBody) {
-                        tableBodyEl.innerHTML = freshBody.innerHTML
-                    }
-                    rows = Array.prototype.slice.call(document.querySelectorAll('.doctor-visit-row'))
-                    viewButtons = Array.prototype.slice.call(document.querySelectorAll('.doctor-visit-view'))
-                    viewButtons.forEach(function (button) {
-                        button.addEventListener('click', function () {
-                            var row = button.closest('.doctor-visit-row')
-                            if (!row) return
-                            var visitId = row.getAttribute('data-visit-id')
-                            var patientId = row.getAttribute('data-patient-id')
-                            if (!visitId || !patientId) return
-                            loadVisitInformation(visitId, patientId)
-                        })
-                    })
-                    applyDoctorVisitFilters()
-                })
-                .catch(function () {
-                    tableBodyEl.innerHTML = '<tr><td colspan="999" class="py-4 text-center text-[0.78rem] text-slate-400 text-red-500">Refresh failed.</td></tr>'
-                })
+        // ── Refresh button ───────────────────────────────────────────────
+        if (document.getElementById('docVisitRefreshBtn')) {
+            document.getElementById('docVisitRefreshBtn').addEventListener('click', function () {
+                visitCurrentPage = 1
+                loadVisits(1)
+            })
         }
-        if (document.getElementById('docVisitRefreshBtn')) document.getElementById('docVisitRefreshBtn').addEventListener('click', function () { refreshTableFromServer(document.getElementById('doctorVisitTbody')) })
     })
 </script>

@@ -1,6 +1,11 @@
+import { clearPersistedAuthSession, persistCurrentUser } from '@/lib/auth-storage';
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -9,12 +14,7 @@ import {
   Text,
   TextInput,
   View,
-  Platform,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { clearPersistedAuthSession, persistCurrentUser } from '@/lib/auth-storage';
 
 const T = {
   green500: '#06b6d4',
@@ -33,7 +33,6 @@ const T = {
   red100: 'rgba(239,68,68,0.12)',
   red700: '#b91c1c',
   green100: 'rgba(34,197,94,0.12)',
-  green700: '#15803d',
 };
 
 const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api').replace(/\/+$/, '');
@@ -327,7 +326,6 @@ export default function FillupInfoScreen() {
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>Tell us about yourself</Text>
-              <Text style={styles.cardSubtitle}>These details will be locked after approval (contact number can be updated later).</Text>
             </View>
 
             <View style={styles.cardBody}>
@@ -479,7 +477,10 @@ export default function FillupInfoScreen() {
                 style={styles.input}
               />
         
-              <Text style={styles.noticeText}>Make sure the details you input will match your id/document.</Text>
+              <View style={styles.noticeBadge}>
+                <Ionicons name="information-circle-outline" size={16} color="#d97706" />
+                <Text style={styles.noticeText}>Make sure the details you input will match your id/document.</Text>
+              </View>
 
               <Pressable
                 onPress={handleSaveAndContinue}
@@ -537,7 +538,7 @@ const styles = StyleSheet.create({
   },
   headerBtnText: { color: T.white, fontSize: 12, fontWeight: '600' },
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
-  eyebrowDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.green500 },
+  eyebrowDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.green600 },
   eyebrowText: { fontSize: 9, fontWeight: '700', letterSpacing: 0.9, textTransform: 'uppercase', color: T.green600 },
   scroll: {
     flex: 1,
@@ -579,7 +580,6 @@ const styles = StyleSheet.create({
   },
   cardHeader: { paddingHorizontal: 14, paddingTop: 14, paddingBottom: 10 },
   cardTitle: { fontSize: 16, fontWeight: '700', color: T.slate900, marginBottom: 3 },
-  cardSubtitle: { fontSize: 12, color: T.slate500 },
   cardBody: { paddingHorizontal: 14, paddingBottom: 14, gap: 10 },
   label: { fontSize: 11, fontWeight: '600', color: T.slate700 },
   input: {
@@ -593,11 +593,23 @@ const styles = StyleSheet.create({
     backgroundColor: T.white,
   },
   helperText: { fontSize: 11, color: T.slate500, marginTop: -4 },
-  noticeText: {
-    fontSize: 11,
-    color: T.slate600,
-    lineHeight: 16,
+  noticeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(217,119,6,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(217,119,6,0.25)',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     marginTop: -2,
+  },
+  noticeText: {
+    flex: 1,
+    fontSize: 11,
+    color: '#92400e',
+    lineHeight: 16,
   },
   dropdownWrap: {
     position: 'relative',

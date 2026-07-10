@@ -1,16 +1,16 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  SafeAreaView,
-  StatusBar,
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
   Pressable,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
   TextInput,
+  View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 
 const T = {
   green500: '#06b6d4',
@@ -29,7 +29,6 @@ const T = {
   red100: 'rgba(239,68,68,0.12)',
   red700: '#b91c1c',
   green100: 'rgba(34,197,94,0.12)',
-  green700: '#15803d',
 };
 
 const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api').replace(/\/+$/, '');
@@ -403,7 +402,7 @@ const styles = StyleSheet.create({
   },
   headerBtnText: { color: T.white, fontSize: 12, fontWeight: '600' },
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
-  eyebrowDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.green500 },
+  eyebrowDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.green600 },
   eyebrowText: { fontSize: 9, fontWeight: '700', letterSpacing: 0.9, textTransform: 'uppercase', color: T.green600 },
   scroll: {
     flex: 1,

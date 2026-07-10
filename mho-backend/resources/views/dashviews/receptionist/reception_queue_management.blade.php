@@ -146,12 +146,21 @@
         <div id="receptionQueueError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
         <div id="receptionQueueSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
 
-        <div id="receptionDoctorMonitorContainer" class="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
-            <div class="flex items-center justify-between mb-2">
-                <h4 class="text-[0.72rem] font-semibold uppercase tracking-wider text-slate-600">Doctor serving monitor</h4>
-                <span class="text-[0.68rem] text-slate-400">Based on today&apos;s active schedule</span>
+        <div id="receptionDoctorMonitorContainer" class="bg-white border border-slate-100 rounded-2xl shadow-xl overflow-hidden mb-6">
+            <div class="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-blue-50/60 to-white flex-shrink-0">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                            <x-lucide-stethoscope class="w-4 h-4" />
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-semibold text-slate-800 tracking-tight">Doctor serving monitor</h2>
+                            <p class="text-[0.7rem] text-slate-500 mt-0.5">Based on today&apos;s active schedule</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-2 max-h-[360px] overflow-y-auto scrollbar-thin">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 p-5 max-h-[360px] overflow-y-auto scrollbar-thin">
                 @forelse ($doctorPanelItems as $doctorState)
                     @php
                         $servingQueue = $doctorState->serving;
@@ -161,52 +170,61 @@
                         $servingServices = collect(optional(optional($servingQueue)->appointment)->services ?? [])->pluck('service_name')->filter()->values();
                         $nextServices = collect(optional(optional($nextQueue)->appointment)->services ?? [])->pluck('service_name')->filter()->values();
                     @endphp
-                    <div class="rounded-lg border border-slate-200 bg-white px-3 py-2.5">
+                    <div class="rounded-xl border border-slate-200 bg-white px-4 py-3.5 shadow-sm hover:shadow-md transition-shadow">
                         <div class="flex items-start justify-between gap-2">
-                            <div>
-                                <div class="text-[0.75rem] font-semibold text-slate-800">Doctor: {{ $doctorState->doctor_name }}</div>
-                                <div class="text-[0.68rem] text-slate-400">
+                            <div class="min-w-0">
+                                <div class="text-[0.8rem] font-semibold text-slate-800 truncate">{{ $doctorState->doctor_name }}</div>
+                                <div class="text-[0.68rem] text-slate-400 mt-0.5">
                                     @if ($doctorState->slot_start && $doctorState->slot_end)
                                         {{ substr((string) $doctorState->slot_start, 0, 5) }}-{{ substr((string) $doctorState->slot_end, 0, 5) }}
                                     @else
                                         Schedule today
                                     @endif
                                     @if ($doctorState->room_number)
-                                        - Room {{ (int) $doctorState->room_number }}
+                                        &middot; Room {{ (int) $doctorState->room_number }}
                                     @endif
                                 </div>
                             </div>
-                            @if ($servingQueue)
-                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] font-semibold border border-emerald-200 bg-emerald-50 text-emerald-700">Serving</span>
-                            @else
-                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] font-semibold border border-amber-200 bg-amber-50 text-amber-700">No serving patient</span>
-                            @endif
-                        </div>
-                        <div class="mt-2 text-[0.72rem] text-slate-600">
-                            @if ($servingQueue)
-                                <span class="font-medium text-slate-700">Serving:</span>
-                                {{ $servingPatient ?: 'Patient' }}
-                                @if ($servingServices->count())
-                                    - {{ $servingServices->join(', ') }}
+                            <div class="flex-shrink-0">
+                                @if ($servingQueue)
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] font-semibold border border-emerald-200 bg-emerald-50 text-emerald-700">Serving</span>
+                                @else
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] font-semibold border border-amber-200 bg-amber-50 text-amber-700">No serving patient</span>
                                 @endif
-                            @else
-                                <span class="text-slate-500">Serving: none</span>
-                            @endif
+                            </div>
                         </div>
-                        <div class="mt-1 text-[0.72rem] text-slate-500">
-                            @if ($nextQueue)
-                                <span class="font-medium text-slate-700">Next:</span>
-                                {{ $nextPatient ?: 'Patient' }}
-                                @if ($nextServices->count())
-                                    - {{ $nextServices->join(', ') }}
+                        <div class="mt-3 space-y-1.5">
+                            <div class="text-[0.72rem] text-slate-600">
+                                @if ($servingQueue)
+                                    <span class="font-semibold text-slate-700">Serving:</span>
+                                    <span class="text-slate-600">{{ $servingPatient ?: 'Patient' }}</span>
+                                    @if ($servingServices->count())
+                                        <span class="text-slate-400">&middot;</span>
+                                        <span class="text-slate-500">{{ $servingServices->join(', ') }}</span>
+                                    @endif
+                                @else
+                                    <span class="text-slate-400 italic">No patient currently being served</span>
                                 @endif
-                            @else
-                                <span>No waiting patient for this doctor.</span>
-                            @endif
+                            </div>
+                            <div class="text-[0.72rem] text-slate-500">
+                                @if ($nextQueue)
+                                    <span class="font-semibold text-slate-700">Next up:</span>
+                                    <span class="text-slate-500">{{ $nextPatient ?: 'Patient' }}</span>
+                                    @if ($nextServices->count())
+                                        <span class="text-slate-400">&middot;</span>
+                                        <span class="text-slate-500">{{ $nextServices->join(', ') }}</span>
+                                    @endif
+                                @else
+                                    <span class="italic">No waiting patient for this doctor.</span>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 @empty
-                    <div class="col-span-full rounded-lg border border-slate-200 bg-white px-3 py-3 text-[0.75rem] text-slate-500">
+                    <div class="col-span-full rounded-xl border border-slate-200 bg-white px-4 py-6 text-center text-[0.78rem] text-slate-500">
+                        <div class="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto mb-2">
+                            <x-lucide-stethoscope class="w-5 h-5 text-blue-300" />
+                        </div>
                         No active doctor schedule found for this time.
                     </div>
                 @endforelse

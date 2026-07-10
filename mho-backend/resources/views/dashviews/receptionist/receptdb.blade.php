@@ -95,33 +95,40 @@
                 </div>
 
             
-                <div class="mt-4 flex-1 min-h-0 border border-slate-200 rounded-xl overflow-hidden flex flex-col bg-white">
-                    <div class="bg-slate-50 px-4 py-2.5 border-b border-slate-200 shrink-0 flex justify-between items-center">
-                        <h3 class="text-[0.75rem] font-semibold text-slate-700 uppercase tracking-wider">Today's Transactions</h3>
-                    </div>
-                    <div class="flex-1 overflow-y-auto scrollbar-hidden">
-                        <table class="w-full text-left text-[0.75rem] text-slate-600 whitespace-nowrap">
-                            <thead class="text-slate-500 border-b border-slate-100">
-                                <tr>
-                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Date</th>
-                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Reference</th>
-                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Patient</th>
-                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Type</th>
-                                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Net</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100" id="receptionTodaysTransactionsTableBody">
-                            
-                                <tr>
-                                    <td colspan="5" class="px-4 py-8 text-center text-slate-400">
-                                        No transactions recorded today.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div id="receptionTransactionsPagination" class="flex items-center justify-center gap-1 px-4 py-2.5 border-t border-slate-100 shrink-0 flex-wrap"></div>
-                </div>
+                <div class="bg-white border border-slate-100 rounded-2xl shadow-xl overflow-hidden flex flex-col h-full">
+    <div class="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-emerald-50/60 to-white flex-shrink-0">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                <x-lucide-receipt class="w-4 h-4" />
+            </div>
+            <div>
+                <h2 class="text-sm font-semibold text-slate-800 tracking-tight">Today's Transactions</h2>
+                <p class="text-[0.7rem] text-slate-500 mt-0.5">Completed payments today</p>
+            </div>
+        </div>
+    </div>
+    <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50">
+        <table class="w-full text-left text-[0.75rem] text-slate-600 whitespace-nowrap">
+            <thead class="text-slate-500 border-b border-slate-100">
+                <tr>
+                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Date</th>
+                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Reference</th>
+                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Patient</th>
+                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Type</th>
+                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Net</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100" id="receptionTodaysTransactionsTableBody">
+                <tr>
+                    <td colspan="5" class="px-4 py-8 text-center text-slate-400">
+                        No transactions recorded today.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="receptionTransactionsPagination" class="flex items-center justify-center gap-1 px-4 py-2.5 border-t border-slate-100 shrink-0 flex-wrap"></div>
+</div>
 
             </div>
 

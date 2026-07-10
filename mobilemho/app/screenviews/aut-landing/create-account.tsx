@@ -1,22 +1,22 @@
-import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  Pressable,
-  StatusBar,
-  SafeAreaView,
-  Animated,
-  Platform,
-  Dimensions,
-  Image,
-} from 'react-native';
+import { persistAuthSession } from '@/lib/auth-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { persistAuthSession } from '@/lib/auth-storage';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+    Animated,
+    Dimensions,
+    Image,
+    Platform,
+    Pressable,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { height } = Dimensions.get('window');
 
@@ -254,7 +254,7 @@ export default function CreateAccountScreen() {
         <Animated.View style={[styles.form, { opacity: fadeAnim }]}>
           <TextInput
             placeholder="Email address"
-            placeholderTextColor="rgba(255,255,255,0.5)"
+            placeholderTextColor="#94a3b8"
             value={email}
             onChangeText={setEmail}
             style={styles.input}
@@ -263,7 +263,7 @@ export default function CreateAccountScreen() {
           <View style={styles.inputWrap}>
             <TextInput
               placeholder="Password"
-              placeholderTextColor="rgba(255,255,255,0.5)"
+              placeholderTextColor="#94a3b8"
               secureTextEntry={!showPassword}
               value={password}
               onChangeText={setPassword}
@@ -274,14 +274,14 @@ export default function CreateAccountScreen() {
               style={styles.inputToggle}
               hitSlop={8}
             >
-              <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="rgba(255,255,255,0.78)" />
+              <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#94a3b8" />
             </Pressable>
           </View>
 
           <View style={styles.inputWrap}>
             <TextInput
               placeholder="Confirm password"
-              placeholderTextColor="rgba(255,255,255,0.5)"
+              placeholderTextColor="#94a3b8"
               secureTextEntry={!showConfirmPassword}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
@@ -292,7 +292,7 @@ export default function CreateAccountScreen() {
               style={styles.inputToggle}
               hitSlop={8}
             >
-              <Ionicons name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="rgba(255,255,255,0.78)" />
+              <Ionicons name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#94a3b8" />
             </Pressable>
           </View>
 
@@ -409,23 +409,23 @@ const styles = StyleSheet.create({
   input: {
     borderRadius: 14,
     padding: 14,
-    color: '#fff',
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    color: '#1e293b',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: '#cbd5e1',
   },
   inputWrap: {
     borderRadius: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: '#cbd5e1',
   },
   inputField: {
     flex: 1,
     padding: 14,
-    color: '#fff',
+    color: '#1e293b',
   },
   inputToggle: {
     paddingHorizontal: 14,
@@ -438,9 +438,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   success: {
-    color: 'rgba(34,197,94,0.95)',
-    fontSize: 12,
-    textAlign: 'center',
+    alignSelf: 'center',
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    color: '#15803D',
+    fontSize: 13,
+    fontWeight: '600',
+    overflow: 'hidden',
   },
 
   logoWrapper: {
@@ -448,18 +454,18 @@ const styles = StyleSheet.create({
   },
 
   logoPulseRing: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+    width: 168,
+    height: 168,
+    borderRadius: 84,
     backgroundColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   logoRing: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     borderWidth: 1.5,
     borderColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
@@ -467,8 +473,9 @@ const styles = StyleSheet.create({
   },
 
   logoImage: {
-    width: 80,
-    height: 80,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
   },
 
   buttons: {

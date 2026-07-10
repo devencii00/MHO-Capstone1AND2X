@@ -1,13 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+    fetchChatbotConfig,
+    getChildChatbotOptions,
+    type ChatbotOption,
+} from '@/lib/chatbot';
 import { Ionicons } from '@expo/vector-icons';
 import { useSegments } from 'expo-router';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import {
-  fetchChatbotConfig,
-  getChildChatbotOptions,
-  type ChatbotOption,
-} from '@/lib/chatbot';
 
 type ChatMessage = {
   id: string;
@@ -22,8 +22,9 @@ export default function ChatbotOverlay() {
   const segments = useSegments();
   const isTabsRoute = (segments as string[]).includes('(tabs)');
   const isFirstLoginRoute = (segments as string[]).includes('aut-landing') && (segments as string[]).includes('first-login');
-
-
+  const isFillupInfoRoute = (segments as string[]).includes('fillup-info');
+  const isPendingApprovalRoute = (segments as string[]).includes('pending-approval');
+  const isMedicalBgRoute = (segments as string[]).includes('medical-bg');
 
   const [chatOpen, setChatOpen] = useState(false);
   const [chatLoading, setChatLoading] = useState(false);
@@ -169,7 +170,7 @@ export default function ChatbotOverlay() {
   }, []);
 
   const fabBottom = insets.bottom + (isTabsRoute ? 92 : 24);
-  const hideOverlay = isFirstLoginRoute;
+  const hideOverlay = isFirstLoginRoute || isFillupInfoRoute || isPendingApprovalRoute || isMedicalBgRoute;
 
   return (
     <>
@@ -184,7 +185,7 @@ export default function ChatbotOverlay() {
           pressed && styles.fabPressed,
         ]}
       >
-        <Ionicons name="chatbubbles-outline" size={22} color="#ffffff" />
+        <Ionicons name="hardware-chip-outline" size={22} color="#ffffff" />
       </Pressable>
 
       <Modal visible={chatOpen} transparent animationType="fade" onRequestClose={() => setChatOpen(false)}>

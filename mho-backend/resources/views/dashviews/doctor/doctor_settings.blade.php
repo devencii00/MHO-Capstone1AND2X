@@ -7,9 +7,6 @@
    
     </p>
 
-    <div id="doctorAccountNotice" class="hidden mb-3 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.75rem] text-slate-700"></div>
-    <div id="doctorAccountError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
-
     <div class="flex flex-col md:flex-row gap-5">
         {{-- Side Nav --}}
         <div class="flex md:flex-col gap-2 shrink-0">
@@ -292,17 +289,12 @@
         setActiveSettingsTab('profile')
 
         // ── Common helpers ──
-        var accountNotice = document.getElementById('doctorAccountNotice')
-        var accountError = document.getElementById('doctorAccountError')
-
         function showAccountError(message) {
             if (message && typeof showToast === 'function') showToast(message, 'error')
         }
 
         function showAccountNotice(message) {
-            if (!accountNotice) return
-            accountNotice.textContent = message || ''
-            accountNotice.classList.toggle('hidden', !message)
+            if (message && typeof showToast === 'function') showToast(message, 'success')
         }
 
         // ── Confirm overlay ──

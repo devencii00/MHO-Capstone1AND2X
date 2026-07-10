@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
    eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
-  eyebrowDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.green500 },
+  eyebrowDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.green600 },
   eyebrowText: { fontSize: 9, fontWeight: '700', letterSpacing: 0.9, textTransform: 'uppercase', color: T.green600 },
   headerTitle: {
     fontSize: 30,

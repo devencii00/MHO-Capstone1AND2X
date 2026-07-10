@@ -311,29 +311,15 @@
             }
         }
 
-        document.addEventListener('click', function (e) {
-            var a = e.target.closest('a');
-            if (!a) return;
-            // Only intercept sidebar nav links
-            if (!a.closest('#sidebar-aside nav')) return;
-            // Skip external links, download links, etc.
-            if (a.target === '_blank' || a.hasAttribute('download') || a.getAttribute('rel') === 'external') return;
-            // Skip if modifier held
-            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-
-            var href = a.getAttribute('href');
-            if (!href || href === '#' || href.startsWith('javascript:') || href.startsWith('http') && !href.startsWith(window.location.origin)) return;
-
-            e.preventDefault();
-
-            var url = normalizeUrl(href);
+        // Expose SPA navigation globally for non-sidebar links (notifications, Start actions, etc.)
+        window.navigateSpa = function (url) {
+            url = normalizeUrl(url);
 
             if (url === normalizeUrl(window.location.href)) {
                 updateSidebarActive(url);
                 return;
             }
 
-            // Cached?
             if (pageCache[url]) {
                 mainContent.innerHTML = pageCache[url];
                 mainContent.style.opacity = '1';
@@ -343,7 +329,6 @@
                 return;
             }
 
-            // Show subtle loading indicator
             mainContent.style.opacity = '0.4';
             mainContent.style.transition = 'opacity 0.15s';
 
@@ -357,19 +342,37 @@
                         window.location.href = url;
                         return;
                     }
-
                     var newHtml = newContent.innerHTML;
                     pageCache[url] = newHtml;
                     mainContent.innerHTML = newHtml;
                     mainContent.style.opacity = '1';
                     window.scrollTo(0, 0);
                     history.pushState(null, '', url);
-
                     afterContentSwap(url);
                 })
                 .catch(function () {
                     window.location.href = url;
                 });
+        };
+
+        document.addEventListener('click', function (e) {
+            var a = e.target.closest('a');
+            if (!a) return;
+            // Intercept sidebar nav links OR links with data-spa-nav attribute
+            var isSidebar = !!a.closest('#sidebar-aside nav');
+            var isSpaNav = a.getAttribute('data-spa-nav') === '1';
+            if (!isSidebar && !isSpaNav) return;
+            // Skip external links, download links, etc.
+            if (a.target === '_blank' || a.hasAttribute('download') || a.getAttribute('rel') === 'external') return;
+            // Skip if modifier held
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+            var href = a.getAttribute('href');
+            if (!href || href === '#' || href.startsWith('javascript:') || href.startsWith('http') && !href.startsWith(window.location.origin)) return;
+
+            e.preventDefault();
+
+            window.navigateSpa(href);
         });
 
         // Handle back/forward browser navigation

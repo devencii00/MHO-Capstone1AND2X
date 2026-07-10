@@ -1,22 +1,22 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { persistAuthSession } from '@/lib/auth-storage';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  Pressable,
-  StatusBar,
-  SafeAreaView,
   Animated,
-  Platform,
   Dimensions,
   Image,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { persistAuthSession } from '@/lib/auth-storage';
 
 const { height } = Dimensions.get('window');
 
@@ -313,7 +313,7 @@ export default function LoginScreen() {
             <>
               <TextInput
                 placeholder="Email address"
-                placeholderTextColor="rgba(255,255,255,0.5)"
+                placeholderTextColor="#94a3b8"
                 keyboardType="email-address"
                 autoCapitalize="none"
                 value={email}
@@ -324,7 +324,7 @@ export default function LoginScreen() {
               <View style={styles.inputWrap}>
                 <TextInput
                   placeholder="Password"
-                  placeholderTextColor="rgba(255,255,255,0.5)"
+                  placeholderTextColor="#94a3b8"
                   secureTextEntry={!showPassword}
                   value={password}
                   onChangeText={setPassword}
@@ -335,7 +335,7 @@ export default function LoginScreen() {
                   style={styles.inputToggle}
                   hitSlop={8}
                 >
-                  <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="rgba(255,255,255,0.78)" />
+                  <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#94a3b8" />
                 </Pressable>
               </View>
 
@@ -511,7 +511,7 @@ export default function LoginScreen() {
 
           {mode === 'login' ? (
             <Pressable onPress={() => router.push('/screenviews/aut-landing/create-account')}>
-              <Text style={styles.createText}>Create Account</Text>
+              <Text style={styles.createText}>Don't have an account? Create account</Text>
             </Pressable>
           ) : null}
 
@@ -614,8 +614,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logoImage: {
-    width: 250,
-    height: 250,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
   },
 
 
@@ -626,10 +627,10 @@ const styles = StyleSheet.create({
   input: {
     borderRadius: 14,
     padding: 14,
-    color: '#fff',
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    color: '#1e293b',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: '#cbd5e1',
   },
   inputWrap: {
     position: 'relative',
@@ -639,10 +640,10 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
     paddingRight: 48,
-    color: '#fff',
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    color: '#1e293b',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: '#cbd5e1',
   },
   inputToggle: {
     position: 'absolute',

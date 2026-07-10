@@ -914,14 +914,12 @@ class QueueController extends Controller
                 $skipCount = max(0, (int) ($queue->skip_count ?? 0)) + 1;
                 $date = $queue->queue_datetime ? $queue->queue_datetime->toDateString() : now()->toDateString();
 
-                // Re-sequence: collect all active queues, remove this one,
-                // re-insert at (current_index + skipCount) positions back,
-                // then re-assign sequential queue_numbers to ALL.
-                // This prevents the "swap cycling" bug where two skipped queues
-                // just trade places back and forth.
+                // Re-sequence among WAITING + SKIPPED only (exclude ON_HOLD, SERVING)
+                // so that a skipped entry that reaches the very end of the waiting list
+                // properly resets its skip_count — ON_HOLD entries don't act as buffer positions.
                 $allActive = Queue::query()
                     ->whereDate('queue_datetime', $date)
-                    ->whereIn('status', [Queue::STATUS_WAITING, Queue::STATUS_SKIPPED, Queue::STATUS_SERVING, Queue::STATUS_ON_HOLD])
+                    ->whereIn('status', [Queue::STATUS_WAITING, Queue::STATUS_SKIPPED])
                     ->orderBy('queue_number')
                     ->get();
 
@@ -933,7 +931,14 @@ class QueueController extends Controller
                     $currentIdx = $allActive->count() - 1;
                 }
 
-                $newIdx = min($currentIdx + $skipCount, $allActive->count() - 1);
+                $totalActive = $allActive->count();
+                $newIdx = min($currentIdx + $skipCount, $totalActive - 1);
+
+                // Reset skip_count if item is already at or pushed to the last position
+                if ($totalActive <= 1 || $newIdx >= $totalActive - 1) {
+                    $skipCount = 0;
+                }
+
                 $items = collect($allActive);
                 $movingItem = $items->splice($currentIdx, 1)->first();
                 if ($movingItem) {

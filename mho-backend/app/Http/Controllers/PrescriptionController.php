@@ -10,6 +10,14 @@ class PrescriptionController extends Controller
 {
     public function index(Request $request)
     {
+        $perPage = (int) $request->query('per_page', 15);
+        if ($perPage < 1) {
+            $perPage = 15;
+        }
+        if ($perPage > 100) {
+            $perPage = 100;
+        }
+
         $query = Prescription::with(['doctor', 'transaction.appointment.patient', 'items.medicine']);
 
         $currentUser = $request->user();
@@ -26,7 +34,11 @@ class PrescriptionController extends Controller
             $query->where('transaction_id', $request->query('transaction_id'));
         }
 
-        return $query->latest('prescribed_datetime')->paginate();
+        if ($request->filled('doctor_id')) {
+            $query->where('doctor_id', $request->query('doctor_id'));
+        }
+
+        return $query->latest('prescribed_datetime')->paginate($perPage);
     }
 
     public function store(Request $request)
