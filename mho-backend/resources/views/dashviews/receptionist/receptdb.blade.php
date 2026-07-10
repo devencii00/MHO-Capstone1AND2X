@@ -42,9 +42,9 @@
         </div>
 
         <div class="grid gap-4 grid-cols-1 lg:grid-cols-3">
-            <div class="bg-white border border-slate-200 rounded-[18px] p-5 lg:col-span-2 shadow-[0_2px_10px_rgba(15,23,42,0.04)] flex flex-col h-[600px] overflow-hidden">
+            <div class="bg-white border border-slate-200 rounded-[18px] pt-5 px-5 pb-0 lg:col-span-2 shadow-[0_2px_10px_rgba(15,23,42,0.04)] flex flex-col h-[45rem] overflow-hidden">
                 <div class="flex items-center justify-between mb-3 shrink-0">
-                    <h2 class="text-sm font-semibold text-slate-900">Today at a glance</h2>
+                    <h2 class="text-sm font-semibold text-slate-900"></h2>
                     <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Front desk</span>
                 </div>
                 <div class="grid gap-3 grid-cols-1 sm:grid-cols-3 text-sm text-slate-600 shrink-0">
@@ -132,101 +132,97 @@
 
             </div>
 
-            <!-- Queue & Schedule Panel -->
-<div class="bg-white border border-slate-100 rounded-2xl shadow-xl flex flex-col h-[600px] overflow-hidden">
-    <!-- Header with gradient accent -->
-    <div class="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-white to-slate-50/50 shrink-0">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-                <div class="">
-                    <!-- <x-lucide-calendar-clock class="w-4 h-4" /> -->
-                </div>
-                <div>
-                    <h2 class="text-sm font-semibold text-slate-800 tracking-tight">Queue & Schedule</h2>
-                    <p class="text-[0.7rem] text-slate-500 mt-0.5">Today's patient flow</p>
-                </div>
-            </div>
-            <span class="text-[0.65rem] text-slate-400 uppercase tracking-wider bg-slate-50 px-2 py-1 rounded-full border border-slate-100">Live Preview</span>
-        </div>
-    </div>
-
-    <!-- Main content container -->
-    <div class="flex-1 min-h-0 p-4 bg-white flex flex-col overflow-hidden">
-        <!-- Queue Section -->
-        <div class="flex-1 min-h-0 flex flex-col overflow-hidden">
-            <div class="flex items-start justify-between gap-3 shrink-0">
-                <div class="flex items-center gap-2">
-                    <div class="w-7 h-7 rounded-lg bg-green-50 border border-green-100 flex items-center justify-center text-green-600">
-                        <x-lucide-users class="w-3.5 h-3.5" />
-                    </div>
-                    <div>
-                        <div class="text-[0.72rem] font-semibold text-slate-800">Active Queue</div>
-                        <div id="receptionNextQueueMeta" class="text-[0.65rem] text-slate-400 mt-0.5">Waiting patients</div>
+            <div class="space-y-4">
+            {{-- ══════ Queue List Card ══════ --}}
+            <div class="bg-white border border-slate-100 rounded-2xl shadow-xl overflow-hidden h-[22rem] flex flex-col">
+                <div class="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-orange-50/60 to-white flex-shrink-0">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-600">
+                                <x-lucide-list class="w-4 h-4" />
+                            </div>
+                            <div>
+                                <h2 class="text-sm font-semibold text-slate-800 tracking-tight">Queue List</h2>
+                                <p class="text-[0.7rem] text-slate-500 mt-0.5">Today's patient flow</p>
+                            </div>
+                        </div>
+                        <span id="receptionNextQueueMeta" class="text-[0.65rem] text-slate-400 uppercase tracking-wider bg-slate-50 px-2 py-1 rounded-full border border-slate-100">Waiting patients</span>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <select id="receptionNextQueueDoctorSelect" class="w-[110px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-[0.75rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                        <option value="">Auto (any active doctor)</option>
-                        @foreach ($activeCallNextDoctors as $doctorState)
-                            @php
-                                $doctorNameRaw = trim((string) ($doctorState->doctor_name ?? ''));
-                                $doctorNameClean = preg_replace('/^\s*dr\.?\s*/i', '', $doctorNameRaw);
-                                $doctorNameDisplay = $doctorNameClean !== '' ? $doctorNameClean : 'Doctor';
-                                $doctorSpecialization = trim((string) ($doctorState->doctor_specialization ?? ''));
-                            @endphp
-                            <option value="{{ $doctorState->doctor_id }}">
-                                Dr. {{ $doctorNameDisplay }}
-                                @if ($doctorSpecialization !== '')
-                                    - {{ $doctorSpecialization }}
-                                @endif
-                            </option>
-                        @endforeach
-                    </select>
-                    <button type="button" id="receptionNextQueueNextBtn" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-600 text-white text-[0.65rem] font-semibold hover:bg-green-700 transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none whitespace-nowrap">
-                        <span id="receptionNextQueueNextSpinner" class="hidden w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
-                        <x-lucide-megaphone class="w-3.5 h-3.5" />
-                        <span id="receptionNextQueueNextLabel">Call next</span>
-                    </button>
-                </div>
-            </div>
+                <div class="flex-1 p-4 bg-white flex flex-col overflow-hidden">
+                    <div class="flex-1 min-h-0 flex flex-col overflow-hidden">
+                        <div class="flex items-start justify-between gap-3 shrink-0">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-600">
+                                    <x-lucide-users class="w-3.5 h-3.5" />
+                                </div>
+                                <div>
+                                    <div class="text-[0.72rem] font-semibold text-slate-800">Active Queue</div>
+                                    <div class="text-[0.65rem] text-slate-400 mt-0.5">Waiting patients</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <select id="receptionNextQueueDoctorSelect" class="w-[110px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-[0.75rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                                    <option value="">Auto (any active doctor)</option>
+                                    @foreach ($activeCallNextDoctors as $doctorState)
+                                        @php
+                                            $doctorNameRaw = trim((string) ($doctorState->doctor_name ?? ''));
+                                            $doctorNameClean = preg_replace('/^\s*dr\.?\s*/i', '', $doctorNameRaw);
+                                            $doctorNameDisplay = $doctorNameClean !== '' ? $doctorNameClean : 'Doctor';
+                                            $doctorSpecialization = trim((string) ($doctorState->doctor_specialization ?? ''));
+                                        @endphp
+                                        <option value="{{ $doctorState->doctor_id }}">
+                                            Dr. {{ $doctorNameDisplay }}
+                                            @if ($doctorSpecialization !== '')
+                                                - {{ $doctorSpecialization }}
+                                            @endif
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <button type="button" id="receptionNextQueueNextBtn" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-600 text-white text-[0.65rem] font-semibold hover:bg-green-700 transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none whitespace-nowrap">
+                                    <span id="receptionNextQueueNextSpinner" class="hidden w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
+                                    <x-lucide-megaphone class="w-3.5 h-3.5" />
+                                    <span id="receptionNextQueueNextLabel">Call next</span>
+                                </button>
+                            </div>
+                        </div>
 
-            <div id="receptionNextQueueInlineMessage" class="hidden mt-3 rounded-lg border px-3 py-2 text-[0.7rem]"></div>
+                        <div id="receptionNextQueueInlineMessage" class="hidden mt-3 rounded-lg border px-3 py-2 text-[0.7rem]"></div>
 
-            <div class="mt-2 flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50 pt-1">
-                <ul id="receptionNextQueue" class="space-y-1">
-                    <li class="text-center text-[0.7rem] text-slate-400 py-4">No patients in queue</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="my-3 border-t border-slate-200"></div>
-
-        <!-- Appointments Section -->
-        <div class="flex-1 min-h-0 flex flex-col overflow-hidden">
-            <div class="flex items-center justify-between shrink-0">
-                <div class="flex items-center gap-2">
-                    <div class="w-7 h-7 rounded-lg bg-green-50 border border-green-100 flex items-center justify-center text-green-600">
-                        <x-lucide-calendar-check class="w-3.5 h-3.5" />
-                    </div>
-                    <div>
-                        <div class="text-[0.72rem] font-semibold text-slate-800">Upcoming Appointments</div>
-                        <div id="receptionNextAppointmentsMeta" class="text-[0.65rem] text-slate-400 mt-0.5">Scheduled visits</div>
+                        <div class="mt-2 flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50 pt-1">
+                            <ul id="receptionNextQueue" class="space-y-1">
+                                <li class="text-center text-[0.7rem] text-slate-400 py-4">No patients in queue</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-                <div class="flex items-center gap-1.5">
-                    <x-lucide-clock class="w-3 h-3 text-slate-300" />
-                    <span class="text-[0.6rem] text-slate-400">Today</span>
-                </div>
             </div>
 
-            <div class="mt-2 flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50 pt-1">
-                <ul id="receptionNextAppointments" class="space-y-1.5">
-                    <li class="text-center text-[0.7rem] text-slate-400 py-4">No appointments scheduled</li>
-                </ul>
+            {{-- ══════ Upcoming Appointments Card ══════ --}}
+            <div class="bg-white border border-slate-100 rounded-2xl shadow-xl overflow-hidden h-[22rem] flex flex-col">
+                <div class="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-blue-50/60 to-white flex-shrink-0">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                                <x-lucide-calendar-clock class="w-4 h-4" />
+                            </div>
+                            <div>
+                                <h2 class="text-sm font-semibold text-slate-800 tracking-tight">Upcoming Appointments</h2>
+                                <p class="text-[0.7rem] text-slate-500 mt-0.5">Scheduled visits</p>
+                            </div>
+                        </div>
+                        <span id="receptionNextAppointmentsMeta" class="text-[0.65rem] text-slate-400 uppercase tracking-wider bg-slate-50 px-2 py-1 rounded-full border border-slate-100">Scheduled visits</span>
+                    </div>
+                </div>
+                <div class="flex-1 p-4 bg-white flex flex-col overflow-hidden">
+                    <div class="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50">
+                        <ul id="receptionNextAppointments" class="space-y-1.5">
+                            <li class="text-center text-[0.7rem] text-slate-400 py-4">No appointments scheduled</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-</div>
+            </div>
 
         <script>
             document.addEventListener('DOMContentLoaded', function () {

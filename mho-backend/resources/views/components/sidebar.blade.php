@@ -447,7 +447,7 @@
             <div class="sidebar-group-header text-slate-400 text-[0.67rem] font-semibold uppercase tracking-widest mt-4 mb-1">Work</div>
 
             <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'my-schedule']) }}" class="{{ $navBase }} {{ $isDoctorSchedule ? $navActive : $navInactive }}">
-                <x-lucide-file-text class="w-[18px] h-[18px] {{ $isDoctorSchedule ? 'text-green-600' : '' }}" />
+                <x-lucide-calendar class="w-[18px] h-[18px] {{ $isDoctorSchedule ? 'text-green-600' : '' }}" />
                 My Appointments
                 @if ($isDoctorSchedule)
                     

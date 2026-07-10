@@ -103,24 +103,33 @@
                     </div>
                 </div>
                 <div id="doctorMetricsContainer" class="grid gap-3 grid-cols-1 sm:grid-cols-3 text-sm text-slate-600 flex-shrink-0">
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                        <div class="text-xs text-slate-500 mb-1">Today&rsquo;s Patients</div>
+                    <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[0.78rem] text-slate-500">Today&rsquo;s Patients</span>
+                            <x-lucide-calendar-check class="w-[17px] h-[17px] text-green-600" />
+                        </div>
                         <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($appointmentsToday) }}</div>
                     </div>
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                        <div class="text-xs text-slate-500 mb-1">In queue</div>
+                    <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[0.78rem] text-slate-500">In queue</span>
+                            <x-lucide-users class="w-[17px] h-[17px] text-green-600" />
+                        </div>
                         <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($queueToday) }}</div>
                     </div>
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                        <div class="text-xs text-slate-500 mb-1">Completed today</div>
+                    <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[0.78rem] text-slate-500">Completed today</span>
+                            <x-lucide-check-circle class="w-[17px] h-[17px] text-green-600" />
+                        </div>
                         <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($completedToday) }}</div>
                     </div>
                 </div>
 
-                <div class="mt-5 border border-slate-100 rounded-xl bg-slate-50 overflow-hidden flex-shrink-0">
+                <div class="mt-5 border border-slate-100 rounded-xl bg-white overflow-hidden flex-shrink-0">
                     <div class="h-[12rem] overflow-y-auto overflow-x-hidden scrollbar-hidden">
                     <table class="min-w-full text-left text-xs text-slate-600">
-                        <thead class="sticky top-0 z-10 bg-slate-50">
+                        <thead class="sticky top-0 z-10 bg-white">
                             <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
                                 <th class="py-2 px-3 font-semibold">Time</th>
                                 <th class="py-2 px-3 font-semibold">Patient</th>
@@ -210,17 +219,27 @@
                 </div>
 
                 <div class="mt-5 flex-1 flex flex-col min-h-0">
-                    <div class="p-3.5 rounded-xl border border-slate-100 bg-slate-50 flex-1 flex flex-col">
-                        <div class="flex items-center justify-between mb-2 flex-shrink-0">
-                            <div class="text-xs font-semibold text-slate-700">Upcoming appointments</div>
-                            <span id="doctorUpcomingCounter" class="text-[0.6rem] text-slate-400"></span>
+                    <div class="bg-white border border-slate-100 rounded-2xl shadow-xl overflow-hidden flex-1 flex flex-col">
+                        <div class="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-blue-50/60 to-white flex-shrink-0">
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                                        <x-lucide-calendar-clock class="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <h2 class="text-sm font-semibold text-slate-800 tracking-tight">Upcoming Appointments</h2>
+                                        <p class="text-[0.7rem] text-slate-500 mt-0.5">Scheduled visits</p>
+                                    </div>
+                                </div>
+                                <span id="doctorUpcomingCounter" class="text-[0.65rem] text-slate-400 uppercase tracking-wider bg-slate-50 px-2 py-1 rounded-full border border-slate-100"></span>
+                            </div>
                         </div>
-                        <div class="flex-1 overflow-y-auto scrollbar-hidden" style="min-height:0">
+                        <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50 p-4">
                             <div id="doctorUpcomingAppointmentsAll">
                                 <p class="text-[0.72rem] text-slate-400 animate-pulse">Loading…</p>
                             </div>
                         </div>
-                        <div class="flex-shrink-0 mt-2 text-center">
+                        <div class="flex-shrink-0 px-4 py-3 border-t border-slate-100 text-center">
                             <button id="doctorUpcomingSeeMore" type="button" class="text-[0.7rem] font-medium text-green-600 hover:text-green-700 disabled:text-slate-300 disabled:cursor-default cursor-pointer" disabled>See more</button>
                         </div>
                     </div>
@@ -233,10 +252,10 @@
             <div class="space-y-4">
     {{-- ══════ Queue List card ══════ --}}
     <div class="bg-white border border-slate-100 rounded-2xl shadow-xl overflow-hidden h-[22rem] flex flex-col">
-        <div class="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-white to-slate-50/50 flex-shrink-0">
+        <div class="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-orange-50/60 to-white flex-shrink-0">
             <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-600">
+                    <div class="w-8 h-8 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-600">
                         <x-lucide-list class="w-4 h-4" />
                     </div>
                     <div>
