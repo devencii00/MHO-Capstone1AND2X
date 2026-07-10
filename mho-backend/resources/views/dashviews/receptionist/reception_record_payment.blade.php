@@ -161,10 +161,31 @@
 
         <div id="receptionTransactionsError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
 
-        <div class="grid gap-3 grid-cols-1 md:grid-cols-5 items-start mb-4">
+        <div class="grid gap-3 grid-cols-1 md:grid-cols-6 items-start mb-4">
             <div class="md:col-span-2 min-w-0">
                 <label for="receptionTransactionsSearch" class="block text-[0.7rem] text-slate-600 mb-1">Search</label>
                 <input id="receptionTransactionsSearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search by patient name or ref #">
+            </div>
+            <div class="min-w-0">
+                <label for="receptionTransactionsType" class="block text-[0.7rem] text-slate-600 mb-1">Type</label>
+                <select id="receptionTransactionsType" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    <option value="">All types</option>
+                    <option value="walk-in">Walk-in</option>
+                    <option value="scheduled">Scheduled</option>
+                </select>
+            </div>
+            <div class="min-w-0">
+                <label for="receptionTransactionsStatus" class="block text-[0.7rem] text-slate-600 mb-1">Status</label>
+                <select id="receptionTransactionsStatus" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    <option value="">All statuses</option>
+                    <option value="paid">Paid</option>
+                    <option value="pending">Pending</option>
+                    <option value="failed">Failed</option>
+                </select>
+            </div>
+            <div class="min-w-0">
+                <label for="receptionTransactionsDate" class="block text-[0.7rem] text-slate-600 mb-1">Date</label>
+                <input id="receptionTransactionsDate" type="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
             </div>
             <div class="min-w-0">
                 <label for="receptionTransactionsServiceSearch" class="block text-[0.7rem] text-slate-600 mb-1">Service</label>
@@ -173,13 +194,6 @@
                     <input id="receptionTransactionsServiceId" type="hidden">
                     <div id="receptionTransactionsServiceResults" class="hidden absolute left-0 right-0 top-full mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-sm max-h-64 overflow-y-auto overscroll-contain z-50"></div>
                 </div>
-            </div>
-            <div class="min-w-0">
-                <label for="receptionTransactionsSort" class="block text-[0.7rem] text-slate-600 mb-1">Sort by date</label>
-                <select id="receptionTransactionsSort" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                    <option value="latest">Latest first</option>
-                    <option value="oldest">Oldest first</option>
-                </select>
             </div>
         </div>
 
@@ -372,6 +386,9 @@
         var txTotal = 0
         var txSortOrder = 'latest'
         var txTodayBtn = document.getElementById('receptionTransactionsTodayOnlyBtn')
+        var txType = document.getElementById('receptionTransactionsType')
+        var txStatus = document.getElementById('receptionTransactionsStatus')
+        var txDate = document.getElementById('receptionTransactionsDate')
 
         var selectedAppointment = null
         var transactionsSearchTimer = null
@@ -996,6 +1013,15 @@
             var serviceId = txServiceId && txServiceId.value ? parseInt(txServiceId.value, 10) : 0
             if (serviceId) url += '&service_id=' + encodeURIComponent(serviceId)
 
+            var type = txType ? txType.value : ''
+            if (type) url += '&appointment_type=' + encodeURIComponent(type)
+
+            var status = txStatus ? txStatus.value : ''
+            if (status) url += '&payment_status=' + encodeURIComponent(status)
+
+            var date = txDate ? txDate.value : ''
+            if (date) url += '&transaction_date=' + encodeURIComponent(date)
+
             apiFetch(url, { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) { return { ok: response.ok, data: data } }).catch(function () { return { ok: response.ok, data: null } })
@@ -1426,7 +1452,9 @@
             })
         }
         if (txRefresh) txRefresh.addEventListener('click', function () { txCurrentPage = 1; loadTransactions() })
-        if (txSort) txSort.addEventListener('change', function () { txCurrentPage = 1; loadTransactions() })
+        if (txType) txType.addEventListener('change', function () { txCurrentPage = 1; loadTransactions() })
+        if (txStatus) txStatus.addEventListener('change', function () { txCurrentPage = 1; loadTransactions() })
+        if (txDate) txDate.addEventListener('input', function () { txCurrentPage = 1; loadTransactions() })
         if (txSearch) {
             txSearch.addEventListener('input', function () {
                 if (transactionsSearchTimer) clearTimeout(transactionsSearchTimer)

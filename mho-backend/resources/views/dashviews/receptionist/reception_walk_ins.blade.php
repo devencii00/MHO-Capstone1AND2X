@@ -15,34 +15,54 @@
     </div>
 
     <div id="receptionWalkInPanelGuest" class="hidden p-5 pt-4">
-    <div class="flex items-center gap-2 mb-3">
-        <div class="relative flex-1">
-            <input id="receptionWalkInHistorySearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search patient or doctor">
+    <div class="flex items-center justify-between mb-3 gap-3">
+        <div></div>
+        <div class="flex items-center gap-2">
+            <button id="walkinTodayOnlyBtn" type="button" class="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.75rem] font-semibold text-slate-700">
+                Show today only
+            </button>
+            <button type="button" id="recWalkinsRefreshBtn" class="shrink-0 inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+                <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+                Refresh
+            </button>
         </div>
-        <button type="button" id="recWalkinsRefreshBtn" class="shrink-0 inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
-            <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
-            Refresh
-        </button>
-        <div class="relative">
-            <input id="receptionWalkInHistoryDate" type="date" class="w-36 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+    </div>
+
+    <div class="grid gap-3 grid-cols-1 md:grid-cols-6 items-start mb-4">
+        <div class="min-w-0 md:col-span-2">
+            <label for="receptionWalkInHistorySearch" class="block text-[0.7rem] text-slate-600 mb-1">Search</label>
+            <input id="receptionWalkInHistorySearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search by patient or doctor">
         </div>
-        <div class="relative">
-            <input id="receptionWalkInHistoryServiceSearch" type="text" class="w-36 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="All services" autocomplete="off">
-            <input id="receptionWalkInHistoryServiceId" type="hidden">
-            <div id="receptionWalkInHistoryServiceResults" class="hidden absolute left-0 right-0 top-full mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-sm max-h-64 overflow-y-auto overscroll-contain z-50"></div>
+        <div class="min-w-0">
+            <label for="receptionWalkInHistoryDate" class="block text-[0.7rem] text-slate-600 mb-1">Date</label>
+            <input id="receptionWalkInHistoryDate" type="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
         </div>
-        <select id="receptionWalkInHistorySort" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-            <option value="latest">Latest first</option>
-            <option value="oldest">Oldest first</option>
-        </select>
-        <select id="receptionWalkInHistoryStatus" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-            <option value="">All statuses</option>
-            <option value="pending">Pending</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-            <option value="no_show">No-show</option>
-        </select>
+        <div class="min-w-0">
+            <label for="receptionWalkInHistoryServiceSearch" class="block text-[0.7rem] text-slate-600 mb-1">Service</label>
+            <div class="relative">
+                <input id="receptionWalkInHistoryServiceSearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="All services" autocomplete="off">
+                <input id="receptionWalkInHistoryServiceId" type="hidden">
+                <div id="receptionWalkInHistoryServiceResults" class="hidden absolute left-0 right-0 top-full mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-sm max-h-64 overflow-y-auto overscroll-contain z-50"></div>
+            </div>
+        </div>
+        <div class="min-w-0">
+            <label for="receptionWalkInHistorySort" class="block text-[0.7rem] text-slate-600 mb-1">Sort by date</label>
+            <select id="receptionWalkInHistorySort" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                <option value="latest">Latest first</option>
+                <option value="oldest">Oldest first</option>
+            </select>
+        </div>
+        <div class="min-w-0">
+            <label for="receptionWalkInHistoryStatus" class="block text-[0.7rem] text-slate-600 mb-1">Status</label>
+            <select id="receptionWalkInHistoryStatus" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                <option value="">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="no_show">No-show</option>
+            </select>
+        </div>
     </div>
     <div id="receptionWalkInHistoryError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
     <div class="rounded-xl border border-slate-200 bg-white overflow-hidden">
@@ -562,6 +582,7 @@ function setWalkInTab(tab) {
         var statusSelect = document.getElementById('receptionWalkInHistoryStatus')
         var tableBody = document.getElementById('receptionWalkInHistoryTableBody')
         var refreshBtn = document.getElementById('recWalkinsRefreshBtn')
+        var walkinTodayOnlyBtn = document.getElementById('walkinTodayOnlyBtn')
         var walkinDateInput = document.getElementById('receptionWalkInHistoryDate')
         var searchTimer = null
         var services = []
@@ -573,6 +594,7 @@ function setWalkInTab(tab) {
         var walkinLastPage = 1
         var walkinTotal = 0
         var walkinFilterDate = ''
+        var walkinShowTodayOnly = false
 
         function normalizeText(value) {
             return String(value || '').trim().toLowerCase()
@@ -593,6 +615,19 @@ function setWalkInTab(tab) {
             var m = String(value.getMonth() + 1).padStart(2, '0')
             var d = String(value.getDate()).padStart(2, '0')
             return y + '-' + m + '-' + d
+        }
+
+        function updateWalkinTodayButton() {
+            if (!walkinTodayOnlyBtn) return
+            if (walkinShowTodayOnly) {
+                walkinTodayOnlyBtn.textContent = 'Showing today only'
+                walkinTodayOnlyBtn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50')
+                walkinTodayOnlyBtn.classList.add('bg-green-600', 'text-white', 'border-green-600', 'hover:bg-green-700', 'hover:border-green-700')
+            } else {
+                walkinTodayOnlyBtn.textContent = 'Show today only'
+                walkinTodayOnlyBtn.classList.add('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50')
+                walkinTodayOnlyBtn.classList.remove('bg-green-600', 'text-white', 'border-green-600', 'hover:bg-green-700', 'hover:border-green-700')
+            }
         }
 
         function safeIsoParts(raw) {
@@ -809,6 +844,10 @@ function setWalkInTab(tab) {
             if (walkinFilterDate) {
                 url += '&start_date=' + encodeURIComponent(walkinFilterDate)
                 url += '&end_date=' + encodeURIComponent(walkinFilterDate)
+            } else if (walkinShowTodayOnly) {
+                var todayIso = formatLocalDateIso(new Date())
+                url += '&start_date=' + encodeURIComponent(todayIso)
+                url += '&end_date=' + encodeURIComponent(todayIso)
             }
 
             var search = searchInput ? normalizeText(searchInput.value) : ''
@@ -845,7 +884,7 @@ function setWalkInTab(tab) {
 
                     renderRows(rows)
                     var metaBox = document.getElementById('receptionWalkInHistoryMeta')
-                    var dateText = walkinFilterDate ? ' on ' + walkinFilterDate : ' (all dates)'
+                    var dateText = walkinFilterDate ? ' on ' + walkinFilterDate : (walkinShowTodayOnly ? ' for today' : ' (all dates)')
                     metaBox.textContent = 'Showing page ' + walkinCurrentPage + ' of ' + walkinLastPage + ' (' + walkinTotal + ' walk-in(s)' + dateText + ').'
                 })
                 .catch(function () {
@@ -874,7 +913,7 @@ function setWalkInTab(tab) {
             var statusFilter = document.getElementById('receptionWalkInHistStatus')
             if (statusFilter) statusFilter.value = ''
             var typeFilter = document.getElementById('receptionWalkInHistType')
-            if (typeFilter) typeFilter.value = ''
+            if (typeFilter) typeFilter.value = 'walk_in'
             var overlay = document.getElementById('receptionWalkInHistoryOverlay')
             if (overlay) {
                 overlay.classList.remove('hidden')
@@ -952,12 +991,34 @@ function setWalkInTab(tab) {
                 var dt = a.appointment_datetime ? String(a.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
                 var doctor = a.doctor ? personName(a.doctor, '-') : '-'
                 var typeLabel = a.appointment_type ? String(a.appointment_type).replace(/_/g, ' ') : '-'
+                var services = Array.isArray(a.services) ? a.services : []
+                var serviceParts = services.map(function (s) {
+                    var name = String(s && s.service_name ? s.service_name : '').trim()
+                    var desc = String(s && s.description ? s.description : '').trim()
+                    var fee = s && s.price != null ? '\u20B1' + String(s.price) : ''
+                    var parts = [name]
+                    if (desc) parts.push(desc)
+                    if (fee) parts.push(fee)
+                    return parts.join(' - ')
+                }).filter(Boolean)
+                var serviceInfo = ''
+                if (serviceParts.length === 1) {
+                    serviceInfo = serviceParts[0]
+                } else if (serviceParts.length > 1) {
+                    serviceInfo = serviceParts[0] + ' <span class="text-green-600 font-medium">...' + (serviceParts.length - 1) + ' more ›</span>'
+                } else {
+                    serviceInfo = 'No services'
+                }
                 html += '<div class="rounded-xl border border-slate-200 bg-white p-3 hover:border-green-200 transition-colors cursor-pointer walkin-history-row" data-appointment-id="' + a.appointment_id + '">' +
                     '<div class="flex items-center justify-between mb-1">' +
                         '<span class="text-[0.78rem] font-semibold text-slate-800">' + escapeHtml(dt) + '</span>' +
-                        '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border ' + statusBadgeClass(a) + '">' + escapeHtml(statusText(a)) + '</span>' +
+                        '<span class="inline-flex items-center gap-1.5">' +
+                            '<span class="inline-flex items-center px-2 py-0.5 rounded text-[0.6rem] font-medium border ' + (String(typeLabel).toLowerCase().trim() === 'walk in' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200') + '">' + escapeHtml(typeLabel) + '</span>' +
+                            '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border ' + statusBadgeClass(a) + '">' + escapeHtml(statusText(a)) + '</span>' +
+                        '</span>' +
                     '</div>' +
-                    '<div class="text-[0.72rem] text-slate-500 mb-2">' + escapeHtml(doctor) + ' · ' + escapeHtml(typeLabel) + '</div>' +
+                    '<div class="text-[0.72rem] text-slate-500 mb-1">' + escapeHtml(doctor) + '</div>' +
+                    '<div class="text-[0.68rem] text-slate-500 mb-1 truncate">' + serviceInfo + '</div>' +
                     '<button type="button" class="text-[0.7rem] font-semibold text-green-700 hover:text-green-800 walkin-history-details" data-appointment-id="' + a.appointment_id + '">View Details →</button>' +
                 '</div>'
             })
@@ -1035,8 +1096,85 @@ function setWalkInTab(tab) {
                         '<div><span class="text-slate-500">Treatment Notes:</span><br><span class="text-slate-800">' + escapeHtml(treatment) + '</span></div>' +
                     '</div>' +
                 '</div>' +
+                '<div id="walkinHistPrescriptionsWrap" class="rounded-xl border border-slate-200 bg-white p-3">' +
+                    '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Prescriptions & Medicines</div>' +
+                    '<div class="text-[0.78rem] text-slate-400">Loading prescriptions…</div>' +
+                '</div>' +
             '</div>'
             detailBody.innerHTML = html
+
+            // Load prescriptions asynchronously
+            var txId = tx ? (tx.transaction_id || tx.id || '') : ''
+            if (txId && typeof apiFetch === 'function') {
+                apiFetch("{{ url('/api/prescriptions') }}?per_page=20&transaction_id=" + encodeURIComponent(txId), { method: 'GET' })
+                    .then(function (response) { return readResponse(response) })
+                    .then(function (result) {
+                        var wrap = document.getElementById('walkinHistPrescriptionsWrap')
+                        if (!wrap) return
+                        var items = (result && result.ok && result.data) ? (Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])) : []
+                        if (!items.length) {
+                            wrap.innerHTML =
+                                '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Prescriptions & Medicines</div>' +
+                                '<div class="text-[0.78rem] text-slate-500">No prescriptions found.</div>'
+                            return
+                        }
+                        var rxHtml = ''
+                        items.forEach(function (rx) {
+                            var rxDr = rx.doctor ? personName(rx.doctor, '-') : '-'
+                            var rxDate = rx.prescribed_datetime ? String(rx.prescribed_datetime).replace('T', ' ').slice(0, 10) : '-'
+                            var rxNotes = rx.notes ? escapeHtml(rx.notes) : ''
+                            rxHtml += '<div class="border-b border-slate-100 pb-2 mb-2 last:border-0 last:pb-0 last:mb-0">' +
+                                '<div class="flex items-center justify-between text-[0.72rem] text-slate-500 mb-1">' +
+                                    '<span class="font-medium text-slate-700">' + escapeHtml(rxDate) + '</span>' +
+                                    '<span>' + escapeHtml(rxDr) + '</span>' +
+                                '</div>' +
+                                (rxNotes ? '<div class="text-[0.72rem] text-slate-600 mb-1">' + rxNotes + '</div>' : '') +
+                                '<div class="overflow-x-auto">' +
+                                    '<table class="w-full text-[0.72rem] text-slate-700">' +
+                                        '<thead>' +
+                                            '<tr class="text-[0.6rem] uppercase tracking-wider text-slate-400 border-b border-slate-100">' +
+                                                '<th class="py-1 pr-2 text-left">Medicine</th>' +
+                                                '<th class="py-1 pr-2 text-left">Dosage</th>' +
+                                                '<th class="py-1 pr-2 text-left">Frequency</th>' +
+                                                '<th class="py-1 pr-0 text-left">Duration</th>' +
+                                            '</tr>' +
+                                        '</thead>' +
+                                        '<tbody>'
+                            var rxItems = Array.isArray(rx.items) ? rx.items : []
+                            if (rxItems.length) {
+                                rxItems.forEach(function (it) {
+                                    rxHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                                        '<td class="py-1 pr-2 font-medium">' + escapeHtml(it.medicine_name || '-') + '</td>' +
+                                        '<td class="py-1 pr-2">' + escapeHtml(it.dosage || '-') + '</td>' +
+                                        '<td class="py-1 pr-2">' + escapeHtml(it.frequency || '-') + '</td>' +
+                                        '<td class="py-1 pr-0">' + escapeHtml(it.duration || '-') + '</td>' +
+                                    '</tr>'
+                                })
+                            } else {
+                                rxHtml += '<tr><td colspan="4" class="py-1 text-slate-400">No items</td></tr>'
+                            }
+                            rxHtml += '</tbody></table></div></div>'
+                        })
+                        wrap.innerHTML =
+                            '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Prescriptions & Medicines</div>' +
+                            rxHtml
+                    })
+                    .catch(function () {
+                        var wrap = document.getElementById('walkinHistPrescriptionsWrap')
+                        if (wrap) {
+                            wrap.innerHTML =
+                                '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Prescriptions & Medicines</div>' +
+                                '<div class="text-[0.78rem] text-slate-500">Failed to load prescriptions.</div>'
+                        }
+                    })
+            } else {
+                var wrap = document.getElementById('walkinHistPrescriptionsWrap')
+                if (wrap) {
+                    wrap.innerHTML =
+                        '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Prescriptions & Medicines</div>' +
+                        '<div class="text-[0.78rem] text-slate-500">No info.</div>'
+                }
+            }
         }
 
         loadServices()
@@ -1045,6 +1183,16 @@ function setWalkInTab(tab) {
         if (refreshBtn) {
             refreshBtn.addEventListener('click', function (e) {
                 e.preventDefault()
+                walkinCurrentPage = 1
+                loadHistory()
+            })
+        }
+
+        if (walkinTodayOnlyBtn) {
+            updateWalkinTodayButton()
+            walkinTodayOnlyBtn.addEventListener('click', function () {
+                walkinShowTodayOnly = !walkinShowTodayOnly
+                updateWalkinTodayButton()
                 walkinCurrentPage = 1
                 loadHistory()
             })

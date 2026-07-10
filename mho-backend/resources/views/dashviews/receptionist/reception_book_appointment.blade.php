@@ -3546,7 +3546,7 @@ function updateManageTodayButton() {
             if (manageHistDetailBody) manageHistDetailBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select an appointment to view details.</div>'
             if (manageHistDate) manageHistDate.value = ''
             if (manageHistStatus) manageHistStatus.value = ''
-            if (manageHistType) manageHistType.value = ''
+            if (manageHistType) manageHistType.value = 'scheduled'
             if (manageHistStatusSelect) { manageHistStatusSelect.value = ''; manageHistStatusSelect.disabled = true }
             if (manageHistUpdateBtn) { manageHistUpdateBtn.disabled = true }
             if (manageHistOverlay) {
@@ -3630,7 +3630,7 @@ function updateManageTodayButton() {
                 var w = safeIsoParts(a && a.appointment_datetime ? String(a.appointment_datetime) : '')
                 var d = w ? (w.date || '') : ''
                 var t = w ? (w.time ? formatTime12h(w.time) : '') : ''
-                var srv = serviceSummary(a)
+                var doctor = a.doctor ? personName(a.doctor, '-') : '-'
                 var stLabel = manageStatusLabel(a)
                 var stKey = String(a && a.status ? a.status : '').toLowerCase()
                 var isCI = stKey === 'confirmed' && (a && a.check_in_time)
@@ -3640,17 +3640,41 @@ function updateManageTodayButton() {
                 else if (stKey === 'no_show') sc = 'border-slate-200 bg-slate-100 text-slate-600'
                 else if (stKey === 'pending') sc = 'border-amber-200 bg-amber-50 text-amber-700'
                 else sc = 'border-green-200 bg-green-50 text-green-700'
-                var apptType = String(a && a.appointment_type ? a.appointment_type : '').toLowerCase()
-                var typeLabel = (apptType === 'walk_in' || apptType === 'walk-in' || apptType === 'walk in') ? 'Walk In' : (apptType === 'scheduled' ? 'Scheduled' : apptType)
-                var typeBadge = apptType ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[0.6rem] font-medium bg-slate-100 text-slate-600 border border-slate-200 mr-1.5">' + escapeHtml(typeLabel) + '</span>' : ''
+                var typeRaw = String(a && a.appointment_type ? a.appointment_type : '').toLowerCase()
+                var typeLabel = (typeRaw === 'walk_in' || typeRaw === 'walk-in' || typeRaw === 'walk in') ? 'Walk In' : (typeRaw === 'scheduled' ? 'Scheduled' : typeRaw)
+
+                // Service info with fee (match walk-in design)
+                var services = Array.isArray(a.services) ? a.services : []
+                var serviceParts = services.map(function (s) {
+                    var name = String(s && s.service_name ? s.service_name : '').trim()
+                    var desc = String(s && s.description ? s.description : '').trim()
+                    var fee = s && s.price != null ? '\u20B1' + String(s.price) : ''
+                    var p = [name]
+                    if (desc) p.push(desc)
+                    if (fee) p.push(fee)
+                    return p.join(' - ')
+                }).filter(Boolean)
+                var serviceInfo = ''
+                if (serviceParts.length === 1) {
+                    serviceInfo = serviceParts[0]
+                } else if (serviceParts.length > 1) {
+                    serviceInfo = serviceParts[0] + ' <span class="text-green-600 font-medium">...' + (serviceParts.length - 1) + ' more ›</span>'
+                } else {
+                    serviceInfo = 'No services'
+                }
 
                 return (
-                    '<button type="button" class="manage-hist-item-btn w-full text-left rounded-xl border border-slate-200 bg-white px-3 py-2 hover:border-green-300 hover:shadow-sm transition-all cursor-pointer active-appt-item" data-appointment-id="' + escapeHtml(aid) + '">' +
-                        '<div class="flex items-center justify-between gap-2">' +
-                            '<div class="text-[0.78rem] font-semibold text-slate-800 truncate">' + escapeHtml(d) + ' ' + escapeHtml(t) + '</div>' +
-                            '<span class="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[0.62rem] border ' + sc + '">' + escapeHtml(stLabel || '-') + '</span>' +
+                    '<button type="button" class="manage-hist-item-btn w-full text-left rounded-xl border border-slate-200 bg-white p-3 hover:border-green-300 hover:shadow-sm transition-all cursor-pointer active-appt-item" data-appointment-id="' + escapeHtml(aid) + '">' +
+                        '<div class="flex items-center justify-between mb-1">' +
+                            '<span class="text-[0.78rem] font-semibold text-slate-800 truncate">' + escapeHtml(d) + ' ' + escapeHtml(t) + '</span>' +
+                            '<span class="inline-flex items-center gap-1.5 shrink-0">' +
+                                '<span class="inline-flex items-center px-2 py-0.5 rounded text-[0.6rem] font-medium border ' + (String(typeLabel).toLowerCase().trim() === 'walk in' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200') + '">' + escapeHtml(typeLabel) + '</span>' +
+                                '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.62rem] border ' + sc + '">' + escapeHtml(stLabel || '-') + '</span>' +
+                            '</span>' +
                         '</div>' +
-                        '<div class="text-[0.7rem] text-slate-500 mt-0.5 truncate">' + typeBadge + escapeHtml(srv) + '</div>' +
+                        '<div class="text-[0.72rem] text-slate-500 mb-1">' + escapeHtml(doctor) + '</div>' +
+                        '<div class="text-[0.68rem] text-slate-500 mb-1 truncate">' + serviceInfo + '</div>' +
+                        '<span class="text-[0.7rem] font-semibold text-green-700">View Details →</span>' +
                     '</button>'
                 )
             }).join('')
@@ -3666,43 +3690,94 @@ function updateManageTodayButton() {
 
             var patient = appt.patient || {}
             var doctor = appt.doctor || {}
-            var when = safeIsoParts(appt && appt.appointment_datetime ? String(appt.appointment_datetime) : '')
             var patientName = personName(patient, 'N/A')
             var doctorName = personName(doctor, 'N/A')
-            var srv = serviceSummary(appt)
             var stLabel = manageStatusLabel(appt)
-            var serviceDesc = ''
-            if (appt && appt.service && appt.service.description) {
-                serviceDesc = appt.service.description
-            } else if (appt && Array.isArray(appt.services) && appt.services.length && appt.services[0].description) {
-                serviceDesc = appt.services[0].description
-            }
             var apptId = appt.id || appt.appointment_id || ''
             var docId = doctor.user_id || doctor.doctor_id || ''
 
             var apptTypeRaw = String(appt && appt.appointment_type ? appt.appointment_type : '').toLowerCase()
             var apptTypeLabel = (apptTypeRaw === 'walk_in' || apptTypeRaw === 'walk-in' || apptTypeRaw === 'walk in') ? 'Walk In' : (apptTypeRaw === 'scheduled' ? 'Scheduled' : apptTypeRaw)
+            var currentStatus = String(appt && appt.status ? appt.status : '').toLowerCase()
+
+            var stKey = currentStatus
+            var isCI = stKey === 'confirmed' && (appt && appt.check_in_time)
+            var sc = ''
+            if (isCI || stKey === 'completed') sc = 'border-emerald-200 bg-emerald-50 text-emerald-700'
+            else if (stKey === 'cancelled') sc = 'border-rose-200 bg-rose-50 text-rose-700'
+            else if (stKey === 'no_show') sc = 'border-slate-200 bg-slate-100 text-slate-600'
+            else if (stKey === 'pending') sc = 'border-amber-200 bg-amber-50 text-amber-700'
+            else sc = 'border-green-200 bg-green-50 text-green-700'
+
+            var dt = appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
+            var tx = appt.transaction || null
+            var services = Array.isArray(appt.services) ? appt.services : []
+            var serviceNames = services.length ? services.map(function (s) { return s.service_name || s.name || '' }).filter(Boolean).join(', ') : '-'
+            var amount = tx ? (tx.amount || 0) : 0
+            var discountAmount = tx ? (tx.discount_amount || 0) : 0
+            var discountType = tx ? (tx.discount_type || 'none') : 'none'
+            var net = parseFloat(amount) - parseFloat(discountAmount)
+            var reason = appt.reason_for_visit ? escapeHtml(appt.reason_for_visit) : '<span class="text-slate-400">-</span>'
+            var diagnosis = tx ? (tx.diagnosis || '-') : '-'
+            var treatment = tx ? (tx.treatment_notes || '-') : '-'
+            var txId = tx ? (tx.transaction_id || tx.id || '') : ''
 
             manageHistDetailBody.innerHTML =
-                '<div class="space-y-3 text-[0.78rem]">' +
-                    '<div class="grid grid-cols-2 gap-3">' +
-                        '<div><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Patient</span><span class="font-medium text-slate-800">' + escapeHtml(patientName) + '</span></div>' +
-                        '<div><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Doctor</span><span class="font-medium text-slate-800">' + escapeHtml(doctorName) + '</span></div>' +
-                        '<div><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Date</span><span class="font-medium text-slate-800">' + escapeHtml(when ? (when.date || '') : '') + '</span></div>' +
-                        '<div><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Time</span><span class="font-medium text-slate-800">' + escapeHtml(when && when.time ? formatTime12h(when.time) : '') + '</span></div>' +
-                        '<div><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Type</span><span class="font-medium text-slate-800">' + escapeHtml(apptTypeLabel) + '</span></div>' +
-                        '<div class="col-span-2"><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Service(s)</span><span class="font-medium text-slate-800">' + escapeHtml(srv) + (serviceDesc ? ' — <span class="text-slate-500 font-normal">' + escapeHtml(serviceDesc) + '</span>' : '') + '</span></div>' +
-                        '<div class="col-span-2"><span class="block text-[0.65rem] text-slate-500 uppercase tracking-wider">Status</span><span class="font-medium text-slate-800">' + escapeHtml(stLabel || '-') + '</span></div>' +
+                '<div class="space-y-3">' +
+                    // Appointment card
+                    '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
+                        '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Appointment</div>' +
+                        '<div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[0.78rem]">' +
+                            '<div class="text-slate-500">Patient</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(patientName) + '</div>' +
+                            '<div class="text-slate-500">Date & Time</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(dt) + '</div>' +
+                            '<div class="text-slate-500">Doctor</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(doctorName) + '</div>' +
+                            '<div class="text-slate-500">Type</div>' +
+                            '<div><span class="inline-flex items-center px-2 py-0.5 rounded text-[0.6rem] font-medium border ' + (String(apptTypeLabel).toLowerCase().trim() === 'walk in' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200') + '">' + escapeHtml(apptTypeLabel) + '</span></div>' +
+                            '<div class="text-slate-500">Status</div>' +
+                            '<div><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border ' + sc + '">' + escapeHtml(stLabel || '-') + '</span></div>' +
+                            '<div class="text-slate-500">Reason</div>' +
+                            '<div class="text-slate-800">' + reason + '</div>' +
+                            // Change Appointment as clickable text inside the card
+                            (currentStatus === 'confirmed'
+                                ? '<div class="col-span-2 mt-1 pt-2 border-t border-slate-100"><button type="button" class="rec-book-change-appt text-[0.7rem] font-semibold text-emerald-600 hover:text-emerald-700 hover:underline" data-appointment-id="' + escapeHtml(apptId) + '" data-doctor-id="' + escapeHtml(docId) + '">Change Appointment &#8594;</button></div>'
+                                : '') +
+                        '</div>' +
                     '</div>' +
-                    (currentStatus === 'confirmed'
-                        ? '<button type="button" class="rec-book-change-appt w-full mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-green-50 border border-green-200 px-3 py-2 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 transition-colors" data-appointment-id="' + escapeHtml(apptId) + '" data-doctor-id="' + escapeHtml(docId) + '">' +
-                            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[14px] h-[14px]"><path d="M11 10v4h4"/><path d="m11 14 1.535-1.605a5 5 0 0 1 8 1.5"/><path d="M16 2v4"/><path d="m21 18-1.535 1.605a5 5 0 0 1-8-1.5"/><path d="M21 22v-4h-4"/><path d="M21 8.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4.3"/><path d="M3 10h4"/><path d="M8 2v4"/></svg> Change Appointment' +
-                        '</button>'
-                        : '') +
+                    // Services & Payment card
+                    '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
+                        '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Services & Payment</div>' +
+                        '<div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[0.78rem]">' +
+                            '<div class="text-slate-500">Services</div>' +
+                            '<div class="text-slate-800">' + escapeHtml(serviceNames) + (services.length && services[0] && services[0].description ? ' — <span class="text-slate-500">' + escapeHtml(services[0].description) + '</span>' : '') + '</div>' +
+                            '<div class="text-slate-500">Gross Amount</div>' +
+                            '<div class="text-slate-800 font-medium">₱' + escapeHtml(Number(amount).toFixed(2)) + '</div>' +
+                            '<div class="text-slate-500">Discount (' + escapeHtml(discountType !== 'none' ? discountType.toUpperCase() : 'None') + ')</div>' +
+                            '<div class="text-slate-800">−₱' + escapeHtml(Number(discountAmount).toFixed(2)) + '</div>' +
+                            '<div class="text-slate-500 font-semibold">Net</div>' +
+                            '<div class="text-slate-800 font-bold text-green-700">₱' + escapeHtml(net.toFixed(2)) + '</div>' +
+                            '<div class="text-slate-500">Payment Mode</div>' +
+                            '<div class="text-slate-800">' + (tx ? escapeHtml(tx.payment_mode || '-') : '-') + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    // Diagnosis & Treatment card
+                    '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
+                        '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Diagnosis & Treatment</div>' +
+                        '<div class="text-[0.78rem] space-y-2">' +
+                            '<div><span class="text-slate-500">Diagnosis:</span><br><span class="text-slate-800">' + escapeHtml(diagnosis) + '</span></div>' +
+                            '<div><span class="text-slate-500">Treatment Notes:</span><br><span class="text-slate-800">' + escapeHtml(treatment) + '</span></div>' +
+                        '</div>' +
+                    '</div>' +
+                    // Prescriptions card (loaded async below)
+                    '<div id="manageHistPrescriptionsWrap" class="rounded-xl border border-slate-200 bg-white p-3">' +
+                        '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Prescriptions & Medicines</div>' +
+                        '<div class="text-[0.78rem] text-slate-400">Loading prescriptions…</div>' +
+                    '</div>' +
                 '</div>'
 
             // Enable status dropdown
-            var currentStatus = String(appt && appt.status ? appt.status : '').toLowerCase()
             if (manageHistStatusSelect) {
                 manageHistStatusSelect.disabled = false
                 manageHistStatusSelect.value = currentStatus
@@ -3710,6 +3785,78 @@ function updateManageTodayButton() {
             if (manageHistUpdateBtn) {
                 manageHistUpdateBtn.disabled = false
                 manageHistUpdateBtn.setAttribute('data-appointment-id', apptId)
+            }
+
+            // Load prescriptions asynchronously
+            if (txId && typeof apiFetch === 'function') {
+                apiFetch("{{ url('/api/prescriptions') }}?per_page=20&transaction_id=" + encodeURIComponent(txId), { method: 'GET' })
+                    .then(function (response) { return readResponse(response) })
+                    .then(function (result) {
+                        var wrap = document.getElementById('manageHistPrescriptionsWrap')
+                        if (!wrap) return
+                        var items = (result && result.ok && result.data) ? (Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])) : []
+                        if (!items.length) {
+                            wrap.innerHTML =
+                                '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Prescriptions & Medicines</div>' +
+                                '<div class="text-[0.78rem] text-slate-500">No prescriptions found.</div>'
+                            return
+                        }
+                        var rxHtml = ''
+                        items.forEach(function (rx) {
+                            var rxDr = rx.doctor ? personName(rx.doctor, '-') : '-'
+                            var rxDate = rx.prescribed_datetime ? String(rx.prescribed_datetime).replace('T', ' ').slice(0, 10) : '-'
+                            var rxNotes = rx.notes ? escapeHtml(rx.notes) : ''
+                            rxHtml += '<div class="border-b border-slate-100 pb-2 mb-2 last:border-0 last:pb-0 last:mb-0">' +
+                                '<div class="flex items-center justify-between text-[0.72rem] text-slate-500 mb-1">' +
+                                    '<span class="font-medium text-slate-700">' + escapeHtml(rxDate) + '</span>' +
+                                    '<span>' + escapeHtml(rxDr) + '</span>' +
+                                '</div>' +
+                                (rxNotes ? '<div class="text-[0.72rem] text-slate-600 mb-1">' + rxNotes + '</div>' : '') +
+                                '<div class="overflow-x-auto">' +
+                                    '<table class="w-full text-[0.72rem] text-slate-700">' +
+                                        '<thead>' +
+                                            '<tr class="text-[0.6rem] uppercase tracking-wider text-slate-400 border-b border-slate-100">' +
+                                                '<th class="py-1 pr-2 text-left">Medicine</th>' +
+                                                '<th class="py-1 pr-2 text-left">Dosage</th>' +
+                                                '<th class="py-1 pr-2 text-left">Frequency</th>' +
+                                                '<th class="py-1 pr-0 text-left">Duration</th>' +
+                                            '</tr>' +
+                                        '</thead>' +
+                                        '<tbody>'
+                            var rxItems = Array.isArray(rx.items) ? rx.items : []
+                            if (rxItems.length) {
+                                rxItems.forEach(function (it) {
+                                    rxHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                                        '<td class="py-1 pr-2 font-medium">' + escapeHtml(it.medicine_name || '-') + '</td>' +
+                                        '<td class="py-1 pr-2">' + escapeHtml(it.dosage || '-') + '</td>' +
+                                        '<td class="py-1 pr-2">' + escapeHtml(it.frequency || '-') + '</td>' +
+                                        '<td class="py-1 pr-0">' + escapeHtml(it.duration || '-') + '</td>' +
+                                    '</tr>'
+                                })
+                            } else {
+                                rxHtml += '<tr><td colspan="4" class="py-1 text-slate-400">No items</td></tr>'
+                            }
+                            rxHtml += '</tbody></table></div></div>'
+                        })
+                        wrap.innerHTML =
+                            '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Prescriptions & Medicines</div>' +
+                            rxHtml
+                    })
+                    .catch(function () {
+                        var wrap = document.getElementById('manageHistPrescriptionsWrap')
+                        if (wrap) {
+                            wrap.innerHTML =
+                                '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Prescriptions & Medicines</div>' +
+                                '<div class="text-[0.78rem] text-slate-500">Failed to load prescriptions.</div>'
+                        }
+                    })
+            } else {
+                var wrap = document.getElementById('manageHistPrescriptionsWrap')
+                if (wrap) {
+                    wrap.innerHTML =
+                        '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Prescriptions & Medicines</div>' +
+                        '<div class="text-[0.78rem] text-slate-500">No info.</div>'
+                }
             }
         }
 

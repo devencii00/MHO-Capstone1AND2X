@@ -22,6 +22,8 @@ class PrescriptionController extends Controller
             $query->whereHas('transaction.appointment', function ($q) use ($patientId) {
                 $q->where('patient_id', $patientId);
             });
+        } elseif ($request->filled('transaction_id')) {
+            $query->where('transaction_id', $request->query('transaction_id'));
         }
 
         return $query->latest('prescribed_datetime')->paginate();
