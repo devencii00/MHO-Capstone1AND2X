@@ -716,7 +716,7 @@ function setWalkInTab(tab) {
                 var doctor = appt && appt.doctor ? appt.doctor : null
                 var patientFallback = patient && patient.email ? String(patient.email) : ''
                 var patientName = personName(patient, patientFallback)
-                var doctorName = personName(doctor, 'Doctor #' + String(doctor && doctor.user_id != null ? doctor.user_id : ''))
+                var doctorName = personName(doctor, doctor && doctor.email ? doctor.email : '-')
                 var status = statusText(appt)
 
                 return '' +
@@ -1842,7 +1842,7 @@ function setWalkInTab(tab) {
             if (!doctor) return ''
             var parts = [doctor.firstname, doctor.middlename, doctor.lastname].filter(function (v) { return String(v || '').trim() !== '' })
             var name = parts.join(' ').trim()
-            if (!name) name = 'Doctor #' + (doctor.user_id != null ? doctor.user_id : '')
+            if (!name) name = doctor.email || ''
             return name
         }
 
@@ -2550,9 +2550,8 @@ function setWalkInTab(tab) {
                     .join(' ')
                     .trim()
                 if (name) return name
-                if (doctor.user_id != null) return 'Doctor #' + doctor.user_id
+                if (doctor.email) return doctor.email
             }
-            if (appointment.doctor_id != null) return 'Doctor #' + appointment.doctor_id
             return '-'
         }
 
@@ -3939,7 +3938,7 @@ function setWalkInTab(tab) {
                 } else {
                     var parts = []
                     var name = [doctor.firstname, doctor.middlename, doctor.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
-                    if (!name) name = 'Doctor #' + doctor.user_id
+                    if (!name) name = doctor.email || ''
                     var type = getAppointmentType()
                     var dateStr = type === 'walk_in'
                         ? localDateIso()
@@ -4036,7 +4035,7 @@ function setWalkInTab(tab) {
 
             var enriched = list.map(function (d) {
                 var name = [d.firstname, d.middlename, d.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
-                if (!name) name = 'Doctor #' + d.user_id
+                if (!name) name = d.email || ''
                 var spec = d && d.specialization ? String(d.specialization) : ''
                 var isDoctorAvailable = d && d.is_available !== false
                 var hasSchedule = !!dayKey && hasScheduleAtTime(d, dayKey, dateStr, checkTime)

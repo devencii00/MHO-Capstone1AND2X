@@ -12,6 +12,8 @@ class AppointmentSlotUpdated implements ShouldBroadcast, ShouldQueue
 {
     use Dispatchable, InteractsWithSockets;
 
+    public $queue = 'default';
+
     public function __construct(
         public $departmentId,
         public $slotData

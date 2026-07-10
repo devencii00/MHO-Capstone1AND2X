@@ -586,7 +586,14 @@ class UserController extends Controller
         $store->forget($tokenKey);
 
         if ($currentUser->role === 'patient') {
-            Notification::notifyUsers([(int) $currentUser->user_id], '[Password Changed] Your account password was updated.', 'system');
+            Notification::notifyUsers(
+                [(int) $currentUser->user_id],
+                '[Password Changed] Your account password was updated.',
+                'system',
+                'Password Updated',
+                $currentUser->user_id,
+                'users'
+            );
         }
 
         LogEntry::write(
@@ -614,5 +621,17 @@ class UserController extends Controller
 
         $absolute = storage_path('app/public/'.$path);
         return response()->file($absolute);
+    }
+
+    public function currentUser(Request $request)
+    {
+        $user = $request->user();
+        return response()->json([
+            'user_id' => $user->user_id,
+            'role' => $user->role,
+            'email' => $user->email,
+            'firstname' => $user->firstname,
+            'lastname' => $user->lastname,
+        ]);
     }
 }

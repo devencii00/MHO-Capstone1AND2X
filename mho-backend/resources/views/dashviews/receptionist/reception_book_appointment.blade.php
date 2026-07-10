@@ -770,7 +770,7 @@ function setAppointmentTab(tab) {
             return [doctor.firstname, doctor.middlename, doctor.lastname]
                 .filter(function (v) { return String(v || '').trim() !== '' })
                 .join(' ')
-                .trim() || ('Doctor #' + (doctor.user_id != null ? doctor.user_id : ''))
+                .trim() || (doctor.email || '')
         }
 
         function selectedServicesLabel() {
@@ -1579,9 +1579,8 @@ function setAppointmentTab(tab) {
                     .join(' ')
                     .trim()
                 if (name) return name
-                if (doctor.user_id != null) return 'Doctor #' + doctor.user_id
+                if (doctor.email) return doctor.email
             }
-            if (appointment.doctor_id != null) return 'Doctor #' + appointment.doctor_id
             return '-'
         }
 
@@ -2133,7 +2132,7 @@ function setAppointmentTab(tab) {
         function doctorLabel(d) {
             if (!d) return ''
             var name = [d.firstname, d.middlename, d.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
-            if (!name) name = 'Doctor #' + (d.user_id || '')
+            if (!name) name = d.email || ''
             return name + (d.specialization ? ' - ' + d.specialization : '')
         }
 
@@ -2175,7 +2174,7 @@ function setAppointmentTab(tab) {
                     doctorPreview.textContent = ''
                     doctorPreview.classList.add('hidden')
                 } else {
-                    var name = doctorDisplayName(doctor) || 'Doctor #' + (doctor.user_id || '')
+                    var name = doctorDisplayName(doctor) || (doctor.email || '')
                     var spec = doctor.specialization ? String(doctor.specialization).trim() : 'N/A'
                     var sched = doctorScheduleSummary(doctor)
                     var lines = []
@@ -2251,7 +2250,7 @@ function setAppointmentTab(tab) {
 
             var enriched = list.map(function (d) {
                 var name = [d.firstname, d.middlename, d.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
-                if (!name) name = 'Doctor #' + d.user_id
+                if (!name) name = d.email || ''
                 var isDoctorAvailable = d && d.is_available !== false
                 var hasSchedule = !!dayKey && hasScheduleAtTime(d, dayKey, dateStr, checkTime)
                 var isSelectable = isDoctorAvailable && hasSchedule
@@ -2295,7 +2294,7 @@ function setAppointmentTab(tab) {
                     var chosen = enriched[idx] ? enriched[idx].d : null
                     if (!chosen) return
                     setDoctorSelection(chosen)
-                    if (doctorSearch) doctorSearch.value = [chosen.firstname, chosen.middlename, chosen.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim() || ('Doctor #' + chosen.user_id)
+                    if (doctorSearch) doctorSearch.value = [chosen.firstname, chosen.middlename, chosen.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim() || (chosen.email || '')
                 })
             })
         }
@@ -2739,7 +2738,7 @@ function setAppointmentTab(tab) {
             var startDate = y + '-' + String(m + 1).padStart(2, '0') + '-01'
             var lastDay = new Date(y, m + 1, 0).getDate()
             var endDate = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(lastDay).padStart(2, '0')
-            apiFetch("{{ url('/api/appointments') }}?doctor_id=" + encodeURIComponent(doctorId) + "&start_date=" + encodeURIComponent(startDate) + "&end_date=" + encodeURIComponent(endDate) + "&per_page=200", { method: 'GET' })
+            apiFetch("{{ url('/api/appointments') }}?doctor_id=" + encodeURIComponent(doctorId) + "&appointment_type=scheduled&start_date=" + encodeURIComponent(startDate) + "&end_date=" + encodeURIComponent(endDate) + "&per_page=200", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
@@ -2747,6 +2746,7 @@ function setAppointmentTab(tab) {
                     raw.forEach(function (a) {
                         if (!a || !a.appointment_datetime) return
                         if (String(a.status || '').toLowerCase() === 'cancelled') return
+                        if (String(a.appointment_type || '').toLowerCase() !== 'scheduled') return
                         var d = new Date(a.appointment_datetime)
                         if (!isNaN(d.getTime())) {
                             var datePart = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
@@ -3242,7 +3242,7 @@ function setAppointmentTab(tab) {
             var startDate = y + '-' + String(m + 1).padStart(2, '0') + '-01'
             var lastDay = new Date(y, m + 1, 0).getDate()
             var endDate = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(lastDay).padStart(2, '0')
-            apiFetch("{{ url('/api/appointments') }}?start_date=" + encodeURIComponent(startDate) + "&end_date=" + encodeURIComponent(endDate) + "&per_page=200", { method: 'GET' })
+            apiFetch("{{ url('/api/appointments') }}?appointment_type=scheduled&start_date=" + encodeURIComponent(startDate) + "&end_date=" + encodeURIComponent(endDate) + "&per_page=200", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
@@ -3250,6 +3250,7 @@ function setAppointmentTab(tab) {
                     raw.forEach(function (a) {
                         if (!a || !a.appointment_datetime) return
                         if (String(a.status || '').toLowerCase() === 'cancelled') return
+                        if (String(a.appointment_type || '').toLowerCase() !== 'scheduled') return
                         var d = new Date(a.appointment_datetime)
                         if (!isNaN(d.getTime())) {
                             var datePart = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
@@ -3498,7 +3499,7 @@ function updateManageTodayButton() {
             var patientFallback = patient && patient.email ? String(patient.email) : ''
             var patientName = personName(patient, patientFallback)
             var doctor = appt.doctor || {}
-            var doctorName = personName(doctor, 'Doctor #' + String(doctor && doctor.user_id != null ? doctor.user_id : ''))
+            var doctorName = personName(doctor, doctor && doctor.email ? doctor.email : '-')
             var when = safeIsoParts(appt && appt.appointment_datetime ? String(appt.appointment_datetime) : '')
             if (!when) when = { date: '-', time: '-' }
             var serviceText = serviceSummary(appt)
@@ -4477,7 +4478,7 @@ function updateManageTodayButton() {
             var startDate = y + '-' + String(m + 1).padStart(2, '0') + '-01'
             var lastDay = new Date(y, m + 1, 0).getDate()
             var endDate = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(lastDay).padStart(2, '0')
-            apiFetch("{{ url('/api/appointments') }}?doctor_id=" + encodeURIComponent(doctorId) + "&start_date=" + encodeURIComponent(startDate) + "&end_date=" + encodeURIComponent(endDate) + "&per_page=200", { method: 'GET' })
+            apiFetch("{{ url('/api/appointments') }}?doctor_id=" + encodeURIComponent(doctorId) + "&appointment_type=scheduled&start_date=" + encodeURIComponent(startDate) + "&end_date=" + encodeURIComponent(endDate) + "&per_page=200", { method: 'GET' })
                 .then(function (r) { return readResponse(r) })
                 .then(function (result) {
                     var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
@@ -4485,6 +4486,7 @@ function updateManageTodayButton() {
                     raw.forEach(function (a) {
                         if (!a || !a.appointment_datetime) return
                         if (String(a.status || '').toLowerCase() === 'cancelled') return
+                        if (String(a.appointment_type || '').toLowerCase() !== 'scheduled') return
                         var d = new Date(a.appointment_datetime)
                         if (!isNaN(d.getTime())) {
                             var datePart = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
@@ -4506,7 +4508,7 @@ function updateManageTodayButton() {
             var doctorId = manageHistChangeDoctor ? manageHistChangeDoctor.value : ''
             if (!doctorId) return
 
-            apiFetch("{{ url('/api/appointments') }}?doctor_id=" + encodeURIComponent(doctorId) + "&start_date=" + encodeURIComponent(dateIso) + "&end_date=" + encodeURIComponent(dateIso) + "&per_page=50", { method: 'GET' })
+            apiFetch("{{ url('/api/appointments') }}?doctor_id=" + encodeURIComponent(doctorId) + "&appointment_type=scheduled&start_date=" + encodeURIComponent(dateIso) + "&end_date=" + encodeURIComponent(dateIso) + "&per_page=50", { method: 'GET' })
                 .then(function (r) { return readResponse(r) })
                 .then(function (result) {
                     var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
@@ -4514,6 +4516,7 @@ function updateManageTodayButton() {
                     raw.forEach(function (a) {
                         if (!a || !a.appointment_datetime) return
                         if (String(a.status || '').toLowerCase() === 'cancelled') return
+                        if (String(a.appointment_type || '').toLowerCase() !== 'scheduled') return
                         var d = new Date(a.appointment_datetime)
                         if (!isNaN(d.getTime())) {
                             var datePart = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
@@ -5012,7 +5015,28 @@ function updateManageTodayButton() {
             // Listen for all doctor appointments to refresh the manage list
             window.Echo.private('appointments.all')
                 .listen('.appointment.updated', function (e) {
-                    loadManageAppointments()
+                    // Refresh manage appointments table
+                    if (typeof loadManageAppointments === 'function') loadManageAppointments()
+                    // Refresh manage calendar
+                    if (typeof loadManageMonthAppointments === 'function') loadManageMonthAppointments()
+
+                    // Refresh booking form calendar/slots if a doctor is currently selected
+                    if (recBookCurrentDoctor && recBookCurrentDoctor.user_id) {
+                        var docId = recBookCurrentDoctor.user_id
+                        if (typeof loadDoctorSchedulesAndAvailability === 'function') {
+                            loadDoctorSchedulesAndAvailability(docId, recBookSelectedDate || null)
+                        } else if (typeof loadDoctorAppointments === 'function' && recBookSelectedDate) {
+                            loadDoctorAppointments(docId, recBookSelectedDate)
+                        }
+                    }
+
+                    // Refresh Change Appointment panel (inside details modal) if open
+                    if (manageHistChangePanel && !manageHistChangePanel.classList.contains('hidden')) {
+                        if (typeof manageHistLoadMonthAppts === 'function') manageHistLoadMonthAppts()
+                        if (manageHistChangeSelectedDate && typeof manageHistLoadTimeSlots === 'function') {
+                            manageHistLoadTimeSlots(manageHistChangeSelectedDate)
+                        }
+                    }
                 });
         }
     })

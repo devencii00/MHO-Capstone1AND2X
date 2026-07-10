@@ -575,11 +575,23 @@ class AppointmentController extends Controller
         }
 
         if ($isPatient && (string) $appointment->appointment_type === 'scheduled' && $appointment->appointment_datetime) {
-            Notification::notifyReceptionists('[Appointment Booked] A patient booked an appointment.', 'appointment');
+            Notification::notifyReceptionists(
+                '[Appointment Booked] A patient booked an appointment.',
+                'appointment',
+                'Appointment Booked',
+                $appointment->appointment_id,
+                'appointments'
+            );
         }
 
         if ($isReceptionist && (string) $appointment->appointment_type === 'walk_in') {
-            Notification::notifyReceptionists('[Walk-in Registered] A walk-in patient was registered.', 'appointment');
+            Notification::notifyReceptionists(
+                    '[Walk-in Appointment] A walk-in appointment was registered.',
+                    'appointment',
+                    'Walk-in Appointment',
+                    $appointment->appointment_id,
+                    'appointments'
+                );
         }
 
         LogEntry::write(
@@ -789,6 +801,11 @@ class AppointmentController extends Controller
             ]
         );
 
+        // Broadcast slot update via Reverb
+        if ($appointment->doctor_id) {
+            event(new AppointmentSlotUpdated($appointment->doctor_id, $appointment->toArray()));
+        }
+
         return $appointment->load(['patient', 'doctor', 'queue', 'transaction', 'transaction.prescriptions.items.medicine', 'services']);
     }
 
@@ -815,7 +832,15 @@ class AppointmentController extends Controller
         };
 
         if ($message !== null) {
-            Notification::notifyUsers([$patientId], $message, 'appointment');
+            $title = $current === 'confirmed' ? 'Appointment Approved' : 'Appointment Rejected';
+            Notification::notifyUsers(
+                [$patientId],
+                $message,
+                'appointment',
+                $title,
+                $appointment->appointment_id,
+                'appointments'
+            );
         }
     }
 
@@ -833,7 +858,10 @@ class AppointmentController extends Controller
         Notification::notifyUsers(
             [$doctorId],
             '[New Appointment] You have a new appointment on '.$scheduledAt->format('F j \a\t g:i A').'.',
-            'appointment'
+            'appointment',
+            'New Appointment',
+            $appointment->appointment_id,
+            'appointments'
         );
     }
 
@@ -843,6 +871,9 @@ class AppointmentController extends Controller
         if ($currentUser && $currentUser->role === 'patient') {
             abort(403);
         }
+
+        $doctorId = (int) $appointment->doctor_id;
+        $appointmentData = $appointment->toArray();
 
         $appointment->delete();
 
@@ -856,6 +887,11 @@ class AppointmentController extends Controller
                 'doctor_id' => (int) $appointment->doctor_id,
             ]
         );
+
+        // Broadcast slot update via Reverb
+        if ($doctorId) {
+            event(new AppointmentSlotUpdated($doctorId, $appointmentData));
+        }
 
         return response()->json([
             'message' => 'Appointment deleted',

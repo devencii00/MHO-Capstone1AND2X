@@ -722,6 +722,19 @@
 
                 var refreshBtn = document.getElementById('docScheduleRefreshBtn')
                 if (refreshBtn) refreshBtn.addEventListener('click', refreshAllCards)
+
+                // ── Realtime queue updates via Reverb ──
+                if (typeof window.Echo !== 'undefined' && window.Echo) {
+                    try {
+                        window.Echo.private('queue.all')
+                            .listen('.queue.updated', function () {
+                                refreshAllCards()
+                            })
+                        console.log('[DoctorDashboard] Echo listener attached to queue.all')
+                    } catch (e) {
+                        console.error('[DoctorDashboard] Echo subscribe failed:', e)
+                    }
+                }
             })
         </script>
     @else

@@ -11,7 +11,11 @@ Broadcast::channel('queue.{departmentId}', function ($user) {
 });
 
 Broadcast::channel('notifications.{userId}', function ($user, $userId) {
-    return (int) $user->id === (int) $userId;
+    return (int) $user->user_id === (int) $userId;
+});
+
+Broadcast::channel('messages.{userId}', function ($user, $userId) {
+    return (int) $user->user_id === (int) $userId;
 });
 
 Broadcast::channel('chat.{conversationId}', function ($user) {

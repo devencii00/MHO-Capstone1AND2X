@@ -382,7 +382,8 @@
                             var absoluteDelay = timeReceived - data.fired_at;
                             console.log('[DoctorQueue] Reverb fired: ' + absoluteDelay + 'ms');
                         }
-                        window.location.reload()
+                        // Use AJAX table refresh instead of full page reload
+                        refreshTableFromServer(document.getElementById('doctorQueueTbody'))
                     })
                 console.log('[DoctorQueue] Echo listener attached to queue.' + doctorUserId)
             } catch (e) {

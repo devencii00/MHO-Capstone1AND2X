@@ -13,6 +13,8 @@ class QueueUpdated implements ShouldBroadcast, ShouldQueue
 {
     use Dispatchable, InteractsWithSockets;
 
+    public $queue = 'default';
+
     public function __construct(
         public ?int $doctorId,
         public ?array $queueData = null

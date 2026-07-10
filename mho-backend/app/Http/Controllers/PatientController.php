@@ -182,6 +182,28 @@ class PatientController extends Controller
             return $user;
         });
 
+        // Notify receptionists and admins about new patient registration
+        try {
+            $patientName = trim(($user->firstname ?? '') . ' ' . ($user->lastname ?? ''));
+            if (!$patientName) $patientName = $user->email;
+            Notification::notifyReceptionists(
+                'A new patient has been registered: ' . $patientName,
+                'system',
+                'New Patient Registered',
+                $user->user_id,
+                'users'
+            );
+            Notification::notifyAdmins(
+                'A new patient has been registered: ' . $patientName,
+                'system',
+                'New Patient Registered',
+                $user->user_id,
+                'users'
+            );
+        } catch (\Throwable $e) {
+            // Silently fail if notification fails
+        }
+
         return response()->json([
             'user' => $user->refresh(),
             'credentials_emailed' => true,

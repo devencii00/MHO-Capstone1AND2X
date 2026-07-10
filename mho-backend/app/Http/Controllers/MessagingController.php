@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\NewMessage;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Notification;
@@ -151,6 +152,24 @@ class MessagingController extends Controller
 
         if ($currentUser->role === 'patient') {
             Notification::notifyReceptionists('A patient has sent a message.', 'system');
+        }
+
+        // Determine receiver for real-time event
+        $receiverId = null;
+        if ($currentUser->role === 'patient') {
+            // Find a receptionist to notify
+            $receptionist = User::where('role', 'receptionist')->where('status', 'active')->first();
+            $receiverId = $receptionist?->user_id;
+        } elseif ($currentUser->role === 'receptionist') {
+            $receiverId = $conversation->user_id; // the patient
+        }
+
+        if ($receiverId) {
+            try {
+                event(new NewMessage($currentUser->user_id, $receiverId, $message));
+            } catch (\Throwable $e) {
+                // Silently fail
+            }
         }
 
         return response()->json($message, 201);

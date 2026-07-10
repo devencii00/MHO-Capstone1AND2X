@@ -181,16 +181,42 @@ class WalkInController extends Controller
         });
 
         if ($createQueue) {
-            Notification::notifyReceptionists('[Walk-in Registered] A new patient was registered.', 'appointment');
+            Notification::notifyReceptionists(
+                '[Walk-in Appointment] A new walk-in appointment was registered.',
+                'appointment',
+                'Walk-in Appointment',
+                $result['appointment']->appointment_id,
+                'appointments'
+            );
 
             if ($result['queue'] ?? null) {
                 $queueModel = $result['queue'];
                 $queueModel->loadMissing(['appointment.patient', 'appointment.doctor', 'appointment.services']);
                 $doctorId = $queueModel->appointment ? (int) $queueModel->appointment->doctor_id : null;
                 QueueUpdated::dispatch($doctorId, $queueModel->toArray());
+
+                // Notify doctor about the walk-in queue
+                if ($doctorId && $queueModel->appointment?->patient) {
+                    $patientName = trim(($queueModel->appointment->patient->firstname ?? '') . ' ' . ($queueModel->appointment->patient->lastname ?? ''));
+                    if (!$patientName) $patientName = $queueModel->appointment->patient->email ?? 'A patient';
+                    Notification::notifyUsers(
+                        [$doctorId],
+                        '[Queue] ' . $patientName . ' is waiting for you in the queue.',
+                        'queue',
+                        'Patient Waiting in Queue',
+                        $queueModel->queue_id,
+                        'queues'
+                    );
+                }
             }
         } else {
-            Notification::notifyReceptionists('A guest patient submitted a queue request.', 'appointment');
+            Notification::notifyReceptionists(
+                'A guest patient has submitted a queue request.',
+                'appointment',
+                'Queue Request',
+                $result['appointment']->appointment_id,
+                'appointments'
+            );
         }
 
         return response()->json($result, 201);

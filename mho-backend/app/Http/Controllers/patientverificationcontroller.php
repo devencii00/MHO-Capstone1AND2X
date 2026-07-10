@@ -116,8 +116,22 @@ class PatientVerificationController extends Controller
         $verification = PatientVerification::create($data);
 
         if ($isPatient) {
-            Notification::notifyAdmins('[New Verification] A patient submitted a verification request.');
-            Notification::notifyReceptionists('A patient submitted a verification request.', 'system');
+            $patientName = optional($verification->patient)->email ?? 'A patient';
+            $verificationId = $verification->verification_id;
+            Notification::notifyAdmins(
+                '[New Verification] A patient submitted a verification request.',
+                'system',
+                'New Verification Request',
+                $verificationId,
+                'patient_verifications'
+            );
+            Notification::notifyReceptionists(
+                'A patient submitted a ' . ($verification->type ?? '') . ' verification request.',
+                'system',
+                'New Verification Request',
+                $verificationId,
+                'patient_verifications'
+            );
         }
 
         return response()->json($verification->load(['patient', 'verifier']), 201);
@@ -295,7 +309,14 @@ class PatientVerificationController extends Controller
         };
 
         if ($message !== null) {
-            Notification::notifyUsers([$patientId], $message, 'system');
+            Notification::notifyUsers(
+                [$patientId],
+                $message,
+                'system',
+                'Verification ' . ucfirst($current),
+                $patientVerification->verification_id,
+                'patient_verifications'
+            );
         }
     }
 }

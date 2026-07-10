@@ -249,5 +249,14 @@
                 })
         }
         if (document.getElementById('docAppointmentRefreshBtn')) document.getElementById('docAppointmentRefreshBtn').addEventListener('click', function () { refreshTableFromServer(document.getElementById('doctorAppointmentTbody')) })
+
+        // ── Reverb listener for appointment slot changes ──
+        var doctorId = {{ auth()->user()->user_id ?? 'null' }};
+        if (typeof window.Echo !== 'undefined' && window.Echo && doctorId) {
+            window.Echo.private('appointments.' + doctorId)
+                .listen('.appointment.updated', function (e) {
+                    refreshTableFromServer(document.getElementById('doctorAppointmentTbody'))
+                });
+        }
     })
 </script>

@@ -47,6 +47,7 @@ class DashboardController extends Controller
         $data = [
             'role' => $role,
             'section' => $section,
+            'currentUser' => $currentUser,
         ];
 
         if ($role === 'admin') {
@@ -258,7 +259,7 @@ class DashboardController extends Controller
             $recentNotifications = collect();
             if ($currentUser) {
                 $unreadNotificationsCount = Notification::where('user_id', $currentUser->user_id)
-                    ->where('is_read', false)
+                    ->whereNull('read_at')
                     ->count();
                 $recentNotifications = Notification::where('user_id', $currentUser->user_id)
                     ->latest('created_at')

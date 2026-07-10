@@ -5,12 +5,13 @@ namespace App\Events;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Events\Dispatchable;
 
-class NewNotification implements ShouldBroadcast, ShouldQueue
+class NewNotification implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets;
+
+    public $queue = 'default';
 
     public function __construct(
         public $userId,
@@ -27,5 +28,12 @@ class NewNotification implements ShouldBroadcast, ShouldQueue
     public function broadcastAs(): string
     {
         return 'notification.new';
+    }
+
+    public function broadcastWith(): array
+    {
+        return [
+            'user_id' => $this->userId,
+        ];
     }
 }

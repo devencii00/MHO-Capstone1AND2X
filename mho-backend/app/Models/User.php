@@ -243,7 +243,7 @@ class User extends Authenticatable
         })));
 
         if ($fullName === '') {
-            $fullName = 'User #'.$this->user_id;
+            $fullName = $this->email ?? 'User';
         }
 
         return (object) [

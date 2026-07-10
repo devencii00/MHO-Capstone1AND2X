@@ -11,11 +11,24 @@
     <style>
         .scrollbar-hidden { scrollbar-width: none; }
         .scrollbar-hidden::-webkit-scrollbar { width: 0; height: 0; }
+        .font-queue { font-family: Helvetica, Arial, sans-serif; }
+        :fullscreen #queueDisplayHeader { display: none; }
+        :-webkit-full-screen #queueDisplayHeader { display: none; }
+        :-moz-full-screen #queueDisplayHeader { display: none; }
+        :fullscreen body { overflow: hidden; }
+        :-webkit-full-screen body { overflow: hidden; }
+        :-moz-full-screen body { overflow: hidden; }
+        :fullscreen #queueDisplaySidebar { max-height: 100vh !important; }
+        :-webkit-full-screen #queueDisplaySidebar { max-height: 100vh !important; }
+        :-moz-full-screen #queueDisplaySidebar { max-height: 100vh !important; }
+        :fullscreen #queueDisplayMain { height: 100vh; overflow: hidden; }
+        :-webkit-full-screen #queueDisplayMain { height: 100vh; overflow: hidden; }
+        :-moz-full-screen #queueDisplayMain { height: 100vh; overflow: hidden; }
     </style>
 </head>
 <body class="min-h-screen bg-slate-950 text-white">
 <div class="min-h-screen flex flex-col">
-    <div class="flex items-center justify-between px-6 md:px-10 py-4 border-b border-slate-800">
+    <div id="queueDisplayHeader" class="flex items-center justify-between px-6 md:px-10 py-4 border-b border-slate-800">
         <div>
             <div class="text-[0.75rem] text-slate-400 uppercase tracking-widest">Opol Clinic</div>
             <div class="text-lg md:text-xl font-semibold text-white">Queue Display</div>
@@ -31,17 +44,13 @@
                 <x-lucide-fullscreen class="w-[18px] h-[18px]" />
                 Full screen
             </button>
-            <button id="queueDisplayRefresh" type="button" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700">
-                <x-lucide-refresh-cw class="w-[18px] h-[18px]" />
-                Refresh
-            </button>
         </div>
     </div>
 
-    <div class="flex-1 grid grid-cols-1 lg:grid-cols-3">
+    <div id="queueDisplayMain" class="flex-1 grid grid-cols-1 lg:grid-cols-3">
         <div class="lg:col-span-2 p-6 md:p-10 flex items-center justify-center">
             <div class="w-full max-w-2xl">
-                <div class="text-[0.85rem] text-green-300 uppercase tracking-[0.3em] mb-3">Now serving</div>
+                <div class="text-lg md:text-xl text-green-300 uppercase tracking-[0.25em] mb-3">Now serving</div>
                 <div id="queueNowServingGrid" class="grid grid-cols-1 gap-4"></div>
                 <div id="queueNowServingEmpty" class="hidden rounded-3xl bg-slate-900/60 border border-slate-700 px-6 md:px-8 py-8 text-center text-slate-300">
                     No queue is currently being served.
@@ -50,12 +59,21 @@
             </div>
         </div>
 
-        <div class="border-t lg:border-t-0 lg:border-l border-slate-800 bg-slate-950/60 p-6 md:p-8">
-            <div class="flex items-center justify-between mb-3">
-                <div class="text-[0.85rem] text-slate-300 uppercase tracking-[0.25em]">Next patients</div>
-                <div id="queueNextMeta" class="text-[0.75rem] text-slate-500"></div>
+        <div id="queueDisplaySidebar" class="border-t lg:border-t-0 lg:border-l border-slate-800 bg-slate-950/60 p-6 md:p-8 flex flex-col gap-6 overflow-y-auto max-h-[70vh] lg:max-h-none scrollbar-hidden">
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <div class="text-lg md:text-xl text-slate-300 uppercase tracking-[0.25em]">Next patients</div>
+                    <div id="queueNextMeta" class="text-[0.75rem] text-slate-500"></div>
+                </div>
+                <div id="queueNextList" class="space-y-3"></div>
             </div>
-            <div id="queueNextList" class="space-y-3 max-h-[70vh] overflow-y-auto scrollbar-hidden"></div>
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <div class="text-lg md:text-xl text-violet-300 uppercase tracking-[0.25em]">On hold</div>
+                    <div id="queueOnHoldMeta" class="text-[0.75rem] text-slate-500"></div>
+                </div>
+                <div id="queueOnHoldList" class="space-y-3"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -77,7 +95,6 @@
         var doctorId = @json($doctorId);
 
         var dateLabel = document.getElementById('queueDisplayDateLabel');
-        var btnRefresh = document.getElementById('queueDisplayRefresh');
         var btnFullscreen = document.getElementById('queueDisplayFullscreen');
 
         var errorBox = document.getElementById('queueDisplayError');
@@ -85,6 +102,8 @@
         var nowGrid = document.getElementById('queueNowServingGrid');
         var nextList = document.getElementById('queueNextList');
         var nextMeta = document.getElementById('queueNextMeta');
+        var onHoldList = document.getElementById('queueOnHoldList');
+        var onHoldMeta = document.getElementById('queueOnHoldMeta');
 
         function showError(message) {
             if (!errorBox) return;
@@ -108,14 +127,20 @@
             return s;
         }
 
-        function displayQueueLabel(item) {
+        function displayQueueLabel(item, sideSpaces) {
+            var code = '';
             if (item && item.queue_code) {
-                return String(item.queue_code);
-            }
-            if (item && item.queue_number != null) {
+                code = String(item.queue_code);
+            } else if (item && item.queue_number != null) {
                 return pad3(item.queue_number);
+            } else {
+                return '---';
             }
-            return '---';
+            // Add spacing around the dash
+            var s = sideSpaces || 1;
+            var sp = '';
+            for (var i = 0; i < s; i++) sp += ' ';
+            return code.replace('-', sp + '-' + sp);
         }
 
         function roomLabel(roomNumber) {
@@ -132,9 +157,54 @@
             return 'Est. ' + n + 'min - ' + (n + 5) + 'min';
         }
 
+        function formatDisplayName(rawName, fallback) {
+            if (!rawName) return fallback || '---';
+            var name = String(rawName).trim();
+            if (!name) return fallback || '---';
+
+            // Email fallback: show first 5 chars + ..... + @domain
+            var atIdx = name.indexOf('@');
+            if (atIdx > -1) {
+                var prefix = name.substring(0, atIdx);
+                var domain = name.substring(atIdx);
+                if (prefix.length > 5) {
+                    return prefix.substring(0, 5) + '.....' + domain;
+                }
+                return name;
+            }
+
+            // Skip any fallback that contains # or ID patterns — return empty instead
+            if (name.indexOf('#') > -1 || /^[0-9]+$/.test(name.replace(/\s/g, ''))) {
+                return fallback || '---';
+            }
+
+            // Parse as "First Middle Last" or "First Last"
+            var parts = name.split(/\s+/).filter(function (p) { return p.length > 0; });
+            if (parts.length === 0) return fallback || '---';
+
+            var last = parts[parts.length - 1];
+            var firstInit = parts[0].charAt(0).toUpperCase() + '.';
+            var middleInit = '';
+            if (parts.length >= 3 && parts[1].length > 0) {
+                middleInit = ' ' + parts[1].charAt(0).toUpperCase() + '.';
+            }
+            return firstInit + middleInit + ' ' + last;
+        }
+
+        function drDisplayName(rawName, fallback) {
+            var n = formatDisplayName(rawName, fallback);
+            if (!n || n === fallback || n.indexOf('@') > -1) return n;
+            return 'Dr. ' + n;
+        }
+
+        function patientDisplayName(rawName, fallback) {
+            return formatDisplayName(rawName, fallback);
+        }
+
         function render(payload) {
             if (dateLabel) dateLabel.textContent = 'Date: ' + (payload && payload.date ? payload.date : date);
 
+            // ── Now Serving ──
             var serving = payload && Array.isArray(payload.now_serving) ? payload.now_serving : [];
             if (nowGrid) {
                 if (!serving.length) {
@@ -142,19 +212,30 @@
                 } else {
                     nowGrid.innerHTML = serving.map(function (item) {
                         var qn = displayQueueLabel(item);
-                        var patient = item && item.patient && item.patient.name ? item.patient.name : 'Patient';
-                        var doctor = item && item.doctor && item.doctor.name ? item.doctor.name : '-';
-                        var room = roomLabel(item && item.room_number != null ? item.room_number : null);
+                        var docName = drDisplayName(item.doctor && item.doctor.name ? item.doctor.name : '', '');
+                        var patName = patientDisplayName(item.patient && item.patient.name ? item.patient.name : '', '');
+                        var room = item && item.room_number != null ? String(item.room_number) : '-';
 
                       return '' +
-    '<div class="rounded-3xl bg-slate-900/60 border border-slate-700 px-8 py-6 shadow-[0_0_40px_rgba(8,47,73,0.7)] flex items-center justify-between gap-6">' +
-        '<div>' +
-            '<div class="text-[0.75rem] text-slate-400 uppercase tracking-widest mb-1">Queue</div>' +
-            '<div class="text-6xl md:text-7xl font-serif font-bold text-white tracking-[0.12em] whitespace-nowrap">' + escapeHtml(qn) + '</div>' +
+    '<div class="rounded-3xl bg-slate-900/60 border border-slate-700 shadow-[0_0_50px_rgba(8,47,73,0.7)]">' +
+        '<div class="px-6 md:px-10 pt-6 md:pt-8 pb-2">' +
+            '<div class="flex items-center justify-between">' +
+                '<div class="text-5xl md:text-7xl font-bold font-queue text-white tracking-wider whitespace-pre">' + escapeHtml(qn) + '</div>' +
+                '<div class="text-right">' +
+                    '<div class="text-[0.7rem] text-slate-500 uppercase tracking-wider">Room</div>' +
+                    '<div class="text-2xl md:text-4xl font-bold font-queue text-green-300 whitespace-pre">' + escapeHtml(room) + '</div>' +
+                '</div>' +
+            '</div>' +
         '</div>' +
-        '<div class="text-right shrink-0">' +
-            '<div class="text-[0.75rem] text-slate-500 uppercase tracking-widest mb-1">Room</div>' +
-            '<div class="text-4xl md:text-5xl font-serif font-bold text-green-300">' + (item && item.room_number != null ? escapeHtml(String(item.room_number)) : '-') + '</div>' +
+        '<div class="px-6 md:px-10 pb-6 md:pb-8 pt-3 border-t border-slate-700/50">' +
+            '<div class="flex items-center justify-between">' +
+                '<div>' +
+                    '<div class="text-xl md:text-3xl font-semibold text-white">' + (patName || 'Patient') + '</div>' +
+                '</div>' +
+                '<div class="text-right">' +
+                    '<div class="text-lg md:text-2xl font-semibold text-sky-200">' + (docName || 'Doctor') + '</div>' +
+                '</div>' +
+            '</div>' +
         '</div>' +
     '</div>';
                     }).join('');
@@ -165,37 +246,71 @@
                 nowEmpty.classList.toggle('hidden', serving.length > 0);
             }
 
+            // ── Next Patients ──
             var next = payload && Array.isArray(payload.next) ? payload.next : [];
             var counts = payload && payload.counts ? payload.counts : null;
             if (nextMeta) {
                 var waitingCount = counts && counts.waiting != null ? String(counts.waiting) : '';
                 nextMeta.textContent = waitingCount ? (waitingCount + ' waiting') : '';
             }
-
-            if (!nextList) return;
-            if (!next.length) {
-                nextList.innerHTML = '<div class="rounded-2xl border border-slate-800 bg-slate-900/40 px-4 py-4 text-[0.85rem] text-slate-300">No patients waiting.</div>';
-                return;
+            if (nextList) {
+                if (!next.length) {
+                    nextList.innerHTML = '<div class="rounded-2xl border border-slate-800 bg-slate-900/40 px-4 py-4 text-[0.85rem] text-slate-300">No patients waiting.</div>';
+                } else {
+                    nextList.innerHTML = next.map(function (q) {
+                        var qn = displayQueueLabel(q, 2);
+                        var docName = drDisplayName(q.doctor && q.doctor.name ? q.doctor.name : '', '');
+                        var patName = patientDisplayName(q.patient && q.patient.name ? q.patient.name : '', '');
+                        var wait = waitLabel(q && q.estimated_wait_minutes != null ? q.estimated_wait_minutes : null);
+                        return '' +
+                            '<div class="rounded-2xl border border-slate-800 bg-slate-900/40 px-4 py-3">' +
+                                '<div class="flex items-center justify-between gap-3">' +
+                                    '<div>' +
+                                        '<div class="text-lg md:text-xl font-bold font-queue text-white whitespace-pre">' + escapeHtml(qn) + '</div>' +
+                                        '<div class="text-sm text-slate-300 mt-0.5">' + (patName || 'Patient') + '</div>' +
+                                        (wait ? '<div class="text-xs text-slate-400 mt-0.5">' + escapeHtml(wait) + '</div>' : '') +
+                                    '</div>' +
+                                    '<div class="text-right shrink-0">' +
+                                        '<div class="text-sm font-semibold text-sky-200">' + (docName || 'Doctor') + '</div>' +
+                                        (q && q.priority_level != null ? '<div class="text-[0.68rem] text-slate-500 mt-0.5">Priority ' + escapeHtml(q.priority_level) + '</div>' : '') +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>';
+                    }).join('');
+                }
             }
 
-            nextList.innerHTML = next.map(function (q) {
-                var qn = displayQueueLabel(q);
-                var patient = q && q.patient && q.patient.name ? q.patient.name : 'Patient';
-                var doctor = q && q.doctor && q.doctor.name ? q.doctor.name : 'Doctor';
-                var wait = waitLabel(q && q.estimated_wait_minutes != null ? q.estimated_wait_minutes : null);
-                return '' +
-                    '<div class="rounded-2xl border border-slate-800 bg-slate-900/40 px-4 py-3 flex items-center justify-between gap-4">' +
-                        '<div>' +
-                            '<div class="text-[0.75rem] text-slate-400 mb-1">Queue #' + escapeHtml(qn) + '</div>' +
-                            '<div class="text-[0.95rem] text-white font-semibold">' + escapeHtml(patient) + '</div>' +
-                            '<div class="text-[0.75rem] text-slate-400 mt-0.5">' + escapeHtml(doctor) + '</div>' +
-                        '</div>' +
-                        '<div class="text-right text-[0.7rem] text-slate-400">' +
-                            (wait ? ('<div class="text-slate-400">' + escapeHtml(wait) + '</div>') : '') +
-                            (q && q.priority_level != null ? ('<div>Priority ' + escapeHtml(q.priority_level) + '</div>') : '') +
-                        '</div>' +
-                    '</div>';
-            }).join('');
+            // ── On Hold ──
+            var onHold = payload && Array.isArray(payload.on_hold) ? payload.on_hold : [];
+            if (onHoldMeta) {
+                onHoldMeta.textContent = onHold.length ? (onHold.length + ' on hold') : '';
+            }
+            if (onHoldList) {
+                if (!onHold.length) {
+                    onHoldList.innerHTML = '<div class="rounded-2xl border border-slate-800 bg-slate-900/40 px-4 py-4 text-[0.85rem] text-slate-300">No patients on hold.</div>';
+                } else {
+                    onHoldList.innerHTML = onHold.map(function (q) {
+                        var qn = displayQueueLabel(q, 2);
+                        var docName = drDisplayName(q.doctor && q.doctor.name ? q.doctor.name : '', '');
+                        var patName = patientDisplayName(q.patient && q.patient.name ? q.patient.name : '', '');
+                        var wait = waitLabel(q && q.estimated_wait_minutes != null ? q.estimated_wait_minutes : null);
+                        return '' +
+                            '<div class="rounded-2xl border border-violet-800/40 bg-violet-900/20 px-4 py-3">' +
+                                '<div class="flex items-center justify-between gap-3">' +
+                                    '<div>' +
+                                        '<div class="text-lg md:text-xl font-bold font-queue text-violet-100 whitespace-pre">' + escapeHtml(qn) + '</div>' +
+                                        '<div class="text-sm text-violet-200/80 mt-0.5">' + (patName || 'Patient') + '</div>' +
+                                        (wait ? '<div class="text-xs text-violet-300/60 mt-0.5">' + escapeHtml(wait) + '</div>' : '') +
+                                    '</div>' +
+                                    '<div class="text-right shrink-0">' +
+                                        '<div class="text-sm font-semibold text-violet-200">' + (docName || 'Doctor') + '</div>' +
+                                        (q && q.priority_level != null ? '<div class="text-[0.68rem] text-violet-400/50 mt-0.5">Priority ' + escapeHtml(q.priority_level) + '</div>' : '') +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>';
+                    }).join('');
+                }
+            }
         }
 
         function load() {
@@ -216,9 +331,6 @@
                 });
         }
 
-        if (btnRefresh) {
-            btnRefresh.addEventListener('click', load);
-        }
         if (btnFullscreen) {
             btnFullscreen.addEventListener('click', function () {
                 try {
@@ -234,33 +346,39 @@
 
         load();
 
-        // ── Realtime via Reverb ──
+        // ── Realtime via Reverb (public channel) ──
         (function () {
-            var echoAvailable = typeof window.Echo !== 'undefined' && window.Echo;
-
-            if (echoAvailable) {
-                try {
-                    window.Echo.channel('queue.display')
-                        .listen('.queue.updated', function (data) {
-                            var timeReceived = Date.now();
-                            if (data && data.fired_at) {
-                                var absoluteDelay = timeReceived - data.fired_at;
-                                console.log('[QueueDisplay] Reverb fired: ' + absoluteDelay + 'ms');
-                            }
-                            document.dispatchEvent(new CustomEvent('queue:updated', { detail: data }));
-                            load();
-                        });
-                    console.log('[QueueDisplay] Echo listener attached to queue.display');
-                } catch (e) {
-                    console.error('[QueueDisplay] Echo subscribe failed:', e);
-                    echoAvailable = false;
+            function attachEchoListener() {
+                if (typeof window.Echo !== 'undefined' && window.Echo) {
+                    try {
+                        window.Echo.channel('queue.display')
+                            .listen('.queue.updated', function (data) {
+                                var timeReceived = Date.now();
+                                if (data && data.fired_at) {
+                                    var absoluteDelay = timeReceived - data.fired_at;
+                                    console.log('[QueueDisplay] Reverb fired: ' + absoluteDelay + 'ms');
+                                }
+                                document.dispatchEvent(new CustomEvent('queue:updated', { detail: data }));
+                                load();
+                            });
+                        console.log('[QueueDisplay] Echo listener attached to queue.display (public channel)');
+                        return true;
+                    } catch (e) {
+                        console.error('[QueueDisplay] Echo subscribe failed:', e);
+                    }
                 }
+                return false;
             }
 
-            // Fallback polling only when Echo is unavailable
-            if (!echoAvailable) {
-                console.warn('[QueueDisplay] Echo not available - using 30s polling fallback');
-                setInterval(load, 30000);
+            // Try immediately — Vite module may not be loaded yet on standalone public page
+            if (!attachEchoListener()) {
+                console.log('[QueueDisplay] Echo not ready yet, retrying in 1.5s...');
+                setTimeout(function () {
+                    if (!attachEchoListener()) {
+                        console.warn('[QueueDisplay] Echo not available - using 30s polling fallback');
+                        setInterval(load, 30000);
+                    }
+                }, 1500);
             }
         })();
 

@@ -98,7 +98,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/vitals', [PatientController::class, 'storeVital']);
     Route::get('/patients/report/print', [PatientController::class, 'printPatientReport']);
 
+    Route::get('/me', [UserController::class, 'currentUser']);
     Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::put('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     Route::patch('/notifications/{notification}', [NotificationController::class, 'update']);
     Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy']);
 

@@ -45,12 +45,12 @@
             <span id="headerNotificationBadge" class="hidden absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 border border-white text-white text-[0.62rem] font-semibold leading-[16px] text-center"></span>
         </button>
 
-        <div id="headerNotificationPanel" class="hidden absolute right-0 top-10 w-80 max-h-80 bg-white border border-slate-200 rounded-2xl shadow-[0_10px_30px_rgba(15,23,42,0.18)] overflow-hidden">
+        <div id="headerNotificationPanel" class="hidden absolute right-0 top-10 w-80 max-h-[28rem] bg-white border border-slate-200 rounded-2xl shadow-[0_10px_30px_rgba(15,23,42,0.18)] overflow-hidden">
             <div class="px-3 py-2 border-b border-slate-100 flex items-center justify-between">
                 <p class="text-[0.75rem] font-semibold text-slate-800">Notifications</p>
-                <span class="text-[0.65rem] text-slate-400 uppercase tracking-widest">Activity</span>
+                <button id="headerMarkAllReadBtn" type="button" class="text-[0.65rem] font-semibold text-green-600 hover:text-green-700 hidden">Mark all read</button>
             </div>
-            <div id="headerNotificationBody" class="max-h-64 overflow-y-auto scrollbar-hidden">
+            <div id="headerNotificationBody" class="max-h-72 overflow-y-auto scrollbar-hidden">
                 <div class="px-3 py-3 text-[0.75rem] text-slate-400">
                     Loading notifications...
                 </div>
@@ -161,40 +161,192 @@
                     .replace(/'/g, '&#039;')
             }
 
+            function timeAgo(dateStr) {
+                if (!dateStr) return ''
+                var dt = new Date(dateStr)
+                if (isNaN(dt.getTime())) return ''
+                var now = new Date()
+                var diffMs = now - dt
+                var diffMin = Math.floor(diffMs / 60000)
+                if (diffMin < 1) return 'Just now'
+                if (diffMin < 60) return diffMin + 'm ago'
+                var diffHrs = Math.floor(diffMin / 60)
+                if (diffHrs < 24) return diffHrs + 'h ago'
+                var diffDays = Math.floor(diffHrs / 24)
+                if (diffDays < 7) return diffDays + 'd ago'
+                return dt.toLocaleDateString()
+            }
+
             if (!items || !items.length) {
-                container.innerHTML = '<div class="px-3 py-3 text-[0.75rem] text-slate-400">No notifications at the moment.</div>'
+                container.innerHTML = '<div class="px-3 py-8 text-[0.75rem] text-slate-400 text-center">No notifications at the moment.</div>'
                 return
             }
 
             var html = ''
             items.forEach(function (item) {
                 var type = item && item.type ? String(item.type) : 'system'
-                var title = type === 'appointment' ? 'Appointment update' : (type === 'payment' ? 'Payment update' : 'System')
+                var title = item && item.title ? String(item.title) : 'Notification'
                 var body = item && item.message ? String(item.message) : ''
                 var createdAt = item && item.created_at ? String(item.created_at) : ''
-                var timeLabel = ''
-                if (createdAt) {
-                    var dt = new Date(createdAt)
-                    if (!isNaN(dt.getTime())) {
-                        timeLabel = dt.toLocaleString()
-                    }
-                }
+                var timeLabel = timeAgo(createdAt)
+                var isUnread = item && (item.read_at === null || item.read_at === undefined || item.is_read === false)
+                var nav = item && item.navigation ? item.navigation : null
+                var navRoute = nav && nav.route ? nav.route : null
+                var notificationId = item && item.notification_id != null ? item.notification_id : ''
 
                 var iconHtml = type === 'appointment' ? iconAppointment : (type === 'payment' ? iconPayment : iconSystem)
+                var unreadDot = isUnread ? '<span class="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0 mt-1.5"></span>' : ''
 
-                html += '<div class="px-3 py-2 border-b border-slate-50 last:border-0 flex gap-2">' +
-                    '<div class="mt-0.5">' +
+                html += '<div class="px-3 py-2.5 border-b border-slate-50 last:border-0 flex gap-2.5 hover:bg-slate-50 transition-colors cursor-pointer notification-item" data-notification-id="' + escapeHtml(notificationId) + '" data-navigate="' + escapeHtml(navRoute || '') + '">' +
+                    '<div class="mt-0.5 shrink-0">' +
                     iconHtml +
                     '</div>' +
-                    '<div class="flex-1">' +
-                    '<div class="text-[0.75rem] font-semibold text-slate-800">' + escapeHtml(title) + '</div>' +
-                    '<div class="text-[0.7rem] text-slate-500">' + escapeHtml(body) + '</div>' +
-                    '<div class="text-[0.65rem] text-slate-400 mt-0.5">' + escapeHtml(timeLabel) + '</div>' +
+                    '<div class="flex-1 min-w-0">' +
+                    '<div class="flex items-start justify-between gap-1">' +
+                    '<div class="text-[0.75rem] font-semibold text-slate-800 truncate ' + (isUnread ? '' : 'text-slate-600') + '">' + escapeHtml(title) + '</div>' +
+                    unreadDot +
+                    '</div>' +
+                    '<div class="text-[0.7rem] text-slate-500 line-clamp-2 mt-0.5">' + escapeHtml(body) + '</div>' +
+                    '<div class="flex items-center justify-between mt-1">' +
+                    '<span class="text-[0.62rem] text-slate-400">' + escapeHtml(timeLabel) + '</span>' +
+                    (navRoute ? '<span class="text-[0.62rem] text-green-600 font-semibold">' + escapeHtml(nav.label || 'View') + ' →</span>' : '') +
+                    '</div>' +
                     '</div>' +
                     '</div>'
             })
 
             container.innerHTML = html
+
+            // Attach click handlers for notification navigation
+            container.querySelectorAll('.notification-item').forEach(function (el) {
+                el.addEventListener('click', function () {
+                    var notifId = this.getAttribute('data-notification-id')
+                    var navigate = this.getAttribute('data-navigate')
+
+                    // Mark as read on click
+                    if (notifId) {
+                        markSingleNotificationRead(notifId)
+                    }
+
+                    // Navigate if route is defined
+                    if (navigate) {
+                        handleNotificationNavigation(navigate, itemFromElement(el))
+                    }
+
+                    // Close panel
+                    var panel = document.getElementById('headerNotificationPanel')
+                    if (panel) panel.classList.add('hidden')
+                })
+            })
+        }
+
+        function itemFromElement(el) {
+            var idx = Array.from(el.parentNode.children).indexOf(el)
+            var body = document.getElementById('headerNotificationBody')
+            if (!body) return null
+            var items = body._notificationItems || []
+            return items[idx] || null
+        }
+
+        function markSingleNotificationRead(notifId) {
+            headerApiFetch("{{ url('/api/notifications') }}/" + encodeURIComponent(notifId), {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_read: true })
+            }).catch(function () {})
+        }
+
+        function handleNotificationNavigation(route, item) {
+            if (!item || !item.navigation) return
+
+            var nav = item.navigation
+            var action = nav.action || ''
+            var navigateUrl = nav.navigate_url || ''
+
+            // Special action: open messages modal
+            if (action === 'open-messages-modal') {
+                var msgBtn = document.getElementById('headerMessagesButton')
+                if (msgBtn) {
+                    msgBtn.click()
+                }
+                return
+            }
+
+            // Standard navigation: find sidebar link and click it (uses page roller)
+            if (navigateUrl) {
+                var sidebar = document.getElementById('sidebar-aside')
+                if (sidebar) {
+                    // Normalize both URLs for comparison (handles relative vs absolute mismatch)
+                    var normalizedNavUrl = new URL(navigateUrl, window.location.origin).href.toLowerCase()
+                    var links = sidebar.querySelectorAll('nav a[href]')
+                    var found = false
+                    Array.prototype.some.call(links, function (link) {
+                        try {
+                            var linkUrl = new URL(link.getAttribute('href'), window.location.origin).href.toLowerCase()
+                            if (linkUrl === normalizedNavUrl) {
+                                link.click()
+                                found = true
+                                return true
+                            }
+                        } catch (e) {}
+                        return false
+                    })
+                    if (found) return
+                }
+                // Fallback to full page reload if sidebar link not found
+                window.location.href = navigateUrl
+                return
+            }
+
+            // Fallback: dispatch custom event for legacy support
+            var event = new CustomEvent('notification:navigate', {
+                detail: {
+                    route: route,
+                    notification: item,
+                    params: nav.params || {}
+                }
+            })
+            document.dispatchEvent(event)
+        }
+
+        function setupEchoListener() {
+            if (!window.Echo) return
+
+            headerApiFetch("{{ url('/api/me') }}", { method: 'GET' })
+                .then(function (response) {
+                    return response.json()
+                })
+                .then(function (userData) {
+                    if (!userData || !userData.user_id) return
+                    var userId = String(userData.user_id)
+                    try {
+                        // ── Notification channel ──
+                        window.Echo.private('notifications.' + userId)
+                            .listen('.notification.new', function () {
+                                document.dispatchEvent(new Event('header:refresh-badges'))
+                                var panel = document.getElementById('headerNotificationPanel')
+                                if (panel && !panel.classList.contains('hidden')) {
+                                    loadNotificationPanel(false)
+                                }
+                            })
+
+                        // ── Messages channel ──
+                        window.Echo.private('messages.' + userId)
+                            .listen('.message.new', function () {
+                                // Refresh badges (message count)
+                                document.dispatchEvent(new Event('header:refresh-badges'))
+                                // Trigger conversation list refresh if messages modal is open
+                                var msgModal = document.getElementById('headerMessagesModal')
+                                if (msgModal && !msgModal.classList.contains('hidden')) {
+                                    var refreshBtn = document.getElementById('receptionMessagesRefresh')
+                                    if (refreshBtn) refreshBtn.click()
+                                }
+                            })
+                    } catch (e) {
+                        // Echo setup failed silently
+                    }
+                })
+                .catch(function () {})
         }
 
         function extractNotificationItems(payload) {
@@ -256,9 +408,9 @@
             var notificationCount = 0
 
             ;(Array.isArray(items) ? items : []).forEach(function (item) {
-                if (!item || item.is_read !== false) {
-                    return
-                }
+                if (!item) return
+                var isUnread = item.read_at === null || item.read_at === undefined || item.is_read === false
+                if (!isUnread) return
 
                 if (isMessageNotification(item)) {
                     messageCount += 1
@@ -279,10 +431,24 @@
                 .then(readJsonResult)
         }
 
+        function fetchUnreadCounts() {
+            return headerApiFetch("{{ url('/api/notifications/unread-count') }}", { method: 'GET' })
+                .then(readJsonResult)
+                .then(function (result) {
+                    if (!result.ok || !result.data) {
+                        return { total: 0, messages: 0, notifications: 0 }
+                    }
+                    return result.data
+                })
+                .catch(function () {
+                    return { total: 0, messages: 0, notifications: 0 }
+                })
+        }
+
         function markNotificationsRead(items) {
             var unreadIds = (Array.isArray(items) ? items : [])
                 .filter(function (item) {
-                    return item && item.is_read === false && item.notification_id != null
+                    return item && (item.read_at === null || item.read_at === undefined) && item.notification_id != null
                 })
                 .map(function (item) {
                     return String(item.notification_id)
@@ -314,39 +480,36 @@
             var msgOpenBtn = document.getElementById('headerMessagesButton')
             var msgModal = document.getElementById('headerMessagesModal')
             var msgCloseBtn = document.getElementById('headerMessagesModalClose')
+            var markAllBtn = document.getElementById('headerMarkAllReadBtn')
 
             function refreshHeaderBadges() {
-                return fetchNotifications('?unread_only=1&per_page=100')
-                    .then(function (result) {
-                        if (!result.ok || !result.data) {
-                            setBadgeCount(messagesBadge, 0)
-                            setBadgeCount(notificationBadge, 0)
-                            return []
-                        }
-
-                        var unreadItems = extractNotificationItems(result.data)
-                        var counts = countUnreadBuckets(unreadItems)
-                        setBadgeCount(messagesBadge, counts.messageCount)
-                        setBadgeCount(notificationBadge, counts.notificationCount)
-                        return unreadItems
+                return fetchUnreadCounts()
+                    .then(function (counts) {
+                        setBadgeCount(messagesBadge, counts.messages)
+                        setBadgeCount(notificationBadge, counts.notifications)
+                        return counts
                     })
                     .catch(function () {
                         setBadgeCount(messagesBadge, 0)
                         setBadgeCount(notificationBadge, 0)
-                        return []
+                        return { total: 0, messages: 0, notifications: 0 }
                     })
             }
 
             function markMessageNotificationsRead() {
-                return fetchNotifications('?unread_only=1&per_page=100')
+                return fetchNotifications('?unread_only=1&per_page=100&exclude_message=0')
                     .then(function (result) {
                         if (!result.ok || !result.data) {
                             return null
                         }
 
                         var unreadItems = extractNotificationItems(result.data).filter(function (item) {
-                            return item && item.is_read === false && isMessageNotification(item)
+                            return item && (item.read_at === null || item.read_at === undefined) && isMessageNotification(item)
                         })
+
+                        if (!unreadItems.length) {
+                            return null
+                        }
 
                         return markNotificationsRead(unreadItems)
                     })
@@ -366,8 +529,12 @@
                         }
 
                         var unreadItems = extractNotificationItems(result.data).filter(function (item) {
-                            return item && item.is_read === false && !isMessageNotification(item)
+                            return item && (item.read_at === null || item.read_at === undefined) && !isMessageNotification(item)
                         })
+
+                        if (!unreadItems.length) {
+                            return null
+                        }
 
                         return markNotificationsRead(unreadItems)
                     })
@@ -383,6 +550,7 @@
                 if (body) {
                     body.innerHTML = '<div class="px-3 py-3 text-[0.75rem] text-slate-400">Loading notifications...</div>'
                 }
+                if (markAllBtn) markAllBtn.classList.add('hidden')
 
                 return fetchNotifications('?per_page=15')
                     .then(function (result) {
@@ -394,7 +562,15 @@
                         }
 
                         var items = extractNotificationItems(result.data)
+                        // Store items for later reference
+                        body._notificationItems = items
                         renderNotifications(body, items)
+
+                        // Show mark all read button if there are unread items
+                        var hasUnread = items.some(function (item) {
+                            return item && (item.read_at === null || item.read_at === undefined)
+                        })
+                        if (markAllBtn) markAllBtn.classList.toggle('hidden', !hasUnread)
 
                         if (markAsRead === false) {
                             return refreshHeaderBadges()
@@ -443,6 +619,23 @@
                     panel.classList.add('hidden')
                 }
             })
+
+            // ── Mark All As Read ──
+            if (markAllBtn) {
+                markAllBtn.addEventListener('click', function (e) {
+                    e.stopPropagation()
+                    headerApiFetch("{{ url('/api/notifications/read-all') }}", {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' }
+                    }).then(function () {
+                        markAllBtn.classList.add('hidden')
+                        return loadNotificationPanel(false)
+                    }).catch(function () {})
+                })
+            }
+
+            // ── Real-time Echo listener for new notifications ──
+            setupEchoListener()
 
             // ── Messages Modal toggle ──
             if (msgOpenBtn && msgModal) {

@@ -567,7 +567,13 @@ class TransactionController extends Controller
         };
 
         if ($message !== null) {
-            Notification::notifyReceptionists($message, 'payment');
+            Notification::notifyReceptionists(
+                $message,
+                'payment',
+                'Payment Update',
+                $transaction->transaction_id,
+                'transactions'
+            );
         }
     }
 
@@ -586,7 +592,14 @@ class TransactionController extends Controller
             return;
         }
 
-        Notification::notifyUsers([$patientId], '[Payment Received] Your payment was completed.', 'payment');
+        Notification::notifyUsers(
+            [$patientId],
+            '[Payment Received] Your payment was completed.',
+            'payment',
+            'Payment Received',
+            $transaction->transaction_id,
+            'transactions'
+        );
     }
 
     private function markLinkedAppointmentCompleted(int $appointmentId): void

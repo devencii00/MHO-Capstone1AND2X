@@ -43,7 +43,7 @@
     $nextItems = $boardItems->take(5);
     $doctorPanelItems = $doctorSlots->map(function ($slot) use ($queueItems) {
         $doctorId = (int) ($slot->doctor_id ?? 0);
-        $doctorName = optional($slot->doctor)->personalInformation->full_name ?? 'Doctor';
+        $doctorName = optional($slot->doctor)->personalInformation->full_name ?: (optional($slot->doctor)->email ?? 'Doctor');
         $doctorSpecialization = (string) (optional($slot->doctor)->specialization ?? '');
         $queueForDoctor = $queueItems
             ->filter(function ($row) use ($doctorId) {
@@ -146,12 +146,12 @@
         <div id="receptionQueueError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
         <div id="receptionQueueSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
 
-        <div class="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+        <div id="receptionDoctorMonitorContainer" class="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
             <div class="flex items-center justify-between mb-2">
                 <h4 class="text-[0.72rem] font-semibold uppercase tracking-wider text-slate-600">Doctor serving monitor</h4>
                 <span class="text-[0.68rem] text-slate-400">Based on today&apos;s active schedule</span>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-2 max-h-[360px] overflow-y-auto scrollbar-thin">
                 @forelse ($doctorPanelItems as $doctorState)
                     @php
                         $servingQueue = $doctorState->serving;
@@ -1958,6 +1958,12 @@
                     var newTbody = doc.getElementById('receptionQueueTableBody')
                     if (newTbody) {
                         tbody.innerHTML = newTbody.innerHTML
+                    }
+                    // Also refresh the doctor serving monitor
+                    var newMonitor = doc.getElementById('receptionDoctorMonitorContainer')
+                    var curMonitor = document.getElementById('receptionDoctorMonitorContainer')
+                    if (newMonitor && curMonitor) {
+                        curMonitor.outerHTML = newMonitor.outerHTML
                     }
                     // Update the rows variable for search/sort/pagination
                     rows = Array.prototype.slice.call(document.querySelectorAll('.reception-queue-row'))

@@ -984,6 +984,23 @@ class QueueController extends Controller
 
         $queue->refresh()->load(['appointment.patient', 'appointment.doctor']);
 
+        // Notify doctor when manually set to serving
+        if ($nextStatus === 'serving' && $queue->appointment?->patient) {
+            $doctorId = (int) ($queue->appointment->doctor_id ?? 0);
+            if ($doctorId > 0) {
+                $patientName = trim(($queue->appointment->patient->firstname ?? '') . ' ' . ($queue->appointment->patient->lastname ?? ''));
+                if (!$patientName) $patientName = 'a patient';
+                Notification::notifyUsers(
+                    [$doctorId],
+                    '[Serving] You are now serving ' . $patientName . '.',
+                    'queue',
+                    'Now Serving',
+                    $queue->queue_id,
+                    'queues'
+                );
+            }
+        }
+
         $statusChanged = array_key_exists('status', $data) && (string) $queue->status !== $previousStatus;
         $queueNumberChanged = array_key_exists('queue_number', $data) && (int) $queue->queue_number !== $previousQueueNumber;
 
@@ -1040,7 +1057,10 @@ class QueueController extends Controller
                 Notification::notifyUsers(
                     [(int) $appointment->patient_id],
                     '['.$notificationTitle.'] '.$notificationBody,
-                    'appointment'
+                    'appointment',
+                    'Queue Update',
+                    $queue->queue_id,
+                    'queues'
                 );
             }
         }
@@ -1180,7 +1200,23 @@ class QueueController extends Controller
             $this->activateSkippedQueuesAfterCall($doctorId, $date, (int) $queue->queue_id);
         }
 
-        return $queue->refresh()->load(['appointment.patient', 'appointment.doctor']);
+        $queue = $queue->refresh()->load(['appointment.patient', 'appointment.doctor']);
+
+        // Notify the doctor they are now serving this patient
+        if ($doctorId > 0 && $queue->appointment?->patient) {
+            $patientName = trim(($queue->appointment->patient->firstname ?? '') . ' ' . ($queue->appointment->patient->lastname ?? ''));
+            if (!$patientName) $patientName = 'a patient';
+            Notification::notifyUsers(
+                [$doctorId],
+                '[Serving] You are now serving ' . $patientName . '.',
+                'queue',
+                'Now Serving',
+                $queue->queue_id,
+                'queues'
+            );
+        }
+
+        return $queue;
     }
 
     private function activateSkippedQueuesAfterCall(int $doctorId, string $date, ?int $exceptQueueId = null): void

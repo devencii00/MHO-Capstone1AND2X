@@ -121,7 +121,13 @@ class QueueDisplayController extends Controller
             }
         }
 
-        $next = $boardQueue->take(10)->values();
+        $next = $boardQueue->filter(function ($q) {
+            return (string) ($q->status ?? '') === Queue::STATUS_WAITING;
+        })->take(10)->values();
+
+        $onHold = $boardQueue->filter(function ($q) {
+            return (string) ($q->status ?? '') === Queue::STATUS_ON_HOLD;
+        })->take(5)->values();
 
         $formatPerson = function ($user, string $fallback) {
             if (! $user) {
@@ -374,6 +380,26 @@ class QueueDisplayController extends Controller
                 ];
             })->all(),
             'next' => $next->map(function ($q) use ($formatPerson, $estimatedByQueueId) {
+                $est = $estimatedByQueueId[(int) $q->queue_id] ?? null;
+                return [
+                    'queue_id' => $q->queue_id,
+                    'queue_number' => $q->queue_number,
+                    'queue_code' => $q->queue_code,
+                    'status' => $q->status,
+                    'priority_level' => $q->priority_level,
+                    'estimated_wait_minutes' => $est['estimated_wait_minutes'] ?? null,
+                    'avg_service_minutes' => $est['avg_service_minutes'] ?? null,
+                    'patient' => [
+                        'user_id' => $q->appointment?->patient_id,
+                        'name' => $formatPerson($q->appointment?->patient, 'Patient'),
+                    ],
+                    'doctor' => [
+                        'user_id' => $q->appointment?->doctor_id,
+                        'name' => $formatPerson($q->appointment?->doctor, 'Doctor'),
+                    ],
+                ];
+            })->all(),
+            'on_hold' => $onHold->map(function ($q) use ($formatPerson, $estimatedByQueueId) {
                 $est = $estimatedByQueueId[(int) $q->queue_id] ?? null;
                 return [
                     'queue_id' => $q->queue_id,
