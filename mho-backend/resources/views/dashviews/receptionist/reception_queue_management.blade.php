@@ -85,25 +85,42 @@
     </div>
 
     <div class="flex flex-wrap items-end gap-2 justify-end">
-            <div class="flex-1 min-w-[200px] max-w-[420px]">
+            <div class="relative flex-1 min-w-[200px] max-w-[420px]">
                 <label for="receptionCallNextDoctorId" class="block text-[0.68rem] text-slate-500 mb-1">Call next for</label>
-                <select id="receptionCallNextDoctorId" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.75rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                    <option value="">Auto (any active doctor)</option>
-                    @foreach ($doctorPanelItems as $doctorState)
-                        @php
-                            $doctorNameRaw = trim((string) ($doctorState->doctor_name ?? ''));
-                            $doctorNameClean = preg_replace('/^\s*dr\.?\s*/i', '', $doctorNameRaw);
-                            $doctorNameDisplay = $doctorNameClean !== '' ? $doctorNameClean : 'Doctor';
-                            $doctorSpecialization = trim((string) ($doctorState->doctor_specialization ?? ''));
-                        @endphp
-                        <option value="{{ $doctorState->doctor_id }}">
-                            Dr. {{ $doctorNameDisplay }}
-                            @if ($doctorSpecialization !== '')
-                                - {{ $doctorSpecialization }}
-                            @endif
-                        </option>
-                    @endforeach
-                </select>
+                <input type="hidden" id="receptionCallNextDoctorId" value="">
+                <button type="button" id="receptionCallNextTrigger" class="w-full flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.75rem] text-left hover:border-slate-300 transition-colors">
+                    <span id="receptionCallNextTriggerText" class="flex-1 text-slate-400 truncate">Auto (any active doctor)</span>
+                    <svg class="w-4 h-4 text-slate-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div id="receptionCallNextDropdown" class="hidden absolute left-0 right-0 top-full mt-1 z-50 rounded-xl border border-slate-200 bg-white shadow-lg">
+                    <div class="p-2 border-b border-slate-100">
+                        <input type="text" id="receptionCallNextSearch" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-[0.75rem] outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200" placeholder="Search doctor...">
+                    </div>
+                    <div id="receptionCallNextList" class="max-h-64 overflow-y-auto divide-y divide-slate-50">
+                        <button type="button" class="reception-callnext-option w-full text-left px-3 py-2.5 hover:bg-slate-50 transition-colors" data-value="">
+                            <div class="text-[0.75rem] font-medium text-slate-800">Auto (any active doctor)</div>
+                            <div class="text-[0.65rem] text-slate-400">Let the system decide the next available doctor</div>
+                        </button>
+                        @foreach ($doctorPanelItems as $doctorState)
+                            @php
+                                $doctorNameRaw = trim((string) ($doctorState->doctor_name ?? ''));
+                                $doctorSpecialization = trim((string) ($doctorState->doctor_specialization ?? ''));
+                                $doctorRoom = $doctorState->room_number ? ('Room ' . (int) $doctorState->room_number) : '';
+                            @endphp
+                            <button type="button" class="reception-callnext-option w-full text-left px-3 py-2.5 hover:bg-slate-50 transition-colors" data-value="{{ $doctorState->doctor_id }}">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="text-[0.75rem] font-medium text-slate-800 truncate">Dr. {{ $doctorNameRaw }}</div>
+                                    @if ($doctorRoom)
+                                        <div class="text-[0.6rem] text-slate-400 whitespace-nowrap">{{ $doctorRoom }}</div>
+                                    @endif
+                                </div>
+                                @if ($doctorSpecialization)
+                                    <div class="text-[0.65rem] text-slate-500 mt-0.5">{{ $doctorSpecialization }}</div>
+                                @endif
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
             </div>
             <button id="receptionCallNextButton" type="button" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-700 text-white text-[0.8rem] font-semibold hover:bg-green-600 transition-colors disabled:opacity-70 disabled:hover:bg-green-800 min-w-[122px] relative">
                 <span id="receptionCallNextSpinner" class="hidden absolute w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
@@ -261,7 +278,7 @@
                         <th class="py-2 pr-4 font-semibold">Doctor</th>
                         <th class="py-2 pr-4 font-semibold">Services</th>
                         <th class="py-2 pr-4 font-semibold">Priority</th>
-                        <th class="py-2 pr-4 font-semibold">Date</th>
+                        <th class="py-2 pr-4 font-semibold">Time</th>
                         <th class="py-2 pr-4 font-semibold">Status</th>
                         <th class="py-2 pr-4 font-semibold text-right">Actions</th>
                     </tr>
@@ -273,12 +290,14 @@
                             $doctorName = optional(optional($queue->appointment)->doctor)->personalInformation->full_name ?? '';
                             $statusName = (string) ($queue->status ?? '');
                             $statusDropdownColor = match(strtolower($statusName)) {
+                                'waiting' => 'text-orange-700 border-orange-300 bg-orange-50',
                                 'serving' => 'text-blue-700 border-blue-300 bg-blue-50',
                                 'consulted' => 'text-blue-700 border-blue-300 bg-blue-50',
+                                'skipped' => 'text-orange-700 border-orange-300 bg-orange-50',
                                 'on_hold' => 'text-purple-700 border-purple-300 bg-purple-50',
                                 default => 'text-slate-700 border-slate-200 bg-white',
                             };
-                            $dateKey = $queue->queue_datetime ? $queue->queue_datetime->format('Y-m-d H:i') : '';
+                            $dateKey = $queue->queue_datetime ? $queue->queue_datetime->format('H:i') : '';
                             $queueId = $queue->queue_id ?? null;
                             $priority = (int) ($queue->priority_level ?? 5);
                             $priorityLabel = match ($priority) {
@@ -302,12 +321,6 @@
                                 ? ($servicePrimary['name'] . ($servicePrimary['description'] ? ' - ' . $servicePrimary['description'] : ''))
                                 : null;
                             $statusNameLower = strtolower($statusName);
-                             $statusDropdownColor = match($statusNameLower) {
-                                 'serving' => 'text-blue-700 border-blue-300 bg-blue-50',
-                                 'consulted' => 'text-blue-700 border-blue-300 bg-blue-50',
-                                 'on_hold' => 'text-purple-700 border-purple-300 bg-purple-50',
-                                 default => 'text-slate-700 border-slate-200 bg-white',
-                             };
                              $statusBadgeColor = match($statusNameLower) {
                                  'waiting' => 'border-orange-200 bg-orange-50 text-orange-700',
                                  'serving' => 'bg-blue-50 text-blue-700 border-blue-100',
@@ -398,7 +411,7 @@
                                     @if (in_array(strtolower($statusName), ['done', 'cancelled', 'no_show', 'consulted'], true))
                                         <span class="inline-flex items-center gap-1.5 text-[0.7rem] text-slate-400">
                                             @if (strtolower($statusName) === 'consulted')
-                                                <span class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[0.68rem] font-medium text-slate-600">
+                                                <span class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[0.68rem] font-medium text-slate-600 cursor-pointer hover:bg-slate-100" onclick="window.navigateSpa('{{ route('dashboard', ['role' => 'receptionist', 'section' => 'record-payment']) }}&select_appt={{ optional($queue->appointment)->appointment_id }}')">
                                                     <x-lucide-lock class="w-3 h-3" />
                                                     Waiting for payment
                                                 </span>
@@ -721,6 +734,58 @@
         var configSave = document.getElementById('receptionQueueConfigSave')
         var configQueueId = null
         var callNextDoctorSelect = document.getElementById('receptionCallNextDoctorId')
+
+        // ── Custom combobox for doctor selection ──
+        var callNextTrigger = document.getElementById('receptionCallNextTrigger')
+        var callNextDropdown = document.getElementById('receptionCallNextDropdown')
+        var callNextSearch = document.getElementById('receptionCallNextSearch')
+        var callNextTriggerText = document.getElementById('receptionCallNextTriggerText')
+        var callNextOptions = function () { return Array.prototype.slice.call(document.querySelectorAll('.reception-callnext-option')) }
+
+        if (callNextTrigger && callNextDropdown) {
+            callNextTrigger.addEventListener('click', function (e) {
+                e.stopPropagation()
+                callNextDropdown.classList.toggle('hidden')
+                if (!callNextDropdown.classList.contains('hidden') && callNextSearch) {
+                    callNextSearch.value = ''
+                    callNextSearch.focus()
+                    callNextOptions().forEach(function (o) { o.classList.remove('hidden') })
+                }
+            })
+            document.addEventListener('click', function (e) {
+                if (!callNextDropdown.classList.contains('hidden') && !callNextTrigger.contains(e.target) && !callNextDropdown.contains(e.target)) {
+                    callNextDropdown.classList.add('hidden')
+                }
+            })
+            if (callNextSearch) {
+                callNextSearch.addEventListener('input', function () {
+                    var q = callNextSearch.value.trim().toLowerCase()
+                    callNextOptions().forEach(function (o) {
+                        var txt = (o.textContent || '').toLowerCase()
+                        o.classList.toggle('hidden', q !== '' && txt.indexOf(q) === -1)
+                    })
+                })
+                callNextSearch.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') { callNextDropdown.classList.add('hidden'); return }
+                    var vis = callNextOptions().filter(function (o) { return !o.classList.contains('hidden') })
+                    if (e.key === 'ArrowDown' && vis.length) { vis[0].focus(); e.preventDefault() }
+                })
+            }
+            document.addEventListener('click', function (e) {
+                var opt = e.target && e.target.closest ? e.target.closest('.reception-callnext-option') : null
+                if (!opt) return
+                var val = opt.getAttribute('data-value') || ''
+                callNextDoctorSelect.value = val
+                var label = val ? (opt.querySelector('.text-[0.75rem]') ? opt.querySelector('.text-[0.75rem]').textContent.trim() : 'Doctor') : 'Auto (any active doctor)'
+                callNextTriggerText.textContent = label
+                callNextTriggerText.className = 'flex-1 truncate ' + (val ? 'text-slate-800' : 'text-slate-400')
+                callNextDropdown.classList.add('hidden')
+            })
+            // Close dropdown on Escape key
+            callNextDropdown.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') callNextDropdown.classList.add('hidden')
+            })
+        }
 
         // ── Doctor Picker ──
         var doctorPickerOverlay = document.getElementById('recQueueDoctorPickerOverlay')

@@ -111,16 +111,17 @@
         <table class="w-full text-left text-[0.75rem] text-slate-600 whitespace-nowrap">
             <thead class="text-slate-500 border-b border-slate-100">
                 <tr>
-                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Date</th>
+                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Time</th>
                     <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Reference</th>
                     <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Patient</th>
                     <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Type</th>
                     <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Net</th>
+                    <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Status</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100" id="receptionTodaysTransactionsTableBody">
                 <tr>
-                    <td colspan="5" class="px-4 py-8 text-center text-slate-400">
+                    <td colspan="6" class="px-4 py-8 text-center text-slate-400">
                         No transactions recorded today.
                     </td>
                 </tr>
@@ -565,7 +566,7 @@ if (!next.length) {
                 function renderTransactions() {
                     if (!txTableBody) return
                     if (!transactions.length) {
-                        txTableBody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-slate-400">No transactions recorded today.</td></tr>'
+                        txTableBody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">No transactions recorded today.</td></tr>'
                         renderTxPagination()
                         return
                     }
@@ -581,12 +582,18 @@ if (!next.length) {
                         var gross = tx.amount || 0
                         var disc = tx.discount_amount || 0
                         var net = parseFloat(gross) - parseFloat(disc)
-                        html += '<tr class="cursor-pointer hover:bg-green-50/50" onclick="window.location.href=\'{{ route('dashboard', ['role' => 'receptionist', 'section' => 'record-payment']) }}\'">' +
+                        var txStatus = tx && (tx.status || tx.payment_status) ? String(tx.status || tx.payment_status) : 'Pending'
+                        var statusBadge = txStatus.toLowerCase() === 'paid'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                            : 'bg-orange-50 text-orange-700 border-orange-100'
+                        var statusLabel = txStatus.charAt(0).toUpperCase() + txStatus.slice(1)
+                        html += '<tr class="cursor-pointer hover:bg-green-50/50" onclick="window.navigateSpa(\'{{ route('dashboard', ['role' => 'receptionist', 'section' => 'record-payment']) }}&tab=transactions\')">' +
                             '<td class="px-4 py-2">' + escapeHtml(dateStr) + '</td>' +
                             '<td class="px-4 py-2">' + escapeHtml(ref) + '</td>' +
                             '<td class="px-4 py-2">' + escapeHtml(patient) + '</td>' +
                             '<td class="px-4 py-2"><span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border ' + (typeLabel === 'Walk-in' ? 'bg-sky-50 text-sky-700 border-sky-100' : 'bg-purple-50 text-purple-700 border-purple-100') + '">' + escapeHtml(typeLabel) + '</span></td>' +
                             '<td class="px-4 py-2 text-right font-medium text-slate-700">₱' + escapeHtml(net.toFixed(2)) + '</td>' +
+                            '<td class="px-4 py-2"><span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border ' + statusBadge + '">' + escapeHtml(statusLabel) + '</span></td>' +
                         '</tr>'
                     })
                     txTableBody.innerHTML = html
@@ -596,7 +603,9 @@ if (!next.length) {
                 function txDatePart(tx) {
                     var raw = tx && tx.transaction_datetime ? String(tx.transaction_datetime) : ''
                     if (!raw) raw = tx && tx.created_at ? String(tx.created_at) : ''
-                    return raw ? raw.replace('T', ' ').slice(0, 16) : '-'
+                    if (!raw) return '-'
+                    var match = raw.match(/(\d{2}:\d{2})/)
+                    return match ? match[1] : '-'
                 }
 
                 function txPatientName(tx) {
@@ -633,17 +642,20 @@ if (!next.length) {
                         })
                         .then(function (result) {
                             if (!result.ok || !result.data) {
-                                if (txTableBody) txTableBody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">Unable to load transactions.</td></tr>'
+                                if (txTableBody) txTableBody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">Unable to load transactions.</td></tr>'
                                 return
                             }
-                            transactions = Array.isArray(result.data.data) ? result.data.data.slice() : (Array.isArray(result.data) ? result.data.slice() : [])
+                            transactions = (Array.isArray(result.data.data) ? result.data.data.slice() : (Array.isArray(result.data) ? result.data.slice() : []))
+                                .filter(function(tx) {
+                                    return tx && String(tx.payment_status || '').toLowerCase() === 'paid'
+                                })
                             txCurrentPage = result.data.current_page || page
                             txLastPage = result.data.last_page || 1
                             txTotal = result.data.total || transactions.length
                             renderTransactions()
                         })
                         .catch(function () {
-                            if (txTableBody) txTableBody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">Unable to load transactions.</td></tr>'
+                            if (txTableBody) txTableBody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">Unable to load transactions.</td></tr>'
                         })
                 }
 

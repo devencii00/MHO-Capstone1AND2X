@@ -85,6 +85,9 @@
                     var searchQuery = ''
                     var displayLimit = 6
                     var searchTimer = null
+                    var messagePage = 1
+                    var hasMoreMessages = false
+                    var allLoadedMessages = []
 
                     if (root && root.dataset.initialized === '1') {
                         return
@@ -378,13 +381,18 @@
                         })
                     }
 
-                    // ── Load messages ──
+                    // ── Load messages with pagination ──
 
-                    function loadMessages(conversationId) {
+                    function loadMessages(conversationId, page) {
+                        page = page || 1
                         if (!messageList || !conversationId) return
-                        messageList.innerHTML = '<div class="text-[0.78rem] text-slate-400">Loading messages…</div>'
 
-                        apiFetch("{{ url('/api/conversations') }}/" + encodeURIComponent(conversationId) + "/messages?per_page=200&mark_read=1", { method: 'GET' })
+                        if (page === 1) {
+                            messageList.innerHTML = '<div class="text-[0.78rem] text-slate-400">Loading messages…</div>'
+                            allLoadedMessages = []
+                        }
+
+                        apiFetch("{{ url('/api/conversations') }}/" + encodeURIComponent(conversationId) + "/messages?per_page=10&page=" + page + "&mark_read=1", { method: 'GET' })
                             .then(function (response) {
                                 return response.text().then(function (text) {
                                     var data = null
@@ -394,32 +402,29 @@
                             })
                             .then(function (result) {
                                 if (!result.ok) {
-                                    messageList.innerHTML = '<div class="text-[0.78rem] text-red-500">Failed to load messages.</div>'
+                                    if (page === 1) messageList.innerHTML = '<div class="text-[0.78rem] text-red-500">Failed to load messages.</div>'
                                     return
                                 }
                                 var payload = result.data
-                                var items = Array.isArray(payload.data) ? payload.data : (Array.isArray(payload) ? payload : [])
-                                items = items.slice().reverse()
-                                if (!items.length) {
-                                    messageList.innerHTML = '<div class="text-[0.78rem] text-slate-400">No messages yet.</div>'
-                                    return
+                                // API returns newest-first; reverse to display oldest at top
+                                var items = Array.isArray(payload.data) ? payload.data.slice().reverse() : []
+
+                                if (page === 1) {
+                                    allLoadedMessages = items
+                                } else {
+                                    // Prepend older messages above current ones
+                                    allLoadedMessages = items.concat(allLoadedMessages)
                                 }
 
-                                var html = ''
-                                items.forEach(function (m) {
-                                    var isPatient = m.sender === 'user'
-                                    var bubbleClass = isPatient ? 'bg-slate-100 text-slate-800' : 'bg-green-600 text-white'
-                                    var alignClass = isPatient ? 'justify-start' : 'justify-end'
-                                    var senderName = isPatient ? 'Patient' : 'Receptionist/System'
-                                    html += '<div class="flex ' + alignClass + '">' +
-                                        '<div class="max-w-[85%] rounded-2xl px-3 py-2 ' + bubbleClass + '">' +
-                                            '<div class="text-[0.68rem] opacity-80 mb-1">' + escapeHtml(senderName) + '</div>' +
-                                            '<div class="text-[0.8rem] whitespace-pre-wrap break-words">' + escapeHtml(m.message_text || '') + '</div>' +
-                                        '</div>' +
-                                    '</div>'
-                                })
-                                messageList.innerHTML = html
-                                scrollMessagesToBottom()
+                                hasMoreMessages = payload.current_page < payload.last_page
+                                messagePage = page
+
+                                renderAllMessages(allLoadedMessages, hasMoreMessages, conversationId)
+
+                                // Scroll to bottom only on first load
+                                if (page === 1) {
+                                    scrollMessagesToBottom()
+                                }
 
                                 // Mark conversation as read locally and re-render
                                 var convo = conversations.find(function (x) { return String(x.conversation_id) === String(conversationId) })
@@ -429,8 +434,46 @@
                                 }
                             })
                             .catch(function () {
-                                messageList.innerHTML = '<div class="text-[0.78rem] text-red-500">Network error while loading messages.</div>'
+                                if (page === 1) messageList.innerHTML = '<div class="text-[0.78rem] text-red-500">Network error while loading messages.</div>'
                             })
+                    }
+
+                    function renderAllMessages(messages, hasMore, conversationId) {
+                        if (!messages.length) {
+                            messageList.innerHTML = '<div class="text-[0.78rem] text-slate-400">No messages yet.</div>'
+                            return
+                        }
+
+                        var html = ''
+
+                        // "Load older messages" button at the top
+                        if (hasMore) {
+                            html += '<div class="text-center py-1">' +
+                                '<button type="button" class="receptionLoadMoreMessages text-[0.7rem] font-semibold text-green-600 hover:text-green-700 transition-colors">Load older messages</button>' +
+                            '</div>'
+                        }
+
+                        messages.forEach(function (m) {
+                            var isPatient = m.sender === 'user'
+                            var bubbleClass = isPatient ? 'bg-slate-100 text-slate-800' : 'bg-green-600 text-white'
+                            var alignClass = isPatient ? 'justify-start' : 'justify-end'
+                            var senderName = isPatient ? 'Patient' : 'Receptionist/System'
+                            html += '<div class="flex ' + alignClass + '">' +
+                                '<div class="max-w-[85%] rounded-2xl px-3 py-2 ' + bubbleClass + '">' +
+                                    '<div class="text-[0.68rem] opacity-80 mb-1">' + escapeHtml(senderName) + '</div>' +
+                                    '<div class="text-[0.8rem] whitespace-pre-wrap break-words">' + escapeHtml(m.message_text || '') + '</div>' +
+                                '</div>' +
+                            '</div>'
+                        })
+
+                        messageList.innerHTML = html
+
+                        // Bind load more button
+                        messageList.querySelectorAll('.receptionLoadMoreMessages').forEach(function (btn) {
+                            btn.addEventListener('click', function () {
+                                loadMessages(conversationId, messagePage + 1)
+                            })
+                        })
                     }
 
                     // ── Search with debounce ──

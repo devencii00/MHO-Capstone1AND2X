@@ -2747,7 +2747,7 @@ function setWalkInTab(tab) {
                 .filter(function (v) { return String(v || '').trim() !== '' })
                 .join(' ')
                 .trim()
-            if (!name) name = 'User #' + (patient.user_id != null ? patient.user_id : '')
+            if (!name) name = patient.email || ''
             return name
         }
 
@@ -3765,7 +3765,7 @@ function setWalkInTab(tab) {
                 } else {
                     var parts = []
                     var name = [patient.firstname, patient.middlename, patient.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
-                    if (!name) name = 'User #' + patient.user_id
+                    if (!name) name = patient.email || ''
                     parts.push('Name: ' + name)
                     if (patient.birthdate) parts.push('Birthdate: ' + String(patient.birthdate).slice(0, 10))
                     if (patient.contact_number) parts.push('Contact: ' + patient.contact_number)
@@ -3861,7 +3861,7 @@ function setWalkInTab(tab) {
             var html = ''
             list.forEach(function (p) {
                 var name = [p.firstname, p.middlename, p.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
-                if (!name) name = 'User #' + p.user_id
+                if (!name) name = p.email || ''
                 var meta = [p.email, p.contact_number].filter(Boolean).join(' • ')
                 html += '<button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50 border-b border-slate-100 last:border-0">' +
                     '<div class="text-[0.78rem] text-slate-800 font-semibold">' + escapeHtml(name) + '</div>' +

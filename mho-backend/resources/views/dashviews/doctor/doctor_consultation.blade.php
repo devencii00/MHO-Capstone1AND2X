@@ -115,7 +115,7 @@
                         <span class="text-[0.68rem] font-semibold text-slate-700 uppercase tracking-wider">Patient Details</span>
                     </div>
                     <div>
-                        <div id="consultPatientName" class="text-[0.95rem] font-semibold text-slate-900">-</div>
+                        <div id="consultPatientName" class="text-[0.95rem] font-semibold text-slate-900 truncate">-</div>
                         <div id="consultPatientMeta" class="text-[0.72rem] text-slate-500">-</div>
                     </div>
                     <dl class="text-[0.72rem] text-slate-600 space-y-0.5">
@@ -1712,6 +1712,7 @@
             state.currentAppointmentType = ''
             state.currentAppointmentStatus = ''
             state.currentQueueStatus = ''
+            state.currentQueueId = null
             state.currentDoctorId = null
             state.currentReasonForVisit = ''
             state.followUpWalkInNote = ''
@@ -2075,6 +2076,7 @@
                 state.currentAppointmentType = appt.appointment_type || ''
                 state.currentAppointmentStatus = appt.status || ''
                 state.currentQueueStatus = appt.queue && appt.queue.status ? appt.queue.status : ''
+                state.currentQueueId = appt.queue && appt.queue.queue_id ? appt.queue.queue_id : null
                 state.currentDoctorId = appt.doctor_id || null
                 state.currentReasonForVisit = appt.reason_for_visit || ''
 
@@ -2712,11 +2714,26 @@
             var shouldSavePrescription = prescriptionRows.length > 0 || !!state.prescriptionId
 
             // Step 1: Mark appointment as "consulted" FIRST so TransactionController allows payment recording
-            return api('{{ url('/api/appointments') }}/' + state.appointmentId, {
+            var consultedPromise = api('{{ url('/api/appointments') }}/' + state.appointmentId, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'consulted' }),
-            }).then(function () {
+            })
+            // For walk-in, also mark the connected queue as "consulted"
+            if (isWalkInAppointment() && state.currentQueueId) {
+                consultedPromise = consultedPromise.then(function () {
+                    // Skip if queue is already consulted (backend may auto-transition it)
+                    if (normalizeString(state.currentQueueStatus) === 'consulted') return
+                    return api('{{ url('/api/queues') }}/' + state.currentQueueId, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: 'consulted' }),
+                    }).catch(function () {
+                        // Queue update is best-effort — appointment is already marked consulted
+                    })
+                })
+            }
+            return consultedPromise.then(function () {
                 markSelectedAppointmentConsulted()
 
                 // Step 2: Save transaction (now allowed because status is "consulted")
@@ -2803,8 +2820,8 @@
                 return loadExistingDraft()
             }).then(function () {
                 var successMessage = shouldSavePrescription
-                    ? 'Saved consultation and prescription successfully. Appointment is now consulted.'
-                    : 'Saved consultation notes successfully. Appointment is now consulted and remains active until payment is recorded.'
+                    ? 'Consultation & prescription saved. Pending payment.'
+                    : 'Consultation & notes saved. Pending payment.'
                 showSaveSuccess(successMessage, !!state.lastSavedTransactionId)
                 return loadHistory(state.patientId)
             }).then(function () {

@@ -1114,9 +1114,24 @@
                     }
                     var rows = Array.isArray(result.data.data) ? result.data.data.slice() : (Array.isArray(result.data) ? result.data.slice() : [])
 
+                    // Keep only the most recent transaction per patient
+                    rows.sort(function (a, b) {
+                        var da = a && a.created_at ? String(a.created_at) : ''
+                        var db = b && b.created_at ? String(b.created_at) : ''
+                        if (da < db) return 1; if (da > db) return -1; return 0
+                    })
+                    var seenPatient = {}
+                    rows = rows.filter(function (a) {
+                        var pid = a && a.appointment && a.appointment.patient && a.appointment.patient.user_id != null ? String(a.appointment.patient.user_id) : ''
+                        if (!pid) return true
+                        if (seenPatient[pid]) return false
+                        seenPatient[pid] = true
+                        return true
+                    })
+
                     txCurrentPage = result.data.current_page || page
                     txLastPage = result.data.last_page || 1
-                    txTotal = result.data.total || rows.length
+                    txTotal = rows.length
                     txAllRows = rows
 
                     renderTransactions(rows)
@@ -1358,6 +1373,38 @@
         if (txTab) txTab.addEventListener('click', function () { setBillingTab('transactions') })
         setBillingTab('record')
 
+        // Auto-switch to Transactions tab if navigated with ?tab=transactions
+        ;(function () {
+            var tabParam = null
+            try {
+                tabParam = new URL(window.location.href).searchParams.get('tab')
+            } catch (_) {}
+            if (tabParam === 'transactions') {
+                setBillingTab('transactions')
+            }
+        })()
+
+        // Auto-select appointment if navigated with ?select_appt=ID
+        ;(function () {
+            var apptId = null
+            try {
+                apptId = new URL(window.location.href).searchParams.get('select_appt')
+            } catch (_) {}
+            if (apptId && typeof apiFetch === 'function') {
+                apiFetch("{{ url('/api/appointments') }}/" + encodeURIComponent(apptId), { method: 'GET' })
+                    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d } }) })
+                    .then(function (result) {
+                        if (result.ok) {
+                            var appt = result.data && result.data.data ? result.data.data : result.data
+                            if (appt && appt.appointment_id) {
+                                setAppointmentSelection(appt)
+                            }
+                        }
+                    })
+                    .catch(function () {})
+            }
+        })()
+
         if (discountToggle) {
             discountToggle.addEventListener('click', function () {
                 showDiscount = !showDiscount
@@ -1520,6 +1567,32 @@
                                     details['Change'] = money(svChange)
                                 }
                                 showReceipt(details)
+
+                                // Walk-in: mark queue "done" + appointment "completed"
+                                // Scheduled: mark appointment "completed"
+                                var apptType = normalizeAppointmentType(selectedAppointment && selectedAppointment.appointment_type)
+                                if (apptType === 'walk_in') {
+                                    var queueId = selectedAppointment && selectedAppointment.queue && selectedAppointment.queue.queue_id
+                                    if (queueId) {
+                                        apiFetch("{{ url('/api/queues') }}/" + encodeURIComponent(queueId), {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ status: 'done' })
+                                        })
+                                    }
+                                    apiFetch("{{ url('/api/appointments') }}/" + encodeURIComponent(appointmentId), {
+                                        method: 'PATCH',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ status: 'completed' })
+                                    })
+                                } else {
+                                    apiFetch("{{ url('/api/appointments') }}/" + encodeURIComponent(appointmentId), {
+                                        method: 'PATCH',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ status: 'completed' })
+                                    })
+                                }
+
                                 resetAppointmentSelection()
                                 showDiscount = false
                                 updateDiscountUI()
