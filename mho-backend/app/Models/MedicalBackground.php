@@ -19,13 +19,11 @@ class MedicalBackground extends Model
         'name',
         'notes',
         'diagnosis_date',
-        'diagnosis_time',
         'procedure_date',
     ];
 
     protected $casts = [
-        'diagnosis_date' => 'date',
-        'diagnosis_time' => 'datetime:H:i:s',
+        'diagnosis_date' => 'datetime',
         'procedure_date' => 'date',
     ];
 

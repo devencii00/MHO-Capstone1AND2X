@@ -56,7 +56,6 @@ class MedicalBackgroundController extends Controller
             'name' => ['required', 'string'],
             'notes' => ['nullable', 'string'],
             'diagnosis_date' => ['nullable', 'date'],
-            'diagnosis_time' => ['nullable', 'date_format:H:i'],
             'procedure_date' => ['nullable', 'date'],
         ];
 
@@ -116,7 +115,6 @@ class MedicalBackgroundController extends Controller
             'name' => ['sometimes', 'string'],
             'notes' => ['sometimes', 'nullable', 'string'],
             'diagnosis_date' => ['nullable', 'date'],
-            'diagnosis_time' => ['nullable', 'date_format:H:i'],
             'procedure_date' => ['nullable', 'date'],
         ]);
 

@@ -125,6 +125,10 @@ class AppointmentController extends Controller
                         });
                     }
                 });
+
+                $q->orWhereHas('queue', function ($qu) use ($contains) {
+                    $qu->where('queue_code', 'like', $contains);
+                });
             });
         }
 

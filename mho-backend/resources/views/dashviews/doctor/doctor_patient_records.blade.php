@@ -17,9 +17,8 @@
         <div class="w-full md:w-44">
             <label for="doctor_pr_sort" class="block text-[0.7rem] text-slate-600 mb-1">Sort</label>
             <select id="doctor_pr_sort" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                <option value="name_asc">Name A-Z</option>
-                <option value="created_desc">Newest first</option>
-                <option value="created_asc">Oldest first</option>
+                <option value="visit_asc">Last Visit ASC</option>
+                <option value="visit_desc">Last Visit DESC</option>
             </select>
         </div>
         <div class="w-full md:w-28 pt-1">
@@ -103,12 +102,12 @@
             <button type="button" class="doctor-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="background">Medical Background</button>
             <button type="button" class="doctor-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="visits">Visit History</button>
             <button type="button" class="doctor-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="vitals">Vitals History</button>
-            <button type="button" class="doctor-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="dependents">Dependents</button>
+            <button type="button" id="doctorPrViewTabDependentsBtn" class="doctor-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="dependents">Dependents</button>
         </div>
 
         <div id="doctorPrViewBody" class="p-5 overflow-y-auto flex-1">
             {{-- Profile Info Tab --}}
-            <div id="doctorPrViewTabProfile" class="doctor-pr-view-tab-content min-h-[420px]">
+            <div id="doctorPrViewTabProfile" class="doctor-pr-view-tab-content h-[420px] overflow-y-auto">
                 {{-- Edit mode toggle --}}
                 <div class="flex gap-2 mb-4">
                     <button type="button" id="doctorPrViewEditBtn" class="inline-flex items-center gap-1 text-[0.78rem] font-semibold text-green-700 hover:text-green-800 transition-colors">
@@ -313,17 +312,17 @@
             {{-- Type & Verification Tab --}}
             <div id="doctorPrViewTabVerification" class="hidden doctor-pr-view-tab-content min-h-[420px]">
                 <div class="space-y-3">
-                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                        <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification status</div>
-                        <div id="doctorPrViewVerificationStatus" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
+                    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                        <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Verification status</div>
+                        <div id="doctorPrViewVerificationStatus" class="text-[0.8rem] font-semibold text-slate-800 mt-1">-</div>
                     </div>
-                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                        <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient type</div>
-                        <div id="doctorPrViewPatientType" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
+                    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                        <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Patient type</div>
+                        <div id="doctorPrViewPatientType" class="text-[0.8rem] font-semibold text-slate-800 mt-1">-</div>
                     </div>
-                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                        <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification ID</div>
-                        <div id="doctorPrViewVerificationId" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
+                    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                        <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Verification ID</div>
+                        <div id="doctorPrViewVerificationId" class="text-[0.8rem] font-semibold text-slate-800 mt-1">-</div>
                     </div>
                 </div>
             </div>
@@ -336,6 +335,69 @@
             <div id="doctorPrViewTabVitals" class="hidden doctor-pr-view-tab-content min-h-[420px]"></div>
             {{-- Dependents Tab --}}
             <div id="doctorPrViewTabDependents" class="hidden doctor-pr-view-tab-content min-h-[420px]"></div>
+        </div>
+    </div>
+</div>
+
+{{-- Visit Details Modal --}}
+<div id="doctorVisitDetailOverlay" class="hidden fixed inset-0 z-[70] bg-slate-900/40 items-center justify-center p-4">
+    <div class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)]">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+            <div>
+                <div class="text-sm font-semibold text-slate-900">Visit Details</div>
+                <div id="doctorVisitDetailSubtitle" class="text-[0.72rem] text-slate-500">Appointment and clinical information.</div>
+            </div>
+            <button type="button" id="doctorVisitDetailClose" class="text-slate-400 hover:text-slate-600">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="p-5 space-y-4" id="doctorVisitDetailBody">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Appointment date</div>
+                    <div id="doctorVisitDetailDate" class="text-[0.82rem] font-semibold text-slate-800 mt-1">-</div>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Doctor</div>
+                    <div id="doctorVisitDetailDoctor" class="text-[0.82rem] font-semibold text-slate-800 mt-1">-</div>
+                </div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Services inquired</div>
+                <div id="doctorVisitDetailServices" class="text-[0.8rem] text-slate-700 mt-1">-</div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Fees</div>
+                    <div id="doctorVisitDetailFees" class="text-[0.82rem] font-semibold text-slate-800 mt-1">-</div>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Payment status</div>
+                    <div id="doctorVisitDetailPayment" class="text-[0.82rem] font-semibold text-slate-800 mt-1">-</div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Status</div>
+                    <div id="doctorVisitDetailStatus" class="mt-1">-</div>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Appointment type</div>
+                    <div id="doctorVisitDetailApptType" class="text-[0.82rem] font-semibold text-slate-800 mt-1">-</div>
+                </div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Diagnosis</div>
+                <div id="doctorVisitDetailDiagnosis" class="text-[0.8rem] text-slate-700 mt-1">-</div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Treatment notes</div>
+                <div id="doctorVisitDetailTreatment" class="text-[0.8rem] text-slate-700 mt-1">-</div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Prescriptions</div>
+                <div id="doctorVisitDetailPrescriptions" class="text-[0.8rem] text-slate-700 mt-1">-</div>
+            </div>
         </div>
     </div>
 </div>
@@ -516,8 +578,8 @@
             </div>
 
             <div id="doctorPrReportModalForm" class="px-5 py-4 space-y-4">
-                <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                    <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient</div>
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Patient</div>
                     <div id="doctorPrReportPatientName" class="text-[0.82rem] font-semibold text-slate-800 mt-0.5">-</div>
                 </div>
 
@@ -581,6 +643,7 @@
         var pagination = document.getElementById('doctorPrPagination')
         var patientRows = []
         var patientMeta = { current_page: 1, last_page: 1, total: 0, per_page: 15 }
+        var patientAgeCounts = null
         var currentPage = 1
         var visibleCount = 6
 
@@ -621,6 +684,7 @@
         var viewPatientType = document.getElementById('doctorPrViewPatientType')
         var viewVerificationId = document.getElementById('doctorPrViewVerificationId')
 
+        var medBgEditingId = null
         var currentViewTab = 'profile'
 
         var patientEditOverlay = document.getElementById('doctorPrEditOverlay')
@@ -667,6 +731,7 @@
         var cachedVisitRows = null
         var cachedVitalRows = null
         var cachedDependentRows = null
+        var cachedParentData = null
         var currentPatientId = null
         var activeDependentRecord = null
         var activeDependentTab = 'background'
@@ -705,6 +770,22 @@
             if (k === 'allergy_drug') return 'Drug'
             if (k === 'condition') return 'Condition'
             return k || '-'
+        }
+
+        function buildCategoryOptions(selected) {
+            var sel = String(selected || '')
+            var opts = [
+                { value: '', label: '- Select -' },
+                { value: 'allergy_food', label: 'Food Allergy' },
+                { value: 'allergy_drug', label: 'Drug Allergy' },
+                { value: 'condition', label: 'Condition' },
+            ]
+            var html = ''
+            opts.forEach(function (o) {
+                var selectedAttr = o.value === sel ? ' selected' : ''
+                html += '<option value="' + escapeHtml(o.value) + '"' + selectedAttr + '>' + escapeHtml(o.label) + '</option>'
+            })
+            return html
         }
 
         function fullName(p, fallback) {
@@ -795,28 +876,53 @@
             var container = viewTabContents[tabKey]
             if (!container) return
             if (tabKey === 'background') {
-                var headers = ['Category', 'Name', 'Diagnosis Date', 'Procedure Date', 'Notes']
+                var headers = ['Category', 'Name', 'Diagnosis Date', 'Procedure Date', 'Notes', '']
                 if (cachedMedBgRows == null) {
                     container.innerHTML = buildTableHtml(headers, '', 'No medical background entries found.', 'Loading medical background entries...')
                     return
                 }
                 var rowsHtml = ''
                 cachedMedBgRows.forEach(function (row) {
-                    var diagnosisDate = row && row.diagnosis_date ? String(row.diagnosis_date) : ''
-                    var diagnosisTime = row && row.diagnosis_time ? String(row.diagnosis_time) : ''
-                    if (diagnosisDate || diagnosisTime) diagnosisDate = (diagnosisDate || '') + (diagnosisTime ? ' ' + diagnosisTime.slice(0, 5) : '')
-                    var procedureDate = row && row.procedure_date ? String(row.procedure_date) : ''
-                    rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
-                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(categoryLabel(row.category)) + '</td>' +
-                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(row && row.name ? String(row.name) : '-') + '</td>' +
-                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosisDate ? escapeHtml(diagnosisDate) : '<span class="text-slate-400">-</span>') + '</td>' +
-                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (procedureDate ? escapeHtml(procedureDate) : '<span class="text-slate-400">-</span>') + '</td>' +
-                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (row && row.notes ? escapeHtml(String(row.notes)) : '<span class="text-slate-400">-</span>') + '</td>' +
-                    '</tr>'
+                    var rowId = row && row.medical_background_id ? String(row.medical_background_id) : ''
+                    var rawDate = row && row.diagnosis_date ? String(row.diagnosis_date) : ''
+                    var diagnosisDate = rawDate ? rawDate.slice(0, 10) : ''
+                    var procedureDate = row && row.procedure_date ? String(row.procedure_date).slice(0, 10) : ''
+                    // Per-row edit mode
+                    if (medBgEditingId === rowId) {
+                        var prefix = 'medbg-edit-' + rowId
+                        var catOpts = buildCategoryOptions(row.category)
+                        var dtPicker = '<input type="date" value="' + escapeHtml(diagnosisDate) + '" class="' + prefix + '-date w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400">'
+                        var procPicker = '<input type="date" value="' + escapeHtml(procedureDate) + '" class="' + prefix + '-proc w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400">'
+                        var notesInput = '<input type="text" value="' + escapeHtml(row && row.notes ? String(row.notes) : '') + '" class="' + prefix + '-notes w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400" placeholder="Notes">'
+                        rowsHtml += '<tr class="border-b border-amber-200 bg-amber-50/40">' +
+                            '<td class="py-2 pr-4"><select class="' + prefix + '-cat w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400">' + catOpts + '</select></td>' +
+                            '<td class="py-2 pr-4"><input type="text" value="' + escapeHtml(row && row.name ? String(row.name) : '') + '" class="' + prefix + '-name w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400"></td>' +
+                            '<td class="py-2 pr-4">' + dtPicker + '</td>' +
+                            '<td class="py-2 pr-4">' + procPicker + '</td>' +
+                            '<td class="py-2 pr-4">' + notesInput + '</td>' +
+                            '<td class="py-2 pr-4 text-right whitespace-nowrap">' +
+                                '<button type="button" class="medbg-edit-save px-2 py-1 rounded-lg border border-green-300 bg-green-600 text-[0.7rem] font-semibold text-white hover:bg-green-700 disabled:opacity-50" data-medbg-id="' + escapeHtml(rowId) + '">Save</button>' +
+                                '<button type="button" class="medbg-edit-cancel ml-1 px-2 py-1 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-500 hover:bg-slate-50" data-medbg-id="' + escapeHtml(rowId) + '">Cancel</button>' +
+                            '</td>' +
+                        '</tr>'
+                    } else {
+                        rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                            '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(categoryLabel(row.category)) + '</td>' +
+                            '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(row && row.name ? String(row.name) : '-') + '</td>' +
+                            '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosisDate ? escapeHtml(diagnosisDate) : '<span class="text-slate-400">-</span>') + '</td>' +
+                            '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (procedureDate ? escapeHtml(procedureDate) : '<span class="text-slate-400">-</span>') + '</td>' +
+                            '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (row && row.notes ? escapeHtml(String(row.notes)) : '<span class="text-slate-400">-</span>') + '</td>' +
+                            '<td class="py-2 pr-4 text-right"><button type="button" class="medbg-edit-btn text-[0.65rem] font-semibold text-green-600 hover:text-green-700 underline" data-medbg-id="' + escapeHtml(rowId) + '">Edit</button></td>' +
+                        '</tr>'
+                    }
                 })
-                container.innerHTML = buildTableHtml(headers, rowsHtml, 'No medical background entries found.')
+                var headerHtml = '<div class="flex items-center justify-between mb-3">' +
+                    '<div class="text-[0.72rem] font-semibold text-slate-700">Medical Background</div>' +
+                    '<button type="button" class="medbg-add-btn text-[0.7rem] font-semibold text-green-700 hover:text-green-800 underline">+ Add entry</button>' +
+                '</div>'
+                container.innerHTML = headerHtml + buildTableHtml(headers, rowsHtml, 'No medical background entries found.')
             } else if (tabKey === 'visits') {
-                var headers = ['Doctor', 'Visit date', 'Fees', 'Action']
+                var headers = ['Doctor', 'Visit date', 'Fees', 'Status', 'Action']
                 if (cachedVisitRows == null) {
                     container.innerHTML = buildTableHtml(headers, '', 'No visits found.', 'Loading visit history...')
                     return
@@ -827,11 +933,28 @@
                     var doctor = appointment && appointment.doctor ? appointment.doctor : null
                     var dateRaw = visit && (visit.visit_datetime || visit.transaction_datetime) ? String(visit.visit_datetime || visit.transaction_datetime) : ''
                     var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
+                    var apptStatus = (appointment && appointment.status) ? String(appointment.status) : ''
+                    var statusColors = {
+                        pending: 'bg-amber-50 text-amber-700 border-amber-200',
+                        confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
+                        completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                        cancelled: 'bg-red-50 text-red-700 border-red-200',
+                        no_show: 'bg-slate-100 text-slate-600 border-slate-200',
+                        consulted: 'bg-green-50 text-green-700 border-green-100',
+                        waiting: 'bg-amber-50 text-amber-700 border-amber-100',
+                        serving: 'bg-blue-50 text-blue-700 border-blue-100',
+                        done: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                        skipped: 'bg-orange-50 text-orange-700 border-orange-100',
+                        on_hold: 'bg-purple-50 text-purple-700 border-purple-100',
+                    }
+                    var statusClass = statusColors[apptStatus] || 'bg-slate-50 text-slate-600 border-slate-100'
+                    var statusLabel = apptStatus ? apptStatus.charAt(0).toUpperCase() + apptStatus.slice(1).replace(/_/g, ' ') : '-'
                     rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(fullName(doctor, 'Doctor')) + '</td>' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(dateText) + '</td>' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(formatCurrency(visit && visit.amount != null ? visit.amount : '')) + '</td>' +
-                        '<td class="py-2 pr-4 text-[0.78rem]">-</td>' +
+                        '<td class="py-2 pr-4"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] font-medium border ' + statusClass + '">' + escapeHtml(statusLabel) + '</span></td>' +
+                        '<td class="py-2 pr-4"><button type="button" class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-600 hover:bg-slate-50 hover:border-slate-300 doctor-visit-detail-btn" data-visit=\'' + escapeHtml(JSON.stringify(visit).replace(/'/g, '&#39;')) + '\'>Details</button></td>' +
                     '</tr>'
                 })
                 container.innerHTML = buildTableHtml(headers, rowsHtml, 'No visits found.')
@@ -860,35 +983,39 @@
                 })
                 container.innerHTML = buildTableHtml(headers, rowsHtml, 'No vitals found.')
             } else if (tabKey === 'dependents') {
-                if (cachedDependentRows == null) {
-                    container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-[0.78rem] text-slate-600">Loading dependents...</div></div>'
+                var patient = currentPatientId ? findPatientById(currentPatientId) : null
+                var isDependent = patient && patient.is_dependent
+                var depBtn = document.getElementById('doctorPrViewTabDependentsBtn')
+                if (depBtn) depBtn.textContent = isDependent ? 'Parent/Guardian' : 'Dependents'
+
+                if (window._doctorShowingDependentProfile) {
+                    renderDependentProfileInline(container)
                     return
                 }
-                if (!cachedDependentRows.length) {
-                    container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-[0.78rem] text-slate-600">No dependents found for this patient.</div></div>'
-                    return
+
+                if (isDependent) {
+                    var parentId = patient.parent_user_id
+                    if (!parentId) {
+                        container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-4 text-[0.78rem] text-slate-500">No parent/guardian linked to this account.</div></div>'
+                        return
+                    }
+                    if (!cachedParentData) {
+                        container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-4 text-[0.78rem] text-slate-500">Loading parent information...</div></div>'
+                        fetchDoctorParentData(parentId)
+                        return
+                    }
+                    renderParentOrDependentCards(container, [cachedParentData], 'parent')
+                } else {
+                    if (cachedDependentRows == null) {
+                        container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-4 text-[0.78rem] text-slate-500">Loading dependents...</div></div>'
+                        return
+                    }
+                    if (!cachedDependentRows.length) {
+                        container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-4 text-[0.78rem] text-slate-500">No dependents found for this patient.</div></div>'
+                        return
+                    }
+                    renderParentOrDependentCards(container, cachedDependentRows, 'dependent')
                 }
-                var html = '<div class="space-y-3">'
-                cachedDependentRows.forEach(function (dependent) {
-                    var dependentId = dependent && dependent.user_id != null ? String(dependent.user_id) : ''
-                    var age = ageFromBirthdate(dependent && dependent.birthdate ? String(dependent.birthdate) : null)
-                    var profileImg = dependent && dependent.prof_path_url ? String(dependent.prof_path_url) : ''
-                    html += '<div class="rounded-2xl border border-slate-200 bg-white p-4">' +
-                        '<div class="flex items-center gap-4">' +
-                            '<div class="w-14 h-14 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">' +
-                                (profileImg
-                                    ? '<img src="' + profileImg.replace(/"/g, '&quot;') + '" alt="" class="w-full h-full object-cover">'
-                                    : '<div class="w-full h-full flex items-center justify-center text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>') +
-                            '</div>' +
-                            '<div class="flex-1 min-w-0 space-y-1">' +
-                                '<div class="text-[0.82rem] font-semibold text-slate-900 truncate">' + escapeHtml(fullName(dependent, 'Dependent')) + '</div>' +
-                                '<div class="text-[0.76rem] text-slate-500">Age: <span class="text-slate-700">' + escapeHtml(age == null ? '-' : String(age)) + '</span> &middot; Sex: <span class="text-slate-700">' + escapeHtml(sexLabel(dependent && dependent.sex)) + '</span></div>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>'
-                })
-                html += '</div>'
-                container.innerHTML = html
             }
         }
 
@@ -905,19 +1032,29 @@
         }
 
         function openViewModal() {
+            medBgEditingId = null
             if (viewOverlay) {
                 viewOverlay.classList.remove('hidden')
                 viewOverlay.classList.add('flex')
             }
+            var patient = currentPatientId ? findPatientById(currentPatientId) : null
+            var depBtn = document.getElementById('doctorPrViewTabDependentsBtn')
+            if (depBtn) depBtn.textContent = (patient && patient.is_dependent) ? 'Parent/Guardian' : 'Dependents'
             setViewTab('profile')
         }
 
         function closeViewModal() {
             currentPatientId = null
+            medBgEditingId = null
             cachedMedBgRows = null
             cachedVisitRows = null
             cachedVitalRows = null
             cachedDependentRows = null
+            cachedParentData = null
+            window._doctorShowingDependentProfile = false
+            window._doctorDependentProfileId = null
+            var depBtn = document.getElementById('doctorPrViewTabDependentsBtn')
+            if (depBtn) depBtn.textContent = 'Dependents'
             // Reset to display mode
             viewEditModeToggle(false)
             if (viewOverlay) {
@@ -1177,9 +1314,7 @@
             }
             var rowsHtml = ''
             entries.forEach(function (row) {
-                var diagnosisDate = row && row.diagnosis_date ? String(row.diagnosis_date) : ''
-                var diagnosisTime = row && row.diagnosis_time ? String(row.diagnosis_time) : ''
-                if (diagnosisDate || diagnosisTime) diagnosisDate = (diagnosisDate || '') + (diagnosisTime ? ' ' + diagnosisTime.slice(0, 5) : '')
+                var diagnosisDate = row && row.diagnosis_date ? String(row.diagnosis_date).slice(0, 10) : ''
                 var procedureDate = row && row.procedure_date ? String(row.procedure_date) : ''
                 rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(categoryLabel(row.category)) + '</td>' +
@@ -1385,9 +1520,9 @@
                     '</div>' +
                 '</div>' +
                 '<div class="px-4 py-4 space-y-3 border-b border-slate-100">' +
-                    '<div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"><div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification status</div><div class="text-[0.8rem] font-semibold text-slate-700 mt-1">' + escapeHtml(verificationStatus) + '</div></div>' +
-                    '<div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"><div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient type</div><div class="text-[0.8rem] font-semibold text-slate-700 mt-1">' + escapeHtml(patientType) + '</div></div>' +
-                    '<div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"><div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification ID</div><div class="text-[0.8rem] font-semibold text-slate-700 mt-1">' + verificationHtml + '</div></div>' +
+                    '<div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3"><div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Verification status</div><div class="text-[0.8rem] font-semibold text-slate-800 mt-1">' + escapeHtml(verificationStatus) + '</div></div>' +
+                    '<div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3"><div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Patient type</div><div class="text-[0.8rem] font-semibold text-slate-800 mt-1">' + escapeHtml(patientType) + '</div></div>' +
+                    '<div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3"><div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Verification ID</div><div class="text-[0.8rem] font-semibold text-slate-800 mt-1">' + verificationHtml + '</div></div>' +
                 '</div>' +
                 '<div class="px-4 py-4">' + contentHtml + '</div>' +
             '</div>'
@@ -1427,9 +1562,7 @@
             if (entries == null || !entries.length) return ''
             var rowsHtml = ''
             entries.forEach(function (row) {
-                var diagnosisDate = row && row.diagnosis_date ? String(row.diagnosis_date) : ''
-                var diagnosisTime = row && row.diagnosis_time ? String(row.diagnosis_time) : ''
-                if (diagnosisDate || diagnosisTime) diagnosisDate = (diagnosisDate || '') + (diagnosisTime ? ' ' + diagnosisTime.slice(0, 5) : '')
+                var diagnosisDate = row && row.diagnosis_date ? String(row.diagnosis_date).slice(0, 10) : ''
                 var procedureDate = row && row.procedure_date ? String(row.procedure_date) : ''
                 rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(categoryLabel(row.category)) + '</td>' +
@@ -1644,11 +1777,12 @@
             page = page || 1
 
             var query = patientsSearch ? String(patientsSearch.value || '').trim() : ''
-            var sortValue = sortSelect ? String(sortSelect.value || 'created_desc') : 'created_desc'
+            var sortValue = sortSelect ? String(sortSelect.value || 'visit_asc') : 'visit_asc'
             var params = 'per_page=10&page=' + page
             if (query) params += '&search=' + encodeURIComponent(query)
             if (activeAgeFilter !== 'all') params += '&age_filter=' + encodeURIComponent(activeAgeFilter)
             params += '&order_by=' + encodeURIComponent(sortValue)
+            params += '&include_counts=1'
             apiFetch(apiBaseUrl + "/patients?" + params, { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
@@ -1661,6 +1795,7 @@
                     if (!result.ok || !result.data) {
                         patientRows = []
                         patientMeta = { current_page: 1, last_page: 1, total: 0, per_page: 10 }
+                        patientAgeCounts = null
                         showInlineBox(patientsError, 'Failed to load patients.')
                         renderPatients()
                         return
@@ -1672,11 +1807,13 @@
                         total: result.data.total || 0,
                         per_page: result.data.per_page || 10
                     }
+                    patientAgeCounts = result.data.age_counts || null
                     renderPatients()
                 })
                 .catch(function () {
                     patientRows = []
                     patientMeta = { current_page: 1, last_page: 1, total: 0, per_page: 10 }
+                    patientAgeCounts = null
                     showInlineBox(patientsError, 'Failed to load patients.')
                     renderPatients()
                 })
@@ -1685,6 +1822,34 @@
         function renderPatients() {
             if (!patientsTableBody) return
             var base = (patientRows || []).slice()
+
+            // Update age counters from API response (covers all patients, not just current page)
+            var counts = patientAgeCounts || { all: 0, '0_5': 0, '6_12': 0, '13_19': 0, '20_64': 0, '65_up': 0 }
+            // Fallback to computing from current page if API counts not available
+            if (!patientAgeCounts) {
+                ;(patientRows || []).forEach(function (p) {
+                    var a = ageFromBirthdate(p && p.birthdate ? String(p.birthdate) : null)
+                    counts.all++
+                    if (a == null) return
+                    if (a >= 0 && a <= 5) counts['0_5']++
+                    else if (a >= 6 && a <= 12) counts['6_12']++
+                    else if (a >= 13 && a <= 19) counts['13_19']++
+                    else if (a >= 20 && a <= 64) counts['20_64']++
+                    else if (a >= 65) counts['65_up']++
+                })
+            }
+            var countAllEl = document.getElementById('doctorPrAgeCountAll')
+            var count0_5El = document.getElementById('doctorPrAgeCount0_5')
+            var count6_12El = document.getElementById('doctorPrAgeCount6_12')
+            var count13_19El = document.getElementById('doctorPrAgeCount13_19')
+            var count20_64El = document.getElementById('doctorPrAgeCount20_64')
+            var count65UpEl = document.getElementById('doctorPrAgeCount65Up')
+            if (countAllEl) countAllEl.textContent = String(counts.all)
+            if (count0_5El) count0_5El.textContent = String(counts['0_5'])
+            if (count6_12El) count6_12El.textContent = String(counts['6_12'])
+            if (count13_19El) count13_19El.textContent = String(counts['13_19'])
+            if (count20_64El) count20_64El.textContent = String(counts['20_64'])
+            if (count65UpEl) count65UpEl.textContent = String(counts['65_up'])
 
             if (!base.length) {
                 patientsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No patients found.</td></tr>'
@@ -1743,6 +1908,7 @@
             cachedVisitRows = null
             cachedVitalRows = null
             cachedDependentRows = null
+            cachedParentData = null
             activeDependentRecord = null
             activeDependentTab = 'background'
             activeDependentMedBgRows = null
@@ -2385,6 +2551,165 @@
             })
         })
 
+        // Medical Background click handlers: add entry, edit, save, cancel
+        var bgContainer = viewTabContents['background']
+        if (bgContainer) {
+            bgContainer.addEventListener('click', function (e) {
+                // + Add entry button
+                var addBtn = e.target.closest('.medbg-add-btn')
+                if (addBtn) {
+                    e.preventDefault()
+                    var tbody = bgContainer.querySelector('table tbody')
+                    if (!tbody) return
+                    var uid = 'new-' + Date.now()
+                    var dtPicker = '<input type="date" class="medbg-' + uid + '-date w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400">'
+                    var tr = document.createElement('tr')
+                    tr.className = 'border-b border-green-200 bg-green-50/40'
+                    tr.setAttribute('data-new-row', uid)
+                    tr.innerHTML =
+                        '<td class="py-2 pr-4">' +
+                            '<select class="medbg-' + uid + '-cat w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400">' +
+                                buildCategoryOptions('') +
+                            '</select>' +
+                        '</td>' +
+                        '<td class="py-2 pr-4">' +
+                            '<input type="text" class="medbg-' + uid + '-name w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400" placeholder="e.g. Penicillin">' +
+                        '</td>' +
+                        '<td class="py-2 pr-4">' + dtPicker + '</td>' +
+                        '<td class="py-2 pr-4">' +
+                            '<input type="date" class="medbg-' + uid + '-proc w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400">' +
+                        '</td>' +
+                        '<td class="py-2 pr-4">' +
+                            '<input type="text" class="medbg-' + uid + '-notes w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400" placeholder="Notes">' +
+                        '</td>' +
+                        '<td class="py-2 pr-4 text-right whitespace-nowrap">' +
+                            '<button type="button" class="medbg-new-save px-2 py-1 rounded-lg border border-green-300 bg-green-600 text-[0.7rem] font-semibold text-white hover:bg-green-700 disabled:opacity-50" data-new-uid="' + uid + '">Save</button>' +
+                            '<button type="button" class="medbg-new-cancel ml-1 px-2 py-1 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-500 hover:bg-slate-50" data-new-uid="' + uid + '">Cancel</button>' +
+                        '</td>'
+                    tbody.insertBefore(tr, tbody.firstChild)
+                    return
+                }
+
+                // Edit existing entry button
+                var editBtn = e.target.closest('.medbg-edit-btn')
+                if (editBtn) {
+                    medBgEditingId = editBtn.getAttribute('data-medbg-id') || null
+                    renderViewTabContent('background')
+                    return
+                }
+
+                // Cancel editing existing entry
+                var editCancel = e.target.closest('.medbg-edit-cancel')
+                if (editCancel) {
+                    medBgEditingId = null
+                    renderViewTabContent('background')
+                    return
+                }
+
+                // Save edited entry
+                var editSave = e.target.closest('.medbg-edit-save')
+                if (editSave && !editSave.disabled) {
+                    var rowId = editSave.getAttribute('data-medbg-id')
+                    if (!rowId) return
+                    var prefix = 'medbg-edit-' + rowId
+                    var catEl = bgContainer.querySelector('.' + prefix + '-cat')
+                    var nameEl = bgContainer.querySelector('.' + prefix + '-name')
+                    var dateEl = bgContainer.querySelector('.' + prefix + '-date')
+                    var procEl = bgContainer.querySelector('.' + prefix + '-proc')
+                    var notesEl = bgContainer.querySelector('.' + prefix + '-notes')
+                    if (!catEl || !nameEl) return
+                    var category = catEl.value
+                    var name = nameEl.value.trim()
+                    if (!category || !name) {
+                        if (typeof showToast === 'function') showToast('Category and Name are required.', 'error')
+                        return
+                    }
+                    var diagnosisDate = dateEl ? dateEl.value || null : null
+                    var procedureDate = procEl ? procEl.value || null : null
+                    var notes = notesEl ? notesEl.value.trim() || null : null
+                    editSave.disabled = true
+                    editSave.textContent = 'Saving...'
+                    var payload = {
+                        category: category,
+                        name: name,
+                        diagnosis_date: diagnosisDate,
+                        procedure_date: procedureDate,
+                        notes: notes,
+                    }
+                    window.apiFetch(apiBaseUrl + '/medical-backgrounds/' + encodeURIComponent(rowId), {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    }).then(function (res) {
+                        if (!res.ok) throw new Error('Update failed')
+                        medBgEditingId = null
+                        loadPatientPanelData(currentPatientId)
+                        if (typeof showToast === 'function') showToast('Entry updated.', 'success')
+                    }).catch(function () {
+                        editSave.disabled = false
+                        editSave.textContent = 'Save'
+                        if (typeof showToast === 'function') showToast('Failed to update entry.', 'error')
+                    })
+                    return
+                }
+
+                // Save new entry
+                var saveBtn = e.target.closest('.medbg-new-save')
+                if (!saveBtn || saveBtn.disabled) return
+                var uid = saveBtn.getAttribute('data-new-uid')
+                if (!uid) return
+                var prefix = 'medbg-' + uid
+                var catEl = bgContainer.querySelector('.' + prefix + '-cat')
+                var nameEl = bgContainer.querySelector('.' + prefix + '-name')
+                var dateEl = bgContainer.querySelector('.' + prefix + '-date')
+                var procEl = bgContainer.querySelector('.' + prefix + '-proc')
+                var notesEl = bgContainer.querySelector('.' + prefix + '-notes')
+                if (!catEl || !nameEl) return
+                var category = catEl.value
+                var name = nameEl.value.trim()
+                if (!category || !name) {
+                    if (typeof showToast === 'function') showToast('Category and Name are required.', 'error')
+                    return
+                }
+                var diagnosisDate = dateEl ? dateEl.value || null : null
+                var procedureDate = procEl ? procEl.value || null : null
+                var notes = notesEl ? notesEl.value.trim() || null : null
+                saveBtn.disabled = true
+                saveBtn.textContent = 'Saving...'
+                var payload = {
+                    patient_id: currentPatientId,
+                    category: category,
+                    name: name,
+                    diagnosis_date: diagnosisDate,
+                    procedure_date: procedureDate,
+                    notes: notes,
+                }
+                window.apiFetch(apiBaseUrl + '/medical-backgrounds', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                }).then(function (res) {
+                    if (!res.ok) throw new Error('Save failed')
+                    loadPatientPanelData(currentPatientId)
+                    if (typeof showToast === 'function') showToast('Entry added.', 'success')
+                }).catch(function () {
+                    saveBtn.disabled = false
+                    saveBtn.textContent = 'Save'
+                    if (typeof showToast === 'function') showToast('Failed to save entry.', 'error')
+                })
+            })
+
+            // Cancel new entry (delegated)
+            bgContainer.addEventListener('click', function (e) {
+                var cancelBtn = e.target.closest('.medbg-new-cancel')
+                if (!cancelBtn) return
+                var uid = cancelBtn.getAttribute('data-new-uid')
+                if (!uid) return
+                var row = bgContainer.querySelector('tr[data-new-row="' + uid + '"]')
+                if (row) row.remove()
+            })
+        }
+
         setAgeFilterActiveStyles()
         closeViewModal()
         loadPatients(1)
@@ -2646,5 +2971,248 @@
                 prReportCloseModal()
             }
         })
+
+        // ── Visit Details Modal ──
+        var doctorVisitDetailOverlay = document.getElementById('doctorVisitDetailOverlay')
+        var doctorVisitDetailClose = document.getElementById('doctorVisitDetailClose')
+        var doctorVisitDetailBody = document.getElementById('doctorVisitDetailBody')
+
+        if (doctorVisitDetailClose) {
+            doctorVisitDetailClose.addEventListener('click', function () {
+                if (doctorVisitDetailOverlay) { doctorVisitDetailOverlay.classList.add('hidden'); doctorVisitDetailOverlay.classList.remove('flex') }
+            })
+        }
+        if (doctorVisitDetailOverlay) {
+            doctorVisitDetailOverlay.addEventListener('click', function (e) {
+                if (e.target === doctorVisitDetailOverlay) { doctorVisitDetailOverlay.classList.add('hidden'); doctorVisitDetailOverlay.classList.remove('flex') }
+            })
+        }
+
+        function openVisitDetail(visit) {
+            if (!doctorVisitDetailOverlay || !visit) return
+            var appt = visit.appointment || {}
+            var doctor = appt.doctor || {}
+            var services = appt.services || []
+            var prescriptions = visit.prescriptions || []
+
+            var dateRaw = visit.visit_datetime || visit.transaction_datetime || ''
+            var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
+            setTextById('doctorVisitDetailDate', dateText)
+            setTextById('doctorVisitDetailDoctor', fullName(doctor, 'Doctor'))
+
+            var svcHtml = services.length ? services.map(function (s) { return s.service_name || '-'; }).join(', ') : '-'
+            setTextById('doctorVisitDetailServices', svcHtml)
+            setTextById('doctorVisitDetailFees', formatCurrency(visit.amount != null ? visit.amount : ''))
+
+            var payStatus = visit.payment_status ? String(visit.payment_status) : '-'
+            setTextById('doctorVisitDetailPayment', payStatus.charAt(0).toUpperCase() + payStatus.slice(1))
+
+            var apptStatus = appt.status ? String(appt.status) : ''
+            var statusColors = {
+                pending: 'bg-amber-50 text-amber-700 border-amber-200',
+                confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
+                completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                cancelled: 'bg-red-50 text-red-700 border-red-200',
+                no_show: 'bg-slate-100 text-slate-600 border-slate-200',
+                consulted: 'bg-green-50 text-green-700 border-green-100',
+                waiting: 'bg-amber-50 text-amber-700 border-amber-100',
+                serving: 'bg-blue-50 text-blue-700 border-blue-100',
+                done: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                skipped: 'bg-orange-50 text-orange-700 border-orange-100',
+                on_hold: 'bg-purple-50 text-purple-700 border-purple-100',
+            }
+            var sc = statusColors[apptStatus] || 'bg-slate-50 text-slate-600 border-slate-100'
+            var sl = apptStatus ? apptStatus.charAt(0).toUpperCase() + apptStatus.slice(1).replace(/_/g, ' ') : '-'
+            var statusEl = document.getElementById('doctorVisitDetailStatus')
+            if (statusEl) statusEl.innerHTML = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] font-medium border ' + sc + '">' + escapeHtml(sl) + '</span>'
+
+            var apptType = appt.appointment_type ? String(appt.appointment_type).replace(/_/g, '-') : '-'
+            setTextById('doctorVisitDetailApptType', apptType)
+
+            setTextById('doctorVisitDetailDiagnosis', visit.diagnosis || '-')
+            setTextById('doctorVisitDetailTreatment', visit.treatment_notes || '-')
+
+            var rxHtml = ''
+            if (prescriptions.length) {
+                rxHtml = prescriptions.map(function (rx) {
+                    var items = (rx.items || []).map(function (item) {
+                        var med = item.medicine || {}
+                        return (med.medicine_name || '-') + (item.dosage ? ' (' + item.dosage + ')' : '')
+                    }).join(', ')
+                    return items || (rx.notes || 'Prescription')
+                }).join('; ')
+            }
+            setTextById('doctorVisitDetailPrescriptions', rxHtml || '-')
+
+            doctorVisitDetailOverlay.classList.remove('hidden')
+            doctorVisitDetailOverlay.classList.add('flex')
+        }
+
+        // Helper: setTextContent if element exists
+        function setTextById(id, val) {
+            var el = document.getElementById(id)
+            if (el) el.textContent = val
+        }
+
+        // ── Visit detail button delegation ──
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.doctor-visit-detail-btn')
+            if (!btn) return
+            try {
+                var visitData = JSON.parse(btn.getAttribute('data-visit') || '{}')
+                openVisitDetail(visitData)
+            } catch (err) { /* ignore */ }
+        })
+
+        // ── Dependents / Parent inline profile view ──
+        window._doctorShowingDependentProfile = false
+        window._doctorDependentProfileId = null
+
+        function fetchDoctorParentData(parentId) {
+            apiFetch(apiBaseUrl + '/users/' + encodeURIComponent(parentId), { method: 'GET' })
+                .then(function (r) { return r.json() })
+                .then(function (data) {
+                    if (data && !data.error) cachedParentData = data
+                    else cachedParentData = null
+                    renderViewTabContent('dependents')
+                })
+                .catch(function () { cachedParentData = null; renderViewTabContent('dependents') })
+        }
+
+        function renderParentOrDependentCards(container, rows, type) {
+            var html = '<div class="space-y-3">'
+            rows.forEach(function (person) {
+                var pid = person && person.user_id != null ? String(person.user_id) : ''
+                var age = ageFromBirthdate(person && person.birthdate ? String(person.birthdate) : null)
+                var profileImg = person && person.prof_path_url ? String(person.prof_path_url) : ''
+                html += '<div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 cursor-pointer hover:border-slate-300 transition-colors doctor-' + type + '-card" data-' + type + '-id="' + escapeHtml(pid) + '">' +
+                    '<div class="flex items-center gap-4">' +
+                        '<div class="w-14 h-14 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">' +
+                            (profileImg
+                                ? '<img src="' + profileImg.replace(/"/g, '&quot;') + '" alt="" class="w-full h-full object-cover">'
+                                : '<div class="w-full h-full flex items-center justify-center text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>') +
+                        '</div>' +
+                        '<div class="flex-1 min-w-0 space-y-1">' +
+                            '<div class="text-[0.82rem] font-semibold text-slate-900 truncate">' + escapeHtml(fullName(person, type === 'parent' ? 'Parent' : 'Dependent')) + '</div>' +
+                            '<div class="text-[0.76rem] text-slate-500">Age: <span class="text-slate-700">' + escapeHtml(age == null ? '-' : String(age)) + '</span> &middot; Sex: <span class="text-slate-700">' + escapeHtml(sexLabel(person && person.sex)) + '</span></div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>'
+            })
+            html += '</div>'
+            container.innerHTML = html
+
+            // Bind click handlers via delegation
+            container._depClickHandler && container.removeEventListener('click', container._depClickHandler)
+            container._depClickHandler = function (e) {
+                var card = e.target.closest('.doctor-parent-card, .doctor-dependent-card')
+                if (card) {
+                    var id = card.getAttribute('data-parent-id') || card.getAttribute('data-dependent-id')
+                    if (id) {
+                        container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-4 text-[0.78rem] text-slate-500">Loading profile...</div></div>'
+                        showDependentProfileInline(id)
+                    }
+                }
+            }
+            container.addEventListener('click', container._depClickHandler)
+        }
+
+        function showDependentProfileInline(personId) {
+            var container = viewTabContents['dependents']
+            if (!container) return
+            window._doctorShowingDependentProfile = true
+            window._doctorDependentProfileId = personId
+
+            // Fetch user data
+            apiFetch(apiBaseUrl + '/users/' + encodeURIComponent(personId), { method: 'GET' })
+                .then(function (r) { return r.json() })
+                .then(function (user) {
+                    if (!user || user.error) {
+                        container.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Failed to load profile.</div>'
+                        window._doctorShowingDependentProfile = false
+                        return
+                    }
+                    renderDependentProfileInline(container, user)
+                })
+                .catch(function () {
+                    container.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Failed to load profile.</div>'
+                    window._doctorShowingDependentProfile = false
+                })
+        }
+
+        function formatBirthdate(val) {
+            if (!val) return '-'
+            return String(val).slice(0, 10)
+        }
+
+        function renderDependentProfileInline(container, userData) {
+            var user = userData || null
+            if (!user && window._doctorDependentProfileId) {
+                var allRows = cachedDependentRows || []
+                user = allRows.find(function (r) { return String(r.user_id) === String(window._doctorDependentProfileId) }) || null
+            }
+            if (!user) {
+                container.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Profile data not available.</div>'
+                window._doctorShowingDependentProfile = false
+                return
+            }
+
+            var profileImg = user.prof_path_url || ''
+            container.innerHTML =
+                '<div class="space-y-4">' +
+                    '<button type="button" class="inline-flex items-center gap-1.5 text-[0.78rem] font-semibold text-slate-500 hover:text-slate-700 doctor-profile-back-btn">' +
+                        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>' +
+                        'Back to list' +
+                    '</button>' +
+                    '<div class="grid grid-cols-1 md:grid-cols-5 gap-5">' +
+                        '<div class="md:col-span-3 space-y-3">' +
+                            '<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Last name</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + escapeHtml(user.lastname || '-') + '</div></div>' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">First name</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + escapeHtml(user.firstname || '-') + '</div></div>' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Middle name</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + escapeHtml(user.middlename || '-') + '</div></div>' +
+                            '</div>' +
+                            '<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Sex</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + escapeHtml(sexLabel(user.sex)) + '</div></div>' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Birthdate</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + escapeHtml(formatBirthdate(user.birthdate)) + '</div></div>' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Civil status</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + escapeHtml(user.civil_status || '-') + '</div></div>' +
+                            '</div>' +
+                            '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Nationality</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + escapeHtml(user.nationality || '-') + '</div></div>' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Occupation</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + escapeHtml(user.occupation || '-') + '</div></div>' +
+                            '</div>' +
+                            '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Address</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg min-h-[2.5rem]">' + escapeHtml(user.address || '-') + '</div></div>' +
+                            '<hr class="border-slate-100">' +
+                            '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">PHIC Number</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + escapeHtml(user.philhealth_number || '-') + '</div></div>' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + escapeHtml(user.emergency_contact || '-') + '</div></div>' +
+                            '</div>' +
+                            '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact number</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + escapeHtml(user.emergency_contact_number || '-') + '</div></div>' +
+                        '</div>' +
+                        '<div class="md:col-span-2">' +
+                            '<div class="rounded-xl border border-slate-200 bg-slate-50/60 p-5 text-center">' +
+                                '<div class="text-[0.72rem] font-semibold text-slate-700 mb-3">Profile Photo</div>' +
+                                '<div class="w-32 h-32 mx-auto rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 overflow-hidden">' +
+                                    (profileImg
+                                        ? '<img src="' + profileImg.replace(/"/g, '&quot;') + '" alt="" class="w-full h-full object-cover">'
+                                        : '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>') +
+                                '</div>' +
+                                '<div class="mt-4 text-left">' +
+                                    '<label class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>' +
+                                    '<div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + escapeHtml(user.contact_number || '-') + '</div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>'
+
+            var backBtn = container.querySelector('.doctor-profile-back-btn')
+            if (backBtn) {
+                backBtn.addEventListener('click', function () {
+                    window._doctorShowingDependentProfile = false
+                    window._doctorDependentProfileId = null
+                    renderViewTabContent('dependents')
+                })
+            }
+        }
     })
 </script>

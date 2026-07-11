@@ -22,6 +22,11 @@ class QueueController extends Controller
 {
     public function index(Request $request)
     {
+        // Auto-mark past-day queues as no_show (only done status is preserved)
+        Queue::whereDate('queue_datetime', '<', now()->toDateString())
+            ->where('status', '!=', 'done')
+            ->update(['status' => 'no_show']);
+
         $perPage = (int) $request->query('per_page', 15);
         if ($perPage < 1) {
             $perPage = 15;

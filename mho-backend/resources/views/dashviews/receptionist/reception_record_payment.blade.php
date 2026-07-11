@@ -125,7 +125,7 @@
                 <!-- Left panel: list of today's appointments -->
                 <div class="w-1/2 border-r border-slate-200 flex flex-col min-h-0">
                     <div class="px-4 py-2 border-b border-slate-100 shrink-0 bg-slate-50/50">
-                        <input id="receptionPaymentApptSearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search today's appointments...">
+                        <input id="receptionPaymentApptSearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search by name, email, or queue code...">
                     </div>
                     <div id="receptionPaymentApptList" class="flex-1 overflow-y-auto p-2 space-y-1">
                         <div class="text-center text-[0.78rem] text-slate-400 py-8">Loading today's appointments...</div>

@@ -22,10 +22,13 @@
 
         <form id="receptionRegisterPatientForm" class="grid gap-3 grid-cols-1 md:grid-cols-3 items-end mb-4">
             <div class="md:col-span-3">
-                <label class="inline-flex items-center gap-2 text-[0.75rem] text-slate-700 font-semibold">
-                    <input id="reception_patient_is_dependent" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-500">
-                    Dependent account
-                </label>
+                <div class="flex items-center gap-3">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input id="reception_patient_is_dependent" type="checkbox" class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:bg-green-500 peer-focus:ring-2 peer-focus:ring-green-200 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                    </label>
+                    <span class="text-xs font-medium text-slate-700">Dependent account</span>
+                </div>
                 <div class="text-[0.7rem] text-slate-400 mt-1">
                     Enable to link this patient as a dependent under an existing parent patient.
                 </div>
@@ -132,9 +135,8 @@
                 <div class="w-full md:w-44">
                     <label for="reception_pr_sort" class="block text-[0.7rem] text-slate-600 mb-1">Sort</label>
                     <select id="reception_pr_sort" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                        <option value="name_asc">Name A-Z</option>
-                        <option value="created_desc">Newest first</option>
-                        <option value="created_asc">Oldest first</option>
+                        <option value="visit_asc">Last Visit ASC</option>
+                        <option value="visit_desc">Last Visit DESC</option>
                     </select>
                 </div>
                 <div class="w-full md:w-28 pt-1">
@@ -220,7 +222,7 @@
             <button type="button" class="reception-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="background">Medical Background</button>
             <button type="button" class="reception-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="visits">Visit History</button>
             <button type="button" class="reception-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="vitals">Vitals History</button>
-            <button type="button" class="reception-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="dependents">Dependents</button>
+            <button type="button" id="receptionPrViewTabDependentsBtn" class="reception-pr-view-tab px-3 py-1.5 rounded-xl text-[0.75rem] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-view-tab="dependents">Dependents</button>
         </div>
 
         <div id="receptionPrViewBody" class="p-5 overflow-y-auto flex-1">
@@ -430,17 +432,17 @@
             {{-- Type & Verification Tab --}}
             <div id="receptionPrViewTabVerification" class="hidden reception-pr-view-tab-content min-h-[420px]">
                 <div class="space-y-3">
-                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                        <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification status</div>
-                        <div id="receptionPrViewVerificationStatus" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
+                    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                        <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Verification status</div>
+                        <div id="receptionPrViewVerificationStatus" class="text-[0.8rem] font-semibold text-slate-800 mt-1">-</div>
                     </div>
-                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                        <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient type</div>
-                        <div id="receptionPrViewPatientType" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
+                    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                        <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Patient type</div>
+                        <div id="receptionPrViewPatientType" class="text-[0.8rem] font-semibold text-slate-800 mt-1">-</div>
                     </div>
-                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                        <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Verification ID</div>
-                        <div id="receptionPrViewVerificationId" class="text-[0.8rem] font-semibold text-slate-700 mt-1">-</div>
+                    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                        <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Verification ID</div>
+                        <div id="receptionPrViewVerificationId" class="text-[0.8rem] font-semibold text-slate-800 mt-1">-</div>
                     </div>
                 </div>
             </div>
@@ -453,6 +455,69 @@
             <div id="receptionPrViewTabVitals" class="hidden reception-pr-view-tab-content min-h-[420px]"></div>
             {{-- Dependents Tab --}}
             <div id="receptionPrViewTabDependents" class="hidden reception-pr-view-tab-content min-h-[420px]"></div>
+        </div>
+    </div>
+</div>
+
+{{-- Visit Details Modal --}}
+<div id="recVisitDetailOverlay" class="hidden fixed inset-0 z-[70] bg-slate-900/40 items-center justify-center p-4">
+    <div class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)]">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+            <div>
+                <div class="text-sm font-semibold text-slate-900">Visit Details</div>
+                <div id="recVisitDetailSubtitle" class="text-[0.72rem] text-slate-500">Appointment and clinical information.</div>
+            </div>
+            <button type="button" id="recVisitDetailClose" class="text-slate-400 hover:text-slate-600">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="p-5 space-y-4" id="recVisitDetailBody">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Appointment date</div>
+                    <div id="recVisitDetailDate" class="text-[0.82rem] font-semibold text-slate-800 mt-1">-</div>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Doctor</div>
+                    <div id="recVisitDetailDoctor" class="text-[0.82rem] font-semibold text-slate-800 mt-1">-</div>
+                </div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Services inquired</div>
+                <div id="recVisitDetailServices" class="text-[0.8rem] text-slate-700 mt-1">-</div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Fees</div>
+                    <div id="recVisitDetailFees" class="text-[0.82rem] font-semibold text-slate-800 mt-1">-</div>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Payment status</div>
+                    <div id="recVisitDetailPayment" class="text-[0.82rem] font-semibold text-slate-800 mt-1">-</div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Status</div>
+                    <div id="recVisitDetailStatus" class="mt-1">-</div>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Appointment type</div>
+                    <div id="recVisitDetailApptType" class="text-[0.82rem] font-semibold text-slate-800 mt-1">-</div>
+                </div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Diagnosis</div>
+                <div id="recVisitDetailDiagnosis" class="text-[0.8rem] text-slate-700 mt-1">-</div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Treatment notes</div>
+                <div id="recVisitDetailTreatment" class="text-[0.8rem] text-slate-700 mt-1">-</div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Prescriptions</div>
+                <div id="recVisitDetailPrescriptions" class="text-[0.8rem] text-slate-700 mt-1">-</div>
+            </div>
         </div>
     </div>
 </div>
@@ -1027,7 +1092,7 @@
             })() : ''
             parentPickerDetailBody.innerHTML = '' +
                 '<div class="space-y-3">' +
-                    '<div class="rounded-xl border border-slate-200 bg-white p-4">' +
+                    '<div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">' +
                         '<div class="flex items-start gap-3">' +
                             '<div class="w-10 h-10 rounded-full bg-green-50 border border-green-200 flex items-center justify-center text-green-600 shrink-0">' +
                                 '<svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="5"/><path d="M3 21v-2a7 7 0 0 1 14 0v2"/></svg>' +
@@ -1039,7 +1104,7 @@
                             '</div>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="rounded-xl border border-slate-200 bg-white p-4">' +
+                    '<div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">' +
                         '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Patient Summary</div>' +
                         '<div class="grid grid-cols-2 gap-x-3 gap-y-2 text-[0.78rem]">' +
                             '<div class="text-slate-500">Age</div>' +
@@ -1306,7 +1371,7 @@
 
                 function buildConfirmDetails(dupes) {
                     var name = [body.firstname, body.middlename, body.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
-                    var details = '<div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">' +
+                    var details = '<div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">' +
                         '<div class="text-[0.7rem] text-slate-500">Name</div>' +
                         '<div class="text-[0.8rem] font-semibold text-slate-800">' + escapeHtml(name || '-') + '</div>' +
                         '<div class="mt-2 grid grid-cols-2 gap-2">' +
@@ -1504,6 +1569,7 @@
         var recPatientsTableBody = document.getElementById('reception_pr_patients_table_body')
         var recPagination = document.getElementById('receptionPrPagination')
         var recPatientsRows = []
+        var recPatientsAgeCounts = null
         var recPerPage = 10
         var recCurrentPage = 1
         var recVisibleCount = 6
@@ -1546,6 +1612,8 @@
         var recViewVerificationStatus = document.getElementById('receptionPrViewVerificationStatus')
         var recViewPatientType = document.getElementById('receptionPrViewPatientType')
         var recViewVerificationId = document.getElementById('receptionPrViewVerificationId')
+
+        var recMedBgEditingId = null
 
         var recPatientEditOverlay = document.getElementById('receptionPrEditOverlay')
         var recPatientEditClose = document.getElementById('receptionPrEditClose')
@@ -1591,6 +1659,7 @@
         var recCachedVisitRows = null
         var recCachedVitalRows = null
         var recCachedDependentRows = null
+        var recCachedParentData = null
         var recCurrentPatientId = null
         var recCurrentViewTab = 'profile'
         var recCurrentPanelTab = null
@@ -1614,6 +1683,22 @@
         function recShowPatientEditSuccess(message) { if (message && typeof showToast === 'function') showToast(message, 'success') }
 
         function recCategoryLabel(key) { var k = String(key || ''); if (k === 'allergy_food') return 'Food'; if (k === 'allergy_drug') return 'Drug'; if (k === 'condition') return 'Condition'; return k || '-' }
+
+        function recBuildCategoryOptions(selected) {
+            var sel = String(selected || '')
+            var opts = [
+                { value: '', label: '- Select -' },
+                { value: 'allergy_food', label: 'Food Allergy' },
+                { value: 'allergy_drug', label: 'Drug Allergy' },
+                { value: 'condition', label: 'Condition' },
+            ]
+            var html = ''
+            opts.forEach(function (o) {
+                var selectedAttr = o.value === sel ? ' selected' : ''
+                html += '<option value="' + recEscHtml(o.value) + '"' + selectedAttr + '>' + recEscHtml(o.label) + '</option>'
+            })
+            return html
+        }
 
         function recFullName(p, fallback) {
             if (!p) return fallback || '-'
@@ -1716,32 +1801,40 @@
             page = page || recCurrentPage
             recPatientsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading patients…</td></tr>'
             recShowInlineBox(recPatientsError, '')
-            var url = "{{ url('/api/patients') }}" + '?per_page=10&page=' + page
+            var url = "{{ url('/api/patients') }}" + '?per_page=10&page=' + page + '&order_by=visit_asc&include_counts=1'
             apiFetch(url, { method: 'GET' })
                 .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d } }).catch(function () { return { ok: false, data: null } }) })
                 .then(function (r) {
-                    if (!r.ok || !r.data) { recPatientsRows = []; recCurrentPage = 1; recLastPage = 1; recTotal = 0; recRenderPatientTable(); return }
+                    if (!r.ok || !r.data) { recPatientsRows = []; recPatientsAgeCounts = null; recCurrentPage = 1; recLastPage = 1; recTotal = 0; recUpdateAgeCounts(); recRenderPatientTable(); return }
                     var raw = Array.isArray(r.data.data) ? r.data.data.slice() : (Array.isArray(r.data) ? r.data.slice() : [])
                     recPatientsRows = raw.map(function (p) {
-                        return { user_id: p.user_id, firstname: p.firstname || '', middlename: p.middlename || '', lastname: p.lastname || '', birthdate: p.birthdate || '', sex: p.sex || '', address: p.address || '', contact_number: p.contact_number || '', email: p.email || '', account_type: p.account_type || '', verification_status: p.verification_status || '', verification_id: p.verification_id || '', philhealth_number: p.philhealth_number || '', nationality: p.nationality || '', civil_status: p.civil_status || '', occupation: p.occupation || '', emergency_contact: p.emergency_contact || '', emergency_contact_number: p.emergency_contact_number || '', profile_photo_url: p.profile_photo_url || '' }
+                        return { user_id: p.user_id, firstname: p.firstname || '', middlename: p.middlename || '', lastname: p.lastname || '', birthdate: p.birthdate || '', sex: p.sex || '', address: p.address || '', contact_number: p.contact_number || '', email: p.email || '', account_type: p.account_type || '', verification_status: p.verification_status || '', verification_type: p.verification_type || '', verification_id: p.verification_id || '', philhealth_number: p.philhealth_number || '', nationality: p.nationality || '', civil_status: p.civil_status || '', occupation: p.occupation || '', emergency_contact: p.emergency_contact || '', emergency_contact_number: p.emergency_contact_number || '', profile_photo_url: p.profile_photo_url || '', is_dependent: p.is_dependent || false, parent_user_id: p.parent_user_id || null }
                     })
                     recCurrentPage = r.data.current_page || page
                     recLastPage = r.data.last_page || 1
                     recTotal = r.data.total || raw.length
+                    recPatientsAgeCounts = r.data.age_counts || null
                     recUpdateAgeCounts()
                     recRenderPatientTable()
                 })
-                .catch(function () { recPatientsRows = []; recCurrentPage = 1; recLastPage = 1; recTotal = 0; recRenderPatientTable() })
+                .catch(function () { recPatientsRows = []; recPatientsAgeCounts = null; recCurrentPage = 1; recLastPage = 1; recTotal = 0; recRenderPatientTable() })
         }
 
         function recUpdateAgeCounts() {
-            var counts = { all: 0, '0_5': 0, '6_12': 0, '13_19': 0, '20_64': 0, '65_up': 0 }
-            recPatientsRows.forEach(function (p) {
-                var age = recAgeFromBirthdate(p.birthdate)
-                counts.all++
-                if (age == null) return
-                ['0_5', '6_12', '13_19', '20_64', '65_up'].forEach(function (k) { if (recMatchesAgeFilter(age, k)) counts[k]++ })
-            })
+            var counts = recPatientsAgeCounts || { all: 0, '0_5': 0, '6_12': 0, '13_19': 0, '20_64': 0, '65_up': 0 }
+            // Fallback to computing from current page if API counts not available
+            if (!recPatientsAgeCounts) {
+                recPatientsRows.forEach(function (p) {
+                    var age = recAgeFromBirthdate(p.birthdate)
+                    counts.all++
+                    if (age == null) return
+                    if (recMatchesAgeFilter(age, '0_5')) counts['0_5']++
+                    else if (recMatchesAgeFilter(age, '6_12')) counts['6_12']++
+                    else if (recMatchesAgeFilter(age, '13_19')) counts['13_19']++
+                    else if (recMatchesAgeFilter(age, '20_64')) counts['20_64']++
+                    else if (recMatchesAgeFilter(age, '65_up')) counts['65_up']++
+                })
+            }
             recSetText(recAgeCountAll, counts.all); recSetText(recAgeCount0_5, counts['0_5']); recSetText(recAgeCount6_12, counts['6_12'])
             recSetText(recAgeCount13_19, counts['13_19']); recSetText(recAgeCount20_64, counts['20_64']); recSetText(recAgeCount65Up, counts['65_up'])
         }
@@ -1752,25 +1845,26 @@
             recPatientsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading patients…</td></tr>'
             recShowInlineBox(recPatientsError, '')
             var q = (recPatientsSearch && recPatientsSearch.value ? String(recPatientsSearch.value).trim() : '')
-            var sort = (recSortSelect && recSortSelect.value ? String(recSortSelect.value) : '')
-            var url = "{{ url('/api/patients') }}" + '?per_page=10&page=' + page
+            var sort = (recSortSelect && recSortSelect.value ? String(recSortSelect.value) : 'visit_asc')
+            var url = "{{ url('/api/patients') }}" + '?per_page=10&page=' + page + '&include_counts=1'
             if (q) url += '&search=' + encodeURIComponent(q)
-            if (sort) url += '&sort=' + encodeURIComponent(sort)
+            if (sort) url += '&order_by=' + encodeURIComponent(sort)
             apiFetch(url, { method: 'GET' })
                 .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d } }).catch(function () { return { ok: false, data: null } }) })
                 .then(function (r) {
-                    if (!r.ok || !r.data) { recPatientsRows = []; recCurrentPage = 1; recLastPage = 1; recTotal = 0; recRenderPatientTable(); return }
+                    if (!r.ok || !r.data) { recPatientsRows = []; recPatientsAgeCounts = null; recCurrentPage = 1; recLastPage = 1; recTotal = 0; recUpdateAgeCounts(); recRenderPatientTable(); return }
                     var raw = Array.isArray(r.data.data) ? r.data.data.slice() : (Array.isArray(r.data) ? r.data.slice() : [])
                     recPatientsRows = raw.map(function (p) {
-                        return { user_id: p.user_id, firstname: p.firstname || '', middlename: p.middlename || '', lastname: p.lastname || '', birthdate: p.birthdate || '', sex: p.sex || '', address: p.address || '', contact_number: p.contact_number || '', email: p.email || '', account_type: p.account_type || '', verification_status: p.verification_status || '', verification_id: p.verification_id || '', philhealth_number: p.philhealth_number || '', nationality: p.nationality || '', civil_status: p.civil_status || '', occupation: p.occupation || '', emergency_contact: p.emergency_contact || '', emergency_contact_number: p.emergency_contact_number || '', profile_photo_url: p.profile_photo_url || '' }
+                        return { user_id: p.user_id, firstname: p.firstname || '', middlename: p.middlename || '', lastname: p.lastname || '', birthdate: p.birthdate || '', sex: p.sex || '', address: p.address || '', contact_number: p.contact_number || '', email: p.email || '', account_type: p.account_type || '', verification_status: p.verification_status || '', verification_type: p.verification_type || '', verification_id: p.verification_id || '', philhealth_number: p.philhealth_number || '', nationality: p.nationality || '', civil_status: p.civil_status || '', occupation: p.occupation || '', emergency_contact: p.emergency_contact || '', emergency_contact_number: p.emergency_contact_number || '', profile_photo_url: p.profile_photo_url || '', is_dependent: p.is_dependent || false, parent_user_id: p.parent_user_id || null }
                     })
                     recCurrentPage = r.data.current_page || page
                     recLastPage = r.data.last_page || 1
                     recTotal = r.data.total || raw.length
+                    recPatientsAgeCounts = r.data.age_counts || null
                     recUpdateAgeCounts()
                     recRenderPatientTable()
                 })
-                .catch(function () { recPatientsRows = []; recCurrentPage = 1; recLastPage = 1; recTotal = 0; recRenderPatientTable() })
+                .catch(function () { recPatientsRows = []; recPatientsAgeCounts = null; recCurrentPage = 1; recLastPage = 1; recTotal = 0; recRenderPatientTable() })
         }
 
         function recRenderPatientTable() {
@@ -1791,9 +1885,7 @@
                 var address = p && p.address ? String(p.address) : ''
                 var age = recAgeFromBirthdate(p && p.birthdate ? String(p.birthdate) : null)
                 var sex = p && p.sex ? String(p.sex) : ''
-                var type = String(p.account_type || 'patient').toLowerCase()
-                if (type === 'admin') type = 'patient'
-                var typeLabel = type.charAt(0).toUpperCase() + type.slice(1)
+                var verificationType = p && p.verification_type ? String(p.verification_type) : ''
                 var profileImg = p && p.profile_photo_url ? String(p.profile_photo_url) : ''
                 html += '<tr class="reception-pr-patient-row border-b border-slate-50 last:border-0" data-patient-id="' + recEscHtml(patientId) + '">' +
                     '<td class="py-2 pr-4">' +
@@ -1806,7 +1898,7 @@
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (address ? recEscHtml(address) : '<span class="text-slate-400">-</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (age != null ? age : '<span class="text-slate-400">-</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (sex ? recEscHtml(sex.charAt(0).toUpperCase() + sex.slice(1)) : '<span class="text-slate-400">-</span>') + '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + recEscHtml(typeLabel) + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (verificationType ? recEscHtml(verificationType.charAt(0).toUpperCase() + verificationType.slice(1)) : '<span class="text-slate-400">-</span>') + '</td>' +
                     '<td class="py-2 pr-4">' +
                         '<button type="button" class="reception-pr-open-panel inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-[0.78rem] font-semibold hover:bg-slate-50" data-patient-id="' + recEscHtml(patientId) + '">View Details and History</button>' +
                     '</td>' +
@@ -1865,7 +1957,7 @@
         function recOpenPatientPanel(patientId) {
             recCurrentPatientId = patientId
             recViewEditModeToggle(false)
-            recCachedMedBgRows = null; recCachedVisitRows = null; recCachedVitalRows = null; recCachedDependentRows = null
+            recCachedMedBgRows = null; recCachedVisitRows = null; recCachedVitalRows = null; recCachedDependentRows = null; recCachedParentData = null
             recCloseTabDrawer()
             var row = recPatientsTableBody ? recPatientsTableBody.querySelector('.reception-pr-patient-row[data-patient-id="' + patientId + '"]') : null
             var patientData = recPatientsRows.find(function (p) { return String(p.user_id) === String(patientId) })
@@ -1876,6 +1968,10 @@
             }
             if (!patientData) return
             var fullName = recFullName(patientData, 'Patient #' + patientId)
+            // Update dependents/parent tab label based on patient type
+            var depBtn = document.getElementById('receptionPrViewTabDependentsBtn')
+            var isDependent = patientData && patientData.is_dependent
+            if (depBtn) depBtn.textContent = isDependent ? 'Parent/Guardian' : 'Dependents'
             recSetText(recPrDetailFirstname, patientData.firstname || '-')
             recSetText(recPrDetailMiddlename, patientData.middlename || '-')
             recSetText(recPrDetailLastname, patientData.lastname || '-')
@@ -1902,7 +1998,7 @@
 
         function recLoadPatientPanelData(patientId) {
             recCurrentPatientId = patientId
-            recCachedMedBgRows = null; recCachedVisitRows = null; recCachedVitalRows = null; recCachedDependentRows = null
+            recCachedMedBgRows = null; recCachedVisitRows = null; recCachedVitalRows = null; recCachedDependentRows = null; recCachedParentData = null
             recResetPanelMetaFields()
             var apiBaseUrl = "{{ url('/api') }}"
 
@@ -2109,7 +2205,7 @@
         }
 
         function recLoadDependents(patientId) {
-            var url = "{{ url('/api/patients') }}/" + encodeURIComponent(patientId) + '/dependents'
+            var url = "{{ url('/api/users') }}/" + encodeURIComponent(patientId) + '/dependents'
             apiFetch(url, { method: 'GET' })
                 .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d } }).catch(function () { return { ok: false, data: null } }) })
                 .then(function (r) {
@@ -2122,17 +2218,27 @@
 
         function recRenderDependents(rows) {
             if (!recTabDrawerBody) return
-            if (!rows || !rows.length) { recTabDrawerBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No dependents found.</div>'; return }
-            var html = '<div class="overflow-x-auto"><table class="min-w-full text-left text-xs text-slate-600"><thead><tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400"><th class="py-2 pr-3 font-semibold">Name</th><th class="py-2 pr-3 font-semibold">Birthdate</th><th class="py-2 pr-3 font-semibold">Sex</th><th class="py-2 pr-3 font-semibold">Relationship</th><th class="py-2 pr-3 font-semibold">Action</th></tr></thead><tbody>'
+            if (!rows || !rows.length) { recTabDrawerBody.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-4 text-[0.78rem] text-slate-500">No dependents found for this patient.</div></div>'; return }
+            var html = '<div class="space-y-3">'
             rows.forEach(function (dep) {
                 var name = recFullName(dep, '-')
-                html += '<tr class="border-b border-slate-50"><td class="py-2 pr-3 text-[0.78rem] text-slate-900 font-medium">' + recEscHtml(name) + '</td>' +
-                    '<td class="py-2 pr-3">' + recEscHtml(recDisplayValue(dep.birthdate)) + '</td>' +
-                    '<td class="py-2 pr-3">' + recEscHtml(recSexLabel(dep.sex)) + '</td>' +
-                    '<td class="py-2 pr-3">' + recEscHtml(recDisplayValue(dep.relationship || dep.dependent_relationship)) + '</td>' +
-                    '<td class="py-2 pr-3"><button type="button" class="reception-pr-view-dep-btn text-[0.72rem] font-semibold text-green-600 hover:text-green-800" data-dep-id="' + dep.user_id + '">View</button></td></tr>'
+                html += '<div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">' +
+                    '<div class="flex items-center justify-between gap-3">' +
+                        '<div class="min-w-0 flex-1">' +
+                            '<div class="text-[0.82rem] font-semibold text-slate-900">' + recEscHtml(name) + '</div>' +
+                            '<div class="mt-1 flex items-center gap-3 text-[0.72rem] text-slate-500">' +
+                                '<span>' + recEscHtml(recDisplayValue(dep.birthdate)) + '</span>' +
+                                '<span class="text-slate-300">|</span>' +
+                                '<span>' + recEscHtml(recSexLabel(dep.sex)) + '</span>' +
+                                '<span class="text-slate-300">|</span>' +
+                                '<span>' + recEscHtml(recDisplayValue(dep.relationship || dep.dependent_relationship)) + '</span>' +
+                            '</div>' +
+                        '</div>' +
+                        '<button type="button" class="reception-pr-view-dep-btn px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-[0.72rem] font-semibold text-green-600 hover:bg-green-50 hover:border-green-200 whitespace-nowrap" data-dep-id="' + dep.user_id + '">View</button>' +
+                    '</div>' +
+                '</div>'
             })
-            html += '</tbody></table></div>'
+            html += '</div>'
             recTabDrawerBody.innerHTML = html
             recBindDepViewButtons()
         }
@@ -2231,28 +2337,53 @@
             var container = recViewTabContents[tabKey]
             if (!container) return
             if (tabKey === 'background') {
-                var headers = ['Category', 'Name', 'Diagnosis Date', 'Procedure Date', 'Notes']
+                var headers = ['Category', 'Name', 'Diagnosis Date', 'Procedure Date', 'Notes', '']
                 if (recCachedMedBgRows == null) {
                     container.innerHTML = recBuildTableHtml(headers, '', 'No medical background entries found.', 'Loading medical background entries...')
                     return
                 }
                 var rowsHtml = ''
                 recCachedMedBgRows.forEach(function (row) {
-                    var diagnosisDate = row && row.diagnosis_date ? String(row.diagnosis_date) : ''
-                    var diagnosisTime = row && row.diagnosis_time ? String(row.diagnosis_time) : ''
-                    if (diagnosisDate || diagnosisTime) diagnosisDate = (diagnosisDate || '') + (diagnosisTime ? ' ' + diagnosisTime.slice(0, 5) : '')
-                    var procedureDate = row && row.procedure_date ? String(row.procedure_date) : ''
-                    rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
-                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + recEscHtml(recCategoryLabel(row.category)) + '</td>' +
-                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + recEscHtml(row && row.name ? String(row.name) : '-') + '</td>' +
-                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosisDate ? recEscHtml(diagnosisDate) : '<span class="text-slate-400">-</span>') + '</td>' +
-                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (procedureDate ? recEscHtml(procedureDate) : '<span class="text-slate-400">-</span>') + '</td>' +
-                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (row && row.notes ? recEscHtml(String(row.notes)) : '<span class="text-slate-400">-</span>') + '</td>' +
-                    '</tr>'
+                    var rowId = row && row.medical_background_id ? String(row.medical_background_id) : ''
+                    var rawDate = row && row.diagnosis_date ? String(row.diagnosis_date) : ''
+                    var diagnosisDate = rawDate ? rawDate.slice(0, 10) : ''
+                    var procedureDate = row && row.procedure_date ? String(row.procedure_date).slice(0, 10) : ''
+                    // Per-row edit mode
+                    if (recMedBgEditingId === rowId) {
+                        var prefix = 'recmedbg-edit-' + rowId
+                        var catOpts = recBuildCategoryOptions(row.category)
+                        var dtPicker = '<input type="date" value="' + recEscHtml(diagnosisDate) + '" class="' + prefix + '-date w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400">'
+                        var procPicker = '<input type="date" value="' + recEscHtml(procedureDate) + '" class="' + prefix + '-proc w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400">'
+                        var notesInput = '<input type="text" value="' + recEscHtml(row && row.notes ? String(row.notes) : '') + '" class="' + prefix + '-notes w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400" placeholder="Notes">'
+                        rowsHtml += '<tr class="border-b border-amber-200 bg-amber-50/40">' +
+                            '<td class="py-2 pr-4"><select class="' + prefix + '-cat w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400">' + catOpts + '</select></td>' +
+                            '<td class="py-2 pr-4"><input type="text" value="' + recEscHtml(row && row.name ? String(row.name) : '') + '" class="' + prefix + '-name w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400"></td>' +
+                            '<td class="py-2 pr-4">' + dtPicker + '</td>' +
+                            '<td class="py-2 pr-4">' + procPicker + '</td>' +
+                            '<td class="py-2 pr-4">' + notesInput + '</td>' +
+                            '<td class="py-2 pr-4 text-right whitespace-nowrap">' +
+                                '<button type="button" class="recmedbg-edit-save px-2 py-1 rounded-lg border border-green-300 bg-green-600 text-[0.7rem] font-semibold text-white hover:bg-green-700 disabled:opacity-50" data-medbg-id="' + recEscHtml(rowId) + '">Save</button>' +
+                                '<button type="button" class="recmedbg-edit-cancel ml-1 px-2 py-1 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-500 hover:bg-slate-50" data-medbg-id="' + recEscHtml(rowId) + '">Cancel</button>' +
+                            '</td>' +
+                        '</tr>'
+                    } else {
+                        rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                            '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + recEscHtml(recCategoryLabel(row.category)) + '</td>' +
+                            '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + recEscHtml(row && row.name ? String(row.name) : '-') + '</td>' +
+                            '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosisDate ? recEscHtml(diagnosisDate) : '<span class="text-slate-400">-</span>') + '</td>' +
+                            '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (procedureDate ? recEscHtml(procedureDate) : '<span class="text-slate-400">-</span>') + '</td>' +
+                            '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (row && row.notes ? recEscHtml(String(row.notes)) : '<span class="text-slate-400">-</span>') + '</td>' +
+                            '<td class="py-2 pr-4 text-right"><button type="button" class="recmedbg-edit-btn text-[0.65rem] font-semibold text-green-600 hover:text-green-700 underline" data-medbg-id="' + recEscHtml(rowId) + '">Edit</button></td>' +
+                        '</tr>'
+                    }
                 })
-                container.innerHTML = recBuildTableHtml(headers, rowsHtml, 'No medical background entries found.')
+                var headerHtml = '<div class="flex items-center justify-between mb-3">' +
+                    '<div class="text-[0.72rem] font-semibold text-slate-700">Medical Background</div>' +
+                    '<button type="button" class="recmedbg-add-btn text-[0.7rem] font-semibold text-green-700 hover:text-green-800 underline">+ Add entry</button>' +
+                '</div>'
+                container.innerHTML = headerHtml + recBuildTableHtml(headers, rowsHtml, 'No medical background entries found.')
             } else if (tabKey === 'visits') {
-                var headers = ['Doctor', 'Visit date', 'Fees', 'Action']
+                var headers = ['Doctor', 'Visit date', 'Fees', 'Status', 'Action']
                 if (recCachedVisitRows == null) {
                     container.innerHTML = recBuildTableHtml(headers, '', 'No visits found.', 'Loading visit history...')
                     return
@@ -2263,11 +2394,16 @@
                     var doctor = appointment && appointment.doctor ? appointment.doctor : null
                     var dateRaw = visit && (visit.visit_datetime || visit.transaction_datetime) ? String(visit.visit_datetime || visit.transaction_datetime) : ''
                     var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
+                    var apptStatus = (appointment && appointment.status) ? String(appointment.status) : ''
+                    var statusColors = { pending:'bg-amber-50 text-amber-700 border-amber-200', confirmed:'bg-blue-50 text-blue-700 border-blue-200', completed:'bg-emerald-50 text-emerald-700 border-emerald-200', cancelled:'bg-red-50 text-red-700 border-red-200', no_show:'bg-slate-100 text-slate-600 border-slate-200', consulted:'bg-green-50 text-green-700 border-green-100', waiting:'bg-amber-50 text-amber-700 border-amber-100', serving:'bg-blue-50 text-blue-700 border-blue-100', done:'bg-emerald-50 text-emerald-700 border-emerald-100', skipped:'bg-orange-50 text-orange-700 border-orange-100', on_hold:'bg-purple-50 text-purple-700 border-purple-100' }
+                    var statusClass = statusColors[apptStatus] || 'bg-slate-50 text-slate-600 border-slate-100'
+                    var statusLabel = apptStatus ? apptStatus.charAt(0).toUpperCase() + apptStatus.slice(1).replace(/_/g, ' ') : '-'
                     rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + recEscHtml(recFullName(doctor, 'Doctor')) + '</td>' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + recEscHtml(dateText) + '</td>' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + recEscHtml(recFormatCurrency(visit && visit.amount != null ? visit.amount : '')) + '</td>' +
-                        '<td class="py-2 pr-4 text-[0.78rem]">-</td>' +
+                        '<td class="py-2 pr-4"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] font-medium border ' + statusClass + '">' + recEscHtml(statusLabel) + '</span></td>' +
+                        '<td class="py-2 pr-4"><button type="button" class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-600 hover:bg-slate-50 hover:border-slate-300 rec-visit-detail-btn" data-visit=\'' + recEscHtml(JSON.stringify(visit).replace(/'/g, '&#39;')) + '\'>Details</button></td>' +
                     '</tr>'
                 })
                 container.innerHTML = recBuildTableHtml(headers, rowsHtml, 'No visits found.')
@@ -2296,35 +2432,39 @@
                 })
                 container.innerHTML = recBuildTableHtml(headers, rowsHtml, 'No vitals found.')
             } else if (tabKey === 'dependents') {
-                if (recCachedDependentRows == null) {
-                    container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-[0.78rem] text-slate-600">Loading dependents...</div></div>'
+                var patient = recCurrentPatientId ? recFindPatientById(recCurrentPatientId) : null
+                var isDependent = patient && patient.is_dependent
+                var depBtn = document.getElementById('receptionPrViewTabDependentsBtn')
+                if (depBtn) depBtn.textContent = isDependent ? 'Parent/Guardian' : 'Dependents'
+
+                if (window._recShowingDependentProfile) {
+                    renderRecDependentProfileInline(container)
                     return
                 }
-                if (!recCachedDependentRows.length) {
-                    container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-[0.78rem] text-slate-600">No dependents found for this patient.</div></div>'
-                    return
+
+                if (isDependent) {
+                    var parentId = patient.parent_user_id
+                    if (!parentId) {
+                        container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-4 text-[0.78rem] text-slate-500">No parent/guardian linked to this account.</div></div>'
+                        return
+                    }
+                    if (!recCachedParentData) {
+                        container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-4 text-[0.78rem] text-slate-500">Loading parent information...</div></div>'
+                        fetchRecParentData(parentId)
+                        return
+                    }
+                    renderRecParentOrDependentCards(container, [recCachedParentData], 'parent')
+                } else {
+                    if (recCachedDependentRows == null) {
+                        container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-4 text-[0.78rem] text-slate-500">Loading dependents...</div></div>'
+                        return
+                    }
+                    if (!recCachedDependentRows.length) {
+                        container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-4 text-[0.78rem] text-slate-500">No dependents found for this patient.</div></div>'
+                        return
+                    }
+                    renderRecParentOrDependentCards(container, recCachedDependentRows, 'dependent')
                 }
-                var html = '<div class="space-y-3">'
-                recCachedDependentRows.forEach(function (dependent) {
-                    var dependentId = dependent && dependent.user_id != null ? String(dependent.user_id) : ''
-                    var age = recAgeFromBirthdate(dependent && dependent.birthdate ? String(dependent.birthdate) : null)
-                    var profileImg = dependent && dependent.prof_path_url ? String(dependent.prof_path_url) : ''
-                    html += '<div class="rounded-2xl border border-slate-200 bg-white p-4">' +
-                        '<div class="flex items-center gap-4">' +
-                            '<div class="w-14 h-14 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">' +
-                                (profileImg
-                                    ? '<img src="' + profileImg.replace(/"/g, '&quot;') + '" alt="" class="w-full h-full object-cover">'
-                                    : '<div class="w-full h-full flex items-center justify-center text-slate-400">...</div>') +
-                            '</div>' +
-                            '<div class="flex-1 min-w-0 space-y-1">' +
-                                '<div class="text-[0.82rem] font-semibold text-slate-900 truncate">' + recEscHtml(recFullName(dependent, 'Dependent')) + '</div>' +
-                                '<div class="text-[0.76rem] text-slate-500">Age: <span class="text-slate-700">' + recEscHtml(age == null ? '-' : String(age)) + '</span> &middot; Sex: <span class="text-slate-700">' + recEscHtml(recSexLabel(dependent && dependent.sex)) + '</span></div>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>'
-                })
-                html += '</div>'
-                container.innerHTML = html
             }
         }
 
@@ -2341,6 +2481,7 @@
         }
 
         function recOpenViewModal() {
+            recMedBgEditingId = null
             if (recViewOverlay) {
                 recViewOverlay.classList.remove('hidden')
                 recViewOverlay.classList.add('flex')
@@ -2350,10 +2491,16 @@
 
         function recCloseViewModal() {
             recCurrentPatientId = null
+            recMedBgEditingId = null
             recCachedMedBgRows = null
             recCachedVisitRows = null
             recCachedVitalRows = null
             recCachedDependentRows = null
+            recCachedParentData = null
+            window._recShowingDependentProfile = false
+            window._recDependentProfileId = null
+            var depBtn = document.getElementById('receptionPrViewTabDependentsBtn')
+            if (depBtn) depBtn.textContent = 'Dependents'
             recViewEditModeToggle(false)
             if (recViewOverlay) {
                 recViewOverlay.classList.add('hidden')
@@ -2491,6 +2638,165 @@
                 recSetViewTab(tabKey)
             })
         })
+
+        // Medical Background click handlers: add entry, edit, save, cancel
+        var recBgContainer = recViewTabContents['background']
+        if (recBgContainer) {
+            recBgContainer.addEventListener('click', function (e) {
+                // + Add entry button
+                var addBtn = e.target.closest('.recmedbg-add-btn')
+                if (addBtn) {
+                    e.preventDefault()
+                    var tbody = recBgContainer.querySelector('table tbody')
+                    if (!tbody) return
+                    var uid = 'new-' + Date.now()
+                    var dtPicker = '<input type="date" class="recmedbg-' + uid + '-date w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400">'
+                    var tr = document.createElement('tr')
+                    tr.className = 'border-b border-green-200 bg-green-50/40'
+                    tr.setAttribute('data-new-row', uid)
+                    tr.innerHTML =
+                        '<td class="py-2 pr-4">' +
+                            '<select class="recmedbg-' + uid + '-cat w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400">' +
+                                recBuildCategoryOptions('') +
+                            '</select>' +
+                        '</td>' +
+                        '<td class="py-2 pr-4">' +
+                            '<input type="text" class="recmedbg-' + uid + '-name w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400" placeholder="e.g. Penicillin">' +
+                        '</td>' +
+                        '<td class="py-2 pr-4">' + dtPicker + '</td>' +
+                        '<td class="py-2 pr-4">' +
+                            '<input type="date" class="recmedbg-' + uid + '-proc w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400">' +
+                        '</td>' +
+                        '<td class="py-2 pr-4">' +
+                            '<input type="text" class="recmedbg-' + uid + '-notes w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-green-400" placeholder="Notes">' +
+                        '</td>' +
+                        '<td class="py-2 pr-4 text-right whitespace-nowrap">' +
+                            '<button type="button" class="recmedbg-new-save px-2 py-1 rounded-lg border border-green-300 bg-green-600 text-[0.7rem] font-semibold text-white hover:bg-green-700 disabled:opacity-50" data-new-uid="' + uid + '">Save</button>' +
+                            '<button type="button" class="recmedbg-new-cancel ml-1 px-2 py-1 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-500 hover:bg-slate-50" data-new-uid="' + uid + '">Cancel</button>' +
+                        '</td>'
+                    tbody.insertBefore(tr, tbody.firstChild)
+                    return
+                }
+
+                // Edit existing entry button
+                var editBtn = e.target.closest('.recmedbg-edit-btn')
+                if (editBtn) {
+                    recMedBgEditingId = editBtn.getAttribute('data-medbg-id') || null
+                    recRenderViewTabContent('background')
+                    return
+                }
+
+                // Cancel editing existing entry
+                var editCancel = e.target.closest('.recmedbg-edit-cancel')
+                if (editCancel) {
+                    recMedBgEditingId = null
+                    recRenderViewTabContent('background')
+                    return
+                }
+
+                // Save edited entry
+                var editSave = e.target.closest('.recmedbg-edit-save')
+                if (editSave && !editSave.disabled) {
+                    var rowId = editSave.getAttribute('data-medbg-id')
+                    if (!rowId) return
+                    var prefix = 'recmedbg-edit-' + rowId
+                    var catEl = recBgContainer.querySelector('.' + prefix + '-cat')
+                    var nameEl = recBgContainer.querySelector('.' + prefix + '-name')
+                    var dateEl = recBgContainer.querySelector('.' + prefix + '-date')
+                    var procEl = recBgContainer.querySelector('.' + prefix + '-proc')
+                    var notesEl = recBgContainer.querySelector('.' + prefix + '-notes')
+                    if (!catEl || !nameEl) return
+                    var category = catEl.value
+                    var name = nameEl.value.trim()
+                    if (!category || !name) {
+                        if (typeof showToast === 'function') showToast('Category and Name are required.', 'error')
+                        return
+                    }
+                    var diagnosisDate = dateEl ? dateEl.value || null : null
+                    var procedureDate = procEl ? procEl.value || null : null
+                    var notes = notesEl ? notesEl.value.trim() || null : null
+                    editSave.disabled = true
+                    editSave.textContent = 'Saving...'
+                    var payload = {
+                        category: category,
+                        name: name,
+                        diagnosis_date: diagnosisDate,
+                        procedure_date: procedureDate,
+                        notes: notes,
+                    }
+                    window.apiFetch(apiBaseUrl + '/medical-backgrounds/' + encodeURIComponent(rowId), {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    }).then(function (res) {
+                        if (!res.ok) throw new Error('Update failed')
+                        recMedBgEditingId = null
+                        recLoadPatientPanelData(recCurrentPatientId)
+                        if (typeof showToast === 'function') showToast('Entry updated.', 'success')
+                    }).catch(function () {
+                        editSave.disabled = false
+                        editSave.textContent = 'Save'
+                        if (typeof showToast === 'function') showToast('Failed to update entry.', 'error')
+                    })
+                    return
+                }
+
+                // Save new entry
+                var saveBtn = e.target.closest('.recmedbg-new-save')
+                if (!saveBtn || saveBtn.disabled) return
+                var uid = saveBtn.getAttribute('data-new-uid')
+                if (!uid) return
+                var prefix = 'recmedbg-' + uid
+                var catEl = recBgContainer.querySelector('.' + prefix + '-cat')
+                var nameEl = recBgContainer.querySelector('.' + prefix + '-name')
+                var dateEl = recBgContainer.querySelector('.' + prefix + '-date')
+                var procEl = recBgContainer.querySelector('.' + prefix + '-proc')
+                var notesEl = recBgContainer.querySelector('.' + prefix + '-notes')
+                if (!catEl || !nameEl) return
+                var category = catEl.value
+                var name = nameEl.value.trim()
+                if (!category || !name) {
+                    if (typeof showToast === 'function') showToast('Category and Name are required.', 'error')
+                    return
+                }
+                var diagnosisDate = dateEl ? dateEl.value || null : null
+                var procedureDate = procEl ? procEl.value || null : null
+                var notes = notesEl ? notesEl.value.trim() || null : null
+                saveBtn.disabled = true
+                saveBtn.textContent = 'Saving...'
+                var payload = {
+                    patient_id: recCurrentPatientId,
+                    category: category,
+                    name: name,
+                    diagnosis_date: diagnosisDate,
+                    procedure_date: procedureDate,
+                    notes: notes,
+                }
+                window.apiFetch(apiBaseUrl + '/medical-backgrounds', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                }).then(function (res) {
+                    if (!res.ok) throw new Error('Save failed')
+                    recLoadPatientPanelData(recCurrentPatientId)
+                    if (typeof showToast === 'function') showToast('Entry added.', 'success')
+                }).catch(function () {
+                    saveBtn.disabled = false
+                    saveBtn.textContent = 'Save'
+                    if (typeof showToast === 'function') showToast('Failed to save entry.', 'error')
+                })
+            })
+
+            // Cancel new entry (delegated)
+            recBgContainer.addEventListener('click', function (e) {
+                var cancelBtn = e.target.closest('.recmedbg-new-cancel')
+                if (!cancelBtn) return
+                var uid = cancelBtn.getAttribute('data-new-uid')
+                if (!uid) return
+                var row = recBgContainer.querySelector('tr[data-new-row="' + uid + '"]')
+                if (row) row.remove()
+            })
+        }
 
         if (recTabDrawerClose) recTabDrawerClose.addEventListener('click', function () { recCloseTabDrawer() })
 
@@ -2716,6 +3022,202 @@
         function recFindPatientById(id) {
             if (!recPatientsRows) return null
             return recPatientsRows.find(function (p) { return String(p.user_id) === String(id) }) || null
+        }
+
+        // ── Visit Details Modal ──
+        var recVisitDetailOverlay = document.getElementById('recVisitDetailOverlay')
+        var recVisitDetailClose = document.getElementById('recVisitDetailClose')
+        if (recVisitDetailClose) {
+            recVisitDetailClose.addEventListener('click', function () {
+                if (recVisitDetailOverlay) { recVisitDetailOverlay.classList.add('hidden'); recVisitDetailOverlay.classList.remove('flex') }
+            })
+        }
+        if (recVisitDetailOverlay) {
+            recVisitDetailOverlay.addEventListener('click', function (e) {
+                if (e.target === recVisitDetailOverlay) { recVisitDetailOverlay.classList.add('hidden'); recVisitDetailOverlay.classList.remove('flex') }
+            })
+        }
+        function openRecVisitDetail(visit) {
+            if (!recVisitDetailOverlay || !visit) return
+            var appt = visit.appointment || {}
+            var doctor = appt.doctor || {}
+            var services = appt.services || []
+            var prescriptions = visit.prescriptions || []
+            var dateRaw = visit.visit_datetime || visit.transaction_datetime || ''
+            var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
+            var dateEl = document.getElementById('recVisitDetailDate'); if (dateEl) dateEl.textContent = dateText
+            var doctorEl = document.getElementById('recVisitDetailDoctor'); if (doctorEl) doctorEl.textContent = recFullName(doctor, 'Doctor')
+            var svcHtml = services.length ? services.map(function (s) { return s.service_name || '-'; }).join(', ') : '-'
+            var svcEl = document.getElementById('recVisitDetailServices'); if (svcEl) svcEl.textContent = svcHtml
+            var feesEl = document.getElementById('recVisitDetailFees'); if (feesEl) feesEl.textContent = recFormatCurrency(visit.amount != null ? visit.amount : '')
+            var payStatus = visit.payment_status ? String(visit.payment_status) : '-'
+            var payEl = document.getElementById('recVisitDetailPayment'); if (payEl) payEl.textContent = payStatus.charAt(0).toUpperCase() + payStatus.slice(1)
+            var apptStatus = appt.status ? String(appt.status) : ''
+            var sc = ({ pending:'bg-amber-50 text-amber-700 border-amber-200', confirmed:'bg-blue-50 text-blue-700 border-blue-200', completed:'bg-emerald-50 text-emerald-700 border-emerald-200', cancelled:'bg-red-50 text-red-700 border-red-200', no_show:'bg-slate-100 text-slate-600 border-slate-200', consulted:'bg-green-50 text-green-700 border-green-100', waiting:'bg-amber-50 text-amber-700 border-amber-100', serving:'bg-blue-50 text-blue-700 border-blue-100', done:'bg-emerald-50 text-emerald-700 border-emerald-100', skipped:'bg-orange-50 text-orange-700 border-orange-100', on_hold:'bg-purple-50 text-purple-700 border-purple-100' })[apptStatus] || 'bg-slate-50 text-slate-600 border-slate-100'
+            var sl = apptStatus ? apptStatus.charAt(0).toUpperCase() + apptStatus.slice(1).replace(/_/g, ' ') : '-'
+            var statusEl = document.getElementById('recVisitDetailStatus')
+            if (statusEl) statusEl.innerHTML = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] font-medium border ' + sc + '">' + recEscHtml(sl) + '</span>'
+            var apptTypeEl = document.getElementById('recVisitDetailApptType'); if (apptTypeEl) apptTypeEl.textContent = appt.appointment_type ? String(appt.appointment_type).replace(/_/g, '-') : '-'
+            var diagEl = document.getElementById('recVisitDetailDiagnosis'); if (diagEl) diagEl.textContent = visit.diagnosis || '-'
+            var txEl = document.getElementById('recVisitDetailTreatment'); if (txEl) txEl.textContent = visit.treatment_notes || '-'
+            var rxHtml = ''
+            if (prescriptions.length) {
+                rxHtml = prescriptions.map(function (rx) {
+                    var items = (rx.items || []).map(function (item) {
+                        var med = item.medicine || {}
+                        return (med.medicine_name || '-') + (item.dosage ? ' (' + item.dosage + ')' : '')
+                    }).join(', ')
+                    return items || (rx.notes || 'Prescription')
+                }).join('; ')
+            }
+            var rxEl = document.getElementById('recVisitDetailPrescriptions'); if (rxEl) rxEl.textContent = rxHtml || '-'
+            recVisitDetailOverlay.classList.remove('hidden')
+            recVisitDetailOverlay.classList.add('flex')
+        }
+
+        // ── Event delegation for visit detail buttons ──
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.rec-visit-detail-btn')
+            if (!btn) return
+            try {
+                var visitData = JSON.parse(btn.getAttribute('data-visit') || '{}')
+                openRecVisitDetail(visitData)
+            } catch (err) { /* ignore */ }
+        })
+
+        window._recShowingDependentProfile = false
+        window._recDependentProfileId = null
+
+        function fetchRecParentData(parentId) {
+            apiFetch("{{ url('/api/users') }}/" + encodeURIComponent(parentId), { method: 'GET' })
+                .then(function (r) { return r.json() })
+                .then(function (data) {
+                    if (data && !data.error) recCachedParentData = data
+                    else recCachedParentData = null
+                    recRenderViewTabContent('dependents')
+                })
+                .catch(function () { recCachedParentData = null; recRenderViewTabContent('dependents') })
+        }
+
+        function renderRecParentOrDependentCards(container, rows, type) {
+            var html = '<div class="space-y-3">'
+            rows.forEach(function (person) {
+                var pid = person && person.user_id != null ? String(person.user_id) : ''
+                var age = recAgeFromBirthdate(person && person.birthdate ? String(person.birthdate) : null)
+                var profileImg = person && person.prof_path_url ? String(person.prof_path_url) : ''
+                html += '<div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 cursor-pointer hover:border-slate-300 transition-colors rec-' + type + '-card" data-' + type + '-id="' + recEscHtml(pid) + '">' +
+                    '<div class="flex items-center gap-4">' +
+                        '<div class="w-14 h-14 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">' +
+                            (profileImg ? '<img src="' + profileImg.replace(/"/g, '&quot;') + '" alt="" class="w-full h-full object-cover">' : '<div class="w-full h-full flex items-center justify-center text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>') +
+                        '</div>' +
+                        '<div class="flex-1 min-w-0 space-y-1">' +
+                            '<div class="text-[0.82rem] font-semibold text-slate-900 truncate">' + recEscHtml(recFullName(person, type === 'parent' ? 'Parent' : 'Dependent')) + '</div>' +
+                            '<div class="text-[0.76rem] text-slate-500">Age: <span class="text-slate-700">' + recEscHtml(age == null ? '-' : String(age)) + '</span> &middot; Sex: <span class="text-slate-700">' + recEscHtml(recSexLabel(person && person.sex)) + '</span></div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>'
+            })
+            html += '</div>'
+            container.innerHTML = html
+            container._depClickHandler && container.removeEventListener('click', container._depClickHandler)
+            container._depClickHandler = function (e) {
+                var card = e.target.closest('.rec-parent-card, .rec-dependent-card')
+                if (card) {
+                    var id = card.getAttribute('data-parent-id') || card.getAttribute('data-dependent-id')
+                    if (id) {
+                        container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-4 text-[0.78rem] text-slate-500">Loading profile...</div></div>'
+                        showRecDependentProfileInline(id)
+                    }
+                }
+            }
+            container.addEventListener('click', container._depClickHandler)
+        }
+
+        function showRecDependentProfileInline(personId) {
+            var container = recViewTabContents['dependents']
+            if (!container) return
+            window._recShowingDependentProfile = true
+            window._recDependentProfileId = personId
+            apiFetch("{{ url('/api/users') }}/" + encodeURIComponent(personId), { method: 'GET' })
+                .then(function (r) { return r.json() })
+                .then(function (user) {
+                    if (!user || user.error) {
+                        container.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Failed to load profile.</div>'
+                        window._recShowingDependentProfile = false
+                        return
+                    }
+                    renderRecDependentProfileInline(container, user)
+                })
+                .catch(function () {
+                    container.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Failed to load profile.</div>'
+                    window._recShowingDependentProfile = false
+                })
+        }
+
+        function renderRecDependentProfileInline(container, userData) {
+            var user = userData || null
+            if (!user && window._recDependentProfileId) {
+                var allRows = recCachedDependentRows || []
+                user = allRows.find(function (r) { return String(r.user_id) === String(window._recDependentProfileId) }) || null
+            }
+            if (!user) {
+                container.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Profile data not available.</div>'
+                window._recShowingDependentProfile = false
+                return
+            }
+            var profileImg = user.prof_path_url || ''
+            container.innerHTML =
+                '<div class="space-y-4">' +
+                    '<button type="button" class="inline-flex items-center gap-1.5 text-[0.78rem] font-semibold text-slate-500 hover:text-slate-700 rec-profile-back-btn">' +
+                        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>' +
+                        'Back to list' +
+                    '</button>' +
+                    '<div class="grid grid-cols-1 md:grid-cols-5 gap-5">' +
+                        '<div class="md:col-span-3 space-y-3">' +
+                            '<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Last name</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + recEscHtml(user.lastname || '-') + '</div></div>' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">First name</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + recEscHtml(user.firstname || '-') + '</div></div>' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Middle name</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + recEscHtml(user.middlename || '-') + '</div></div>' +
+                            '</div>' +
+                            '<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Sex</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + recEscHtml(recSexLabel(user.sex)) + '</div></div>' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Birthdate</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + recEscHtml(String(user.birthdate || '').slice(0, 10) || '-') + '</div></div>' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Civil status</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + recEscHtml(user.civil_status || '-') + '</div></div>' +
+                            '</div>' +
+                            '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Nationality</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + recEscHtml(user.nationality || '-') + '</div></div>' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Occupation</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + recEscHtml(user.occupation || '-') + '</div></div>' +
+                            '</div>' +
+                            '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Address</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg min-h-[2.5rem]">' + recEscHtml(user.address || '-') + '</div></div>' +
+                            '<hr class="border-slate-100">' +
+                            '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">PHIC Number</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + recEscHtml(user.philhealth_number || '-') + '</div></div>' +
+                                '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + recEscHtml(user.emergency_contact || '-') + '</div></div>' +
+                            '</div>' +
+                            '<div><label class="block text-[0.7rem] text-slate-600 mb-1">Emergency contact number</label><div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + recEscHtml(user.emergency_contact_number || '-') + '</div></div>' +
+                        '</div>' +
+                        '<div class="md:col-span-2">' +
+                            '<div class="rounded-xl border border-slate-200 bg-slate-50/60 p-5 text-center">' +
+                                '<div class="text-[0.72rem] font-semibold text-slate-700 mb-3">Profile Photo</div>' +
+                                '<div class="w-32 h-32 mx-auto rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 overflow-hidden">' +
+                                    (profileImg ? '<img src="' + profileImg.replace(/"/g, '&quot;') + '" alt="" class="w-full h-full object-cover">' : '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>') +
+                                '</div>' +
+                                '<div class="mt-4 text-left">' +
+                                    '<label class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>' +
+                                    '<div class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">' + recEscHtml(user.contact_number || '-') + '</div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>'
+            var backBtn = container.querySelector('.rec-profile-back-btn')
+            if (backBtn) {
+                backBtn.addEventListener('click', function () {
+                    window._recShowingDependentProfile = false
+                    window._recDependentProfileId = null
+                    recRenderViewTabContent('dependents')
+                })
+            }
         }
 
         recSetViewTabActive('profile')

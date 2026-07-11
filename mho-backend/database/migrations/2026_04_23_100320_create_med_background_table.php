@@ -33,8 +33,8 @@ return new class extends Migration
 
     $table->text('notes')->nullable();
 
-    $table->date('diagnosis_date')->nullable();
-    $table->time('diagnosis_time')->nullable();
+    $table->dateTime('diagnosis_date')->nullable();
+
 
     $table->date('procedure_date')->nullable();
 

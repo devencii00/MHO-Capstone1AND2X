@@ -23,6 +23,11 @@ class QueueDisplayController extends Controller
 
     public function data(Request $request)
     {
+        // Auto-mark past-day queues as no_show (only done status is preserved)
+        Queue::whereDate('queue_datetime', '<', now()->toDateString())
+            ->where('status', '!=', 'done')
+            ->update(['status' => 'no_show']);
+
         $date = $this->resolveDate($request);
 
         $doctorId = $request->query('doctor_id');

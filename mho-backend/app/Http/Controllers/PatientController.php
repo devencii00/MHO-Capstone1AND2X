@@ -39,7 +39,7 @@ class PatientController extends Controller
             'parents_only' => ['nullable', 'boolean'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:15'],
             'sort' => ['nullable', 'in:asc,desc'],
-            'order_by' => ['nullable', 'in:name_asc,name_desc,created_asc,created_desc'],
+            'order_by' => ['nullable', 'in:visit_asc,visit_desc,created_asc,created_desc'],
             'age_filter' => ['nullable', 'in:all,0_5,6_12,13_19,20_64,65_up'],
         ]);
 
@@ -100,13 +100,15 @@ class PatientController extends Controller
             }
         }
 
+        $includeCounts = $request->boolean('include_counts');
+
         $orderBy = $request->query('order_by', 'created_desc');
         switch ($orderBy) {
-            case 'name_asc':
-                $query->orderBy('lastname', 'asc')->orderBy('firstname', 'asc');
+            case 'visit_asc':
+                $query->orderByRaw('(SELECT MAX(appointment_datetime) FROM appointments WHERE patient_id = users.user_id) ASC');
                 break;
-            case 'name_desc':
-                $query->orderBy('lastname', 'desc')->orderBy('firstname', 'desc');
+            case 'visit_desc':
+                $query->orderByRaw('(SELECT MAX(appointment_datetime) FROM appointments WHERE patient_id = users.user_id) DESC');
                 break;
             case 'created_asc':
                 $query->orderBy('user_id', 'asc');
@@ -117,7 +119,73 @@ class PatientController extends Controller
                 break;
         }
 
-        return $query->paginate($perPage);
+        $result = $query->paginate($perPage);
+
+        if ($includeCounts) {
+            // Build the same query without pagination to compute age distribution
+            $countsQuery = User::query()->where('role', 'patient');
+
+            if ($parentsOnly) {
+                $countsQuery->where('is_dependent', false);
+            }
+
+            if ($search !== '') {
+                $contains = '%'.$search.'%';
+                $prefix = $search.'%';
+                $tokens = preg_split('/\s+/u', $search, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+                $countsQuery->where(function ($q) use ($search, $contains, $prefix, $tokens) {
+                    $q->where('email', 'like', $contains)
+                        ->orWhere('firstname', 'like', $prefix)
+                        ->orWhere('lastname', 'like', $prefix)
+                        ->orWhere('middlename', 'like', $prefix)
+                        ->orWhere('contact_number', 'like', $contains)
+                        ->orWhere('address', 'like', $contains);
+
+                    if (is_numeric($search)) {
+                        $q->orWhere('user_id', (int) $search);
+                    }
+
+                    foreach ($tokens as $token) {
+                        $tokenPrefix = $token.'%';
+                        $q->orWhere(function ($w) use ($tokenPrefix) {
+                            $w->where('firstname', 'like', $tokenPrefix)
+                                ->orWhere('middlename', 'like', $tokenPrefix)
+                                ->orWhere('lastname', 'like', $tokenPrefix);
+                        });
+                    }
+                });
+            }
+
+            $allPatients = $countsQuery->select('user_id', 'birthdate')->get();
+
+            $ageCounts = [
+                'all' => 0,
+                '0_5' => 0,
+                '6_12' => 0,
+                '13_19' => 0,
+                '20_64' => 0,
+                '65_up' => 0,
+            ];
+
+            foreach ($allPatients as $p) {
+                $ageCounts['all']++;
+                if ($p->birthdate === null) continue;
+                $age = (int) $p->birthdate->diffInYears(now());
+                if ($age >= 0 && $age <= 5) $ageCounts['0_5']++;
+                elseif ($age >= 6 && $age <= 12) $ageCounts['6_12']++;
+                elseif ($age >= 13 && $age <= 19) $ageCounts['13_19']++;
+                elseif ($age >= 20 && $age <= 64) $ageCounts['20_64']++;
+                elseif ($age >= 65) $ageCounts['65_up']++;
+            }
+
+            return response()->json(array_merge(
+                $result->toArray(),
+                ['age_counts' => $ageCounts]
+            ));
+        }
+
+        return $result;
     }
 
     public function store(Request $request)
