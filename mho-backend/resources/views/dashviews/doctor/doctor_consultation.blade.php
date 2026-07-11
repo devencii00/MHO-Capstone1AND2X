@@ -51,8 +51,8 @@
 
 <div class="space-y-4">
     <div>
-        <h2 class="text-sm font-semibold text-slate-900">Consultation Workspace</h2>
-        <p class="text-xs text-slate-500">Select today&rsquo;s appointment, review the patient snapshot, and record visit notes + prescriptions.</p>
+        <h2 class="text-sm font-semibold text-slate-900"></h2>
+        <p class="text-xs text-slate-500"></p>
     </div>
 
     <div class="grid gap-4 lg:grid-cols-12">

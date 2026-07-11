@@ -1,10 +1,10 @@
 <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
     <div class="flex items-center justify-between mb-3">
-        <h2 class="text-sm font-semibold text-slate-900">My Appointments</h2>
+        <h2 class="text-sm font-semibold text-slate-900"></h2>
         <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Time &amp; days</span>
     </div>
     <p class="text-xs text-slate-500 mb-3">
-        View and manage your patient appointments across days and times.
+
     </p>
 
     <div id="doctorManageDateHeader" class="hidden text-center text-sm font-semibold text-slate-700 mb-3"></div>
