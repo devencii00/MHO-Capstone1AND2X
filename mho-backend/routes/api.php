@@ -34,7 +34,7 @@ Route::post('/public/guest-walk-in/{token}', [PublicGuestWalkInController::class
 Route::get('/public/guest-walk-in/{token}/check', [PublicGuestWalkInController::class, 'checkDuplicates']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    // Broadcast auth for Reverb private channels
+ 
     Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
         return Broadcast::auth($request);
     });
@@ -90,6 +90,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/patient-verifications/{patientVerification}/document', [PatientVerificationController::class, 'document']);
     Route::patch('/doctor-schedules/bulk-availability', [DoctorScheduleController::class, 'bulkAvailability']);
     Route::delete('/doctor-schedules/bulk-delete', [DoctorScheduleController::class, 'bulkDelete']);
+    Route::patch('/doctor-schedules/toggle-slot', [DoctorScheduleController::class, 'toggleSlot']);
     Route::apiResource('doctor-schedules', DoctorScheduleController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::get('/services-popular', [\App\Http\Controllers\ServiceController::class, 'popular']);
     Route::apiResource('services', \App\Http\Controllers\ServiceController::class);

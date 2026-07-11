@@ -39,6 +39,15 @@ class DoctorScheduleController extends Controller
         }
 
         try {
+            // Daily reset: auto-set any is_available=false slots back to true if updated before today
+            if ($doctorId) {
+                DoctorSchedule::query()
+                    ->where('doctor_id', (int) $doctorId)
+                    ->where('is_available', false)
+                    ->whereDate('updated_at', '<', now()->toDateString())
+                    ->update(['is_available' => true, 'updated_at' => now()]);
+            }
+
             $result = DoctorSchedule::query()
                 ->with(['doctor'])
                 ->when($doctorId, function ($q) use ($doctorId) {
@@ -194,7 +203,26 @@ class DoctorScheduleController extends Controller
     public function update(Request $request, DoctorSchedule $doctorSchedule)
     {
         $currentUser = $request->user();
-        if (! $currentUser || $currentUser->role !== 'admin') {
+        if (! $currentUser) {
+            abort(403);
+        }
+        // Admin can update anything; doctor can only update their own room_number and max_patients
+        if ($currentUser->role === 'doctor') {
+            if ((int) $doctorSchedule->doctor_id !== (int) $currentUser->user_id) {
+                abort(403);
+            }
+            $data = $request->validate([
+                'room_number' => ['sometimes', 'nullable', 'integer', 'min:1'],
+                'max_patients' => ['sometimes', 'nullable', 'integer', 'min:1'],
+            ]);
+            $doctorSchedule->update([
+                'room_number' => array_key_exists('room_number', $data) ? $data['room_number'] : $doctorSchedule->room_number,
+                'max_patients' => array_key_exists('max_patients', $data) ? $data['max_patients'] : $doctorSchedule->max_patients,
+            ]);
+            return $doctorSchedule->refresh()->load(['doctor']);
+        }
+
+        if ($currentUser->role !== 'admin') {
             abort(403);
         }
 
@@ -413,6 +441,73 @@ class DoctorScheduleController extends Controller
 
         return response()->json([
             'updated' => $updated,
+        ]);
+    }
+
+    public function toggleSlot(Request $request)
+    {
+        $currentUser = $request->user();
+        if (! $currentUser || ($currentUser->role !== 'doctor' && $currentUser->role !== 'admin')) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'day_of_week' => ['required', 'in:mon,tue,wed,thu,fri,sat,sun'],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['required', 'date_format:H:i'],
+            'is_available' => ['required', 'boolean'],
+        ]);
+
+        $doctorId = (int) $currentUser->user_id;
+        $day = (string) $data['day_of_week'];
+        $startTime = (string) $data['start_time'];
+        $endTime = (string) $data['end_time'];
+        $isAvailable = (bool) $data['is_available'];
+
+        $startMinutes = $this->minutesFromTime($startTime);
+        $endMinutes = $this->minutesFromTime($endTime);
+
+        if ($startMinutes === null || $endMinutes === null || $endMinutes <= $startMinutes) {
+            return response()->json(['message' => 'End time must be after start time.'], 422);
+        }
+
+        // Find all matching schedule records for this doctor on this day within the time range
+        $matching = DoctorSchedule::query()
+            ->where('doctor_id', $doctorId)
+            ->where('day_of_week', $day)
+            ->whereTime('start_time', '>=', $startTime)
+            ->whereTime('end_time', '<=', $endTime)
+            ->get();
+
+        if ($matching->isEmpty()) {
+            return response()->json([
+                'message' => 'No schedule slots found for the selected day and time range.',
+            ], 404);
+        }
+
+        $ids = $matching->pluck('schedule_id')->toArray();
+        $updated = DoctorSchedule::query()
+            ->whereIn('schedule_id', $ids)
+            ->update(['is_available' => $isAvailable, 'updated_at' => now()]);
+
+        LogEntry::write(
+            (int) $currentUser->user_id,
+            'doctor_schedule_toggle_slot',
+            'doctor_schedules',
+            null,
+            [
+                'day_of_week' => $day,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'is_available' => $isAvailable,
+                'slot_ids' => $ids,
+                'updated' => $updated,
+            ]
+        );
+
+        return response()->json([
+            'updated' => $updated,
+            'message' => $isAvailable ? 'Slots marked as available.' : 'Slots marked as unavailable.',
         ]);
     }
 
