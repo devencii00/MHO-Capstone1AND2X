@@ -223,20 +223,31 @@ class NotificationController extends Controller
 
             // Doctor: appointment & queue notifications → consultation view
             if ($role === 'doctor' && in_array($abstractRoute, ['appointments', 'queue'], true)) {
-                $appointmentId = null;
-                if ($abstractRoute === 'appointments') {
-                    $appointmentId = $refId;
-                } elseif ($abstractRoute === 'queue') {
-                    $queue = \App\Models\Queue::find($refId);
-                    $appointmentId = $queue?->appointment_id;
+                // Appointment reminder notifications → navigate to my-schedule (appointments page)
+                $isReminder = $notification->message && str_contains($notification->message, '[Appointment Reminder]');
+                if ($isReminder) {
+                    $navData['section'] = 'my-schedule';
+                    $navData['label'] = 'View Appointments';
+                    $navData['navigate_url'] = route('dashboard', [
+                        'role' => $role,
+                        'section' => 'my-schedule',
+                    ], false);
+                } else {
+                    $appointmentId = null;
+                    if ($abstractRoute === 'appointments') {
+                        $appointmentId = $refId;
+                    } elseif ($abstractRoute === 'queue') {
+                        $queue = \App\Models\Queue::find($refId);
+                        $appointmentId = $queue?->appointment_id;
+                    }
+                    $navData['section'] = 'consultation';
+                    $navData['label'] = 'Start Consultation';
+                    $navData['navigate_url'] = route('dashboard', [
+                        'role' => $role,
+                        'section' => 'consultation',
+                        'appointment_id' => $appointmentId,
+                    ], false);
                 }
-                $navData['section'] = 'consultation';
-                $navData['label'] = 'Start Consultation';
-                $navData['navigate_url'] = route('dashboard', [
-                    'role' => $role,
-                    'section' => 'consultation',
-                    'appointment_id' => $appointmentId,
-                ], false);
             } elseif ($abstractRoute === 'messages' && $role === 'receptionist') {
                 $navData['action'] = 'open-messages-modal';
                 $navData['label'] = 'Open Messages';

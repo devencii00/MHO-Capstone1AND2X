@@ -3047,8 +3047,18 @@
             var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
             var dateEl = document.getElementById('recVisitDetailDate'); if (dateEl) dateEl.textContent = dateText
             var doctorEl = document.getElementById('recVisitDetailDoctor'); if (doctorEl) doctorEl.textContent = recFullName(doctor, 'Doctor')
-            var svcHtml = services.length ? services.map(function (s) { return s.service_name || '-'; }).join(', ') : '-'
-            var svcEl = document.getElementById('recVisitDetailServices'); if (svcEl) svcEl.textContent = svcHtml
+            var svcHtml = services.length
+                ? services.map(function (s) {
+                    var name = s.service_name || 'Unknown service'
+                    var desc = s.description ? s.description : ''
+                    var price = s.price != null ? recFormatCurrency(s.price) : ''
+                    var parts = [name]
+                    if (desc) parts.push('<span class="text-slate-400">' + recEscHtml(desc) + '</span>')
+                    if (price) parts.push('<span class="font-medium text-slate-600">' + price + '</span>')
+                    return '<div class="flex flex-wrap items-baseline gap-x-2">' + parts.join(' ') + '</div>'
+                }).join('')
+                : '-'
+            var svcEl = document.getElementById('recVisitDetailServices'); if (svcEl) svcEl.innerHTML = svcHtml
             var feesEl = document.getElementById('recVisitDetailFees'); if (feesEl) feesEl.textContent = recFormatCurrency(visit.amount != null ? visit.amount : '')
             var payStatus = visit.payment_status ? String(visit.payment_status) : '-'
             var payEl = document.getElementById('recVisitDetailPayment'); if (payEl) payEl.textContent = payStatus.charAt(0).toUpperCase() + payStatus.slice(1)

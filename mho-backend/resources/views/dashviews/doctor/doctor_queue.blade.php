@@ -413,6 +413,9 @@
                     }
 
                     showSuccess(successMessage || 'Queue updated.')
+
+                    // Immediately refresh the table, serving card, and on-hold card
+                    refreshTableFromServer(document.getElementById('doctorQueueTbody'))
                 })
                 .catch(function () {
                     showError('Network error while updating queue.')
@@ -538,22 +541,31 @@
 
         applyDoctorQueueFilters()
 
-        if (typeof window.Echo !== 'undefined' && window.Echo && doctorUserId && !window.__doctorQueueInited) {
-            try {
-                window.__doctorQueueInited = true
-                window.Echo.private('queue.' + doctorUserId)
-                    .listen('.queue.updated', function (data) {
-                        var timeReceived = Date.now();
-                        if (data && data.fired_at) {
-                            var absoluteDelay = timeReceived - data.fired_at;
-                            console.log('[DoctorQueue] Reverb fired: ' + absoluteDelay + 'ms');
-                        }
-                        // Use AJAX table refresh instead of full page reload
-                        refreshTableFromServer(document.getElementById('doctorQueueTbody'))
-                    })
-                console.log('[DoctorQueue] Echo listener attached to queue.' + doctorUserId)
-            } catch (e) {
-                console.error('[DoctorQueue] Echo subscribe failed:', e)
+        if (typeof window.Echo !== 'undefined' && window.Echo && doctorUserId) {
+            if (!window.__doctorQueueEchoListener) {
+                try {
+                    window.__doctorQueueEchoListener = window.Echo.private('queue.' + doctorUserId)
+                        .listen('.queue.updated', function (data) {
+                            var timeReceived = Date.now();
+                            if (data && data.fired_at) {
+                                var absoluteDelay = timeReceived - data.fired_at;
+                                console.log('[DoctorQueue] Reverb fired: ' + absoluteDelay + 'ms');
+                            }
+                            refreshTableFromServer(document.getElementById('doctorQueueTbody'))
+                        })
+                    console.log('[DoctorQueue] Echo listener attached to queue.' + doctorUserId)
+
+                    // Also listen for appointment status changes (e.g. consulted) so the queue table updates
+                    window.Echo.private('appointments.' + doctorUserId)
+                        .listen('.appointment.updated', function () {
+                            refreshTableFromServer(document.getElementById('doctorQueueTbody'))
+                        })
+                    console.log('[DoctorQueue] Echo listener attached to appointments.' + doctorUserId)
+                } catch (e) {
+                    console.error('[DoctorQueue] Echo subscribe failed:', e)
+                }
+            } else {
+                console.log('[DoctorQueue] Echo listener already attached, skipping.')
             }
         }
     })

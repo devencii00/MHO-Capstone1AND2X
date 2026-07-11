@@ -23,6 +23,7 @@ class VisitController extends Controller
         $query = Transaction::with([
             'appointment.patient',
             'appointment.doctor',
+            'appointment.services',
             'prescriptions.doctor',
             'prescriptions.items.medicine',
         ]);
@@ -71,6 +72,7 @@ class VisitController extends Controller
         return $visit->load([
             'appointment.patient',
             'appointment.doctor',
+            'appointment.services',
             'prescriptions.doctor',
             'prescriptions.items.medicine',
         ]);

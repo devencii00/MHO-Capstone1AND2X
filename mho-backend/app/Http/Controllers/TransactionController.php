@@ -230,7 +230,7 @@ class TransactionController extends Controller
             }
             $transaction->update($updateData);
             $this->markLinkedAppointmentCompleted((int) $transaction->appointment_id);
-            $this->notifyReceptionistsForPaymentStatus($originalPaymentStatus, (string) ($transaction->payment_status ?? ''));
+            $this->notifyReceptionistsForPaymentStatus($transaction, $originalPaymentStatus, (string) ($transaction->payment_status ?? ''));
             $this->notifyPatientForPaymentStatus($transaction, $originalPaymentStatus, (string) ($transaction->payment_status ?? ''));
 
             LogEntry::write(
@@ -253,7 +253,7 @@ class TransactionController extends Controller
 
         $transaction = Transaction::create($data);
         $this->markLinkedAppointmentCompleted((int) $transaction->appointment_id);
-        $this->notifyReceptionistsForPaymentStatus(null, (string) ($transaction->payment_status ?? ''));
+        $this->notifyReceptionistsForPaymentStatus($transaction, null, (string) ($transaction->payment_status ?? ''));
         $this->notifyPatientForPaymentStatus($transaction, null, (string) ($transaction->payment_status ?? ''));
 
         LogEntry::write(
@@ -495,7 +495,7 @@ class TransactionController extends Controller
 
         $transaction->update($data);
         $this->markLinkedAppointmentCompleted((int) $transaction->appointment_id);
-        $this->notifyReceptionistsForPaymentStatus($originalPaymentStatus, (string) ($transaction->payment_status ?? ''));
+        $this->notifyReceptionistsForPaymentStatus($transaction, $originalPaymentStatus, (string) ($transaction->payment_status ?? ''));
         $this->notifyPatientForPaymentStatus($transaction, $originalPaymentStatus, (string) ($transaction->payment_status ?? ''));
 
         LogEntry::write(
@@ -550,7 +550,7 @@ class TransactionController extends Controller
         return $reference;
     }
 
-    private function notifyReceptionistsForPaymentStatus(?string $before, ?string $after): void
+    private function notifyReceptionistsForPaymentStatus(Transaction $transaction, ?string $before, ?string $after): void
     {
         $previous = strtolower(trim((string) $before));
         $current = strtolower(trim((string) $after));
@@ -572,7 +572,7 @@ class TransactionController extends Controller
                 'payment',
                 'Payment Update',
                 $transaction->transaction_id,
-                'transactions'
+                'payments'
             );
         }
     }
@@ -598,7 +598,7 @@ class TransactionController extends Controller
             'payment',
             'Payment Received',
             $transaction->transaction_id,
-            'transactions'
+            'payments'
         );
     }
 

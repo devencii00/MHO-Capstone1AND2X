@@ -675,7 +675,7 @@ class PatientController extends Controller
     public function printPatientReport(Request $request)
     {
         $currentUser = $request->user();
-        if (! $currentUser || strtolower((string) $currentUser->role) !== 'admin') {
+        if (! $currentUser || ! in_array(strtolower((string) $currentUser->role), ['admin', 'doctor'])) {
             abort(403);
         }
 

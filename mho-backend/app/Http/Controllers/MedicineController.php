@@ -17,7 +17,18 @@ class MedicineController extends Controller
             $perPage = 100;
         }
 
-        return Medicine::query()->paginate($perPage);
+        $search = trim((string) $request->query('search', ''));
+
+        return Medicine::query()
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('generic_name', 'like', '%' . $search . '%')
+                        ->orWhere('brand_name', 'like', '%' . $search . '%');
+                });
+            })
+            ->orderBy('generic_name')
+            ->orderBy('brand_name')
+            ->paginate($perPage);
     }
 
     public function show(Medicine $medicine)

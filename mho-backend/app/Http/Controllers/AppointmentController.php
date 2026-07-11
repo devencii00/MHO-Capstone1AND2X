@@ -40,7 +40,7 @@ class AppointmentController extends Controller
             'today_only' => ['nullable', 'boolean'],
         ]);
 
-        $query = Appointment::with(['patient', 'doctor', 'queue', 'services']);
+        $query = Appointment::with(['patient', 'doctor', 'queue', 'services', 'transaction']);
 
         $currentUser = $request->user();
 
@@ -295,14 +295,14 @@ class AppointmentController extends Controller
             }
         }
 
-        if ($isReceptionist && $data['appointment_type'] === 'walk_in') {
+        if ($data['appointment_type'] === 'walk_in' && $isReceptionist) {
             $patientId = (int) ($data['patient_id'] ?? 0);
             $forceDuplicateQueue = (bool) ($data['force_duplicate_queue'] ?? false);
             if ($patientId > 0) {
                 $date = now()->toDateString();
                 $alreadyQueued = Queue::query()
                     ->whereDate('queue_datetime', $date)
-                    ->whereIn('status', ['waiting', 'serving'])
+                    ->whereIn('status', Queue::ACTIVE_STATUSES)
                     ->whereHas('appointment', function ($q) use ($patientId) {
                         $q->where('patient_id', $patientId);
                     })
@@ -420,7 +420,7 @@ class AppointmentController extends Controller
                 ], 422);
             }
 
-            $slotMinutes = 60;
+            $slotMinutes = 30;
             $intervals = [];
 
             foreach ($daySchedules as $row) {

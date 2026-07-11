@@ -3000,8 +3000,19 @@
             setTextById('doctorVisitDetailDate', dateText)
             setTextById('doctorVisitDetailDoctor', fullName(doctor, 'Doctor'))
 
-            var svcHtml = services.length ? services.map(function (s) { return s.service_name || '-'; }).join(', ') : '-'
-            setTextById('doctorVisitDetailServices', svcHtml)
+            var svcHtml = services.length
+                ? services.map(function (s) {
+                    var name = s.service_name || 'Unknown service'
+                    var desc = s.description ? s.description : ''
+                    var price = s.price != null ? formatCurrency(s.price) : ''
+                    var parts = [name]
+                    if (desc) parts.push('<span class="text-slate-400">' + escapeHtml(desc) + '</span>')
+                    if (price) parts.push('<span class="font-medium text-slate-600">' + price + '</span>')
+                    return '<div class="flex flex-wrap items-baseline gap-x-2">' + parts.join(' ') + '</div>'
+                }).join('')
+                : '-'
+            var svcEl = document.getElementById('doctorVisitDetailServices')
+            if (svcEl) svcEl.innerHTML = svcHtml
             setTextById('doctorVisitDetailFees', formatCurrency(visit.amount != null ? visit.amount : ''))
 
             var payStatus = visit.payment_status ? String(visit.payment_status) : '-'

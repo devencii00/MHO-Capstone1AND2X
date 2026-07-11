@@ -71,6 +71,7 @@
                     <div>
                         <label for="reception_payment_money_paid" class="block text-[0.7rem] text-slate-600 mb-1">Money paid</label>
                         <input id="reception_payment_money_paid" type="text" inputmode="decimal" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="0.00">
+                        <div id="reception_payment_money_paid_error" class="hidden mt-1 text-[0.68rem] text-red-600"></div>
                     </div>
                 </div>
             </div>
@@ -250,9 +251,9 @@
     </div>
 </div>
 <div id="receptionPaymentReviewOverlay" class="hidden fixed inset-0 z-[80] bg-slate-900/50 backdrop-blur-sm items-center justify-center p-4 transition-all duration-200">
-    <div class="w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-slate-100 overflow-hidden">
-        <!-- Header -->
-        <div class="px-5 pt-5 pb-3 border-b border-slate-100 bg-gradient-to-r from-white to-slate-50/50">
+    <div class="w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-slate-100 flex flex-col" style="max-height:90vh">
+        <!-- Header (fixed) -->
+        <div class="flex-shrink-0 px-5 pt-5 pb-3 border-b border-slate-100 bg-gradient-to-r from-white to-slate-50/50">
             <div class="flex items-start gap-3">
                 <div class="w-10 h-10 rounded-full bg-green-50 border border-green-200 flex items-center justify-center text-green-600 shadow-sm flex-shrink-0">
                     <x-lucide-receipt class="w-5 h-5" />
@@ -264,16 +265,16 @@
             </div>
         </div>
 
-        <!-- Receipt content area -->
-        <div class="px-5 py-4 bg-white">
+        <!-- Receipt content area (scrollable) -->
+        <div class="flex-1 overflow-y-auto px-5 py-4 bg-white">
             <div id="receptionPaymentReviewContent" class="bg-white rounded-xl border-2 border-slate-200 p-5 text-sm text-slate-700 font-mono leading-relaxed">
                 <!-- Dynamic receipt content will be injected here -->
                 <div class="text-center text-slate-400 py-4">Loading receipt data...</div>
             </div>
         </div>
 
-        <!-- Footer buttons -->
-        <div id="receptionPaymentReviewFooter" class="px-5 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+        <!-- Footer buttons (fixed) -->
+        <div id="receptionPaymentReviewFooter" class="flex-shrink-0 px-5 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-end gap-2.5">
             <button type="button" id="receptionPaymentReviewCancel" class="px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all duration-150">Cancel</button>
             <button type="button" id="receptionPaymentReviewConfirm" class="px-5 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 shadow-sm transition-all duration-150">Confirm Payment</button>
             <button type="button" id="receptionPaymentPrintBtn" class="hidden px-5 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 shadow-sm transition-all duration-150">Print</button>
@@ -331,6 +332,7 @@
         var discountDisplay = document.getElementById('receptionPaymentDiscountAmountDisplay')
         var netDisplay = document.getElementById('receptionPaymentNetAmountDisplay')
         var moneyPaidInput = document.getElementById('reception_payment_money_paid')
+        var moneyPaidError = document.getElementById('reception_payment_money_paid_error')
         if (moneyPaidInput) {
             moneyPaidInput.addEventListener('input', function () {
                 var raw = this.value.replace(/[^0-9.]/g, '')
@@ -340,6 +342,11 @@
                     parts[0] = parseInt(parts[0], 10).toLocaleString('en-US')
                 }
                 this.value = parts[0] + (parts.length > 1 && parts[1] !== undefined ? '.' + parts[1] : '')
+                // Clear inline error on input
+                if (moneyPaidError) {
+                    moneyPaidError.classList.add('hidden')
+                    moneyPaidError.textContent = ''
+                }
             })
         }
         var discountToggle = document.getElementById('receptionPaymentToggleDiscount')
@@ -366,6 +373,7 @@
         var apptDetail = document.getElementById('receptionPaymentApptDetail')
         var browseBtn = document.getElementById('receptionPaymentBrowseBtn')
         var todayAppointments = []
+        var todayAppointmentsFiltered = []
         var apptModalSelectedAppt = null
 
         var txError = document.getElementById('receptionTransactionsError')
@@ -445,7 +453,18 @@
         }
 
         function showPaymentError(message) {
-            if (message && typeof showToast === 'function') showToast(message, 'error')
+            if (moneyPaidError && message) {
+                moneyPaidError.textContent = message
+                moneyPaidError.classList.remove('hidden')
+            } else if (moneyPaidError) {
+                moneyPaidError.classList.add('hidden')
+                moneyPaidError.textContent = ''
+            }
+            // Also clear any previous success
+            if (paymentSuccess) {
+                paymentSuccess.classList.add('hidden')
+                paymentSuccess.textContent = ''
+            }
         }
 
         function showPaymentSuccess(message) {
@@ -460,6 +479,18 @@
             var n = parseFloat(value || 0)
             if (isNaN(n)) n = 0
             return 'PHP ' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        }
+
+        function formatTime12h(hhmmss) {
+            var t = String(hhmmss || '').slice(0, 5)
+            if (!/^\d{2}:\d{2}$/.test(t)) return t
+            var parts = t.split(':')
+            var h24 = parseInt(parts[0], 10)
+            var m = parts[1]
+            var ap = h24 >= 12 ? 'PM' : 'AM'
+            var h12 = h24 % 12
+            if (h12 === 0) h12 = 12
+            return h12 + ':' + m + ' ' + ap
         }
 
         function currentSqlDatetime() {
@@ -509,9 +540,10 @@
             var list = appt && Array.isArray(appt.services) ? appt.services : []
             return list.map(function (s) {
                 var name = s && s.service_name ? String(s.service_name).trim() : ''
+                var description = s && s.description ? String(s.description).trim() : ''
                 var price = s && s.price != null ? parseFloat(s.price) : 0
                 if (isNaN(price)) price = 0
-                return { name: name, price: price }
+                return { name: name, description: description, price: price }
             }).filter(function (x) { return x.name !== '' })
         }
 
@@ -519,7 +551,8 @@
             var svcs = servicesFromAppointment(appt)
             if (!svcs.length) return ''
             return svcs.map(function (s) {
-                return '<div style="display:flex;justify-content:space-between;font-size:0.72rem;padding:1px 0;"><span>' + escapeHtml(s.name) + '</span><span>' + escapeHtml(money(s.price)) + '</span></div>'
+                var desc = s.description ? ' · ' + escapeHtml(s.description) : ''
+                return '<div style="display:flex;justify-content:space-between;font-size:0.72rem;padding:1px 0;"><span>' + escapeHtml(s.name) + desc + '</span><span>' + escapeHtml(money(s.price)) + '</span></div>'
             }).join('')
         }
 
@@ -572,7 +605,15 @@
             }
 
             if (appointmentDisplay) {
-                appointmentDisplay.value = '#' + String(appt.appointment_id) + ' - ' + appointmentPatientName(appt)
+                var queueCode = appt && appt.queue && appt.queue.queue_code ? String(appt.queue.queue_code) : ('#' + String(appt.appointment_id))
+                var patient = appointmentPatientName(appt)
+                var fallback = ''
+                if (!patient || patient === 'Patient' || patient.indexOf('User #') === 0) {
+                    var p = appt && appt.patient ? appt.patient : null
+                    fallback = p && p.email ? String(p.email) : ''
+                    if (fallback.length > 18) fallback = fallback.slice(0, 15) + '...'
+                }
+                appointmentDisplay.value = queueCode + ' | ' + (fallback || patient)
             }
 
             var serviceRows = servicesFromAppointment(appt)
@@ -581,7 +622,8 @@
                     servicesDisplay.textContent = 'No services linked to this appointment.'
                 } else {
                     servicesDisplay.innerHTML = serviceRows.map(function (s) {
-                        return '<div class="flex items-center justify-between gap-2 py-1 border-b border-slate-200/60 last:border-0"><span class="truncate">' + escapeHtml(s.name) + '</span><span class="shrink-0 font-semibold">' + escapeHtml(money(s.price)) + '</span></div>'
+                        var desc = s.description ? '<span class="block text-[0.6rem] text-slate-400">' + escapeHtml(s.description) + '</span>' : ''
+                        return '<div class="flex items-center justify-between gap-2 py-1 border-b border-slate-200/60 last:border-0"><span class="truncate">' + escapeHtml(s.name) + desc + '</span><span class="shrink-0 font-semibold">' + escapeHtml(money(s.price)) + '</span></div>'
                     }).join('')
                 }
             }
@@ -761,22 +803,45 @@
                 apptList.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No appointments found for today.</div>'
                 return
             }
-            apptList.innerHTML = list.map(function (appt, idx) {
-                var id = appt && appt.appointment_id != null ? appt.appointment_id : ''
+            // Filter out paid/failed appointments
+            var filtered = list.filter(function (appt) {
+                var txn = appt && appt.transaction ? appt.transaction : null
+                if (!txn) return true
+                var ps = txn.payment_status ? String(txn.payment_status).toLowerCase() : ''
+                return ps !== 'paid' && ps !== 'failed'
+            })
+            if (!filtered.length) {
+                apptList.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No unpaid appointments for today.</div>'
+                return
+            }
+            apptList.innerHTML = filtered.map(function (appt, idx) {
                 var patient = appointmentPatientName(appt)
                 var when = appt && appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
                 var type = appointmentTypeLabel(appt)
-                var timeOnly = when.slice(11, 16)
-                return '<button type="button" class="appt-list-item w-full text-left px-3 py-2 rounded-lg hover:bg-green-50 border border-transparent hover:border-green-200 transition-colors" data-index="' + idx + '">' +
-                    '<div class="text-[0.78rem] text-slate-800 font-semibold">' + escapeHtml(patient) + '</div>' +
-                    '<div class="text-[0.7rem] text-slate-500">' + escapeHtml(timeOnly + ' • ' + type) + '</div>' +
+                var timeOnly = when.length >= 16 ? formatTime12h(when.slice(11, 16)) : ''
+                // Determine payment status from transaction
+                var txn = appt && appt.transaction ? appt.transaction : null
+                var payStatus = txn && txn.payment_status ? String(txn.payment_status).toLowerCase() : ''
+                var hasPending = payStatus === 'pending'
+                var statusColors = { pending: 'bg-blue-50 text-blue-700 border-blue-200', paid: 'bg-green-50 text-green-700 border-green-200', failed: 'bg-red-50 text-red-700 border-red-200' }
+                var statusBadge = hasPending ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[0.6rem] font-medium border ' + (statusColors[payStatus] || 'bg-slate-50 text-slate-600 border-slate-200') + '">' + payStatus.charAt(0).toUpperCase() + payStatus.slice(1) + '</span>' : ''
+                var greyedClass = hasPending ? 'opacity-70' : ''
+                return '<button type="button" class="appt-list-item w-full text-left px-3 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-green-300 hover:shadow-sm transition-all ' + greyedClass + '" data-index="' + idx + '">' +
+                    '<div class="flex items-center justify-between gap-2">' +
+                        '<div class="text-[0.78rem] text-slate-800 font-semibold truncate">' + escapeHtml(patient) + '</div>' +
+                        statusBadge +
+                    '</div>' +
+                    '<div class="text-[0.7rem] text-slate-500 mt-0.5">' + escapeHtml(timeOnly + ' • ' + type) + '</div>' +
                 '</button>'
             }).join('')
+
+            // Store filtered list for modal selection
+            todayAppointmentsFiltered = filtered
 
             apptList.querySelectorAll('.appt-list-item').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var idx = parseInt(btn.getAttribute('data-index'), 10)
-                    var appt = list[idx]
+                    var appt = filtered[idx]
                     if (appt) {
                         selectApptModalItem(idx)
                     }
@@ -785,17 +850,17 @@
         }
 
         function selectApptModalItem(index) {
-            var appt = todayAppointments[index]
+            var appt = todayAppointmentsFiltered[index]
             if (!appt) return
             apptModalSelectedAppt = appt
             // Update left panel selection highlight
             apptList.querySelectorAll('.appt-list-item').forEach(function (el, i) {
                 if (i === index) {
-                    el.classList.add('bg-green-100', 'border-green-300')
-                    el.classList.remove('hover:bg-green-50', 'border-transparent')
+                    el.classList.add('bg-green-100', '!border-green-400', '!border-2')
+                    el.classList.remove('hover:border-green-300')
                 } else {
-                    el.classList.remove('bg-green-100', 'border-green-300')
-                    el.classList.add('hover:bg-green-50', 'border-transparent')
+                    el.classList.remove('bg-green-100', '!border-green-400', '!border-2')
+                    el.classList.add('hover:border-green-300')
                 }
             })
             // Enable select button
@@ -812,22 +877,35 @@
             var gross = originalAmount(appt)
             var when = appt && appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
 
+            // Payment status badge
+            var txn = appt && appt.transaction ? appt.transaction : null
+            var payStatus = txn && txn.payment_status ? String(txn.payment_status).toLowerCase() : ''
+            var statusBadge = ''
+            if (payStatus === 'pending') {
+                statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.65rem] font-medium border bg-blue-50 text-blue-700 border-blue-200 ml-2">Pending Payment</span>'
+            } else if (payStatus === 'paid') {
+                statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.65rem] font-medium border bg-green-50 text-green-700 border-green-200 ml-2">Paid</span>'
+            } else if (payStatus === 'failed') {
+                statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.65rem] font-medium border bg-red-50 text-red-700 border-red-200 ml-2">Failed</span>'
+            }
+
             var servicesHtml = services.length
                 ? services.map(function (s) {
-                    return '<div class="flex items-center justify-between py-1 text-[0.78rem]"><span>' + escapeHtml(s.name) + '</span><span class="font-semibold">' + escapeHtml(money(s.price)) + '</span></div>'
+                    var desc = s.description ? '<span class="block text-[0.65rem] font-normal text-slate-400">' + escapeHtml(s.description) + '</span>' : ''
+                    return '<div class="flex items-start justify-between py-1.5 border-b border-slate-100 last:border-0 text-[0.78rem]"><div>' + escapeHtml(s.name) + desc + '</div><span class="font-semibold shrink-0 ml-2">' + escapeHtml(money(s.price)) + '</span></div>'
                 }).join('')
                 : '<div class="text-[0.75rem] text-slate-400">No services</div>'
 
             apptDetail.innerHTML =
                 '<div class="space-y-2 text-[0.78rem]">' +
-                    '<div><span class="font-semibold text-slate-800">Patient:</span> <span class="text-slate-700">' + escapeHtml(patient) + '</span></div>' +
-                    '<div><span class="font-semibold text-slate-800">Doctor:</span> <span class="text-slate-700">' + escapeHtml(doctor) + '</span></div>' +
-                    '<div><span class="font-semibold text-slate-800">Date/Time:</span> <span class="text-slate-700">' + escapeHtml(when) + '</span></div>' +
-                    '<div><span class="font-semibold text-slate-800">Type:</span> <span class="text-slate-700">' + escapeHtml(appointmentTypeLabel(appt)) + '</span></div>' +
+                    '<div class="flex items-center"><span class="font-semibold text-slate-800">Patient:</span> <span class="text-slate-700 ml-1">' + escapeHtml(patient) + '</span></div>' +
+                    '<div><span class="font-semibold text-slate-800">Doctor:</span> <span class="text-slate-700 ml-1">' + escapeHtml(doctor) + '</span></div>' +
+                    '<div><span class="font-semibold text-slate-800">Date/Time:</span> <span class="text-slate-700 ml-1">' + escapeHtml(when) + '</span></div>' +
+                    '<div><span class="font-semibold text-slate-800">Type:</span> <span class="text-slate-700 ml-1">' + escapeHtml(appointmentTypeLabel(appt)) + statusBadge + '</span></div>' +
                     '<div class="border-t border-slate-200 pt-2 mt-2">' +
                         '<div class="text-[0.72rem] font-semibold text-slate-600 mb-1">Services</div>' +
                         servicesHtml +
-                        '<div class="border-t border-slate-200 mt-1 pt-1 flex items-center justify-between text-[0.82rem] font-bold">' +
+                        '<div class="border-t border-slate-200 mt-2 pt-2 flex items-center justify-between text-[0.82rem] font-bold">' +
                             '<span>Subtotal Fees:</span><span class="text-green-700">' + escapeHtml(money(gross)) + '</span>' +
                         '</div>' +
                     '</div>' +
@@ -892,10 +970,12 @@
             var services = appt && Array.isArray(appt.services) ? appt.services : []
             var items = services.map(function (s) {
                 var name = String((s && s.service_name) ? s.service_name : '').trim()
+                var description = s && s.description ? String(s.description).trim() : ''
                 var price = s && s.price != null ? parseFloat(s.price) : 0
                 if (isNaN(price)) price = 0
                 if (!name) return ''
-                return '<div style="display:flex;justify-content:space-between;font-size:0.72rem;padding:1px 0;"><span>' + escapeHtml(name) + '</span><span>' + escapeHtml(price.toFixed(2)) + '</span></div>'
+                var desc = description ? ' · ' + escapeHtml(description) : ''
+                return '<div style="display:flex;justify-content:space-between;font-size:0.72rem;padding:1px 0;"><span>' + escapeHtml(name) + desc + '</span><span>' + escapeHtml(price.toFixed(2)) + '</span></div>'
             }).filter(function (v) { return v !== '' }).join('')
             if (!items) return ''
             return items
@@ -1373,6 +1453,18 @@
                 if (isNaN(amountPaid)) amountPaid = 0
                 var changeAmount = Math.max(0, amountPaid - net)
 
+                // Validate money_paid: required and must be >= net amount
+                if (!moneyPaidInput || !moneyPaidInput.value || parseFloat((moneyPaidInput.value || '0').replace(/,/g, '')) <= 0) {
+                    showPaymentError('Please enter the amount paid.')
+                    moneyPaidInput && moneyPaidInput.focus()
+                    return
+                }
+                if (amountPaid < net) {
+                    showPaymentError('Amount paid (' + money(amountPaid) + ') is less than the total amount due (' + money(net) + ').')
+                    moneyPaidInput && moneyPaidInput.focus()
+                    return
+                }
+
                 var details = {
                     'Appointment ID': String(appointmentId),
                     'Patient': appointmentPatientName(selectedAppointment),
@@ -1404,6 +1496,7 @@
                                 amount: gross,
                                 discount_type: discountType,
                                 payment_mode: 'cash',
+                                payment_status: 'paid',
                                 money_paid: amountPaid,
                                 transaction_datetime: transactionDatetime
                             })

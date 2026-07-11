@@ -1,6 +1,7 @@
 @php
     $appointments = $doctorTodayAppointments ?? $doctorRecentAppointments ?? [];
     $initialAppointmentId = request()->query('appointment_id');
+    $now = now();
 
     // Auto-detect the currently serving patient from the queue
     $servingAppointmentId = null;
@@ -12,7 +13,25 @@
             }
         }
     }
-    $preselectedAppointmentId = $initialAppointmentId ?: $servingAppointmentId;
+    $scheduledCurrentSlotAppointmentId = null;
+    if (!$initialAppointmentId && !$servingAppointmentId) {
+        foreach ($appointments as $appt) {
+            $appointmentType = strtolower(trim((string) ($appt->appointment_type ?? '')));
+            $appointmentStatus = strtolower(trim((string) ($appt->status ?? '')));
+            $scheduledAt = $appt->appointment_datetime ? \Carbon\Carbon::parse($appt->appointment_datetime) : null;
+
+            if ($appointmentType !== 'scheduled' || $appointmentStatus !== 'confirmed' || ! $scheduledAt) {
+                continue;
+            }
+
+            $slotEnd = $scheduledAt->copy()->addMinutes(30);
+            if ($now->greaterThanOrEqualTo($scheduledAt) && $now->lt($slotEnd)) {
+                $scheduledCurrentSlotAppointmentId = $appt->appointment_id;
+                break;
+            }
+        }
+    }
+    $preselectedAppointmentId = $initialAppointmentId ?: $servingAppointmentId ?: $scheduledCurrentSlotAppointmentId;
 
     $formatUserName = function ($user) {
         if (! $user) {
@@ -26,7 +45,7 @@
             return (string) $v !== '';
         });
         $name = trim(implode(' ', $parts));
-        return $name !== '' ? $name : ('User #' . ($user->user_id ?? ''));
+        return $name !== '' ? $name : ($user->email ?? '');
     };
 @endphp
 
@@ -204,28 +223,27 @@
                         </button>
                     </div>
 
-                    <div id="consultPrescriptionScroller" class="w-full max-w-full overflow-x-auto overflow-y-hidden border border-slate-100 rounded-xl pb-2" style="scrollbar-gutter: stable both-edges;">
-                        <table class="w-full min-w-[72rem] table-fixed text-left text-xs text-slate-600">
-                            <colgroup>
-                                <col style="width: 22rem;">
-                                <col style="width: 9rem;">
-                                <col style="width: 9rem;">
-                                <col style="width: 9rem;">
-                                <col style="width: 13rem;">
-                                <col style="width: 7rem;">
-                            </colgroup>
-                            <thead class="bg-slate-50">
-                                <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
-                                    <th class="py-2 px-3 font-semibold whitespace-nowrap">Medicine</th>
-                                    <th class="py-2 px-3 font-semibold whitespace-nowrap">Dosage</th>
-                                    <th class="py-2 px-3 font-semibold whitespace-nowrap">Frequency</th>
-                                    <th class="py-2 px-3 font-semibold whitespace-nowrap">Duration</th>
-                                    <th class="py-2 px-3 font-semibold whitespace-nowrap">Instructions</th>
-                                    <th class="py-2 px-3 font-semibold whitespace-nowrap">Remove</th>
-                                </tr>
-                            </thead>
-                            <tbody id="consultPrescriptionBody"></tbody>
-                        </table>
+                    <button type="button" id="consultPrescriptionScroller" class="w-full rounded-xl border border-slate-200 bg-slate-50/70 shadow-[0_1px_4px_rgba(15,23,42,0.04)] text-left transition-colors hover:bg-slate-100/80 focus:outline-none focus:ring-2 focus:ring-green-200 focus:ring-offset-2">
+                        <div class="px-4 py-3">
+                            <div class="flex items-center justify-between gap-3 mb-1">
+                                <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Selected Medicines</div>
+                                <div class="text-[0.68rem] font-medium text-green-700">Click to review</div>
+                            </div>
+                            <div id="consultPrescriptionSummary" class="text-[0.78rem] text-slate-600 leading-relaxed min-h-[1.5rem] max-h-[3.2rem] overflow-hidden">No medicines added yet.</div>
+                        </div>
+                    </button>
+
+                    <div id="consultFollowUpWrap" class="hidden mt-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <div class="text-[0.72rem] font-semibold text-slate-900">Follow-up</div>
+                                <div id="consultFollowUpHint" class="text-[0.68rem] text-slate-500 mt-0.5">Set the patient's next visit details.</div>
+                            </div>
+                            <button type="button" id="consultFollowUpButton" class="inline-flex items-center justify-center rounded-xl border border-green-300 bg-green-600 px-3 py-1.5 text-[0.75rem] font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400">
+                                Set follow up visit
+                            </button>
+                        </div>
+                        <div id="consultFollowUpSummary" class="hidden mt-3 rounded-xl border border-emerald-100 bg-emerald-50/70 px-3 py-2 text-[0.72rem] text-emerald-800"></div>
                     </div>
                 </div>
             </div>
@@ -362,58 +380,172 @@
 </div>
 
 {{-- ═══════════════════════════════════════════════════════════════════ --}}
-{{-- History Detail Modal --}}
+{{-- Visit Details Modal --}}
 {{-- ═══════════════════════════════════════════════════════════════════ --}}
-<div id="consultHistoryDetailModal" class="hidden fixed inset-0 z-50 bg-slate-900/70">
-    <div class="absolute inset-0 flex items-center justify-center px-4 py-6">
-        <div class="w-full max-w-2xl rounded-3xl bg-white border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,0.35)] overflow-hidden">
-            <div class="px-5 py-4 border-b border-slate-100 flex items-start justify-between gap-3">
-                <div>
-                    <div class="text-[0.7rem] uppercase tracking-widest text-slate-400">Visit Details</div>
-                    <div id="consultHistoryDetailTitle" class="text-sm font-semibold text-slate-900">Visit Details</div>
-                </div>
-                <button type="button" id="consultHistoryDetailClose" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">
-                    Close
-                </button>
+<div id="consultVisitDetailOverlay" class="hidden fixed inset-0 z-[70] bg-slate-900/40 items-center justify-center p-4">
+    <div class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)]">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+            <div>
+                <div class="text-sm font-semibold text-slate-900">Visit Details</div>
+                <div id="consultVisitDetailSubtitle" class="text-[0.72rem] text-slate-500">Appointment and clinical information.</div>
             </div>
-            <div class="px-5 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
-                <div class="grid grid-cols-2 gap-4 text-[0.75rem]">
-                    <div>
-                        <div class="text-[0.68rem] text-slate-400 mb-0.5">Date</div>
-                        <div id="consultHistoryDetailDate" class="font-semibold text-slate-800">-</div>
+            <button type="button" id="consultVisitDetailClose" class="text-slate-400 hover:text-slate-600">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="p-5 space-y-4" id="consultVisitDetailBody">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Appointment date</div>
+                    <div id="consultVisitDetailDate" class="text-[0.82rem] font-semibold text-slate-800 mt-1">-</div>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Doctor</div>
+                    <div id="consultVisitDetailDoctor" class="text-[0.82rem] font-semibold text-slate-800 mt-1">-</div>
+                </div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Services inquired</div>
+                <div id="consultVisitDetailServices" class="text-[0.8rem] text-slate-700 mt-1">-</div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Fees</div>
+                    <div id="consultVisitDetailFees" class="text-[0.82rem] font-semibold text-slate-800 mt-1">-</div>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Payment status</div>
+                    <div id="consultVisitDetailPayment" class="text-[0.82rem] font-semibold text-slate-800 mt-1">-</div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Status</div>
+                    <div id="consultVisitDetailStatus" class="mt-1">-</div>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                    <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Appointment type</div>
+                    <div id="consultVisitDetailApptType" class="text-[0.82rem] font-semibold text-slate-800 mt-1">-</div>
+                </div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Diagnosis</div>
+                <div id="consultVisitDetailDiagnosis" class="text-[0.8rem] text-slate-700 mt-1">-</div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Treatment notes</div>
+                <div id="consultVisitDetailTreatment" class="text-[0.8rem] text-slate-700 mt-1">-</div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+                <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Prescriptions</div>
+                <div id="consultVisitDetailPrescriptions" class="text-[0.8rem] text-slate-700 mt-1">-</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Medicine Selector Modal --}}
+<div id="consultMedicineModal" class="hidden fixed inset-0 z-50 bg-slate-900/70">
+    <div class="absolute inset-0 flex items-center justify-center px-4 py-6">
+        <div id="consultMedicineModalContainer" class="w-full max-w-5xl h-[88vh] rounded-3xl bg-white border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,0.35)] overflow-hidden grid grid-cols-1 md:grid-cols-2">
+            {{-- Left Panel: Medicine List --}}
+            <div class="flex flex-col border-r border-slate-100 overflow-hidden">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+                    <div class="text-sm font-semibold text-slate-900">Select Medicine</div>
+                    <button type="button" id="consultMedicineClose" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Close</button>
+                </div>
+                <div class="px-5 py-3 border-b border-slate-50">
+                    <label class="text-[0.7rem] uppercase tracking-widest text-slate-400 block mb-1.5">Search Medicine</label>
+                    <div class="relative">
+                        <x-lucide-search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <input type="text" id="consultMedicineSearch" class="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Type to search..." autocomplete="off">
                     </div>
-                    <div>
-                        <div class="text-[0.68rem] text-slate-400 mb-0.5">Doctor</div>
-                        <div id="consultHistoryDetailDoctor" class="font-semibold text-slate-800">-</div>
+                </div>
+                <div class="flex-1 overflow-y-auto px-5 py-3">
+                    <div id="consultMedicineListLabel" class="text-[0.65rem] uppercase tracking-widest text-slate-400 mb-2">Medicine List</div>
+                    <div id="consultMedicineListBody" class="space-y-1.5"></div>
+                    <div class="pt-3 text-center">
+                        <button type="button" id="consultMedicineLoadMore" class="text-[0.78rem] font-semibold text-green-700 underline underline-offset-2 hover:text-green-800 disabled:text-slate-300 disabled:no-underline disabled:cursor-not-allowed">See more</button>
                     </div>
+                </div>
+            </div>
+            {{-- Right Panel: Details & Selected --}}
+            <div class="flex flex-col overflow-hidden">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+                    <div class="text-sm font-semibold text-slate-900">Medicine Details</div>
+                </div>
+                <div class="flex-1 overflow-y-auto px-5 py-3 space-y-4">
+                    <div id="consultMedicineDetailBody" class="text-[0.78rem] text-slate-500">Select a medicine from the list to view details.</div>
                     <div>
-                        <div class="text-[0.68rem] text-slate-400 mb-0.5">Type</div>
-                        <div id="consultHistoryDetailType" class="font-semibold text-slate-800">-</div>
+                        <div id="consultMedicineSelectedLabel" class="text-[0.65rem] uppercase tracking-widest text-slate-400 mb-2 hidden">Selected Medicines</div>
+                        <div id="consultMedicineSelectedBody" class="space-y-2"></div>
                     </div>
-                    <div>
-                        <div class="text-[0.68rem] text-slate-400 mb-0.5">Services</div>
-                        <div id="consultHistoryDetailServices" class="font-semibold text-slate-800">-</div>
+                </div>
+                <div class="flex items-center justify-between gap-3 px-5 py-3 border-t border-slate-100">
+                    <button type="button" id="consultMedicineClearBtn" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-[0.78rem] font-semibold text-slate-600 hover:bg-slate-50">Clear All</button>
+                    <button type="button" id="consultMedicineConfirmBtn" class="rounded-xl border border-green-300 bg-green-600 px-5 py-2 text-[0.78rem] font-semibold text-white hover:bg-green-700">Confirm Selection</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="consultFollowUpModal" class="hidden fixed inset-0 z-50 bg-black/70">
+    <div class="absolute inset-0 flex items-center justify-center px-4 py-6">
+        <div class="w-full max-w-5xl h-[88vh] rounded-3xl bg-white border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,0.35)] overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                <div>
+                    <div id="consultFollowUpModalTitle" class="text-sm font-semibold text-slate-900">Set follow up visit</div>
+                    <div id="consultFollowUpModalSubtitle" class="text-[0.72rem] text-slate-500 mt-0.5">Select a future date and time slot.</div>
+                </div>
+                <button type="button" id="consultFollowUpClose" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Close</button>
+            </div>
+
+            <div id="consultFollowUpGrid" class="flex-1 grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] overflow-hidden">
+                <div class="border-b lg:border-b-0 lg:border-r border-slate-100 flex flex-col overflow-hidden">
+                    <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+                        <button type="button" id="consultFollowUpPrevMonth" class="w-8 h-8 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">&larr;</button>
+                        <div id="consultFollowUpMonthLabel" class="text-[0.82rem] font-semibold text-slate-800">Month</div>
+                        <button type="button" id="consultFollowUpNextMonth" class="w-8 h-8 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">&rarr;</button>
+                    </div>
+                    <div class="px-5 py-3 border-b border-slate-50">
+                        <div class="grid grid-cols-7 gap-2 text-center text-[0.62rem] uppercase tracking-widest text-slate-400">
+                            <div>Sun</div>
+                            <div>Mon</div>
+                            <div>Tue</div>
+                            <div>Wed</div>
+                            <div>Thu</div>
+                            <div>Fri</div>
+                            <div>Sat</div>
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto px-5 py-4">
+                        <div id="consultFollowUpDateGrid" class="grid grid-cols-7 gap-2"></div>
+                    </div>
+                    <div id="consultFollowUpWalkInInfo" class="hidden px-5 py-3 border-t border-slate-100 text-center">
+                        <div id="consultFollowUpWalkInInfoText" class="text-[0.78rem] text-slate-700"></div>
                     </div>
                 </div>
 
-                <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
-                    <div class="text-[0.68rem] text-slate-400 mb-1">Reason for Visit</div>
-                    <div id="consultHistoryDetailReason" class="text-[0.78rem] text-slate-700">-</div>
+                <div id="consultFollowUpTimePanel" class="flex flex-col overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-100">
+                        <div class="text-sm font-semibold text-slate-900">Time Slots</div>
+                        <div id="consultFollowUpTimeHint" class="text-[0.72rem] text-slate-500 mt-1">Select a date to view time slots.</div>
+                    </div>
+                    <div id="consultFollowUpTimeBody" class="flex-1 overflow-y-auto px-5 py-4">
+                        <div class="text-center text-[0.78rem] text-slate-400 py-8">Select a future date to load time slots.</div>
+                    </div>
+                    <div class="px-5 py-4 border-t border-slate-100">
+                        <div id="consultFollowUpSelectionMeta" class="text-[0.72rem] text-slate-500 min-h-[1.2rem]">No follow-up schedule selected yet.</div>
+                    </div>
                 </div>
+            </div>
 
-                <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
-                    <div class="text-[0.68rem] text-slate-400 mb-1">Diagnosis</div>
-                    <div id="consultHistoryDetailDiagnosis" class="text-[0.78rem] text-slate-700 whitespace-pre-line">-</div>
-                </div>
-
-                <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
-                    <div class="text-[0.68rem] text-slate-400 mb-1">Treatment Notes</div>
-                    <div id="consultHistoryDetailTreatment" class="text-[0.78rem] text-slate-700 whitespace-pre-line">-</div>
-                </div>
-
-                <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
-                    <div class="text-[0.68rem] text-slate-400 mb-1">Prescriptions</div>
-                    <div id="consultHistoryDetailPrescriptions" class="text-[0.78rem] text-slate-700 space-y-1">-</div>
+            <div class="flex items-center justify-between gap-3 px-5 py-4 border-t border-slate-100">
+                <div id="consultFollowUpError" class="hidden rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[0.72rem] text-red-700"></div>
+                <div class="ml-auto flex items-center gap-2">
+                    <button type="button" id="consultFollowUpCancel" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-[0.78rem] font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+                    <button type="button" id="consultFollowUpConfirm" class="rounded-xl border border-green-300 bg-green-600 px-5 py-2 text-[0.78rem] font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400">Confirm</button>
                 </div>
             </div>
         </div>
@@ -772,32 +904,6 @@
     </div>
 </div>
 
-<style>
-    #consultPrescriptionScroller {
-        scrollbar-width: auto;
-        scrollbar-color: #94a3b8 #e2e8f0;
-    }
-
-    #consultPrescriptionScroller::-webkit-scrollbar {
-        height: 12px;
-    }
-
-    #consultPrescriptionScroller::-webkit-scrollbar-track {
-        background: #e2e8f0;
-        border-radius: 9999px;
-    }
-
-    #consultPrescriptionScroller::-webkit-scrollbar-thumb {
-        background: #94a3b8;
-        border-radius: 9999px;
-        border: 2px solid #e2e8f0;
-    }
-
-    #consultPrescriptionScroller::-webkit-scrollbar-thumb:hover {
-        background: #64748b;
-    }
-</style>
-
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         var appointmentSelect = document.getElementById('consult_appointment')
@@ -813,7 +919,7 @@
         var saveSpinner = document.getElementById('consultSaveSpinner')
         var saveLabel = document.getElementById('consultSaveLabel')
         var addMedBtn = document.getElementById('consultAddMedicine')
-        var prescriptionBody = document.getElementById('consultPrescriptionBody')
+        var prescriptionScroller = document.getElementById('consultPrescriptionScroller')
         var printBtn = document.getElementById('consultPrintReceipt')
         var acknowledgeEl = document.getElementById('consultAcknowledgeConflicts')
         var safetyModal = document.getElementById('consultSafetyModal')
@@ -846,6 +952,8 @@
         var elPatientMeta = document.getElementById('consultPatientMeta')
         var elApptDateTime = document.getElementById('consultApptDateTime')
         var elApptType = document.getElementById('consultApptType')
+        var elApptServices = document.getElementById('consultApptServices')
+        var elApptReason = document.getElementById('consultApptReason')
         var elPhone = document.getElementById('consultPatientPhone')
         var elEmail = document.getElementById('consultPatientEmail')
         var elAddress = document.getElementById('consultPatientAddress')
@@ -858,6 +966,41 @@
         var elLastVisit = document.getElementById('consultLastVisit')
         var elTotalVisits = document.getElementById('consultTotalVisits')
 
+        // Medicine selector modal elements
+        var consultMedicineModal = document.getElementById('consultMedicineModal')
+        var consultMedicineClose = document.getElementById('consultMedicineClose')
+        var consultMedicineSearch = document.getElementById('consultMedicineSearch')
+        var consultMedicineListBody = document.getElementById('consultMedicineListBody')
+        var consultMedicineLoadMore = document.getElementById('consultMedicineLoadMore')
+        var consultMedicineDetailBody = document.getElementById('consultMedicineDetailBody')
+        var consultMedicineSelectedBody = document.getElementById('consultMedicineSelectedBody')
+        var consultMedicineSelectedLabel = document.getElementById('consultMedicineSelectedLabel')
+        var consultMedicineClearBtn = document.getElementById('consultMedicineClearBtn')
+        var consultMedicineConfirmBtn = document.getElementById('consultMedicineConfirmBtn')
+        var consultMedicineSearchTimer = null
+        var followUpWrap = document.getElementById('consultFollowUpWrap')
+        var followUpHint = document.getElementById('consultFollowUpHint')
+        var followUpSummary = document.getElementById('consultFollowUpSummary')
+        var followUpBtn = document.getElementById('consultFollowUpButton')
+        var followUpModal = document.getElementById('consultFollowUpModal')
+        var followUpModalTitle = document.getElementById('consultFollowUpModalTitle')
+        var followUpModalSubtitle = document.getElementById('consultFollowUpModalSubtitle')
+        var followUpClose = document.getElementById('consultFollowUpClose')
+        var followUpCancel = document.getElementById('consultFollowUpCancel')
+        var followUpPrevMonth = document.getElementById('consultFollowUpPrevMonth')
+        var followUpNextMonth = document.getElementById('consultFollowUpNextMonth')
+        var followUpMonthLabel = document.getElementById('consultFollowUpMonthLabel')
+        var followUpDateGrid = document.getElementById('consultFollowUpDateGrid')
+        var followUpTimeHint = document.getElementById('consultFollowUpTimeHint')
+        var followUpTimeBody = document.getElementById('consultFollowUpTimeBody')
+        var followUpSelectionMeta = document.getElementById('consultFollowUpSelectionMeta')
+        var followUpError = document.getElementById('consultFollowUpError')
+        var followUpConfirm = document.getElementById('consultFollowUpConfirm')
+        var followUpGrid = document.getElementById('consultFollowUpGrid')
+        var followUpTimePanel = document.getElementById('consultFollowUpTimePanel')
+        var followUpWalkInInfo = document.getElementById('consultFollowUpWalkInInfo')
+        var followUpWalkInInfoText = document.getElementById('consultFollowUpWalkInInfoText')
+
         var state = {
             doctorUserId: null,
             appointmentId: null,
@@ -869,10 +1012,37 @@
             medicalBackground: [],
             medicines: [],
             medicinesById: {},
+            medicinePage: 1,
+            medicinePerPage: 10,
+            medicineHasMore: false,
+            medicineSearchQuery: '',
+            medicineLoading: false,
+            medicineRequestId: 0,
+            appointmentServices: [],
+            appointmentServicesExpanded: false,
             history: [],
             historyVitalsByAppointment: {},
             lastSavedTransactionId: null,
             vitals: null,
+            selectedMedicines: [],
+            currentAppointmentType: '',
+            currentAppointmentStatus: '',
+            currentQueueStatus: '',
+            currentDoctorId: null,
+            currentReasonForVisit: '',
+            followUpWalkInNote: '',
+            followUpScheduledSummary: '',
+        }
+        var followUpState = {
+            mode: '',
+            month: new Date(),
+            selectedDate: '',
+            selectedTime: '',
+            doctorSchedules: [],
+            availableDays: {},
+            dayAppointments: [],
+            monthAppointments: {},
+            schedulesPromise: null,
         }
         var successHideTimer = null
 
@@ -890,6 +1060,50 @@
         function setHtml(el, html) {
             if (!el) return
             el.innerHTML = html || ''
+        }
+
+        function formatLocalDateIso(date) {
+            var d = date instanceof Date ? date : new Date(date)
+            if (isNaN(d.getTime())) return ''
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+        }
+
+        function localDateIso() {
+            return formatLocalDateIso(new Date())
+        }
+
+        function isoFromDate(date) {
+            return formatLocalDateIso(date)
+        }
+
+        function dayKeyFromDate(dateStr) {
+            if (!dateStr) return ''
+            var d = new Date(String(dateStr) + 'T00:00:00')
+            if (isNaN(d.getTime())) return ''
+            return ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][d.getDay()] || ''
+        }
+
+        function minutesFromHHMM(timeStr) {
+            var t = String(timeStr || '').slice(0, 5)
+            if (!/^\d{2}:\d{2}$/.test(t)) return NaN
+            var parts = t.split(':')
+            return (parseInt(parts[0], 10) * 60) + parseInt(parts[1], 10)
+        }
+
+        function hhmmFromMinutes(mins) {
+            var total = parseInt(mins, 10)
+            if (isNaN(total)) return ''
+            return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0')
+        }
+
+        function formatTime12h(hhmmss) {
+            var t = String(hhmmss || '').slice(0, 5)
+            if (!/^\d{2}:\d{2}$/.test(t)) return t
+            var parts = t.split(':')
+            var h24 = parseInt(parts[0], 10)
+            var h12 = h24 % 12
+            if (h12 === 0) h12 = 12
+            return h12 + ':' + parts[1] + (h24 >= 12 ? ' PM' : ' AM')
         }
 
         function escapeHtml(value) {
@@ -1005,12 +1219,233 @@
             option.textContent = (status === 'consulted' ? '[ Consulted ] ' : '') + baseLabel
         }
 
+        function formatAppointmentLabel(appt) {
+            var patientName = formatName(appt && appt.patient)
+            var dt = appt && appt.appointment_datetime ? String(appt.appointment_datetime) : ''
+            var labelDate = dt ? dt.slice(0, 10) : '-'
+            var labelTime = dt ? dt.slice(11, 16) : '-'
+            return patientName + ' - ' + labelDate + ' ' + labelTime
+        }
+
+        function appointmentStatusLabel(value) {
+            var raw = String(value || '').trim()
+            if (!raw) return '-'
+            return raw.replace(/_/g, ' ').replace(/\b\w/g, function (ch) { return ch.toUpperCase() })
+        }
+
+        function appointmentStatusColor(statusKey) {
+            var colors = {
+                pending: 'bg-amber-50 text-amber-700 border-amber-200',
+                confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
+                consulted: 'bg-green-50 text-green-700 border-green-100',
+                completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                cancelled: 'bg-red-50 text-red-700 border-red-200',
+                no_show: 'bg-slate-100 text-slate-600 border-slate-200',
+                waiting: 'bg-amber-50 text-amber-700 border-amber-100',
+                serving: 'bg-blue-50 text-blue-700 border-blue-100',
+                done: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                skipped: 'bg-orange-50 text-orange-700 border-orange-100',
+                on_hold: 'bg-purple-50 text-purple-700 border-purple-100',
+            }
+            return colors[statusKey] || 'bg-slate-50 text-slate-600 border-slate-100'
+        }
+
+        function renderAppointmentOption(appt) {
+            if (!appt || !appointmentSelect) return ''
+            var statusName = normalizeString(appt.status)
+            var label = formatAppointmentLabel(appt)
+            var apptType = appt.appointment_type || ''
+            var queueStatus = appt.queue && appt.queue.status ? appt.queue.status : ''
+            return '<option value="' + escapeHtml(appt.appointment_id) + '"' +
+                ' data-status="' + escapeHtml(statusName) + '"' +
+                ' data-label="' + escapeHtml(label) + '"' +
+                ' data-appointment-type="' + escapeHtml(apptType) + '"' +
+                ' data-queue-status="' + escapeHtml(queueStatus) + '">' +
+                escapeHtml((statusName === 'consulted' ? '[ Consulted ] ' : '') + label) +
+            '</option>'
+        }
+
+        function renderAppointmentCard(appt) {
+            if (!appt) return ''
+            var patientName = formatName(appt.patient)
+            var dt = appt.appointment_datetime ? String(appt.appointment_datetime) : ''
+            var apptTime = dt ? dt.slice(11, 16) : '-'
+            var apptDate = dt ? dt.slice(0, 10) : '-'
+            var statusKey = normalizeString(appt.status)
+            var statusLabel = appointmentStatusLabel(appt.status)
+            var statusColor = appointmentStatusColor(statusKey)
+            var queueCode = appt.queue && appt.queue.queue_code ? appt.queue.queue_code : ('#A' + (appt.appointment_id || ''))
+            return '' +
+                '<button type="button" class="consult-appt-card text-left rounded-xl border border-slate-200 bg-white px-4 py-3.5 hover:border-green-300 hover:bg-green-50/30 transition-all duration-150 shadow-[0_1px_4px_rgba(15,23,42,0.04)]"' +
+                    ' data-appointment-id="' + escapeHtml(appt.appointment_id) + '"' +
+                    ' data-patient-name="' + escapeHtml(patientName) + '"' +
+                    ' data-datetime="' + escapeHtml(apptDate + ' ' + apptTime) + '"' +
+                    ' data-status="' + escapeHtml(statusKey) + '"' +
+                    ' data-status-label="' + escapeHtml(statusLabel) + '">' +
+                    '<div class="flex items-center justify-between gap-2 mb-2">' +
+                        '<span class="inline-flex items-center gap-1.5 text-[0.82rem] font-semibold text-slate-800">' +
+                            '<svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>' +
+                            escapeHtml(queueCode) +
+                        '</span>' +
+                        '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.65rem] font-medium border whitespace-nowrap ' + statusColor + '">' +
+                            escapeHtml(statusLabel) +
+                        '</span>' +
+                    '</div>' +
+                    '<div class="flex items-center gap-1.5 mt-1.5">' +
+                        '<svg class="w-3 h-3 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>' +
+                        '<span class="text-[0.75rem] text-slate-600 truncate">' + escapeHtml(patientName) + '</span>' +
+                    '</div>' +
+                    '<div class="flex items-center gap-1.5 mt-1.5 text-[0.7rem] text-slate-500">' +
+                        '<svg class="w-3 h-3 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>' +
+                        '<span>' + escapeHtml(apptTime) + '</span>' +
+                    '</div>' +
+                '</button>'
+        }
+
+        function appointmentMatchesCurrentScheduledSlot(appt) {
+            if (!appt || normalizeString(appt.appointment_type) !== 'scheduled') return false
+            if (normalizeString(appt.status) !== 'confirmed') return false
+            if (!appt.appointment_datetime) return false
+            var start = new Date(appt.appointment_datetime)
+            if (isNaN(start.getTime())) return false
+            var end = new Date(start.getTime() + (30 * 60 * 1000))
+            var now = new Date()
+            return now >= start && now < end
+        }
+
+        function findScheduledAppointmentForCurrentSlot(appointments) {
+            return (appointments || []).find(function (appt) {
+                return appointmentMatchesCurrentScheduledSlot(appt)
+            }) || null
+        }
+
+        function refreshAppointmentOptions() {
+            if (!appointmentSelect || !state.doctorUserId) return Promise.resolve()
+
+            var currentSelectedId = String(appointmentSelect.value || '')
+            var currentOption = null
+            Array.prototype.slice.call(appointmentSelect.options).some(function (option) {
+                if (String(option.value || '') === currentSelectedId) {
+                    currentOption = option
+                    return true
+                }
+                return false
+            })
+            var previousWasServing = !!(currentOption && normalizeString(currentOption.getAttribute('data-queue-status')) === 'serving')
+
+            return api('{{ url('/api/appointments') }}?doctor_id=' + encodeURIComponent(String(state.doctorUserId)) + '&today_only=1&order=oldest&per_page=100')
+                .then(function (resp) {
+                    var appointments = getPaginatedData(resp).filter(function (appt) {
+                        var status = normalizeString(appt && appt.status)
+                        // Hide appointments that are already consulted, completed, cancelled, or no_show
+                        return status !== 'consulted' && status !== 'completed' && status !== 'cancelled' && status !== 'no_show'
+                    })
+                    var servingAppointment = appointments.find(function (appt) {
+                        return normalizeString(appt && appt.queue && appt.queue.status) === 'serving'
+                    }) || null
+                    var scheduledSlotAppointment = servingAppointment ? null : findScheduledAppointmentForCurrentSlot(appointments)
+                    var servingId = servingAppointment ? String(servingAppointment.appointment_id) : ''
+                    var scheduledSlotId = scheduledSlotAppointment ? String(scheduledSlotAppointment.appointment_id) : ''
+                    var currentStillExists = appointments.some(function (appt) {
+                        return String(appt && appt.appointment_id) === currentSelectedId
+                    })
+                    var nextSelectedId = ''
+
+                    if (previousWasServing) {
+                        nextSelectedId = servingId || scheduledSlotId || ''
+                    } else if (currentSelectedId && currentStillExists) {
+                        nextSelectedId = currentSelectedId
+                    } else {
+                        nextSelectedId = servingId || scheduledSlotId || ''
+                    }
+
+                    // Notify doctor when a scheduled appointment is auto-selected for current time slot
+                    if (scheduledSlotId && !servingId && String(currentSelectedId) !== scheduledSlotId) {
+                        var scheduledPatientName = ''
+                        var scheduledAppt = scheduledSlotAppointment
+                        if (scheduledAppt && scheduledAppt.patient) {
+                            scheduledPatientName = [scheduledAppt.patient.firstname, scheduledAppt.patient.lastname].filter(Boolean).join(' ')
+                        }
+                        var scheduledTime = scheduledAppt && scheduledAppt.appointment_datetime
+                            ? scheduledAppt.appointment_datetime.toString().slice(11, 16)
+                            : ''
+                        if (typeof showToast === 'function') {
+                            showToast('You have an appointment with ' + (scheduledPatientName || 'patient') + ' at ' + (scheduledTime || 'this time') + '.', 'info', 8000)
+                        }
+                    }
+
+                    var optionsHtml = '<option value="">Select today&rsquo;s appointment</option>' +
+                        appointments.map(renderAppointmentOption).join('')
+                    appointmentSelect.innerHTML = optionsHtml
+                    if (consultAppointmentModalGrid) {
+                        consultAppointmentModalGrid.innerHTML = appointments.length
+                            ? appointments.map(renderAppointmentCard).join('')
+                            : '<div class="col-span-3 flex flex-col items-center justify-center py-12 text-center">' +
+                                '<div class="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-2">' +
+                                    '<svg class="w-5 h-5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="m15 16-3-3-3 3"></path></svg>' +
+                                '</div>' +
+                                '<p class="text-[0.78rem] font-medium text-slate-500">No appointments available</p>' +
+                                '<p class="text-[0.68rem] text-slate-400 mt-0.5">There are no patients in today&rsquo;s queue.</p>' +
+                            '</div>'
+                    }
+                    Array.prototype.slice.call(appointmentSelect.options).forEach(syncAppointmentOptionLabel)
+                    appointmentSelect.value = nextSelectedId
+                    updateAppointmentButtonDisplay()
+
+                    if (String(state.appointmentId || '') !== String(nextSelectedId || '')) {
+                        appointmentSelect.dispatchEvent(new Event('change', { bubbles: true }))
+                    } else if (!nextSelectedId) {
+                        resetWorkspace()
+                    }
+                })
+        }
+
+        function ensureConsultationQueueSync() {
+            if (typeof window === 'undefined' || typeof window.Echo === 'undefined' || !window.Echo || !state.doctorUserId) return
+            window.__doctorConsultationRefreshAppointments = function () {
+                var activeSelect = document.getElementById('consult_appointment')
+                if (!activeSelect) return
+                refreshAppointmentOptions().catch(function () {})
+            }
+
+            if (window.__doctorConsultationQueueDoctorId !== state.doctorUserId) {
+                try {
+                    window.__doctorConsultationQueueDoctorId = state.doctorUserId
+                    window.Echo.private('queue.' + state.doctorUserId)
+                        .listen('.queue.updated', function () {
+                            if (typeof window.__doctorConsultationRefreshAppointments === 'function') {
+                                window.__doctorConsultationRefreshAppointments()
+                            }
+                        })
+                } catch (e) {}
+            }
+
+            if (!window.__doctorConsultationAppointmentsListenerAttached) {
+                try {
+                    window.__doctorConsultationAppointmentsListenerAttached = true
+                    window.Echo.private('appointments.all')
+                        .listen('.appointment.updated', function () {
+                            if (typeof window.__doctorConsultationRefreshAppointments === 'function') {
+                                window.__doctorConsultationRefreshAppointments()
+                            }
+                            if (followUpModal && !followUpModal.classList.contains('hidden') && state.currentDoctorId) {
+                                loadFollowUpDoctorSchedulesAndAvailability(state.currentDoctorId, followUpState.selectedDate || '')
+                            }
+                        })
+                } catch (e) {}
+            }
+        }
+
         function markSelectedAppointmentConsulted() {
             if (!appointmentSelect) return
             var option = appointmentSelect.options[appointmentSelect.selectedIndex]
             if (!option) return
             option.setAttribute('data-status', 'consulted')
+            option.setAttribute('data-queue-status', 'consulted')
+            state.currentAppointmentStatus = 'consulted'
+            state.currentQueueStatus = 'consulted'
             syncAppointmentOptionLabel(option)
+            updateAppointmentButtonDisplay()
         }
 
         function badge(label, variant) {
@@ -1053,6 +1488,120 @@
             setVitalsModalError('')
         }
 
+        // === Medicine Selector Modal ===
+        function openMedicineSelector() {
+            setVisible(consultMedicineModal, true)
+            if (consultMedicineSearch) consultMedicineSearch.value = ''
+            renderMedicineDetail()
+            renderSelectedMedicines()
+            loadMedicines({
+                reset: true,
+                query: '',
+            }).finally(function () {
+                setTimeout(function () {
+                    if (consultMedicineSearch) consultMedicineSearch.focus()
+                }, 150)
+            })
+        }
+
+        function closeMedicineSelector() {
+            setVisible(consultMedicineModal, false)
+            if (consultMedicineSearch) consultMedicineSearch.value = ''
+            if (consultMedicineSearchTimer) clearTimeout(consultMedicineSearchTimer)
+        }
+
+        function renderMedicineLoadMore() {
+            if (!consultMedicineLoadMore) return
+            consultMedicineLoadMore.disabled = state.medicineLoading || !state.medicineHasMore
+            consultMedicineLoadMore.textContent = state.medicineLoading ? 'Loading...' : 'See more'
+        }
+
+        function renderMedicineList() {
+            if (!consultMedicineListBody) return
+            if (state.medicineLoading && !(state.medicines || []).length) {
+                consultMedicineListBody.innerHTML = '<div class="text-[0.78rem] text-slate-400 text-center py-6">Loading medicines...</div>'
+                renderMedicineLoadMore()
+                return
+            }
+            if (!(state.medicines || []).length) {
+                consultMedicineListBody.innerHTML = '<div class="text-[0.78rem] text-slate-400 text-center py-6">' + (state.medicineSearchQuery ? 'No medicines match your search.' : 'No medicines available.') + '</div>'
+                renderMedicineLoadMore()
+                return
+            }
+            var html = ''
+            state.medicines.forEach(function (m) {
+                var id = m.medicine_id
+                var name = m.brand_name || m.generic_name || 'Unknown'
+                var generic = m.generic_name ? '<span class="text-[0.68rem] text-slate-400">' + escapeHtml(m.generic_name) + '</span>' : ''
+                var isSelected = state.selectedMedicines.some(function (sm) { return String(sm.medicine_id) === String(id) })
+                var selClasses = isSelected ? 'border-green-400 bg-green-50/60' : 'border-slate-100 hover:border-slate-300 hover:bg-slate-50'
+                html += '<button type="button" class="med-item w-full text-left rounded-xl border px-3 py-2.5 transition-all duration-100 ' + selClasses + '" data-med-id="' + id + '">' +
+                    '<div class="text-[0.78rem] font-medium text-slate-800">' + escapeHtml(name) + '</div>' +
+                    '<div class="mt-0.5 text-[0.68rem] text-slate-500">' + (isSelected ? '<span class="text-green-700 font-medium">Selected</span> ' : '') + generic + '</div>' +
+                '</button>'
+            })
+            consultMedicineListBody.innerHTML = html
+            renderMedicineLoadMore()
+        }
+
+        function renderMedicineDetail(medicineId) {
+            if (!consultMedicineDetailBody) return
+            if (!medicineId) {
+                consultMedicineDetailBody.removeAttribute('data-active-med-id')
+                consultMedicineDetailBody.innerHTML = '<div class="text-[0.78rem] text-slate-500">Select a medicine from the list to view details.</div>'
+                return
+            }
+            var med = state.medicinesById[medicineId]
+            if (!med) {
+                consultMedicineDetailBody.removeAttribute('data-active-med-id')
+                consultMedicineDetailBody.innerHTML = '<div class="text-[0.78rem] text-slate-500">Medicine not found.</div>'
+                return
+            }
+            consultMedicineDetailBody.setAttribute('data-active-med-id', String(medicineId))
+            var name = med.brand_name || med.generic_name || 'Unknown'
+            var generic = med.generic_name || '-'
+            var indications = med.indications || '-'
+            var contra = med.contraindications || '-'
+            var dosageForm = med.dosage_form || '-'
+            var strength = med.strength || '-'
+            consultMedicineDetailBody.innerHTML =
+                '<div class="rounded-xl border border-slate-100 bg-white p-4 space-y-2.5">' +
+                    '<div class="text-sm font-semibold text-slate-800">' + escapeHtml(name) + '</div>' +
+                    '<div class="grid grid-cols-2 gap-2 text-[0.72rem]">' +
+                        '<div><span class="text-slate-400">Generic:</span><br><span class="text-slate-700">' + escapeHtml(generic) + '</span></div>' +
+                        '<div><span class="text-slate-400">Dosage Form:</span><br><span class="text-slate-700">' + escapeHtml(dosageForm) + '</span></div>' +
+                        '<div><span class="text-slate-400">Strength:</span><br><span class="text-slate-700">' + escapeHtml(strength) + '</span></div>' +
+                    '</div>' +
+                    '<div class="text-[0.72rem]"><span class="text-slate-400">Indications:</span><br><span class="text-slate-600">' + escapeHtml(indications) + '</span></div>' +
+                    '<div class="text-[0.72rem]"><span class="text-slate-400">Contraindications:</span><br><span class="text-slate-600">' + escapeHtml(contra) + '</span></div>' +
+                    '<div class="pt-1">' +
+                        '<button type="button" class="med-item-add w-full rounded-lg px-3 py-1.5 text-[0.72rem] font-semibold text-white bg-green-600 hover:bg-green-700 border border-green-500">Select this medicine</button>' +
+                    '</div>' +
+                '</div>'
+        }
+
+        function renderSelectedMedicines() {
+            if (!consultMedicineSelectedBody || !consultMedicineSelectedLabel) return
+            var meds = state.selectedMedicines || []
+            if (meds.length === 0) {
+                consultMedicineSelectedLabel.classList.add('hidden')
+                consultMedicineSelectedBody.innerHTML = ''
+                return
+            }
+            consultMedicineSelectedLabel.classList.remove('hidden')
+            var html = ''
+            meds.forEach(function (m) {
+                html += '<div class="flex items-center justify-between rounded-xl border border-green-200 bg-green-50/40 px-3 py-2">' +
+                    '<button type="button" class="med-selected-item min-w-0 flex-1 text-left" data-med-id="' + escapeHtml(m.medicine_id) + '">' +
+                        '<div class="text-[0.75rem] font-medium text-slate-700 truncate hover:text-green-700">' + escapeHtml(m.medicine_name) + '</div>' +
+                        '<div class="text-[0.68rem] text-slate-400">Click to view details</div>' +
+                    '</button>' +
+                    '<button type="button" class="med-item-remove text-[0.65rem] font-semibold text-red-500 hover:text-red-700 underline shrink-0 ml-2" data-med-id="' + escapeHtml(m.medicine_id) + '">Remove</button>' +
+                '</div>'
+            })
+            consultMedicineSelectedBody.innerHTML = html
+        }
+
         function api(url, options) {
             if (!window.apiFetch) {
                 return Promise.reject(new Error('API client is not available.'))
@@ -1078,7 +1627,7 @@
             if (user.middlename) parts.push(user.middlename)
             if (user.lastname) parts.push(user.lastname)
             var name = parts.join(' ').trim()
-            return name || ('User #' + (user.user_id || ''))
+            return name || (user.email || '-')
         }
 
         function medicineDisplayName(med) {
@@ -1111,7 +1660,44 @@
             return []
         }
 
+        function formatAppointmentService(service) {
+            if (!service) return ''
+            var name = service.service_name || service.name || (service.service_id != null ? ('Service #' + service.service_id) : '')
+            var description = service.description || ''
+            if (description && String(description).trim() !== '') {
+                return escapeHtml(String(name)) + ' - ' + escapeHtml(String(description))
+            }
+            return escapeHtml(String(name || '-'))
+        }
+
+        function renderAppointmentServices() {
+            if (!elApptServices) return
+            var services = state.appointmentServices || []
+            if (!services.length) {
+                elApptServices.textContent = '-'
+                return
+            }
+
+            var first = formatAppointmentService(services[0])
+            if (services.length === 1) {
+                elApptServices.innerHTML = first
+                return
+            }
+
+            if (state.appointmentServicesExpanded) {
+                var remaining = services.slice(1).map(formatAppointmentService).join(', ')
+                elApptServices.innerHTML = first +
+                    '<span class="text-slate-500">, ' + remaining + '</span> ' +
+                    '<button type="button" class="inline text-green-700 underline underline-offset-2 hover:text-green-800" data-expand-services="less">show less</button>'
+                return
+            }
+
+            elApptServices.innerHTML = first +
+                ' <button type="button" class="inline text-green-700 underline underline-offset-2 hover:text-green-800" data-expand-services="more">...' + escapeHtml(String(services.length - 1)) + ' more</button>'
+        }
+
         function resetWorkspace() {
+            state.appointmentId = null
             state.patientId = null
             state.parentUserId = null
             state.transactionId = null
@@ -1121,10 +1707,21 @@
             state.medicalBackground = []
             state.history = []
             state.vitals = null
+            state.appointmentServices = []
+            state.appointmentServicesExpanded = false
+            state.currentAppointmentType = ''
+            state.currentAppointmentStatus = ''
+            state.currentQueueStatus = ''
+            state.currentDoctorId = null
+            state.currentReasonForVisit = ''
+            state.followUpWalkInNote = ''
+            state.followUpScheduledSummary = ''
             setText(elPatientName, '-')
             setText(elPatientMeta, '-')
             setText(elApptDateTime, '-')
             setText(elApptType, '-')
+            renderAppointmentServices()
+            setText(elApptReason, '-')
             setText(elPhone, '-')
             setText(elEmail, '-')
             setText(elAddress, '-')
@@ -1138,7 +1735,8 @@
             setText(elTotalVisits, '-')
             if (diagnosisEl) diagnosisEl.value = ''
             if (treatmentEl) treatmentEl.value = ''
-            if (prescriptionBody) prescriptionBody.innerHTML = ''
+            state.selectedMedicines = []
+            renderPrescriptionSummary()
             if (historyTimeline) historyTimeline.innerHTML = ''
             setVisible(safetyBox, false)
             setVitalsFeedback('')
@@ -1147,108 +1745,82 @@
             if (acknowledgeEl) acknowledgeEl.checked = false
             setPrintVisible(false)
             clearSuccessTimer()
+            resetFollowUpState()
+            updateFollowUpAction()
         }
 
         function ensureRow(item) {
-            if (!prescriptionBody) return
-            var tr = document.createElement('tr')
-            tr.className = 'border-b border-slate-50 last:border-0 align-top'
-            tr.innerHTML = '' +
-                '<td class="py-2 px-3 align-top">' +
-                    '<select class="consult-med h-9 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none"></select>' +
-                    '<div class="mt-1 space-y-1">' +
-                        '<div class="text-[0.68rem] text-slate-400">Indications: <span class="consult-ind text-slate-600"></span></div>' +
-                        '<div class="text-[0.68rem] text-slate-400">Contra: <span class="consult-contra text-slate-600"></span></div>' +
-                    '</div>' +
-                '</td>' +
-                '<td class="py-2 px-3 align-top"><input class="consult-dose h-9 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. 500mg"></td>' +
-                '<td class="py-2 px-3 align-top"><input class="consult-freq h-9 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. BID"></td>' +
-                '<td class="py-2 px-3 align-top"><input class="consult-dur h-9 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. 7 days"></td>' +
-                '<td class="py-2 px-3 align-top"><input class="consult-inst h-9 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. after meals"></td>' +
-                '<td class="py-2 px-3 align-top"><button type="button" class="consult-remove mt-0.5 inline-flex h-9 w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.72rem] font-semibold text-slate-700 hover:bg-slate-50">Remove</button></td>'
-
-            var sel = tr.querySelector('.consult-med')
-            var ind = tr.querySelector('.consult-ind')
-            var contra = tr.querySelector('.consult-contra')
-            var removeBtn = tr.querySelector('.consult-remove')
-
-            var opts = ['<option value="">Select</option>']
-            state.medicines.forEach(function (m) {
-                opts.push('<option value="' + m.medicine_id + '">' + medicineDisplayName(m) + '</option>')
-            })
-            sel.innerHTML = opts.join('')
-
-            function updateMeta() {
-                var id = sel.value
-                var med = state.medicinesById[id]
-                ind.textContent = med && med.indications ? med.indications : '-'
-                contra.textContent = med && med.contraindications ? med.contraindications : '-'
+            if (item && item.medicine_id) {
+                var med = state.medicinesById[item.medicine_id]
+                // Avoid duplicates
+                var exists = state.selectedMedicines.some(function (m) { return m.medicine_id === item.medicine_id })
+                if (exists) return
+                state.selectedMedicines.push({
+                    medicine_id: item.medicine_id,
+                    medicine_name: med ? medicineDisplayName(med) : ('Medicine #' + item.medicine_id),
+                    dosage: item.dosage || '',
+                    frequency: item.frequency || '',
+                    duration: item.duration || '',
+                    instructions: item.instructions || '',
+                    item_id: item.item_id || null,
+                })
+                renderPrescriptionSummary()
                 renderSafety()
-
-                var conflicts = computeConflicts()
-                var hasConflict = conflicts.some(function (c) {
-                    return normalizeString(c.medicine) === normalizeString(medicineDisplayName(med))
-                })
-
-                if (hasConflict) {
-                    sel.classList.add('border-red-300')
-                    sel.classList.add('bg-red-50')
-                    sel.classList.add('focus:border-red-400')
-                    sel.classList.add('focus:ring-red-200')
-
-                    var lines = conflicts
-                        .filter(function (c) { return normalizeString(c.medicine) === normalizeString(medicineDisplayName(med)) })
-                        .slice(0, 8)
-                        .map(function (c) { return '• ' + c.medicine + ' vs allergy "' + c.allergy + '"' })
-                        .join('\n')
-                    showSafetyModal('Possible allergy conflicts:\n' + lines)
-                } else {
-                    sel.classList.remove('border-red-300')
-                    sel.classList.remove('bg-red-50')
-                    sel.classList.remove('focus:border-red-400')
-                    sel.classList.remove('focus:ring-red-200')
-                }
             }
-
-            sel.addEventListener('change', updateMeta)
-            if (removeBtn) {
-                removeBtn.addEventListener('click', function () {
-                    tr.remove()
-                    renderSafety()
-                })
-            }
-
-            if (item) {
-                if (item.medicine_id) sel.value = String(item.medicine_id)
-                var dose = tr.querySelector('.consult-dose')
-                var freq = tr.querySelector('.consult-freq')
-                var dur = tr.querySelector('.consult-dur')
-                var inst = tr.querySelector('.consult-inst')
-                if (dose && item.dosage) dose.value = item.dosage
-                if (freq && item.frequency) freq.value = item.frequency
-                if (dur && item.duration) dur.value = item.duration
-                if (inst && item.instructions) inst.value = item.instructions
-            }
-
-            updateMeta()
-            prescriptionBody.appendChild(tr)
         }
 
         function getPrescriptionRows() {
-            if (!prescriptionBody) return []
-            var trs = Array.prototype.slice.call(prescriptionBody.querySelectorAll('tr'))
-            return trs.map(function (tr) {
+            return (state.selectedMedicines || []).map(function (m) {
                 return {
-                    tr: tr,
-                    medicine_id: tr.querySelector('.consult-med') ? tr.querySelector('.consult-med').value : '',
-                    dosage: tr.querySelector('.consult-dose') ? tr.querySelector('.consult-dose').value : '',
-                    frequency: tr.querySelector('.consult-freq') ? tr.querySelector('.consult-freq').value : '',
-                    duration: tr.querySelector('.consult-dur') ? tr.querySelector('.consult-dur').value : '',
-                    instructions: tr.querySelector('.consult-inst') ? tr.querySelector('.consult-inst').value : '',
+                    medicine_id: m.medicine_id || '',
+                    medicine_name: m.medicine_name || '',
+                    dosage: m.dosage || '',
+                    frequency: m.frequency || '',
+                    duration: m.duration || '',
+                    instructions: m.instructions || '',
                 }
             }).filter(function (r) {
                 return r.medicine_id
             })
+        }
+
+        function renderPrescriptionSummary() {
+            var el = document.getElementById('consultPrescriptionSummary')
+            if (!el) return
+            var meds = state.selectedMedicines || []
+            if (meds.length === 0) {
+                el.textContent = 'No medicines added yet.'
+                return
+            }
+            var names = meds.map(function (m) { return m.medicine_name || 'Unknown' })
+            var fullText = names.join(', ')
+            el.textContent = fullText
+            // Check overflow and truncate
+            var original = fullText
+            var maxWidth = el.parentElement.offsetWidth - 24
+            // Use a temporary measure to check overflow
+            if (el.scrollWidth > el.offsetWidth) {
+                var i = original.length
+                while (i > 0) {
+                    var test = original.slice(0, i) + '...'
+                    el.textContent = test
+                    if (el.scrollWidth <= el.offsetWidth) break
+                    i--
+                }
+                // Find how many are shown
+                var shown = 0
+                var cumLen = 0
+                for (var j = 0; j < names.length; j++) {
+                    cumLen += names[j].length + (j > 0 ? 2 : 0)
+                    if (cumLen >= i) {
+                        shown = j + 1
+                        break
+                    }
+                }
+                if (shown > 0 && shown < names.length) {
+                    el.textContent = names.slice(0, shown).join(', ') + '... +' + (names.length - shown) + ' more'
+                }
+            }
         }
 
         function renderConfirmSummary() {
@@ -1316,8 +1888,9 @@
 
             historyTimeline.innerHTML = items.map(function (tx) {
                 var dt = tx.visit_datetime || tx.transaction_datetime || ''
-                var dateStr = dt ? dt.toString().slice(0, 10) : '-'
-                var timeStr = dt ? dt.toString().slice(11, 16) : ''
+                var dateObj = dt ? new Date(dt.replace(' ', 'T') + (dt.includes('Z') || dt.includes('+') || dt.includes('T') ? '' : 'Z')) : null
+                var dateStr = dateObj ? dateObj.getFullYear() + '-' + String(dateObj.getMonth() + 1).padStart(2, '0') + '-' + String(dateObj.getDate()).padStart(2, '0') : '-'
+                var timeStr = dateObj ? (function(d){var h24=d.getHours(),m=d.getMinutes(),ap=h24>=12?'PM':'AM',h12=h24%12;if(h12===0)h12=12;return h12+':'+String(m).padStart(2,'0')+' '+ap})(dateObj) : ''
                 var dx = tx.diagnosis ? tx.diagnosis : 'No diagnosis'
                 var notes = tx.treatment_notes ? tx.treatment_notes : ''
                 var appointmentId = tx && tx.appointment_id != null
@@ -1414,13 +1987,73 @@
             setVisible(safetyBox, true)
         }
 
-        function loadMedicines() {
-            return api('{{ url('/api/medicines') }}?per_page=15').then(function (resp) {
-                state.medicines = getPaginatedData(resp)
-                state.medicinesById = {}
-                state.medicines.forEach(function (m) {
+        function loadMedicines(options) {
+            options = options || {}
+            var reset = options.reset !== false
+            var query = options.query != null ? String(options.query) : state.medicineSearchQuery
+            var page = reset ? 1 : (Number(state.medicinePage || 1) + 1)
+            var requestId = ++state.medicineRequestId
+            var params = [
+                'per_page=' + encodeURIComponent(String(state.medicinePerPage || 10)),
+                'page=' + encodeURIComponent(String(page)),
+            ]
+
+            query = query.trim()
+            state.medicineSearchQuery = query
+
+            if (query) {
+                params.push('search=' + encodeURIComponent(query))
+            }
+
+            state.medicineLoading = true
+            if (reset) {
+                state.medicines = []
+                state.medicinePage = 1
+                state.medicineHasMore = false
+                renderMedicineList()
+            } else {
+                renderMedicineLoadMore()
+            }
+
+            return api('{{ url('/api/medicines') }}?' + params.join('&')).then(function (resp) {
+                if (requestId !== state.medicineRequestId) return
+
+                var rows = getPaginatedData(resp)
+                var existingById = {}
+                if (!reset) {
+                    state.medicines.forEach(function (m) {
+                        existingById[String(m.medicine_id)] = true
+                    })
+                }
+
+                if (reset) {
+                    state.medicines = []
+                }
+
+                rows.forEach(function (m) {
+                    if (!m || m.medicine_id == null) return
                     state.medicinesById[String(m.medicine_id)] = m
+                    if (existingById[String(m.medicine_id)]) return
+                    state.medicines.push(m)
                 })
+
+                state.medicinePage = Number(resp && resp.current_page ? resp.current_page : page)
+                state.medicineHasMore = !!(resp && resp.next_page_url)
+                renderMedicineList()
+            }).catch(function (err) {
+                if (requestId !== state.medicineRequestId) return
+                if (reset) {
+                    state.medicines = []
+                    state.medicineHasMore = false
+                    renderMedicineList()
+                } else {
+                    renderMedicineLoadMore()
+                }
+                if (typeof showToast === 'function') showToast(err && err.body ? err.body : 'Unable to load medicines.', 'error')
+            }).finally(function () {
+                if (requestId !== state.medicineRequestId) return
+                state.medicineLoading = false
+                renderMedicineLoadMore()
             })
         }
 
@@ -1439,6 +2072,11 @@
                 state.transactionId = appt.transaction ? appt.transaction.transaction_id : null
                 state.prescriptionId = null
                 state.existingItemIds = []
+                state.currentAppointmentType = appt.appointment_type || ''
+                state.currentAppointmentStatus = appt.status || ''
+                state.currentQueueStatus = appt.queue && appt.queue.status ? appt.queue.status : ''
+                state.currentDoctorId = appt.doctor_id || null
+                state.currentReasonForVisit = appt.reason_for_visit || ''
 
                 setText(elPatientName, formatName(appt.patient))
                 var sex = appt.patient && appt.patient.sex ? appt.patient.sex : ''
@@ -1451,9 +2089,13 @@
 
                 var dt = appt.appointment_datetime || ''
                 var dateStr = dt ? dt.toString().slice(0, 10) : '-'
-                var timeStr = dt ? dt.toString().slice(11, 16) : '-'
+                var timeStr = dt ? formatTime12h(dt.toString().slice(11, 16)) : '-'
+                state.appointmentServices = Array.isArray(appt.services) ? appt.services : []
+                state.appointmentServicesExpanded = false
                 setText(elApptDateTime, dateStr + ' ' + timeStr)
                 setText(elApptType, appt.appointment_type ? appt.appointment_type.toString().replace('_', '-') : '-')
+                renderAppointmentServices()
+                setText(elApptReason, appt.reason_for_visit || '-')
                 setText(elPhone, appt.patient && appt.patient.contact_number ? appt.patient.contact_number : '-')
                 setText(elEmail, appt.patient && appt.patient.email ? appt.patient.email : '-')
                 setText(elAddress, appt.patient && appt.patient.address ? appt.patient.address : '-')
@@ -1474,6 +2116,7 @@
                 setText(elDepStatus, appt.patient && appt.patient.is_dependent ? 'Dependent' : 'Not a dependent')
                 setText(elParentName, '')
                 setText(elParentMeta, '')
+                updateFollowUpAction()
             }).catch(function (err) {
                 if (typeof showToast === 'function') showToast(err && err.body ? err.body : 'Unable to load appointment details.', 'error')
                 throw err
@@ -1499,9 +2142,16 @@
                 return Promise.resolve()
             }
 
-            return api('{{ url('/api/vitals') }}?patient_id=' + encodeURIComponent(String(patientId)) + '&per_page=15')
-                .then(function (resp) {
-                    var rows = getPaginatedData(resp)
+            var historyPromise = api('{{ url('/api/vitals') }}?patient_id=' + encodeURIComponent(String(patientId)) + '&per_page=15')
+            var currentPromise = appointmentId
+                ? api('{{ url('/api/vitals') }}?patient_id=' + encodeURIComponent(String(patientId)) + '&appointment_id=' + encodeURIComponent(String(appointmentId)) + '&per_page=1')
+                : Promise.resolve(null)
+
+            return Promise.all([historyPromise, currentPromise])
+                .then(function (responses) {
+                    var historyResp = responses[0]
+                    var currentResp = responses[1]
+                    var rows = getPaginatedData(historyResp)
 
                     // Build vitals-by-appointment map for history tab
                     var byAppointment = {}
@@ -1512,18 +2162,19 @@
                     })
                     state.historyVitalsByAppointment = byAppointment
 
-                    // Set current appointment's vitals (if appointmentId provided)
                     if (appointmentId) {
-                        var current = rows.find(function (r) {
-                            return r && String(r.appointment_id) === String(appointmentId)
-                        })
-                        state.vitals = current || null
+                        var currentRows = getPaginatedData(currentResp)
+                        state.vitals = currentRows.length ? currentRows[0] : null
                     }
+
                     applyVitalsToForm(state.vitals)
                     renderVitalsSummary()
+                    // Re-render history with vitals data now available
+                    renderHistory()
                 }).catch(function () {
                     state.vitals = null
                     state.historyVitalsByAppointment = {}
+                    applyVitalsToForm(null)
                     renderVitalsSummary()
                 })
         }
@@ -1546,16 +2197,20 @@
 
         function loadExistingDraft() {
             if (!state.transactionId) {
+                state.followUpWalkInNote = ''
+                updateFollowUpAction()
                 return Promise.resolve()
             }
             return api('{{ url('/api/transactions') }}/' + state.transactionId).then(function (tx) {
                 if (diagnosisEl) diagnosisEl.value = tx.diagnosis || ''
                 if (treatmentEl) treatmentEl.value = tx.treatment_notes || ''
+                state.followUpWalkInNote = extractWalkInFollowUpNote(tx.treatment_notes || '')
+                updateFollowUpAction()
                 var rx = tx.prescriptions && tx.prescriptions.length ? tx.prescriptions[0] : null
                 if (rx) {
                     state.prescriptionId = rx.prescription_id
                     state.existingItemIds = (rx.items || []).map(function (it) { return it.item_id })
-                    if (prescriptionBody) prescriptionBody.innerHTML = ''
+                    state.selectedMedicines = []
                     if (rx.items && rx.items.length) {
                         rx.items.forEach(function (it) {
                             ensureRow({
@@ -1564,10 +2219,431 @@
                                 frequency: it.frequency,
                                 duration: it.duration,
                                 instructions: it.instructions,
+                                item_id: it.item_id,
                             })
                         })
+                        renderPrescriptionSummary()
                     }
                 }
+            })
+        }
+
+        function resetFollowUpState() {
+            followUpState.mode = ''
+            followUpState.month = new Date()
+            followUpState.selectedDate = ''
+            followUpState.selectedTime = ''
+            followUpState.doctorSchedules = []
+            followUpState.availableDays = {}
+            followUpState.dayAppointments = []
+            followUpState.monthAppointments = {}
+            followUpState.schedulesPromise = null
+            setFollowUpError('')
+            setVisible(followUpWalkInInfo, false)
+            if (followUpSelectionMeta) followUpSelectionMeta.textContent = 'No follow-up schedule selected yet.'
+            if (followUpTimeHint) followUpTimeHint.textContent = 'Select a date to view time slots.'
+            if (followUpTimeBody) {
+                followUpTimeBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select a future date to load time slots.</div>'
+            }
+            if (followUpConfirm) followUpConfirm.disabled = true
+        }
+
+        function isWalkInAppointment() {
+            return normalizeString(state.currentAppointmentType) === 'walk_in'
+        }
+
+        function isScheduledAppointment() {
+            return normalizeString(state.currentAppointmentType) === 'scheduled'
+        }
+
+        function extractWalkInFollowUpNote(text) {
+            var match = String(text || '').match(/Visit for a follow up after \d+ days?\./i)
+            return match ? match[0] : ''
+        }
+
+        function replaceWalkInFollowUpNote(noteText) {
+            if (!treatmentEl) return
+            var current = String(treatmentEl.value || '')
+            var previous = String(state.followUpWalkInNote || '')
+            if (previous && current.indexOf(previous) !== -1) {
+                current = current.replace(previous, '')
+            }
+            current = current.replace(/\n{3,}/g, '\n\n').trim()
+            treatmentEl.value = noteText ? (current ? current + '\n' + noteText : noteText) : current
+            state.followUpWalkInNote = noteText || ''
+            updateFollowUpAction()
+        }
+
+        function appointmentServiceIds() {
+            return (state.appointmentServices || []).map(function (service) {
+                return parseInt(service && service.service_id, 10)
+            }).filter(function (id) {
+                return !isNaN(id) && id > 0
+            })
+        }
+
+        function buildFollowUpReasonForVisit() {
+            var baseReason = String(state.currentReasonForVisit || '').trim()
+            return baseReason ? ('Follow-up visit - ' + baseReason) : 'Follow-up visit'
+        }
+
+        function setFollowUpError(message) {
+            if (!followUpError) return
+            followUpError.textContent = message || ''
+            followUpError.classList.toggle('hidden', !message)
+        }
+
+        function setFollowUpConfirmLoading(isLoading, label) {
+            if (!followUpConfirm) return
+            followUpConfirm.disabled = !!isLoading
+            followUpConfirm.textContent = isLoading ? 'Processing...' : (label || 'Confirm')
+        }
+
+        function updateFollowUpAction() {
+            if (!followUpWrap || !followUpBtn) return
+            var hasAppointment = !!state.appointmentId && (isWalkInAppointment() || isScheduledAppointment())
+            setVisible(followUpWrap, hasAppointment)
+            if (!hasAppointment) return
+
+            var isWalkIn = isWalkInAppointment()
+            followUpBtn.textContent = isWalkIn ? 'Set follow up visit' : 'Set follow up appointment'
+            followUpBtn.disabled = !state.currentDoctorId
+            if (followUpHint) {
+                followUpHint.textContent = isWalkIn
+                    ? 'Choose a future date and slot, then add the computed follow-up note into treatment notes.'
+                    : 'Book the patient’s next appointment using the same doctor and selected services.'
+            }
+
+            var summaryText = isWalkIn ? state.followUpWalkInNote : state.followUpScheduledSummary
+            if (followUpSummary) {
+                followUpSummary.classList.toggle('hidden', !summaryText)
+                followUpSummary.textContent = summaryText || ''
+            }
+        }
+
+        function renderFollowUpDatePicker() {
+            if (!followUpDateGrid || !followUpMonthLabel) return
+            var month = followUpState.month instanceof Date ? followUpState.month : new Date()
+            followUpMonthLabel.textContent = month.toLocaleString(undefined, { month: 'long', year: 'numeric' })
+
+            var year = month.getFullYear()
+            var monthIndex = month.getMonth()
+            var firstDay = new Date(year, monthIndex, 1)
+            var daysInMonth = new Date(year, monthIndex + 1, 0).getDate()
+            var today = new Date()
+            today.setHours(0, 0, 0, 0)
+            var cells = []
+
+            for (var i = 0; i < firstDay.getDay(); i++) cells.push('')
+
+            var hasScheduleRestriction = followUpState.mode === 'scheduled' && Object.keys(followUpState.availableDays).length > 0
+
+            for (var day = 1; day <= daysInMonth; day++) {
+                var date = new Date(year, monthIndex, day)
+                var iso = isoFromDate(date)
+                var dayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][date.getDay()] || ''
+                var dayAllowed = hasScheduleRestriction ? !!followUpState.availableDays[dayKey] : true
+                var enabled = dayAllowed && date.getTime() > today.getTime()
+                var selected = followUpState.selectedDate === iso
+                var count = followUpState.mode === 'scheduled' ? (followUpState.monthAppointments[iso] || 0) : 0
+                var showBadge = count > 0 && date.getTime() > today.getTime()
+                var badge = showBadge ? '<span class="absolute -top-1 -right-1 min-w-[14px] h-[14px] rounded-full bg-red-500 px-0.5 text-center text-[0.5rem] font-bold leading-[14px] text-white">' + count + '</span>' : ''
+                var classes = 'relative w-full aspect-square rounded-lg border text-[0.75rem] font-semibold transition-colors flex items-center justify-center ' +
+                    (enabled
+                        ? (selected ? 'border-green-600 bg-green-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50')
+                        : 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400')
+                cells.push('<button type="button" class="' + classes + '" data-followup-date="' + iso + '"' + (enabled ? '' : ' disabled') + '>' + day + badge + '</button>')
+            }
+
+            while (cells.length % 7 !== 0) cells.push('')
+            followUpDateGrid.innerHTML = cells.map(function (cell) { return cell || '<div></div>' }).join('')
+        }
+
+        function renderFollowUpTimeSlots() {
+            if (!followUpTimeBody) return
+
+            if (!state.currentDoctorId) {
+                if (followUpTimeHint) followUpTimeHint.textContent = 'Doctor schedule unavailable.'
+                followUpTimeBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Doctor schedule unavailable.</div>'
+                if (followUpConfirm) followUpConfirm.disabled = true
+                return
+            }
+
+            if (!followUpState.selectedDate) {
+                if (followUpTimeHint) followUpTimeHint.textContent = 'Select a date to view time slots.'
+                followUpTimeBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select a future date to load time slots.</div>'
+                if (followUpConfirm) followUpConfirm.disabled = true
+                return
+            }
+
+            var dayKey = dayKeyFromDate(followUpState.selectedDate)
+            var daySchedules = (followUpState.doctorSchedules || []).filter(function (schedule) {
+                return normalizeString(schedule && schedule.day_of_week) === normalizeString(dayKey) && schedule.is_available !== false
+            })
+            if (!daySchedules.length) {
+                if (followUpTimeHint) followUpTimeHint.textContent = 'Doctor has no available slots on this day.'
+                followUpTimeBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Doctor has no available slots on this day.</div>'
+                if (followUpConfirm) followUpConfirm.disabled = true
+                return
+            }
+
+            var intervals = []
+            daySchedules.forEach(function (schedule) {
+                var start = minutesFromHHMM(schedule && schedule.start_time)
+                var end = minutesFromHHMM(schedule && schedule.end_time)
+                if (isNaN(start) || isNaN(end) || end <= start) return
+                intervals.push({ start: start, end: end })
+            })
+            intervals.sort(function (a, b) { return a.start - b.start })
+
+            var merged = []
+            intervals.forEach(function (interval) {
+                var last = merged.length ? merged[merged.length - 1] : null
+                if (!last || interval.start > last.end) {
+                    merged.push({ start: interval.start, end: interval.end })
+                    return
+                }
+                last.end = Math.max(last.end, interval.end)
+            })
+
+            var bookedSet = {}
+            ;(followUpState.dayAppointments || []).forEach(function (appt) {
+                if (!appt || !appt.appointment_datetime) return
+                if (normalizeString(appt.status) === 'cancelled') return
+                if (normalizeString(appt.appointment_type) !== 'scheduled') return
+                var dt = new Date(appt.appointment_datetime)
+                if (isNaN(dt.getTime()) || isoFromDate(dt) !== followUpState.selectedDate) return
+                bookedSet[String(dt.getHours()).padStart(2, '0') + ':' + String(dt.getMinutes()).padStart(2, '0')] = true
+            })
+
+            var slots = []
+            merged.forEach(function (block) {
+                for (var minute = block.start; minute + 30 <= block.end; minute += 30) {
+                    slots.push({ start: minute, end: minute + 30 })
+                }
+            })
+
+            if (!slots.length) {
+                if (followUpTimeHint) followUpTimeHint.textContent = 'No time slots available.'
+                followUpTimeBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No time slots available for this day.</div>'
+                if (followUpConfirm) followUpConfirm.disabled = true
+                return
+            }
+
+            var availableCount = slots.filter(function (slot) {
+                return !bookedSet[hhmmFromMinutes(slot.start)]
+            }).length
+            if (followUpTimeHint) {
+                followUpTimeHint.textContent = String(availableCount) + ' available slot' + (availableCount !== 1 ? 's' : '') + ' · Click a slot to select.'
+            }
+
+            var container = document.createElement('div')
+            container.className = 'grid grid-cols-2 gap-2'
+            container.style.gridAutoFlow = 'column'
+            var gridRows = Math.ceil(slots.length / 2)
+            if (gridRows > 1) container.style.gridTemplateRows = 'repeat(' + gridRows + ', auto)'
+
+            slots.forEach(function (slot) {
+                var startHHMM = hhmmFromMinutes(slot.start)
+                var endHHMM = hhmmFromMinutes(slot.end)
+                var isBooked = !!bookedSet[startHHMM]
+                var isSelected = followUpState.selectedTime === startHHMM
+                var btn = document.createElement('button')
+                btn.type = 'button'
+                btn.className = 'w-full rounded-xl border px-3 py-2 text-[0.75rem] font-semibold transition-colors flex items-center justify-between ' +
+                    (isBooked
+                        ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400'
+                        : (isSelected ? 'border-green-600 bg-green-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'))
+                btn.disabled = isBooked
+                btn.textContent = formatTime12h(startHHMM) + ' - ' + formatTime12h(endHHMM) + (isBooked ? ' · Booked' : '')
+                btn.addEventListener('click', function () {
+                    followUpState.selectedTime = startHHMM
+                    if (followUpSelectionMeta) {
+                        followUpSelectionMeta.textContent = 'Selected: ' + followUpState.selectedDate + ' at ' + formatTime12h(startHHMM)
+                    }
+                    if (followUpConfirm) followUpConfirm.disabled = false
+                    renderFollowUpTimeSlots()
+                })
+                container.appendChild(btn)
+            })
+
+            followUpTimeBody.innerHTML = ''
+            followUpTimeBody.appendChild(container)
+        }
+
+        function loadFollowUpDayAppointments(doctorId, dateStr) {
+            if (!doctorId || !dateStr) return Promise.resolve()
+            return api('{{ url('/api/appointments') }}?doctor_id=' + encodeURIComponent(String(doctorId)) + '&start_date=' + encodeURIComponent(dateStr) + '&end_date=' + encodeURIComponent(dateStr) + '&per_page=50')
+                .then(function (resp) {
+                    followUpState.dayAppointments = getPaginatedData(resp)
+                    renderFollowUpTimeSlots()
+                }).catch(function () {
+                    followUpState.dayAppointments = []
+                    renderFollowUpTimeSlots()
+                })
+        }
+
+        function loadFollowUpMonthAppointments(doctorId) {
+            if (!doctorId || followUpState.mode !== 'scheduled') {
+                followUpState.monthAppointments = {}
+                renderFollowUpDatePicker()
+                return Promise.resolve()
+            }
+            var year = followUpState.month.getFullYear()
+            var monthIndex = followUpState.month.getMonth()
+            var startDate = year + '-' + String(monthIndex + 1).padStart(2, '0') + '-01'
+            var endDate = year + '-' + String(monthIndex + 1).padStart(2, '0') + '-' + String(new Date(year, monthIndex + 1, 0).getDate()).padStart(2, '0')
+
+            return api('{{ url('/api/appointments') }}?doctor_id=' + encodeURIComponent(String(doctorId)) + '&appointment_type=scheduled&start_date=' + encodeURIComponent(startDate) + '&end_date=' + encodeURIComponent(endDate) + '&per_page=200')
+                .then(function (resp) {
+                    var map = {}
+                    getPaginatedData(resp).forEach(function (appt) {
+                        if (!appt || !appt.appointment_datetime) return
+                        if (normalizeString(appt.status) === 'cancelled') return
+                        if (normalizeString(appt.appointment_type) !== 'scheduled') return
+                        var dt = new Date(appt.appointment_datetime)
+                        if (isNaN(dt.getTime())) return
+                        var key = isoFromDate(dt)
+                        map[key] = (map[key] || 0) + 1
+                    })
+                    followUpState.monthAppointments = map
+                    renderFollowUpDatePicker()
+                }).catch(function () {
+                    followUpState.monthAppointments = {}
+                    renderFollowUpDatePicker()
+                })
+        }
+
+        function loadFollowUpDoctorSchedulesAndAvailability(doctorId, dateStr) {
+            if (!doctorId) {
+                followUpState.schedulesPromise = Promise.resolve()
+                return followUpState.schedulesPromise
+            }
+            followUpState.schedulesPromise = api('{{ url('/api/doctor-schedules') }}?doctor_id=' + encodeURIComponent(String(doctorId)) + '&per_page=100')
+                .then(function (resp) {
+                    followUpState.doctorSchedules = getPaginatedData(resp)
+                    followUpState.availableDays = {}
+                    followUpState.doctorSchedules.forEach(function (schedule) {
+                        var dayKey = normalizeString(schedule && schedule.day_of_week)
+                        if (dayKey && schedule.is_available !== false) followUpState.availableDays[dayKey] = true
+                    })
+                    renderFollowUpDatePicker()
+                    if (dateStr) {
+                        return loadFollowUpDayAppointments(doctorId, dateStr)
+                    }
+                    renderFollowUpTimeSlots()
+                }).catch(function (err) {
+                    followUpState.doctorSchedules = []
+                    followUpState.availableDays = {}
+                    renderFollowUpDatePicker()
+                    renderFollowUpTimeSlots()
+                    if (typeof showToast === 'function') {
+                        showToast(err && err.body ? err.body : 'Unable to load follow-up schedules.', 'error')
+                    }
+                }).then(function () {
+                    return loadFollowUpMonthAppointments(doctorId)
+                })
+        }
+
+        function openFollowUpModal() {
+            if (!state.appointmentId || !state.currentDoctorId) {
+                if (typeof showToast === 'function') showToast('Select an appointment first.', 'error')
+                return
+            }
+            resetFollowUpState()
+            followUpState.mode = isWalkInAppointment() ? 'walk_in' : 'scheduled'
+            setFollowUpConfirmLoading(false, followUpState.mode === 'walk_in' ? 'Apply follow up note' : 'Create follow up appointment')
+            if (followUpModalTitle) {
+                followUpModalTitle.textContent = followUpState.mode === 'walk_in' ? 'Set follow up visit' : 'Set follow up appointment'
+            }
+            if (followUpModalSubtitle) {
+                followUpModalSubtitle.textContent = followUpState.mode === 'walk_in'
+                    ? 'Select a future date. A follow-up note with the day count will be added to the treatment notes.'
+                    : 'Book a new scheduled follow-up using the same patient, doctor, and selected services.'
+            }
+            setVisible(followUpModal, true)
+
+            if (followUpState.mode === 'walk_in') {
+                // Walk-in: hide time slots panel, show single-column calendar with day count info
+                setVisible(followUpTimePanel, false)
+                setVisible(followUpWalkInInfo, false)
+                if (followUpGrid) {
+                    followUpGrid.classList.remove('lg:grid-cols-[1.2fr_1fr]')
+                    followUpGrid.classList.add('lg:grid-cols-1')
+                }
+                if (followUpConfirm) {
+                    followUpConfirm.disabled = true
+                    followUpConfirm.textContent = 'Apply follow up note'
+                }
+                renderFollowUpDatePicker()
+                // Load doctor schedules to populate availableDays for calendar (no time slots)
+                loadFollowUpDoctorSchedulesAndAvailability(state.currentDoctorId, '')
+            } else {
+                // Scheduled: show time slots panel
+                setVisible(followUpTimePanel, true)
+                setVisible(followUpWalkInInfo, false)
+                if (followUpGrid) {
+                    followUpGrid.classList.remove('lg:grid-cols-1')
+                    followUpGrid.classList.add('lg:grid-cols-[1.2fr_1fr]')
+                }
+                renderFollowUpDatePicker()
+                renderFollowUpTimeSlots()
+                loadFollowUpDoctorSchedulesAndAvailability(state.currentDoctorId, '')
+            }
+        }
+
+        function closeFollowUpModal() {
+            setVisible(followUpModal, false)
+            setFollowUpError('')
+        }
+
+        function submitFollowUp() {
+            if (!followUpState.selectedDate) {
+                setFollowUpError('Select a future date first.')
+                return
+            }
+            if (followUpState.mode === 'scheduled' && !followUpState.selectedTime) {
+                setFollowUpError('Select both a future date and a time slot.')
+                return
+            }
+
+            if (followUpState.mode === 'walk_in') {
+                var today = new Date(localDateIso() + 'T00:00:00')
+                var selected = new Date(followUpState.selectedDate + 'T00:00:00')
+                var diffDays = Math.round((selected.getTime() - today.getTime()) / (24 * 60 * 60 * 1000))
+                if (!(diffDays > 0)) {
+                    setFollowUpError('Follow-up visit must be scheduled after today.')
+                    return
+                }
+                replaceWalkInFollowUpNote('Visit for a follow up after ' + diffDays + ' day' + (diffDays !== 1 ? 's' : '') + '.')
+                closeFollowUpModal()
+                if (typeof showToast === 'function') showToast('Follow-up note added to treatment notes.', 'success')
+                return
+            }
+
+            setFollowUpError('')
+            setFollowUpConfirmLoading(true, 'Create follow up appointment')
+            api('{{ url('/api/appointments') }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    patient_id: state.patientId,
+                    doctor_id: state.currentDoctorId,
+                    appointment_type: 'scheduled',
+                    status: 'confirmed',
+                    appointment_datetime: followUpState.selectedDate + ' ' + followUpState.selectedTime + ':00',
+                    reason_for_visit: buildFollowUpReasonForVisit(),
+                    service_ids: appointmentServiceIds(),
+                }),
+            }).then(function () {
+                state.followUpScheduledSummary = 'Follow-up appointment booked for ' + followUpState.selectedDate + ' at ' + formatTime12h(followUpState.selectedTime) + '.'
+                updateFollowUpAction()
+                closeFollowUpModal()
+                if (typeof showToast === 'function') showToast('Follow-up appointment booked successfully.', 'success')
+            }).catch(function (err) {
+                setFollowUpError(err && err.body ? err.body : 'Unable to create follow-up appointment.')
+            }).finally(function () {
+                setFollowUpConfirmLoading(false, 'Create follow up appointment')
             })
         }
 
@@ -1635,87 +2711,100 @@
             var prescriptionRows = getPrescriptionRows()
             var shouldSavePrescription = prescriptionRows.length > 0 || !!state.prescriptionId
 
-            var payload = {
-                appointment_id: state.appointmentId,
-                diagnosis: diagnosisEl ? diagnosisEl.value : '',
-                treatment_notes: treatmentEl ? treatmentEl.value : '',
-                visit_datetime: new Date().toISOString().slice(0, 19).replace('T', ' '),
-            }
+            // Step 1: Mark appointment as "consulted" FIRST so TransactionController allows payment recording
+            return api('{{ url('/api/appointments') }}/' + state.appointmentId, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'consulted' }),
+            }).then(function () {
+                markSelectedAppointmentConsulted()
 
-            var txPromise = state.transactionId
-                ? api('{{ url('/api/transactions') }}/' + state.transactionId, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                })
-                : api('{{ url('/api/transactions') }}', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                })
-
-            return txPromise.then(function (tx) {
-                state.transactionId = tx.transaction_id
-                state.lastSavedTransactionId = tx.transaction_id
-                var rxPayload = {
-                    transaction_id: state.transactionId,
-                    doctor_id: state.doctorUserId,
-                    prescribed_datetime: new Date().toISOString().slice(0, 19).replace('T', ' '),
-                    notes: null,
+                // Step 2: Save transaction (now allowed because status is "consulted")
+                var payload = {
+                    appointment_id: state.appointmentId,
+                    diagnosis: diagnosisEl ? diagnosisEl.value : '',
+                    treatment_notes: treatmentEl ? treatmentEl.value : '',
+                    visit_datetime: new Date().toISOString().slice(0, 19).replace('T', ' '),
                 }
 
-                if (!shouldSavePrescription) {
-                    state.prescriptionId = null
-                    return null
-                }
-
-                var rxPromise = state.prescriptionId
-                    ? api('{{ url('/api/prescriptions') }}/' + state.prescriptionId, {
+                return (state.transactionId
+                    ? api('{{ url('/api/transactions') }}/' + state.transactionId, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(rxPayload),
+                        body: JSON.stringify(payload),
                     })
-                    : api('{{ url('/api/prescriptions') }}', {
+                    : api('{{ url('/api/transactions') }}', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(rxPayload),
+                        body: JSON.stringify(payload),
                     })
+                ).then(function (tx) {
+                    state.transactionId = tx.transaction_id
+                    state.lastSavedTransactionId = tx.transaction_id
 
-                return rxPromise.then(function (rx) {
-                    state.prescriptionId = rx.prescription_id
+                    // Step 3: Save prescription (if any)
+                    if (!shouldSavePrescription) {
+                        state.prescriptionId = null
+                        return null
+                    }
 
-                    var deletes = state.existingItemIds.reduce(function (p, id) {
-                        return p.then(function () {
-                            return api('{{ url('/api/prescription-items') }}/' + id, { method: 'DELETE' }).catch(function () {})
+                    var rxPayload = {
+                        transaction_id: state.transactionId,
+                        doctor_id: state.doctorUserId,
+                        prescribed_datetime: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                        notes: null,
+                    }
+
+                    var rxPromise = state.prescriptionId
+                        ? api('{{ url('/api/prescriptions') }}/' + state.prescriptionId, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(rxPayload),
                         })
-                    }, Promise.resolve())
+                        : api('{{ url('/api/prescriptions') }}', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(rxPayload),
+                        })
 
-                    return deletes.then(function () {
-                        return prescriptionRows.reduce(function (p, row) {
+                    return rxPromise.then(function (rx) {
+                        state.prescriptionId = rx.prescription_id
+
+                        var deletes = state.existingItemIds.reduce(function (p, id) {
                             return p.then(function () {
-                                return api('{{ url('/api/prescription-items') }}', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        prescription_id: state.prescriptionId,
-                                        medicine_id: Number(row.medicine_id),
-                                        dosage: row.dosage || null,
-                                        frequency: row.frequency || null,
-                                        duration: row.duration || null,
-                                        instructions: row.instructions || null,
-                                    }),
-                                })
+                                return api('{{ url('/api/prescription-items') }}/' + id, { method: 'DELETE' }).catch(function () {})
                             })
                         }, Promise.resolve())
+
+                        return deletes.then(function () {
+                            return prescriptionRows.reduce(function (p, row) {
+                                return p.then(function () {
+                                    return api('{{ url('/api/prescription-items') }}', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            prescription_id: state.prescriptionId,
+                                            medicine_id: Number(row.medicine_id),
+                                            dosage: row.dosage || null,
+                                            frequency: row.frequency || null,
+                                            duration: row.duration || null,
+                                            instructions: row.instructions || null,
+                                        }),
+                                    })
+                                })
+                            }, Promise.resolve())
+                        })
                     })
                 })
             }).then(function () {
+                // Clear workspace and reset appointment selection after successful submission
+                resetWorkspace()
+                if (appointmentSelect) appointmentSelect.value = ''
                 return loadExistingDraft()
             }).then(function () {
                 var successMessage = shouldSavePrescription
                     ? 'Saved consultation and prescription successfully. Appointment is now consulted.'
                     : 'Saved consultation notes successfully. Appointment is now consulted and remains active until payment is recorded.'
-                markSelectedAppointmentConsulted()
                 showSaveSuccess(successMessage, !!state.lastSavedTransactionId)
                 return loadHistory(state.patientId)
             }).then(function () {
@@ -1739,8 +2828,7 @@
                     loadExistingDraft(),
                 ])
             }).then(function () {
-                if (prescriptionBody && !prescriptionBody.querySelector('tr')) {
-                    ensureRow()
+                if (state.selectedMedicines.length === 0) {
                 }
                 renderSafety()
             }).catch(function () {})
@@ -1748,6 +2836,15 @@
 
         if (historyFilter) {
             historyFilter.addEventListener('change', renderHistory)
+        }
+        if (elApptServices) {
+            elApptServices.addEventListener('click', function (e) {
+                var btn = e.target.closest('[data-expand-services]')
+                if (!btn) return
+                var mode = btn.getAttribute('data-expand-services')
+                state.appointmentServicesExpanded = mode === 'more'
+                renderAppointmentServices()
+            })
         }
         if (historyTimeline) {
             historyTimeline.addEventListener('click', function (e) {
@@ -1826,12 +2923,79 @@
             })
         }
 
+        // ── Follow-up Modal event handlers ──
+        if (followUpBtn) {
+            followUpBtn.addEventListener('click', function () {
+                openFollowUpModal()
+            })
+        }
+        if (followUpClose) {
+            followUpClose.addEventListener('click', closeFollowUpModal)
+        }
+        if (followUpCancel) {
+            followUpCancel.addEventListener('click', closeFollowUpModal)
+        }
+        if (followUpModal) {
+            followUpModal.addEventListener('click', function (e) {
+                if (e.target === followUpModal) closeFollowUpModal()
+            })
+        }
+        if (followUpConfirm) {
+            followUpConfirm.addEventListener('click', submitFollowUp)
+        }
+        if (followUpPrevMonth) {
+            followUpPrevMonth.addEventListener('click', function () {
+                followUpState.month.setMonth(followUpState.month.getMonth() - 1)
+                renderFollowUpDatePicker()
+                loadFollowUpMonthAppointments(state.currentDoctorId)
+            })
+        }
+        if (followUpNextMonth) {
+            followUpNextMonth.addEventListener('click', function () {
+                followUpState.month.setMonth(followUpState.month.getMonth() + 1)
+                renderFollowUpDatePicker()
+                loadFollowUpMonthAppointments(state.currentDoctorId)
+            })
+        }
+        if (followUpDateGrid) {
+            followUpDateGrid.addEventListener('click', function (e) {
+                var btn = e.target && e.target.closest ? e.target.closest('button[data-followup-date]') : null
+                if (!btn || btn.disabled) return
+                var dateIso = btn.getAttribute('data-followup-date') || ''
+                if (!dateIso) return
+                followUpState.selectedDate = dateIso
+                followUpState.selectedTime = ''
+                renderFollowUpDatePicker()
+                if (followUpState.mode === 'scheduled') {
+                    // Wait for schedules to load, then load day appointments and render time slots
+                    Promise.resolve(followUpState.schedulesPromise).then(function () {
+                        return loadFollowUpDayAppointments(state.currentDoctorId, dateIso)
+                    })
+                } else {
+                    // Walk-in: just compute days and show static info in the walk-in info section below calendar
+                    var today = new Date(localDateIso() + 'T00:00:00')
+                    var selected = new Date(dateIso + 'T00:00:00')
+                    var diffDays = Math.round((selected.getTime() - today.getTime()) / (24 * 60 * 60 * 1000))
+                    if (diffDays > 0) {
+                        if (followUpWalkInInfoText) {
+                            followUpWalkInInfoText.innerHTML = '<div class="font-semibold text-green-700">' + diffDays + ' day' + (diffDays !== 1 ? 's' : '') + ' from today</div><div class="text-[0.72rem] text-slate-500 mt-1">The treatment note will be recorded as "Visit for a follow up after ' + diffDays + ' day' + (diffDays !== 1 ? 's' : '') + '."</div>'
+                        }
+                        setVisible(followUpWalkInInfo, true)
+                        if (followUpConfirm) {
+                            followUpConfirm.disabled = false
+                            followUpConfirm.textContent = 'Apply follow up note'
+                        }
+                    }
+                }
+            })
+        }
+
         if (clearBtn) {
             clearBtn.addEventListener('click', function () {
                 if (diagnosisEl) diagnosisEl.value = ''
                 if (treatmentEl) treatmentEl.value = ''
-                if (prescriptionBody) prescriptionBody.innerHTML = ''
-                ensureRow()
+                state.selectedMedicines = []
+                renderPrescriptionSummary()
                 setVitalsFeedback('')
                 renderSafety()
                 setPrintVisible(false)
@@ -1841,7 +3005,12 @@
 
         if (addMedBtn) {
             addMedBtn.addEventListener('click', function () {
-                ensureRow()
+                openMedicineSelector()
+            })
+        }
+        if (prescriptionScroller) {
+            prescriptionScroller.addEventListener('click', function () {
+                openMedicineSelector()
             })
         }
 
@@ -1874,17 +3043,135 @@
             })
         }
 
+        // Medicine Selector Modal event handlers
+        if (consultMedicineClose) {
+            consultMedicineClose.addEventListener('click', closeMedicineSelector)
+        }
+        if (consultMedicineModal) {
+            consultMedicineModal.addEventListener('click', function (e) {
+                if (e.target === consultMedicineModal) closeMedicineSelector()
+            })
+        }
+        if (consultMedicineSearch) {
+            consultMedicineSearch.addEventListener('input', function () {
+                if (consultMedicineSearchTimer) clearTimeout(consultMedicineSearchTimer)
+                consultMedicineSearchTimer = setTimeout(function () {
+                    loadMedicines({
+                        reset: true,
+                        query: consultMedicineSearch.value,
+                    })
+                }, 250)
+            })
+        }
+        if (consultMedicineLoadMore) {
+            consultMedicineLoadMore.addEventListener('click', function () {
+                if (consultMedicineLoadMore.disabled) return
+                loadMedicines({
+                    reset: false,
+                })
+            })
+        }
+        if (consultMedicineListBody) {
+            consultMedicineListBody.addEventListener('click', function (e) {
+                var itemBtn = e.target.closest('.med-item')
+                if (itemBtn) {
+                    var id = itemBtn.getAttribute('data-med-id')
+                    if (id) renderMedicineDetail(id)
+                    return
+                }
+            })
+        }
+        if (consultMedicineDetailBody) {
+            consultMedicineDetailBody.addEventListener('click', function (e) {
+                var addBtn = e.target.closest('.med-item-add')
+                if (!addBtn) return
+                // Find the medicine detail container; get the medicine ID from the detail content
+                var detailContainer = consultMedicineDetailBody.querySelector('.rounded-xl')
+                if (!detailContainer) return
+                // The medicine_id is stored in a data attribute we need to track
+                // We'll track active selected medicine via a simple variable
+                var detailId = consultMedicineDetailBody.getAttribute('data-active-med-id')
+                if (!detailId) return
+                // Check if already selected
+                var exists = state.selectedMedicines.some(function (m) { return String(m.medicine_id) === String(detailId) })
+                if (exists) {
+                    if (typeof showToast === 'function') showToast('Medicine already selected.', 'info')
+                    return
+                }
+                var med = state.medicinesById[detailId]
+                if (!med) return
+                state.selectedMedicines.push({
+                    medicine_id: med.medicine_id,
+                    medicine_name: medicineDisplayName(med),
+                    dosage: '',
+                    frequency: '',
+                    duration: '',
+                    instructions: '',
+                })
+                renderMedicineList()
+                renderMedicineDetail(detailId)
+                renderSelectedMedicines()
+                renderPrescriptionSummary()
+                renderSafety()
+                if (typeof showToast === 'function') showToast('"' + medicineDisplayName(med) + '" added.', 'success')
+            })
+        }
+        if (consultMedicineSelectedBody) {
+            consultMedicineSelectedBody.addEventListener('click', function (e) {
+                var removeBtn = e.target.closest('.med-item-remove')
+                if (removeBtn) {
+                    var removeId = removeBtn.getAttribute('data-med-id')
+                    if (!removeId) return
+                    state.selectedMedicines = state.selectedMedicines.filter(function (m) { return String(m.medicine_id) !== String(removeId) })
+                    if (String(consultMedicineDetailBody && consultMedicineDetailBody.getAttribute('data-active-med-id') || '') === String(removeId)) {
+                        renderMedicineDetail()
+                    }
+                    renderMedicineList()
+                    renderSelectedMedicines()
+                    renderPrescriptionSummary()
+                    renderSafety()
+                    return
+                }
+
+                var selectedBtn = e.target.closest('.med-selected-item')
+                if (!selectedBtn) return
+                var selectedId = selectedBtn.getAttribute('data-med-id')
+                if (!selectedId) return
+                renderMedicineDetail(selectedId)
+            })
+        }
+        if (consultMedicineClearBtn) {
+            consultMedicineClearBtn.addEventListener('click', function () {
+                state.selectedMedicines = []
+                renderMedicineList()
+                renderMedicineDetail()
+                renderSelectedMedicines()
+                renderPrescriptionSummary()
+                renderSafety()
+                if (typeof showToast === 'function') showToast('All selections cleared.', 'info')
+            })
+        }
+        if (consultMedicineConfirmBtn) {
+            consultMedicineConfirmBtn.addEventListener('click', function () {
+                closeMedicineSelector()
+                renderPrescriptionSummary()
+                renderSafety()
+                if (typeof showToast === 'function') showToast('Medicines updated.', 'success')
+            })
+        }
+
         Promise.all([loadDoctorUser(), loadMedicines()]).then(function () {
+            ensureConsultationQueueSync()
             if (appointmentSelect) {
                 Array.prototype.slice.call(appointmentSelect.options).forEach(syncAppointmentOptionLabel)
             }
-            if (appointmentSelect && appointmentSelect.value) {
-                handleAppointmentChange()
-                // Sync the button display with the pre-selected value
-                updateAppointmentButtonDisplay()
-            } else {
-                ensureRow()
-            }
+            return refreshAppointmentOptions().catch(function () {
+                if (appointmentSelect && appointmentSelect.value) {
+                    appointmentSelect.dispatchEvent(new Event('change', { bubbles: true }))
+                } else {
+                    updateAppointmentButtonDisplay()
+                }
+            })
         }).catch(function () {
             if (typeof showToast === 'function') showToast('Unable to load medicines or user profile.', 'error')
         })
@@ -1893,6 +3180,7 @@
         var consultAppointmentBtn = document.getElementById('consultAppointmentBtn')
         var consultAppointmentModal = document.getElementById('consultAppointmentModal')
         var consultAppointmentModalClose = document.getElementById('consultAppointmentModalClose')
+        var consultAppointmentModalGrid = document.getElementById('consultAppointmentModalGrid')
         var consultAppointmentDisplay = document.getElementById('consultAppointmentDisplay')
         var consultAppointmentMeta = document.getElementById('consultAppointmentMeta')
 
@@ -1954,103 +3242,107 @@
             appointmentSelect.addEventListener('change', updateAppointmentButtonDisplay)
         }
 
-        // ── New: History Detail Modal ─────────────────────────────────────
-        var consultHistoryDetailModal = document.getElementById('consultHistoryDetailModal')
-        var consultHistoryDetailClose = document.getElementById('consultHistoryDetailClose')
-        var consultHistoryDetailDate = document.getElementById('consultHistoryDetailDate')
-        var consultHistoryDetailDoctor = document.getElementById('consultHistoryDetailDoctor')
-        var consultHistoryDetailType = document.getElementById('consultHistoryDetailType')
-        var consultHistoryDetailServices = document.getElementById('consultHistoryDetailServices')
-        var consultHistoryDetailReason = document.getElementById('consultHistoryDetailReason')
-        var consultHistoryDetailDiagnosis = document.getElementById('consultHistoryDetailDiagnosis')
-        var consultHistoryDetailTreatment = document.getElementById('consultHistoryDetailTreatment')
-        var consultHistoryDetailPrescriptions = document.getElementById('consultHistoryDetailPrescriptions')
-        var consultHistoryDetailTitle = document.getElementById('consultHistoryDetailTitle')
+        // ── Visit Details Modal ──
+        var consultVisitDetailOverlay = document.getElementById('consultVisitDetailOverlay')
+        var consultVisitDetailClose = document.getElementById('consultVisitDetailClose')
 
-        function openHistoryDetailModal() {
-            if (consultHistoryDetailModal) consultHistoryDetailModal.classList.remove('hidden')
+        if (consultVisitDetailClose) {
+            consultVisitDetailClose.addEventListener('click', function () {
+                if (consultVisitDetailOverlay) { consultVisitDetailOverlay.classList.add('hidden'); consultVisitDetailOverlay.classList.remove('flex') }
+            })
         }
-
-        function closeHistoryDetailModal() {
-            if (consultHistoryDetailModal) consultHistoryDetailModal.classList.add('hidden')
-        }
-
-        if (consultHistoryDetailClose) {
-            consultHistoryDetailClose.addEventListener('click', closeHistoryDetailModal)
-        }
-        if (consultHistoryDetailModal) {
-            consultHistoryDetailModal.addEventListener('click', function (e) {
-                if (e.target === consultHistoryDetailModal) closeHistoryDetailModal()
+        if (consultVisitDetailOverlay) {
+            consultVisitDetailOverlay.addEventListener('click', function (e) {
+                if (e.target === consultVisitDetailOverlay) { consultVisitDetailOverlay.classList.add('hidden'); consultVisitDetailOverlay.classList.remove('flex') }
             })
         }
 
-        function populateHistoryDetail(tx) {
-            if (!tx) return
-            var dt = tx.visit_datetime || tx.transaction_datetime || ''
-            var dateStr = dt ? dt.toString().slice(0, 10) + ' ' + dt.toString().slice(11, 16) : '-'
-            if (consultHistoryDetailDate) consultHistoryDetailDate.textContent = dateStr
-            if (consultHistoryDetailDoctor) {
-                var doc = tx.doctor || (tx.appointment ? tx.appointment.doctor : null)
-                if (doc) {
-                    var parts = [doc.firstname, doc.middlename, doc.lastname].filter(function (v) { return v && String(v).trim() !== '' })
-                    consultHistoryDetailDoctor.textContent = parts.length ? parts.join(' ') : ('User #' + (doc.user_id || ''))
-                } else {
-                    consultHistoryDetailDoctor.textContent = '-'
-                }
-            }
-            if (consultHistoryDetailTitle) {
-                consultHistoryDetailTitle.textContent = 'Visit - ' + dateStr
-            }
+        function openVisitDetail(visit) {
+            if (!consultVisitDetailOverlay || !visit) return
+            var appt = visit.appointment || {}
+            var doctor = appt.doctor || {}
+            var services = appt.services || []
+            var prescriptions = visit.prescriptions || []
 
-            var apptType = (tx.appointment && tx.appointment.appointment_type) || ''
-            if (consultHistoryDetailType) consultHistoryDetailType.textContent = apptType ? apptType.replace(/_/g, '-') : '-'
+            var dateRaw = visit.visit_datetime || visit.transaction_datetime || ''
+            var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
+            setTextById('consultVisitDetailDate', dateText)
+            setTextById('consultVisitDetailDoctor', fullName(doctor, 'Doctor'))
 
-            if (consultHistoryDetailServices) {
-                var services = tx.appointment && tx.appointment.services
-                if (services && services.length) {
-                    consultHistoryDetailServices.textContent = services.map(function (s) { return s.name || s.service_name || s.service_id }).join(', ')
-                } else {
-                    consultHistoryDetailServices.textContent = '-'
-                }
-            }
+            var svcHtml = services.length
+                ? services.map(function (s) {
+                    var name = s.service_name || 'Unknown service'
+                    var desc = s.description ? s.description : ''
+                    var price = s.price != null ? formatCurrency(s.price) : ''
+                    var parts = [name]
+                    if (desc) parts.push('<span class="text-slate-400">' + escapeHtml(desc) + '</span>')
+                    if (price) parts.push('<span class="font-medium text-slate-600">' + price + '</span>')
+                    return '<div class="flex flex-wrap items-baseline gap-x-2">' + parts.join(' ') + '</div>'
+                }).join('')
+                : '-'
+            var svcEl = document.getElementById('consultVisitDetailServices')
+            if (svcEl) svcEl.innerHTML = svcHtml
+            setTextById('consultVisitDetailFees', formatCurrency(visit.amount != null ? visit.amount : ''))
 
-            if (consultHistoryDetailReason) {
-                consultHistoryDetailReason.textContent = (tx.appointment && tx.appointment.reason_for_visit) || tx.reason_for_visit || '-'
+            var payStatus = visit.payment_status ? String(visit.payment_status) : '-'
+            setTextById('consultVisitDetailPayment', payStatus.charAt(0).toUpperCase() + payStatus.slice(1))
+
+            var apptStatus = appt.status ? String(appt.status) : ''
+            var statusColors = {
+                pending: 'bg-amber-50 text-amber-700 border-amber-200',
+                confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
+                completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                cancelled: 'bg-red-50 text-red-700 border-red-200',
+                no_show: 'bg-slate-100 text-slate-600 border-slate-200',
+                consulted: 'bg-green-50 text-green-700 border-green-100',
+                waiting: 'bg-amber-50 text-amber-700 border-amber-100',
+                serving: 'bg-blue-50 text-blue-700 border-blue-100',
+                done: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                skipped: 'bg-orange-50 text-orange-700 border-orange-100',
+                on_hold: 'bg-purple-50 text-purple-700 border-purple-100',
             }
-            if (consultHistoryDetailDiagnosis) {
-                consultHistoryDetailDiagnosis.textContent = tx.diagnosis || 'No diagnosis recorded'
+            var sc = statusColors[apptStatus] || 'bg-slate-50 text-slate-600 border-slate-100'
+            var sl = apptStatus ? apptStatus.charAt(0).toUpperCase() + apptStatus.slice(1).replace(/_/g, ' ') : '-'
+            var statusEl = document.getElementById('consultVisitDetailStatus')
+            if (statusEl) statusEl.innerHTML = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] font-medium border ' + sc + '">' + escapeHtml(sl) + '</span>'
+
+            var apptType = appt.appointment_type ? String(appt.appointment_type).replace(/_/g, '-') : '-'
+            setTextById('consultVisitDetailApptType', apptType)
+
+            setTextById('consultVisitDetailDiagnosis', visit.diagnosis || '-')
+            setTextById('consultVisitDetailTreatment', visit.treatment_notes || '-')
+
+            var rxHtml = ''
+            if (prescriptions.length) {
+                rxHtml = prescriptions.map(function (rx) {
+                    var items = (rx.items || []).map(function (item) {
+                        var med = item.medicine || {}
+                        return (med.medicine_name || '-') + (item.dosage ? ' (' + item.dosage + ')' : '')
+                    }).join(', ')
+                    return items || (rx.notes || 'Prescription')
+                }).join('; ')
             }
-            if (consultHistoryDetailTreatment) {
-                consultHistoryDetailTreatment.textContent = tx.treatment_notes || 'No treatment notes recorded'
-            }
-            if (consultHistoryDetailPrescriptions) {
-                var rx = tx.prescriptions || []
-                if (!rx.length) {
-                    consultHistoryDetailPrescriptions.innerHTML = '<div class="text-slate-500">No prescriptions</div>'
-                } else {
-                    var items = []
-                    rx.forEach(function (p) {
-                        var pItems = p.items || []
-                        pItems.forEach(function (it) {
-                            var medName = it.medicine ? medicineDisplayName(it.medicine) : ('Medicine #' + it.medicine_id)
-                            var line = medName
-                            if (it.dosage) line += ' &bull; ' + it.dosage
-                            if (it.frequency) line += ' &bull; ' + it.frequency
-                            if (it.duration) line += ' &bull; ' + it.duration
-                            if (it.instructions) line += ' &bull; ' + it.instructions
-                            items.push(line)
-                        })
-                    })
-                    if (items.length) {
-                        consultHistoryDetailPrescriptions.innerHTML = items.map(function (l) {
-                            return '<div class="flex gap-2"><span class="text-slate-400">&bull;</span><span>' + l + '</span></div>'
-                        }).join('')
-                    } else {
-                        consultHistoryDetailPrescriptions.innerHTML = '<div class="text-slate-500">No prescription items</div>'
-                    }
-                }
-            }
+            setTextById('consultVisitDetailPrescriptions', rxHtml || '-')
+
+            consultVisitDetailOverlay.classList.remove('hidden')
+            consultVisitDetailOverlay.classList.add('flex')
         }
+
+        // Helper: setTextContent if element exists
+        function setTextById(id, val) {
+            var el = document.getElementById(id)
+            if (el) el.textContent = val
+        }
+
+        // ── Visit detail button delegation ──
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.doctor-visit-detail-btn')
+            if (!btn) return
+            try {
+                var visitData = JSON.parse(btn.getAttribute('data-visit') || '{}')
+                openVisitDetail(visitData)
+            } catch (err) { /* ignore */ }
+        })
 
         // Delegate click on history cards in timeline
         if (historyTimeline) {
@@ -2063,8 +3355,7 @@
                     return String(h.transaction_id || h.appointment_id) === txId
                 })
                 if (tx) {
-                    populateHistoryDetail(tx)
-                    openHistoryDetailModal()
+                    openVisitDetail(tx)
                 }
             })
         }
@@ -2168,7 +3459,10 @@
         function formatRecordedAt(value) {
             var raw = value ? String(value) : ''
             if (!raw) return '-'
-            return raw.replace('T', ' ').slice(0, 16)
+            var d = raw.replace('T', ' ')
+            var datePart = d.slice(0, 10)
+            var timePart = d.slice(11, 16)
+            return datePart + ' ' + formatTime12h(timePart)
         }
 
         function formatNumeric(value, decimals) {

@@ -546,6 +546,31 @@
                     })
             }
 
+            function markAllNotificationsReadOnOpen() {
+                return headerApiFetch("{{ url('/api/notifications/read-all') }}", {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                    .then(function () {
+                        if (body && Array.isArray(body._notificationItems)) {
+                            body._notificationItems = body._notificationItems.map(function (item) {
+                                if (!item) return item
+                                if (item.read_at !== null && item.read_at !== undefined) return item
+                                var updated = Object.assign({}, item)
+                                updated.read_at = new Date().toISOString()
+                                updated.is_read = true
+                                return updated
+                            })
+                            renderNotifications(body, body._notificationItems)
+                        }
+                        if (markAllBtn) markAllBtn.classList.add('hidden')
+                        return refreshHeaderBadges()
+                    })
+                    .catch(function () {
+                        return refreshHeaderBadges()
+                    })
+            }
+
             function loadNotificationPanel(markAsRead) {
                 if (body) {
                     body.innerHTML = '<div class="px-3 py-3 text-[0.75rem] text-slate-400">Loading notifications...</div>'
@@ -609,9 +634,12 @@
                 e.stopPropagation()
                 var isHidden = panel.classList.contains('hidden')
                 if (isHidden) {
-                    loadNotificationPanel(true)
+                    panel.classList.remove('hidden')
+                    loadNotificationPanel(false)
+                    markAllNotificationsReadOnOpen()
+                    return
                 }
-                panel.classList.toggle('hidden')
+                panel.classList.add('hidden')
             })
 
             document.addEventListener('click', function () {
