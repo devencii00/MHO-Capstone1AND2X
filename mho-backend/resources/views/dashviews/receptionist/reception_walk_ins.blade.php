@@ -990,9 +990,24 @@ function setWalkInTab(tab) {
 
                     var rows = result.data && Array.isArray(result.data.data) ? result.data.data.slice() : (Array.isArray(result.data) ? result.data.slice() : [])
 
+                    // Keep only the most recent appointment per patient
+                    rows.sort(function (a, b) {
+                        var da = a && a.appointment_datetime ? String(a.appointment_datetime) : ''
+                        var db = b && b.appointment_datetime ? String(b.appointment_datetime) : ''
+                        if (da < db) return 1; if (da > db) return -1; return 0
+                    })
+                    var seenPatient = {}
+                    rows = rows.filter(function (a) {
+                        var pid = a && a.patient && a.patient.user_id != null ? String(a.patient.user_id) : ''
+                        if (!pid) return true
+                        if (seenPatient[pid]) return false
+                        seenPatient[pid] = true
+                        return true
+                    })
+
                     walkinCurrentPage = result.data.current_page || page
                     walkinLastPage = result.data.last_page || 1
-                    walkinTotal = result.data.total || rows.length
+                    walkinTotal = rows.length
 
                     renderRows(rows)
                     var metaBox = document.getElementById('receptionWalkInHistoryMeta')
@@ -1190,7 +1205,7 @@ function setWalkInTab(tab) {
                     '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Services & Payment</div>' +
                     '<div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[0.78rem]">' +
                         '<div class="text-slate-500">Services</div>' +
-                        '<div class="text-slate-800">' + escapeHtml(serviceNames) + (services.length && services[0] && services[0].description ? ' — <span class="text-slate-500">' + escapeHtml(services[0].description) + '</span>' : '') + '</div>' +
+                        '<div class="text-slate-800">' + serviceRows + '</div>' +
                         '<div class="text-slate-500">Gross Amount</div>' +
                         '<div class="text-slate-800 font-medium">₱' + escapeHtml(Number(amount).toFixed(2)) + '</div>' +
                         '<div class="text-slate-500">Discount (' + escapeHtml(discountType !== 'none' ? discountType.toUpperCase() : 'None') + ')</div>' +

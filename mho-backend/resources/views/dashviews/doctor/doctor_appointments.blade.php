@@ -327,7 +327,7 @@
                     '<td class="px-3 py-2 whitespace-nowrap">' + statusDisplay + '</td>' +
                     '<td class="px-3 py-2 whitespace-nowrap">' + typeDisplay + '</td>' +
                     '<td class="px-3 py-2 text-right whitespace-nowrap">' +
-                        '<button type="button" class="manage-see-history-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300" data-patient-id="' + escapeHtml(patient && patient.user_id != null ? patient.user_id : '') + '" data-patient-name="' + escapeHtml(patientName) + '">See Details</button>' +
+                        '<button type="button" class="manage-see-history-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300" data-patient-id="' + escapeHtml(patient && patient.user_id != null ? patient.user_id : '') + '" data-patient-name="' + escapeHtml(patientName) + '">See details &amp; History</button>' +
                     '</td>' +
                 '</tr>'
             )
@@ -508,9 +508,24 @@
                     var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
                     var rows = Array.isArray(raw) ? raw.slice() : []
 
+                    // Keep only the most recent appointment per patient
+                    rows.sort(function (a, b) {
+                        var da = a && a.appointment_datetime ? String(a.appointment_datetime) : ''
+                        var db = b && b.appointment_datetime ? String(b.appointment_datetime) : ''
+                        if (da < db) return 1; if (da > db) return -1; return 0
+                    })
+                    var seenPatient = {}
+                    rows = rows.filter(function (a) {
+                        var pid = a && a.patient && a.patient.user_id != null ? String(a.patient.user_id) : ''
+                        if (!pid) return true
+                        if (seenPatient[pid]) return false
+                        seenPatient[pid] = true
+                        return true
+                    })
+
                     manageCurrentPage = result.data.current_page || page
                     manageLastPage = result.data.last_page || 1
-                    manageTotal = result.data.total || rows.length
+                    manageTotal = rows.length || result.data.total
 
                     renderManageAppointments(rows)
 
@@ -644,7 +659,7 @@
             if (manageHistDetailBody) manageHistDetailBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select an appointment to view details.</div>'
             if (manageHistDate) manageHistDate.value = ''
             if (manageHistStatus) manageHistStatus.value = ''
-            if (manageHistType) manageHistType.value = 'scheduled'
+            if (manageHistType) manageHistType.value = ''
             if (manageHistOverlay) {
                 manageHistOverlay.classList.remove('hidden')
                 manageHistOverlay.classList.add('flex')
@@ -806,7 +821,15 @@
             var dt = appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
             var tx = appt.transaction || null
             var services = Array.isArray(appt.services) ? appt.services : []
-            var serviceNames = services.length ? services.map(function (s) { return s.service_name || s.name || '' }).filter(Boolean).join(', ') : '-'
+            var serviceRows = services.length ? services.map(function (s) {
+                var sn = String(s && s.service_name ? s.service_name : '').trim()
+                var sd = String(s && s.description ? s.description : '').trim()
+                var sp = s && s.price != null ? '\u20B1' + String(s.price) : ''
+                var parts = [sn]
+                if (sd) parts.push(String(sd))
+                if (sp) parts.push(sp)
+                return '<div class="text-[0.7rem] text-slate-800">' + escapeHtml(parts.join(' - ')) + '</div>'
+            }).join('') : '<div class="text-[0.72rem] text-slate-400">-</div>'
             var amount = tx ? (tx.amount || 0) : 0
             var discountAmount = tx ? (tx.discount_amount || 0) : 0
             var discountType = tx ? (tx.discount_type || 'none') : 'none'
@@ -839,7 +862,7 @@
                         '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Services & Payment</div>' +
                         '<div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[0.78rem]">' +
                             '<div class="text-slate-500">Services</div>' +
-                            '<div class="text-slate-800">' + escapeHtml(serviceNames) + '</div>' +
+                            '<div class="text-slate-800">' + serviceRows + '</div>' +
                             '<div class="text-slate-500">Gross Amount</div>' +
                             '<div class="text-slate-800 font-medium">\u20B1' + escapeHtml(Number(amount).toFixed(2)) + '</div>' +
                             '<div class="text-slate-500">Discount (' + escapeHtml(discountType !== 'none' ? discountType.toUpperCase() : 'None') + ')</div>' +
