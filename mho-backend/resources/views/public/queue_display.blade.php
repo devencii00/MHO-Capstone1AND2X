@@ -59,20 +59,20 @@
             </div>
         </div>
 
-        <div id="queueDisplaySidebar" class="border-t lg:border-t-0 lg:border-l border-slate-800 bg-slate-950/60 p-6 md:p-8 flex flex-col gap-6 overflow-y-auto max-h-[70vh] lg:max-h-none scrollbar-hidden">
-            <div>
+        <div id="queueDisplaySidebar" class="border-t lg:border-t-0 lg:border-l border-slate-800 bg-slate-950/60 p-6 md:p-8 flex flex-col h-full overflow-hidden scrollbar-hidden">
+            <div class="flex-1 flex flex-col min-h-0">
                 <div class="flex items-center justify-between mb-3">
                     <div class="text-lg md:text-xl text-slate-300 uppercase tracking-[0.25em]">Next patients</div>
                     <div id="queueNextMeta" class="text-[0.75rem] text-slate-500"></div>
                 </div>
-                <div id="queueNextList" class="space-y-3"></div>
+                <div id="queueNextList" class="flex-1 overflow-y-auto space-y-3 scrollbar-hidden"></div>
             </div>
-            <div>
+            <div class="flex-1 flex flex-col min-h-0 border-t border-slate-700/30 pt-3">
                 <div class="flex items-center justify-between mb-3">
                     <div class="text-lg md:text-xl text-violet-300 uppercase tracking-[0.25em]">On hold</div>
                     <div id="queueOnHoldMeta" class="text-[0.75rem] text-slate-500"></div>
                 </div>
-                <div id="queueOnHoldList" class="space-y-3"></div>
+                <div id="queueOnHoldList" class="flex-1 overflow-y-auto space-y-3 scrollbar-hidden"></div>
             </div>
         </div>
     </div>
