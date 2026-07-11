@@ -768,7 +768,7 @@ function setWalkInTab(tab) {
                         '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(doctorName) + '</td>' +
                         '<td class="px-3 py-2 whitespace-nowrap"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border ' + statusBadgeClass(appt) + '">' + escapeHtml(status) + '</span></td>' +
                         '<td class="text-right px-3 py-2 whitespace-nowrap">' +
-                            '<button type="button" class="walkin-see-history-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300" data-patient-id="' + escapeHtml(patient && patient.user_id != null ? patient.user_id : '') + '" data-patient-name="' + escapeHtml(patientName) + '">See Walk-ins History</button>' +
+                            '<button type="button" class="walkin-see-history-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300" data-patient-id="' + escapeHtml(patient && patient.user_id != null ? patient.user_id : '') + '" data-patient-name="' + escapeHtml(patientName) + '">See Details & History</button>' +
                         '</td>' +
                     '</tr>'
             }).join('')
@@ -1174,7 +1174,15 @@ function setWalkInTab(tab) {
             var dt = appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
             var tx = appt.transaction || null
             var services = Array.isArray(appt.services) ? appt.services : []
-            var serviceNames = services.length ? services.map(function (s) { return s.service_name || s.name || '' }).filter(Boolean).join(', ') : '-'
+            var serviceRows = services.length ? services.map(function (s) {
+                var sn = String(s && s.service_name ? s.service_name : '').trim()
+                var sd = String(s && s.description ? s.description : '').trim()
+                var sp = s && s.price != null ? '\u20B1' + String(s.price) : ''
+                var parts = [sn]
+                if (sd) parts.push(String(sd))
+                if (sp) parts.push(sp)
+                return '<div class="text-[0.7rem] text-slate-800">' + escapeHtml(parts.join(' - ')) + '</div>'
+            }).join('') : '<div class="text-[0.72rem] text-slate-400">-</div>'
             var amount = tx ? (tx.amount || 0) : 0
             var discountAmount = tx ? (tx.discount_amount || 0) : 0
             var discountType = tx ? (tx.discount_type || 'none') : 'none'

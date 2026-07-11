@@ -19,91 +19,81 @@
         <div id="receptionPaymentError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
         <div id="receptionPaymentSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
 
-        <form id="receptionPaymentForm" class="grid gap-3 grid-cols-1 md:grid-cols-4 items-end mb-4">
-            <div class="min-w-0">
-                <label for="reception_payment_appointment_id" class="block text-[0.7rem] text-slate-600 mb-1">Appointment</label>
+        <form id="receptionPaymentForm" class="space-y-4">
+            <div>
+                <label for="reception_payment_appointment_display" class="block text-sm font-semibold text-slate-700 mb-1.5">Appointment</label>
                 <div class="relative">
-                    <input id="reception_payment_appointment_display" type="text" readonly class="w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 pr-24 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Select appointment">
+                    <input id="reception_payment_appointment_display" type="text" readonly class="w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-4 py-3 pr-28 text-sm text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Select an appointment">
                     <input id="reception_payment_appointment_id" type="hidden" required>
-                    <button id="receptionPaymentBrowseBtn" type="button" class="absolute inset-y-1 right-1 inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-100">
-                        Browse
-                    </button>
+                    <button id="receptionPaymentBrowseBtn" type="button" class="absolute inset-y-1.5 right-1.5 inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100">Browse</button>
                 </div>
             </div>
 
-            <div id="receptionPaymentAppointmentPreview" class="hidden md:col-span-4 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[0.72rem] font-semibold text-slate-800 uppercase tracking-wider">Appointment Summary</span>
-                    <span id="receptionPaymentApptTypeBadge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.65rem] font-medium bg-blue-50 text-blue-700 border border-blue-200"></span>
+            <div id="receptionPaymentAppointmentPreview" class="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm min-h-[220px] flex flex-col">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm font-semibold text-slate-800 uppercase tracking-wider">Appointment Summary</span>
+                    <span id="receptionPaymentApptTypeBadge" class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200"></span>
                 </div>
-                <div class="grid grid-cols-3 gap-3 text-[0.78rem]">
+                <div class="grid grid-cols-2 gap-4 mb-3">
                     <div>
-                        <span class="block text-[0.65rem] text-slate-500">Patient</span>
-                        <span id="receptionPaymentSummaryPatient" class="font-semibold text-slate-800"></span>
+                        <span class="block text-xs text-slate-500 mb-0.5">Patient</span>
+                        <span id="receptionPaymentSummaryPatient" class="text-base font-semibold text-slate-900">-</span>
                     </div>
                     <div>
-                        <span class="block text-[0.65rem] text-slate-500">Doctor</span>
-                        <span id="receptionPaymentSummaryDoctor" class="font-semibold text-slate-800"></span>
-                    </div>
-                    <div>
-                        <span class="block text-[0.65rem] text-slate-500">Subtotal Fees</span>
-                        <span id="receptionPaymentSummarySubtotal" class="font-semibold text-green-700"></span>
+                        <span class="block text-xs text-slate-500 mb-0.5">Doctor</span>
+                        <span id="receptionPaymentSummaryDoctor" class="text-base font-semibold text-slate-900">-</span>
                     </div>
                 </div>
-            </div>
-
-            <div class="md:col-span-2">
-                <label class="block text-[0.7rem] text-slate-600 mb-1">Services in appointment</label>
-                <div id="receptionPaymentServicesDisplay" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 min-h-[2.5rem]">Select an appointment first</div>
-            </div>
-            <div>
-                <label class="block text-[0.7rem] text-slate-600 mb-1">Original amount</label>
-                <div id="receptionPaymentAmountDisplay" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800">PHP 0.00</div>
-            </div>
-            <div>
-                <label class="block text-[0.7rem] text-slate-600 mb-1">Net amount</label>
-                <div id="receptionPaymentNetAmountDisplay" class="w-full rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">PHP 0.00</div>
-            </div>
-
-            <div class="md:col-span-4 border-t border-slate-200 pt-3 mt-1">
-                <div class="text-[0.65rem] font-semibold text-slate-500 uppercase tracking-wider mb-2">Patient Payment</div>
-                <div class="grid gap-3 grid-cols-1 md:grid-cols-2">
-                    <div>
-                        <label for="reception_payment_money_paid" class="block text-[0.7rem] text-slate-600 mb-1">Money paid</label>
-                        <input id="reception_payment_money_paid" type="text" inputmode="decimal" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="0.00">
-                        <div id="reception_payment_money_paid_error" class="hidden mt-1 text-[0.68rem] text-red-600"></div>
+                <div class="border-t border-slate-100 pt-2 mb-2 flex-1">
+                    <span class="block text-xs text-slate-500 mb-1.5">Services</span>
+                    <div id="receptionPaymentServicesDisplay" class="text-sm text-slate-400">Select an appointment first</div>
+                </div>
+                <div class="border-t border-slate-100 pt-3 flex items-center justify-between gap-4">
+                    <div class="text-center flex-1">
+                        <span class="block text-xs text-slate-500">Original</span>
+                        <span id="receptionPaymentAmountDisplay" class="block text-base font-bold text-slate-800">PHP 0.00</span>
+                    </div>
+                    <div class="text-center flex-1 border-x border-slate-100">
+                        <span class="block text-xs text-slate-500">Net</span>
+                        <span id="receptionPaymentNetAmountDisplay" class="block text-base font-bold text-emerald-700">PHP 0.00</span>
+                    </div>
+                    <div class="text-center flex-1">
+                        <span class="block text-xs text-slate-500">Change</span>
+                        <span id="receptionPaymentChangeDisplay" class="block text-base font-bold text-slate-800">PHP 0.00</span>
                     </div>
                 </div>
             </div>
 
-            <div class="md:col-span-4">
-                <button id="receptionPaymentToggleDiscount" type="button" class="inline-flex items-center text-[0.75rem] font-semibold text-green-700 hover:text-green-800">Add discount</button>
-            </div>
-
-            <div id="receptionPaymentDiscountWrap" class="hidden md:col-span-4 grid gap-3 grid-cols-1 md:grid-cols-2">
-                <div>
-                    <label for="reception_payment_discount_type" class="block text-[0.7rem] text-slate-600 mb-1">Discount type</label>
-                    <select id="reception_payment_discount_type" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                        <option value="none" selected>No discount</option>
-                        <option value="pwd">PWD (15%)</option>
-                        <!-- <option value="pregnant">Pregnant (10%)</option> -->
-                        <option value="senior">Senior (5%)</option>
-                    </select>
+            <div class="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+                <div class="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-3">Patient Payment</div>
+                <div class="mb-3">
+                    <label for="reception_payment_money_paid" class="block text-sm font-semibold text-slate-700 mb-1.5">Money received</label>
+                    <input id="reception_payment_money_paid" type="text" inputmode="decimal" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-lg text-slate-900 font-bold focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="0.00">
+                    <div id="reception_payment_money_paid_error" class="hidden mt-1 text-sm text-red-600"></div>
                 </div>
-                <div>
-                    <label class="block text-[0.7rem] text-slate-600 mb-1">Discount amount</label>
-                    <div id="receptionPaymentDiscountAmountDisplay" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800">PHP 0.00</div>
+                <div class="mb-3">
+                    <button id="receptionPaymentToggleDiscount" type="button" class="text-sm font-semibold text-green-700 hover:text-green-800 transition-colors">+ Add discount</button>
                 </div>
-            </div>
-
-            <div>
-                <label class="block text-[0.7rem] text-slate-600 mb-1">Payment mode</label>
-                <div class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">Cash</div>
-            </div>
-
-            <div class="md:col-span-4 flex justify-end">
-                <button id="receptionPaymentSubmit" type="submit" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 disabled:hover:bg-green-600">
-                    <span id="receptionPaymentSubmitSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                <div id="receptionPaymentDiscountWrap" class="hidden mb-3 grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="reception_payment_discount_type" class="block text-sm font-semibold text-slate-700 mb-1.5">Discount type</label>
+                        <select id="reception_payment_discount_type" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            <option value="none" selected>No discount</option>
+                            <option value="pwd">PWD (15%)</option>
+                            <option value="senior">Senior (5%)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Discount</label>
+                        <div id="receptionPaymentDiscountAmountDisplay" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800">PHP 0.00</div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Payment mode</label>
+                    <div class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">Cash</div>
+                </div>
+                <button id="receptionPaymentSubmit" type="submit" class="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-green-600 text-white text-base font-bold hover:bg-green-700 transition-colors disabled:opacity-60 disabled:hover:bg-green-600 shadow-sm">
+                    <span id="receptionPaymentSubmitSpinner" class="hidden w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
                     <span id="receptionPaymentSubmitLabel">Record payment</span>
                 </button>
             </div>
@@ -111,8 +101,8 @@
     </div>
 
     <!-- Appointment Selection Modal -->
-    <div id="receptionPaymentAppointmentModal" class="hidden fixed inset-0 z-[70] bg-slate-900/50 backdrop-blur-sm items-center justify-center p-4">
-        <div class="w-full max-w-4xl h-[80vh] rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] overflow-hidden flex flex-col">
+    <div id="receptionPaymentAppointmentModal" class="hidden fixed inset-0 z-[70] bg-slate-900/50 items-center justify-center p-4">
+        <div class="w-full max-w-4xl h-[90vh] rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] overflow-hidden flex flex-col">
             <div class="px-5 py-4 border-b border-slate-200 shrink-0 flex items-center justify-between bg-white">
                 <div>
                     <h3 class="text-sm font-semibold text-slate-900">Select Today's Appointment</h3>
@@ -125,8 +115,12 @@
             <div class="flex flex-1 min-h-0">
                 <!-- Left panel: list of today's appointments -->
                 <div class="w-1/2 border-r border-slate-200 flex flex-col min-h-0">
-                    <div class="px-4 py-2 border-b border-slate-100 shrink-0 bg-slate-50/50">
-                        <input id="receptionPaymentApptSearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search by name, email, or queue code...">
+                    <div class="px-4 py-2 border-b border-slate-100 shrink-0 bg-slate-50/50 flex items-center gap-2">
+                        <input id="receptionPaymentApptSearch" type="text" class="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search by name, email, or queue code...">
+                        <button type="button" id="recPaymentApptRefreshBtn" class="shrink-0 inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+                            <x-lucide-refresh-cw class="w-[14px] h-[14px]" />
+                            Refresh
+                        </button>
                     </div>
                     <div id="receptionPaymentApptList" class="flex-1 overflow-y-auto p-2 space-y-1">
                         <div class="text-center text-[0.78rem] text-slate-400 py-8">Loading today's appointments...</div>
@@ -331,6 +325,7 @@
         var amountDisplay = document.getElementById('receptionPaymentAmountDisplay')
         var discountDisplay = document.getElementById('receptionPaymentDiscountAmountDisplay')
         var netDisplay = document.getElementById('receptionPaymentNetAmountDisplay')
+        var changeDisplay = document.getElementById('receptionPaymentChangeDisplay')
         var moneyPaidInput = document.getElementById('reception_payment_money_paid')
         var moneyPaidError = document.getElementById('reception_payment_money_paid_error')
         if (moneyPaidInput) {
@@ -347,6 +342,7 @@
                     moneyPaidError.classList.add('hidden')
                     moneyPaidError.textContent = ''
                 }
+                refreshTotalsUI()
             })
         }
         var discountToggle = document.getElementById('receptionPaymentToggleDiscount')
@@ -369,6 +365,7 @@
         var apptModalCancel = document.getElementById('receptionPaymentApptModalCancel')
         var apptModalSelect = document.getElementById('receptionPaymentApptModalSelect')
         var apptModalSearch = document.getElementById('receptionPaymentApptSearch')
+        var apptModalRefreshBtn = document.getElementById('recPaymentApptRefreshBtn')
         var apptList = document.getElementById('receptionPaymentApptList')
         var apptDetail = document.getElementById('receptionPaymentApptDetail')
         var browseBtn = document.getElementById('receptionPaymentBrowseBtn')
@@ -508,7 +505,7 @@
             var p = appt && appt.patient ? appt.patient : null
             if (!p) return 'Patient'
             var name = [p.firstname, p.middlename, p.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
-            if (!name) name = 'User #' + (p.user_id || '')
+            if (!name) name = p.email || ''
             return name
         }
 
@@ -516,7 +513,7 @@
             var d = appt && appt.doctor ? appt.doctor : null
             if (!d) return 'Doctor'
             var name = [d.firstname, d.middlename, d.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
-            if (!name) name = 'User #' + (d.user_id || '')
+            if (!name) name = d.email || ''
             return name
         }
 
@@ -579,19 +576,33 @@
             if (amountDisplay) amountDisplay.textContent = money(gross)
             if (discountDisplay) discountDisplay.textContent = money(discount)
             if (netDisplay) netDisplay.textContent = money(net)
+            // Update change display
+            var paid = 0
+            if (moneyPaidInput) {
+                var raw = String(moneyPaidInput.value || '').replace(/[^0-9.]/g, '')
+                paid = parseFloat(raw) || 0
+            }
+            if (changeDisplay) changeDisplay.textContent = money(Math.max(0, paid - net))
         }
 
         function resetAppointmentSelection() {
             selectedAppointment = null
             if (appointmentIdInput) appointmentIdInput.value = ''
             if (appointmentDisplay) appointmentDisplay.value = ''
-            if (appointmentPreview) {
-                appointmentPreview.textContent = ''
-                appointmentPreview.classList.add('hidden')
-            }
-            if (servicesDisplay) servicesDisplay.textContent = 'Select an appointment first'
+
+            // Reset preview card to placeholder state
+            var patientEl = document.getElementById('receptionPaymentSummaryPatient')
+            var doctorEl = document.getElementById('receptionPaymentSummaryDoctor')
+            var typeBadge = document.getElementById('receptionPaymentApptTypeBadge')
+            if (patientEl) patientEl.textContent = '-'
+            if (doctorEl) doctorEl.textContent = '-'
+            if (typeBadge) typeBadge.textContent = ''
+            if (servicesDisplay) servicesDisplay.innerHTML = '<span class="text-sm text-slate-400">Select an appointment first</span>'
+            if (amountDisplay) amountDisplay.textContent = money(0)
+            if (discountDisplay) discountDisplay.textContent = money(0)
+            if (netDisplay) netDisplay.textContent = money(0)
+            if (changeDisplay) changeDisplay.textContent = money(0)
             if (moneyPaidInput) moneyPaidInput.value = ''
-            refreshTotalsUI()
         }
 
         function setAppointmentSelection(appt) {
@@ -632,13 +643,10 @@
             if (appointmentPreview) {
                 var patientEl = document.getElementById('receptionPaymentSummaryPatient')
                 var doctorEl = document.getElementById('receptionPaymentSummaryDoctor')
-                var subtotalEl = document.getElementById('receptionPaymentSummarySubtotal')
                 var typeBadge = document.getElementById('receptionPaymentApptTypeBadge')
                 if (patientEl) patientEl.textContent = appointmentPatientName(appt)
                 if (doctorEl) doctorEl.textContent = appointmentDoctorName(appt)
-                if (subtotalEl) subtotalEl.textContent = money(gross)
                 if (typeBadge) typeBadge.textContent = appointmentTypeLabel(appt)
-                appointmentPreview.classList.remove('hidden')
             }
 
             refreshTotalsUI()
@@ -776,7 +784,7 @@
         function loadTodayAppointments(query) {
             if (typeof apiFetch !== 'function') return
             if (apptList) apptList.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading appointments...</div>'
-            var url = "{{ url('/api/appointments') }}" + '?per_page=10&order=latest&today_only=1&status=consulted'
+            var url = "{{ url('/api/appointments') }}" + '?per_page=10&order=latest&today_only=1'
             var q = String(query || '').trim()
             if (q) url += '&search=' + encodeURIComponent(q)
             apiFetch(url, { method: 'GET' })
@@ -799,49 +807,55 @@
 
         function renderApptList(list) {
             if (!apptList) return
+            // Only show appointments with consulted or completed status
+            list = list.filter(function (appt) {
+                var s = appt && appt.status ? String(appt.status).toLowerCase() : ''
+                return s === 'consulted' || s === 'completed'
+            })
+            // Sort paid items to the bottom
+            list = list.slice().sort(function (a, b) {
+                var aPaid = a && a.transaction && String(a.transaction.payment_status || '').toLowerCase() === 'paid'
+                var bPaid = b && b.transaction && String(b.transaction.payment_status || '').toLowerCase() === 'paid'
+                if (aPaid && !bPaid) return 1
+                if (!aPaid && bPaid) return -1
+                return 0
+            })
             if (!list.length) {
                 apptList.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No appointments found for today.</div>'
                 return
             }
-            // Filter out paid/failed appointments
-            var filtered = list.filter(function (appt) {
-                var txn = appt && appt.transaction ? appt.transaction : null
-                if (!txn) return true
-                var ps = txn.payment_status ? String(txn.payment_status).toLowerCase() : ''
-                return ps !== 'paid' && ps !== 'failed'
-            })
-            if (!filtered.length) {
-                apptList.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No unpaid appointments for today.</div>'
-                return
-            }
-            apptList.innerHTML = filtered.map(function (appt, idx) {
+            apptList.innerHTML = list.map(function (appt, idx) {
                 var patient = appointmentPatientName(appt)
                 var when = appt && appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
-                var type = appointmentTypeLabel(appt)
                 var timeOnly = when.length >= 16 ? formatTime12h(when.slice(11, 16)) : ''
-                // Determine payment status from transaction
+                var type = normalizeAppointmentType(appt && appt.appointment_type ? appt.appointment_type : '')
+                var typeLabel = type === 'walk_in' ? 'Walk-in' : 'Scheduled'
+                var typeColors = type === 'walk_in' ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-purple-50 text-purple-700 border-purple-200'
+                // Payment status
                 var txn = appt && appt.transaction ? appt.transaction : null
                 var payStatus = txn && txn.payment_status ? String(txn.payment_status).toLowerCase() : ''
-                var hasPending = payStatus === 'pending'
-                var statusColors = { pending: 'bg-blue-50 text-blue-700 border-blue-200', paid: 'bg-green-50 text-green-700 border-green-200', failed: 'bg-red-50 text-red-700 border-red-200' }
-                var statusBadge = hasPending ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[0.6rem] font-medium border ' + (statusColors[payStatus] || 'bg-slate-50 text-slate-600 border-slate-200') + '">' + payStatus.charAt(0).toUpperCase() + payStatus.slice(1) + '</span>' : ''
-                var greyedClass = hasPending ? 'opacity-70' : ''
-                return '<button type="button" class="appt-list-item w-full text-left px-3 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-green-300 hover:shadow-sm transition-all ' + greyedClass + '" data-index="' + idx + '">' +
-                    '<div class="flex items-center justify-between gap-2">' +
-                        '<div class="text-[0.78rem] text-slate-800 font-semibold truncate">' + escapeHtml(patient) + '</div>' +
-                        statusBadge +
+                var statusColors = { pending: 'bg-amber-50 text-amber-700 border-amber-200', paid: 'bg-emerald-50 text-emerald-700 border-emerald-200', failed: 'bg-red-50 text-red-700 border-red-200' }
+                var statusBadge = payStatus ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[0.6rem] font-medium border ' + (statusColors[payStatus] || 'bg-slate-50 text-slate-600 border-slate-200') + '">' + payStatus.charAt(0).toUpperCase() + payStatus.slice(1) + '</span>' : ''
+                var greyedClass = payStatus === 'paid' ? 'opacity-50' : ''
+                return '<button type="button" class="appt-list-item w-full text-left px-4 py-3.5 rounded-xl border border-slate-200 bg-white hover:border-green-300 hover:shadow-sm transition-all ' + greyedClass + '" data-index="' + idx + '">' +
+                    '<div class="flex items-center justify-between gap-2 mb-1.5">' +
+                        '<div class="text-sm text-slate-800 font-semibold truncate">' + escapeHtml(patient) + '</div>' +
+                        '<div class="flex items-center gap-1.5 shrink-0">' +
+                            '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.62rem] font-medium border ' + typeColors + '">' + escapeHtml(typeLabel) + '</span>' +
+                            statusBadge +
+                        '</div>' +
                     '</div>' +
-                    '<div class="text-[0.7rem] text-slate-500 mt-0.5">' + escapeHtml(timeOnly + ' • ' + type) + '</div>' +
+                    '<div class="text-[0.75rem] text-slate-500">' + escapeHtml(timeOnly) + '</div>' +
                 '</button>'
             }).join('')
 
-            // Store filtered list for modal selection
-            todayAppointmentsFiltered = filtered
+            // Store full list for modal selection
+            todayAppointmentsFiltered = list
 
             apptList.querySelectorAll('.appt-list-item').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var idx = parseInt(btn.getAttribute('data-index'), 10)
-                    var appt = filtered[idx]
+                    var appt = list[idx]
                     if (appt) {
                         selectApptModalItem(idx)
                     }
@@ -1297,6 +1311,16 @@
                 'Paid': money(paid),
                 'Change': money(change),
             }
+            // For pending transactions, show a blank receipt (no numbers)
+            if (payStatus === 'pending') {
+                details['Gross Amount'] = '\u2014'
+                details['Discount Type'] = '\u2014'
+                details['Discount Amount'] = '\u2014'
+                details['Net Amount'] = '\u2014'
+                details['Payment Mode'] = '\u2014'
+                details['Paid'] = '\u2014'
+                details['Change'] = '\u2014'
+            }
             detailBody.innerHTML = '<div class="max-w-sm mx-auto">' + formatReceiptHtml(details, true) + '<div class="text-center mt-3"><button type="button" onclick="window.print()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-[0.72rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300">\ud83d\udde8\ufe0f Print / PDF</button></div></div>'
         }
 
@@ -1447,6 +1471,18 @@
                 apptModalSearchTimer = setTimeout(function () {
                     loadTodayAppointments(String(apptModalSearch.value || '').trim())
                 }, 250)
+            })
+        }
+        if (apptModalRefreshBtn) {
+            apptModalRefreshBtn.addEventListener('click', function (e) {
+                e.preventDefault()
+                if (apptModalSearch) apptModalSearch.value = ''
+                todayAppointments = []
+                todayAppointmentsFiltered = []
+                apptModalSelectedAppt = null
+                if (apptDetail) apptDetail.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select an appointment from the list.</div>'
+                if (apptModalSelect) apptModalSelect.disabled = true
+                loadTodayAppointments('')
             })
         }
 
@@ -1666,6 +1702,29 @@
                 }
             }
         })
+
+        // ── Reverb: real-time updates for appointment modal ──
+        if (window.Echo) {
+            window.Echo.private('appointments.all')
+                .listen('.appointment.updated', function (e) {
+                    // Refresh the appointment modal list if open
+                    if (apptModal && !apptModal.classList.contains('hidden')) {
+                        var searchTerm = apptModalSearch ? String(apptModalSearch.value || '').trim() : ''
+                        loadTodayAppointments(searchTerm)
+                    }
+                    // If the currently selected appointment was updated, refresh details
+                    if (apptModalSelectedAppt && e && e.slotData) {
+                        var updatedId = String(e.slotData.id || e.slotData.appointment_id || '')
+                        var selectedId = String(apptModalSelectedAppt.id || apptModalSelectedAppt.appointment_id || '')
+                        if (updatedId && selectedId && updatedId === selectedId) {
+                            apptModalSelectedAppt = e.slotData
+                            if (apptModal && !apptModal.classList.contains('hidden')) {
+                                renderApptDetail(apptModalSelectedAppt)
+                            }
+                        }
+                    }
+                })
+        }
 
         loadTransactions(1)
     })

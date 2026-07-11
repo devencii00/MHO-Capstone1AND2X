@@ -434,7 +434,15 @@
             var dt = appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
             var tx = appt.transaction || null
             var services = Array.isArray(appt.services) ? appt.services : []
-            var serviceNames = services.length ? services.map(function (s) { return s.service_name || s.name || '' }).filter(Boolean).join(', ') : '-'
+            var serviceRows = services.length ? services.map(function (s) {
+                var sn = String(s && s.service_name ? s.service_name : '').trim()
+                var sd = String(s && s.description ? s.description : '').trim()
+                var sp = s && s.price != null ? '\u20B1' + String(s.price) : ''
+                var text = sn
+                if (sd) text += ' - ' + sd
+                if (sp) text += ' : ' + sp
+                return '<div class="text-[0.7rem] text-slate-800">' + escapeHtml(text) + '</div>'
+            }).join('') : '<div class="text-[0.72rem] text-slate-400">-</div>'
             var amount = tx ? (tx.amount || 0) : 0
             var discountAmount = tx ? (tx.discount_amount || 0) : 0
             var discountType = tx ? (tx.discount_type || 'none') : 'none'
@@ -464,7 +472,7 @@
                     '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Services & Payment</div>' +
                     '<div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[0.78rem]">' +
                         '<div class="text-slate-500">Services</div>' +
-                        '<div class="text-slate-800">' + escapeHtml(serviceNames) + '</div>' +
+                        '<div class="text-slate-800">' + serviceRows + '</div>' +
                         '<div class="text-slate-500">Gross Amount</div>' +
                         '<div class="text-slate-800 font-medium">₱' + escapeHtml(Number(amount).toFixed(2)) + '</div>' +
                         '<div class="text-slate-500">Discount (' + escapeHtml(discountType !== 'none' ? discountType.toUpperCase() : 'None') + ')</div>' +
@@ -658,7 +666,7 @@
                 })
             }
 
-            // Apply sort order
+            // Apply sort order (descending by default, ascending if 'oldest')
             var sorted = filtered.slice()
             sorted.sort(function (a, b) {
                 var da = a.appointment_datetime || ''
@@ -668,6 +676,18 @@
                 }
                 if (da < db) return 1; if (da > db) return -1; return 0
             })
+
+            // Keep only 1 per patient (most recent) — only when sorting newest-first
+            if (selectedSort !== 'oldest') {
+                var seenPatient = {}
+                sorted = sorted.filter(function (a) {
+                    var pid = a.patient_id || (a.patient && a.patient.user_id) || ''
+                    if (!pid) return true
+                    if (seenPatient[pid]) return false
+                    seenPatient[pid] = true
+                    return true
+                })
+            }
 
             if (!sorted.length) {
                 tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No appointments found.</td></tr>'
