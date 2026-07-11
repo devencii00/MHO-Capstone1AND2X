@@ -1,11 +1,10 @@
 import { clearPersistedAuthSession, persistCurrentUser } from '@/lib/auth-storage';
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Platform,
+  Modal,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -23,6 +22,7 @@ const T = {
   slate50: '#f8fafc',
   slate100: '#f1f5f9',
   slate200: '#e2e8f0',
+  slate300: '#cbd5e1',
   slate400: '#94a3b8',
   slate500: '#64748b',
   slate600: '#475569',
@@ -136,6 +136,238 @@ function formatDateToWords(value: string): string {
   });
 }
 
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function CalendarModal({
+  visible,
+  value,
+  onSelect,
+  onClose,
+}: {
+  visible: boolean;
+  value: Date | null;
+  onSelect: (d: Date) => void;
+  onClose: () => void;
+}) {
+  const [viewYear, setViewYear] = useState(() => {
+    if (value) return value.getFullYear();
+    return new Date().getFullYear();
+  });
+  const [viewMonth, setViewMonth] = useState(() => {
+    if (value) return value.getMonth();
+    return new Date().getMonth();
+  });
+  const [pickerMode, setPickerMode] = useState<'day' | 'month' | 'year'>('day');
+  const [decadeStart, setDecadeStart] = useState(() => {
+    const y = value ? value.getFullYear() : new Date().getFullYear();
+    return Math.floor(y / 10) * 10;
+  });
+
+  useEffect(() => {
+    if (visible && value) {
+      setViewYear(value.getFullYear());
+      setViewMonth(value.getMonth());
+      setDecadeStart(Math.floor(value.getFullYear() / 10) * 10);
+    }
+  }, [visible, value]);
+
+  // Day grid
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const firstWeekday = new Date(viewYear, viewMonth, 1).getDay();
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+  const selectedStr = value ? `${value.getFullYear()}-${value.getMonth()}-${value.getDate()}` : '';
+
+  const cells: (number | null)[] = [];
+  for (let i = 0; i < firstWeekday; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  function prev() {
+    if (pickerMode === 'day') {
+      if (viewMonth === 0) { setViewYear((y) => y - 1); setViewMonth(11); }
+      else { setViewMonth((m) => m - 1); }
+    } else if (pickerMode === 'year') {
+      setDecadeStart((d) => d - 10);
+    }
+  }
+
+  function next() {
+    if (pickerMode === 'day') {
+      if (viewMonth === 11) { setViewYear((y) => y + 1); setViewMonth(0); }
+      else { setViewMonth((m) => m + 1); }
+    } else if (pickerMode === 'year') {
+      setDecadeStart((d) => d + 10);
+    }
+  }
+
+  const canGoNextDay = useMemo(() => {
+    if (pickerMode !== 'day') return true;
+    const next = viewMonth === 11 ? new Date(viewYear + 1, 0, 1) : new Date(viewYear, viewMonth + 1, 1);
+    return next <= today;
+  }, [viewYear, viewMonth, pickerMode]);
+
+  function selectMonth(m: number) {
+    setViewMonth(m);
+    setPickerMode('day');
+  }
+
+  function selectYear(y: number) {
+    setViewYear(y);
+    setPickerMode('month');
+  }
+
+  const years: number[] = [];
+  for (let i = 0; i < 10; i++) years.push(decadeStart + i);
+
+  function renderHeaderNav() {
+    if (pickerMode === 'year') {
+      return (
+        <View style={styles.calHeader}>
+          <Pressable onPress={prev} style={styles.calNavBtn}>
+            <Ionicons name="chevron-back" size={20} color={T.slate700} />
+          </Pressable>
+          <Text style={styles.calHeaderText}>
+            {decadeStart} – {decadeStart + 9}
+          </Text>
+          <Pressable onPress={next} style={styles.calNavBtn}>
+            <Ionicons name="chevron-forward" size={20} color={T.slate700} />
+          </Pressable>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.calHeader}>
+        <Pressable onPress={prev} style={styles.calNavBtn}>
+          <Ionicons name="chevron-back" size={20} color={T.slate700} />
+        </Pressable>
+        <Pressable onPress={() => setPickerMode(pickerMode === 'day' ? 'month' : 'year')} style={styles.calHeaderBtn}>
+          <Text style={styles.calHeaderText}>
+            {pickerMode === 'day' ? `${MONTHS[viewMonth]} ${viewYear}` : viewYear}
+          </Text>
+          <Ionicons name="chevron-down" size={14} color={T.slate500} />
+        </Pressable>
+        <Pressable
+          onPress={canGoNextDay ? next : undefined}
+          style={[styles.calNavBtn, !canGoNextDay && { opacity: 0.25 }]}
+        >
+          <Ionicons name="chevron-forward" size={20} color={T.slate700} />
+        </Pressable>
+      </View>
+    );
+  }
+
+  function renderBody() {
+    if (pickerMode === 'month') {
+      return (
+        <View style={styles.calGrid}>
+          {MONTHS_SHORT.map((m, i) => {
+            const date = new Date(viewYear, i, 1);
+            const isFuture = date > today;
+            const isSelected = value && value.getFullYear() === viewYear && value.getMonth() === i;
+            return (
+              <Pressable
+                key={m}
+                onPress={() => { if (!isFuture) selectMonth(i); }}
+                style={[styles.calMonthCell, isSelected && styles.calDaySelected]}
+              >
+                <Text style={[styles.calMonthText, isSelected && styles.calDayTextSelected, isFuture && styles.calDayTextFuture]}>
+                  {m}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      );
+    }
+
+    if (pickerMode === 'year') {
+      return (
+        <View style={styles.calGrid}>
+          {years.map((y) => {
+            const date = new Date(y, 0, 1);
+            const isFuture = date > today;
+            const isSelected = value && value.getFullYear() === y;
+            return (
+              <Pressable
+                key={y}
+                onPress={() => { if (!isFuture) selectYear(y); }}
+                style={[styles.calYearCell, isSelected && styles.calDaySelected]}
+              >
+                <Text style={[styles.calYearText, isSelected && styles.calDayTextSelected, isFuture && styles.calDayTextFuture]}>
+                  {y}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      );
+    }
+
+    // Day mode
+    return (
+      <>
+        {/* Weekday headers */}
+        <View style={styles.calWeekdayRow}>
+          {WEEKDAYS.map((w) => (
+            <Text key={w} style={styles.calWeekdayText}>{w}</Text>
+          ))}
+        </View>
+        <View style={styles.calGrid}>
+          {cells.map((day, i) => {
+            if (day == null) return <View key={`blank-${i}`} style={styles.calDayCell} />;
+            const date = new Date(viewYear, viewMonth, day);
+            const dayStr = `${viewYear}-${viewMonth}-${day}`;
+            const isToday = dayStr === todayStr;
+            const isSelected = dayStr === selectedStr;
+            const isFuture = date > today;
+            return (
+              <Pressable
+                key={`day-${day}`}
+                onPress={() => { if (!isFuture) { onSelect(date); onClose(); } }}
+                style={[styles.calDayCell, isSelected && styles.calDaySelected, isToday && !isSelected && styles.calDayToday]}
+              >
+                <Text style={[styles.calDayText, isSelected && styles.calDayTextSelected, isFuture && styles.calDayTextFuture]}>
+                  {day}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </>
+    );
+  }
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.calOverlay} onPress={onClose}>
+        <Pressable style={styles.calContainer} onPress={(e) => e.stopPropagation()}>
+          {renderHeaderNav()}
+          {renderBody()}
+          {/* Footer */}
+          <View style={styles.calFooter}>
+            <Pressable onPress={onClose} style={styles.calCloseBtn}>
+              <Text style={styles.calCloseBtnText}>Cancel</Text>
+            </Pressable>
+            {pickerMode === 'day' && value ? (
+              <Pressable onPress={onClose} style={styles.calDoneBtn}>
+                <Text style={styles.calDoneBtnText}>Done</Text>
+              </Pressable>
+            ) : null}
+            {pickerMode !== 'day' ? (
+              <Pressable onPress={() => setPickerMode('day')} style={styles.calDoneBtn}>
+                <Text style={styles.calDoneBtnText}>Back</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
 function buildInitialForm(user: any): FormState {
   let birthdate = user?.birthdate != null ? String(user.birthdate) : '';
   if (birthdate && birthdate.includes('T')) {
@@ -165,6 +397,13 @@ export default function FillupInfoScreen() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showBirthdatePicker, setShowBirthdatePicker] = useState(false);
+  const [birthdateDate, setBirthdateDate] = useState<Date | null>(() => {
+    const bd = buildInitialForm(currentUser ?? null).birthdate;
+    if (bd && /^\d{4}-\d{2}-\d{2}$/.test(bd)) {
+      return parseDateInput(bd);
+    }
+    return null;
+  });
   const [sexMenuOpen, setSexMenuOpen] = useState(false);
 
   const canContinue = useMemo(() => {
@@ -357,57 +596,22 @@ export default function FillupInfoScreen() {
               />
 
               <Text style={[styles.label, { marginTop: 12 }]}>Date of birth</Text>
-              {Platform.OS === 'web' ? (
-                <View style={styles.selectInput}>
-                  {React.createElement('input', {
-                    type: 'date',
-                    value: form.birthdate || '',
-                    max: formatDateInput(new Date()),
-                    onChange: (event: any) => update('birthdate', event?.target?.value ?? ''),
-                    onFocus: () => setSexMenuOpen(false),
-                    style: {
-                      flex: 1,
-                      borderWidth: 0,
-                      outlineStyle: 'none',
-                      backgroundColor: 'transparent',
-                      fontSize: 13,
-                      color: T.slate800,
-                    },
-                  })}
-                </View>
-              ) : (
-                <>
-                  <Pressable
-                    onPress={() => setShowBirthdatePicker(true)}
-                    style={({ pressed }) => [styles.selectInput, pressed && { opacity: 0.85 }]}
-                  >
-                    <Text style={form.birthdate ? styles.selectInputValue : styles.selectInputPlaceholder}>
-                      {form.birthdate || 'YYYY-MM-DD'}
-                    </Text>
-                    <Ionicons name="calendar-outline" size={18} color={T.slate600} />
-                  </Pressable>
-                  {showBirthdatePicker ? (
-                    <DateTimePicker
-                      value={parseDateInput(form.birthdate)}
-                      mode="date"
-                      maximumDate={new Date()}
-                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                      onChange={(event, date) => {
-                        if (Platform.OS !== 'ios') {
-                          setShowBirthdatePicker(false);
-                        }
-                        if (event.type === 'dismissed' || !date) {
-                          return;
-                        }
-                        update('birthdate', formatDateInput(date));
-                        if (Platform.OS === 'ios') {
-                          setShowBirthdatePicker(false);
-                        }
-                      }}
-                    />
-                  ) : null}
-                </>
-              )}
+              <Pressable
+                onPress={() => {
+                  setSexMenuOpen(false);
+                  // Sync birthdateDate from current form value before opening
+                  if (form.birthdate && /^\d{4}-\d{2}-\d{2}$/.test(form.birthdate)) {
+                    setBirthdateDate(parseDateInput(form.birthdate));
+                  }
+                  setShowBirthdatePicker(true);
+                }}
+                style={({ pressed }) => [styles.selectInput, pressed && { opacity: 0.85 }]}
+              >
+                <Text style={form.birthdate ? styles.selectInputValue : styles.selectInputPlaceholder}>
+                  {form.birthdate || 'YYYY-MM-DD'}
+                </Text>
+                <Ionicons name="calendar-outline" size={18} color={T.slate600} />
+              </Pressable>
               {form.birthdate ? <Text style={styles.helperText}>{formatDateToWords(form.birthdate)}</Text> : null}
 
               <Text style={[styles.label, { marginTop: 12 }]}>Sex</Text>
@@ -498,6 +702,16 @@ export default function FillupInfoScreen() {
             </View>
           </View>
         </View>
+
+        <CalendarModal
+          visible={showBirthdatePicker}
+          value={birthdateDate}
+          onSelect={(date) => {
+            setBirthdateDate(date);
+            update('birthdate', formatDateInput(date));
+          }}
+          onClose={() => setShowBirthdatePicker(false)}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -706,5 +920,158 @@ const styles = StyleSheet.create({
     height: 180,
     borderRadius: 90,
     backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+
+  /* Calendar Modal */
+  calOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  calContainer: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: T.white,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 24,
+    elevation: 10,
+  },
+  calHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: T.slate100,
+  },
+  calNavBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calHeaderText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: T.slate800,
+  },
+  calHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  calWeekdayRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 8,
+    paddingTop: 10,
+    paddingBottom: 4,
+  },
+  calWeekdayText: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 10,
+    fontWeight: '700',
+    color: T.slate400,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  calGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 8,
+    paddingBottom: 8,
+  },
+  calDayCell: {
+    width: '14.28%',
+    aspectRatio: 1.2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calDaySelected: {
+    backgroundColor: T.green700,
+    borderRadius: 10,
+  },
+  calDayToday: {
+    borderWidth: 1.5,
+    borderColor: T.green600,
+    borderRadius: 10,
+  },
+  calDayText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: T.slate800,
+  },
+  calDayTextSelected: {
+    color: T.white,
+    fontWeight: '700',
+  },
+  calDayTextFuture: {
+    color: T.slate300,
+  },
+  calMonthCell: {
+    width: '25%',
+    aspectRatio: 1.6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 4,
+  },
+  calMonthText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: T.slate700,
+  },
+  calYearCell: {
+    width: '25%',
+    aspectRatio: 1.6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 4,
+  },
+  calYearText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: T.slate700,
+  },
+  calFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: T.slate100,
+  },
+  calCloseBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  calCloseBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: T.slate500,
+  },
+  calDoneBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: T.green700,
+  },
+  calDoneBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: T.white,
   },
 });

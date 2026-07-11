@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Modal,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -19,6 +20,7 @@ const T = {
   slate50: '#f8fafc',
   slate100: '#f1f5f9',
   slate200: '#e2e8f0',
+  slate300: '#cbd5e1',
   slate400: '#94a3b8',
   slate500: '#64748b',
   slate600: '#556370',
@@ -33,19 +35,288 @@ const T = {
 
 const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api').replace(/\/+$/, '');
 
-type MedicalBackgroundCategory = 'allergy_food' | 'allergy_drug' | 'condition';
+type MedicalBackgroundCategory =
+  | 'allergy_food'
+  | 'allergy_drug'
+  | 'condition'
+  | 'history_present_illness'
+  | 'family_social_history'
+  | 'surgical_history';
 
 type MedicalBackgroundItem = {
   medical_background_id: number;
   category: MedicalBackgroundCategory;
   name: string;
   notes: string | null;
+  diagnosis_date: string | null;
+  procedure_date: string | null;
 };
 
 function categoryLabel(category: MedicalBackgroundCategory): string {
   if (category === 'allergy_food') return 'Allergy (Food)';
   if (category === 'allergy_drug') return 'Allergy (Drug)';
-  return 'Condition';
+  if (category === 'condition') return 'Condition';
+  if (category === 'history_present_illness') return 'History / Present Illness';
+  if (category === 'family_social_history') return 'Family / Social History';
+  if (category === 'surgical_history') return 'Surgical History';
+  return category;
+}
+
+function formatDate(raw: string | null | undefined): string {
+  if (!raw) return '';
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return raw;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function toDateInputValue(raw: string | null | undefined): Date {
+  if (!raw) return new Date();
+  const d = new Date(raw);
+  return isNaN(d.getTime()) ? new Date() : d;
+}
+
+const CATEGORIES: MedicalBackgroundCategory[] = [
+  'allergy_food',
+  'allergy_drug',
+  'condition',
+  'history_present_illness',
+  'family_social_history',
+  'surgical_history',
+];
+
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function CalendarModal({
+  visible,
+  value,
+  onSelect,
+  onClose,
+}: {
+  visible: boolean;
+  value: Date | null;
+  onSelect: (d: Date) => void;
+  onClose: () => void;
+}) {
+  const [viewYear, setViewYear] = useState(() => {
+    if (value) return value.getFullYear();
+    return new Date().getFullYear();
+  });
+  const [viewMonth, setViewMonth] = useState(() => {
+    if (value) return value.getMonth();
+    return new Date().getMonth();
+  });
+  const [pickerMode, setPickerMode] = useState<'day' | 'month' | 'year'>('day');
+  const [decadeStart, setDecadeStart] = useState(() => {
+    const y = value ? value.getFullYear() : new Date().getFullYear();
+    return Math.floor(y / 10) * 10;
+  });
+
+  useEffect(() => {
+    if (visible && value) {
+      setViewYear(value.getFullYear());
+      setViewMonth(value.getMonth());
+      setDecadeStart(Math.floor(value.getFullYear() / 10) * 10);
+    }
+  }, [visible, value]);
+
+  // Day grid
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const firstWeekday = new Date(viewYear, viewMonth, 1).getDay();
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+  const selectedStr = value ? `${value.getFullYear()}-${value.getMonth()}-${value.getDate()}` : '';
+
+  const cells: (number | null)[] = [];
+  for (let i = 0; i < firstWeekday; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  function prev() {
+    if (pickerMode === 'day') {
+      if (viewMonth === 0) { setViewYear((y) => y - 1); setViewMonth(11); }
+      else { setViewMonth((m) => m - 1); }
+    } else if (pickerMode === 'year') {
+      setDecadeStart((d) => d - 10);
+    }
+  }
+
+  function next() {
+    if (pickerMode === 'day') {
+      if (viewMonth === 11) { setViewYear((y) => y + 1); setViewMonth(0); }
+      else { setViewMonth((m) => m + 1); }
+    } else if (pickerMode === 'year') {
+      setDecadeStart((d) => d + 10);
+    }
+  }
+
+  const canGoNextDay = useMemo(() => {
+    if (pickerMode !== 'day') return true;
+    const next = viewMonth === 11 ? new Date(viewYear + 1, 0, 1) : new Date(viewYear, viewMonth + 1, 1);
+    return next <= today;
+  }, [viewYear, viewMonth, pickerMode]);
+
+  function selectMonth(m: number) {
+    setViewMonth(m);
+    setPickerMode('day');
+  }
+
+  function selectYear(y: number) {
+    setViewYear(y);
+    setPickerMode('month');
+  }
+
+  const years: number[] = [];
+  for (let i = 0; i < 10; i++) years.push(decadeStart + i);
+
+  function renderHeaderNav() {
+    if (pickerMode === 'year') {
+      return (
+        <View style={styles.calHeader}>
+          <Pressable onPress={prev} style={styles.calNavBtn}>
+            <Ionicons name="chevron-back" size={20} color={T.slate700} />
+          </Pressable>
+          <Text style={styles.calHeaderText}>
+            {decadeStart} – {decadeStart + 9}
+          </Text>
+          <Pressable onPress={next} style={styles.calNavBtn}>
+            <Ionicons name="chevron-forward" size={20} color={T.slate700} />
+          </Pressable>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.calHeader}>
+        <Pressable onPress={prev} style={styles.calNavBtn}>
+          <Ionicons name="chevron-back" size={20} color={T.slate700} />
+        </Pressable>
+        <Pressable onPress={() => setPickerMode(pickerMode === 'day' ? 'month' : 'year')} style={styles.calHeaderBtn}>
+          <Text style={styles.calHeaderText}>
+            {pickerMode === 'day' ? `${MONTHS[viewMonth]} ${viewYear}` : viewYear}
+          </Text>
+          <Ionicons name="chevron-down" size={14} color={T.slate500} />
+        </Pressable>
+        <Pressable
+          onPress={canGoNextDay ? next : undefined}
+          style={[styles.calNavBtn, !canGoNextDay && { opacity: 0.25 }]}
+        >
+          <Ionicons name="chevron-forward" size={20} color={T.slate700} />
+        </Pressable>
+      </View>
+    );
+  }
+
+  function renderBody() {
+    if (pickerMode === 'month') {
+      return (
+        <View style={styles.calGrid}>
+          {MONTHS_SHORT.map((m, i) => {
+            const date = new Date(viewYear, i, 1);
+            const isFuture = date > today;
+            const isSelected = value && value.getFullYear() === viewYear && value.getMonth() === i;
+            return (
+              <Pressable
+                key={m}
+                onPress={() => { if (!isFuture) selectMonth(i); }}
+                style={[styles.calMonthCell, isSelected && styles.calDaySelected]}
+              >
+                <Text style={[styles.calMonthText, isSelected && styles.calDayTextSelected, isFuture && styles.calDayTextFuture]}>
+                  {m}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      );
+    }
+
+    if (pickerMode === 'year') {
+      return (
+        <View style={styles.calGrid}>
+          {years.map((y) => {
+            const date = new Date(y, 0, 1);
+            const isFuture = date > today;
+            const isSelected = value && value.getFullYear() === y;
+            return (
+              <Pressable
+                key={y}
+                onPress={() => { if (!isFuture) selectYear(y); }}
+                style={[styles.calYearCell, isSelected && styles.calDaySelected]}
+              >
+                <Text style={[styles.calYearText, isSelected && styles.calDayTextSelected, isFuture && styles.calDayTextFuture]}>
+                  {y}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      );
+    }
+
+    // Day mode
+    return (
+      <>
+        {/* Weekday headers */}
+        <View style={styles.calWeekdayRow}>
+          {WEEKDAYS.map((w) => (
+            <Text key={w} style={styles.calWeekdayText}>{w}</Text>
+          ))}
+        </View>
+        <View style={styles.calGrid}>
+          {cells.map((day, i) => {
+            if (day == null) return <View key={`blank-${i}`} style={styles.calDayCell} />;
+            const date = new Date(viewYear, viewMonth, day);
+            const dayStr = `${viewYear}-${viewMonth}-${day}`;
+            const isToday = dayStr === todayStr;
+            const isSelected = dayStr === selectedStr;
+            const isFuture = date > today;
+            return (
+              <Pressable
+                key={`day-${day}`}
+                onPress={() => { if (!isFuture) { onSelect(date); onClose(); } }}
+                style={[styles.calDayCell, isSelected && styles.calDaySelected, isToday && !isSelected && styles.calDayToday]}
+              >
+                <Text style={[styles.calDayText, isSelected && styles.calDayTextSelected, isFuture && styles.calDayTextFuture]}>
+                  {day}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </>
+    );
+  }
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.calOverlay} onPress={onClose}>
+        <Pressable style={styles.calContainer} onPress={(e) => e.stopPropagation()}>
+          {renderHeaderNav()}
+          {renderBody()}
+          {/* Footer */}
+          <View style={styles.calFooter}>
+            <Pressable onPress={onClose} style={styles.calCloseBtn}>
+              <Text style={styles.calCloseBtnText}>Cancel</Text>
+            </Pressable>
+            {pickerMode === 'day' && value ? (
+              <Pressable onPress={onClose} style={styles.calDoneBtn}>
+                <Text style={styles.calDoneBtnText}>Done</Text>
+              </Pressable>
+            ) : null}
+            {pickerMode !== 'day' ? (
+              <Pressable onPress={() => setPickerMode('day')} style={styles.calDoneBtn}>
+                <Text style={styles.calDoneBtnText}>Back</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
 }
 
 export default function PatientMedicalBackgroundScreen() {
@@ -62,6 +333,11 @@ export default function PatientMedicalBackgroundScreen() {
   const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
   const [name, setName] = useState('');
   const [notes, setNotes] = useState('');
+  const [diagnosisDate, setDiagnosisDate] = useState<Date | null>(null);
+  const [procedureDate, setProcedureDate] = useState<Date | null>(null);
+  const [showDiagnosisPicker, setShowDiagnosisPicker] = useState(false);
+  const [showProcedurePicker, setShowProcedurePicker] = useState(false);
+  const [activeDateField, setActiveDateField] = useState<'diagnosis' | 'procedure' | null>(null);
 
   const canSave = useMemo(() => {
     return name.trim().length > 0 && !saving;
@@ -94,6 +370,8 @@ export default function PatientMedicalBackgroundScreen() {
           category: String(r?.category ?? 'condition') as MedicalBackgroundCategory,
           name: r?.name != null ? String(r.name) : '',
           notes: r?.notes != null ? String(r.notes) : null,
+          diagnosis_date: r?.diagnosis_date != null ? String(r.diagnosis_date) : null,
+          procedure_date: r?.procedure_date != null ? String(r.procedure_date) : null,
         }))
         .filter((x: MedicalBackgroundItem) => x.medical_background_id > 0);
       setItems(mapped);
@@ -107,6 +385,14 @@ export default function PatientMedicalBackgroundScreen() {
   useEffect(() => {
     load();
   }, []);
+
+  function resetForm() {
+    setName('');
+    setNotes('');
+    setDiagnosisDate(null);
+    setProcedureDate(null);
+    setCategory('condition');
+  }
 
   async function addEntry() {
     const trimmedName = name.trim();
@@ -126,6 +412,14 @@ export default function PatientMedicalBackgroundScreen() {
         return;
       }
 
+      const body: Record<string, any> = {
+        category,
+        name: trimmedName,
+      };
+      if (trimmedNotes.length > 0) body.notes = trimmedNotes;
+      if (diagnosisDate) body.diagnosis_date = formatDate(diagnosisDate.toISOString());
+      if (procedureDate) body.procedure_date = formatDate(procedureDate.toISOString());
+
       const res = await fetch(`${API_BASE_URL}/medical-backgrounds`, {
         method: 'POST',
         headers: {
@@ -133,11 +427,7 @@ export default function PatientMedicalBackgroundScreen() {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          category,
-          name: trimmedName,
-          notes: trimmedNotes.length > 0 ? trimmedNotes : null,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -146,8 +436,7 @@ export default function PatientMedicalBackgroundScreen() {
         return;
       }
 
-      setName('');
-      setNotes('');
+      resetForm();
       setSuccess('Saved.');
       await load();
     } catch {
@@ -185,6 +474,24 @@ export default function PatientMedicalBackgroundScreen() {
       setError('Network error. Please try again.');
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  function openDatePicker(field: 'diagnosis' | 'procedure') {
+    setCategoryMenuOpen(false);
+    setActiveDateField(field);
+    if (field === 'diagnosis') {
+      setShowDiagnosisPicker(true);
+    } else {
+      setShowProcedurePicker(true);
+    }
+  }
+
+  function onDateSelect(date: Date) {
+    if (activeDateField === 'diagnosis') {
+      setDiagnosisDate(date);
+    } else if (activeDateField === 'procedure') {
+      setProcedureDate(date);
     }
   }
 
@@ -251,25 +558,27 @@ export default function PatientMedicalBackgroundScreen() {
               </Pressable>
               {categoryMenuOpen ? (
                 <View style={styles.dropdownMenu}>
-                  {(['allergy_food', 'allergy_drug', 'condition'] as MedicalBackgroundCategory[]).map((c) => (
-                    <Pressable
-                      key={c}
-                      onPress={() => {
-                        setCategory(c);
-                        setCategoryMenuOpen(false);
-                      }}
-                      style={({ pressed }) => [
-                        styles.dropdownItem,
-                        category === c && styles.dropdownItemActive,
-                        pressed && { opacity: 0.9 },
-                      ]}
-                    >
-                      <Text style={[styles.dropdownItemText, category === c && styles.dropdownItemTextActive]}>
-                        {categoryLabel(c)}
-                      </Text>
-                      {category === c ? <Ionicons name="checkmark-outline" size={18} color={T.green700} /> : null}
-                    </Pressable>
-                  ))}
+                  <ScrollView style={{ maxHeight: 240 }} nestedScrollEnabled>
+                    {CATEGORIES.map((c) => (
+                      <Pressable
+                        key={c}
+                        onPress={() => {
+                          setCategory(c);
+                          setCategoryMenuOpen(false);
+                        }}
+                        style={({ pressed }) => [
+                          styles.dropdownItem,
+                          category === c && styles.dropdownItemActive,
+                          pressed && { opacity: 0.9 },
+                        ]}
+                      >
+                        <Text style={[styles.dropdownItemText, category === c && styles.dropdownItemTextActive]}>
+                          {categoryLabel(c)}
+                        </Text>
+                        {category === c ? <Ionicons name="checkmark-outline" size={18} color={T.green700} /> : null}
+                      </Pressable>
+                    ))}
+                  </ScrollView>
                 </View>
               ) : null}
             </View>
@@ -283,6 +592,34 @@ export default function PatientMedicalBackgroundScreen() {
               placeholderTextColor="#9ca3af"
               style={styles.input}
             />
+
+            <Text style={[styles.label, { marginTop: 12 }]}>Diagnosis Date</Text>
+            <Pressable
+              onPress={() => openDatePicker('diagnosis')}
+              style={({ pressed }) => [
+                styles.dateInput,
+                pressed && { opacity: 0.85 },
+              ]}
+            >
+              <Text style={[styles.dateInputText, !diagnosisDate && { color: T.slate400 }]}>
+                {diagnosisDate ? formatDate(diagnosisDate.toISOString()) : 'YYYY-MM-DD'}
+              </Text>
+              <Ionicons name="calendar-outline" size={18} color={T.slate600} />
+            </Pressable>
+
+            <Text style={[styles.label, { marginTop: 12 }]}>Procedure Date</Text>
+            <Pressable
+              onPress={() => openDatePicker('procedure')}
+              style={({ pressed }) => [
+                styles.dateInput,
+                pressed && { opacity: 0.85 },
+              ]}
+            >
+              <Text style={[styles.dateInputText, !procedureDate && { color: T.slate400 }]}>
+                {procedureDate ? formatDate(procedureDate.toISOString()) : 'YYYY-MM-DD'}
+              </Text>
+              <Ionicons name="calendar-outline" size={18} color={T.slate600} />
+            </Pressable>
 
             <Text style={[styles.label, { marginTop: 12 }]}>Notes (optional)</Text>
             <TextInput
@@ -322,28 +659,36 @@ export default function PatientMedicalBackgroundScreen() {
           </View>
 
           <View style={styles.cardBody}>
-            {items.map((it) => (
-              <View key={it.medical_background_id} style={styles.itemRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.itemTitle}>{it.name}</Text>
-                  <Text style={styles.itemSub}>
-                    {categoryLabel(it.category)}
-                    {it.notes ? ` · ${it.notes}` : ''}
-                  </Text>
+            {items.map((it) => {
+              const dDate = formatDate(it.diagnosis_date);
+              const pDate = formatDate(it.procedure_date);
+              const dateParts: string[] = [];
+              if (dDate) dateParts.push(`Diagnosed: ${dDate}`);
+              if (pDate) dateParts.push(`Procedure: ${pDate}`);
+              return (
+                <View key={it.medical_background_id} style={styles.itemRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.itemTitle}>{it.name}</Text>
+                    <Text style={styles.itemSub}>
+                      {categoryLabel(it.category)}
+                      {dateParts.length > 0 ? ` · ${dateParts.join(' · ')}` : ''}
+                      {it.notes ? ` · ${it.notes}` : ''}
+                    </Text>
+                  </View>
+                  <Pressable
+                    onPress={() => deleteEntry(it.medical_background_id)}
+                    disabled={deletingId === it.medical_background_id}
+                    style={({ pressed }) => [
+                      styles.dangerBtn,
+                      deletingId === it.medical_background_id && { opacity: 0.6 },
+                      pressed && { opacity: 0.85 },
+                    ]}
+                  >
+                    <Text style={styles.dangerBtnText}>{deletingId === it.medical_background_id ? '…' : 'Delete'}</Text>
+                  </Pressable>
                 </View>
-                <Pressable
-                  onPress={() => deleteEntry(it.medical_background_id)}
-                  disabled={deletingId === it.medical_background_id}
-                  style={({ pressed }) => [
-                    styles.dangerBtn,
-                    deletingId === it.medical_background_id && { opacity: 0.6 },
-                    pressed && { opacity: 0.85 },
-                  ]}
-                >
-                  <Text style={styles.dangerBtnText}>{deletingId === it.medical_background_id ? '…' : 'Delete'}</Text>
-                </Pressable>
-              </View>
-            ))}
+              );
+            })}
           </View>
         </View>
 
@@ -363,6 +708,25 @@ export default function PatientMedicalBackgroundScreen() {
           <Text style={styles.secondaryButtonText}>Done</Text>
         </Pressable> */}
         </View>
+
+        <CalendarModal
+          visible={showDiagnosisPicker}
+          value={diagnosisDate}
+          onSelect={onDateSelect}
+          onClose={() => {
+            setShowDiagnosisPicker(false);
+            setActiveDateField(null);
+          }}
+        />
+        <CalendarModal
+          visible={showProcedurePicker}
+          value={procedureDate}
+          onSelect={onDateSelect}
+          onClose={() => {
+            setShowProcedurePicker(false);
+            setActiveDateField(null);
+          }}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -486,6 +850,25 @@ const styles = StyleSheet.create({
     color: T.slate800,
     backgroundColor: T.white,
   },
+  dateInput: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: T.slate200,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 13,
+    color: T.slate800,
+    backgroundColor: T.white,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  dateInputText: {
+    fontSize: 13,
+    color: T.slate800,
+    flex: 1,
+  },
   dropdownWrap: {
     position: 'relative',
     zIndex: 10,
@@ -588,4 +971,157 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   secondaryButtonText: { color: T.slate800, fontSize: 13, fontWeight: '700' },
+
+  /* Calendar Modal */
+  calOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  calContainer: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: T.white,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 24,
+    elevation: 10,
+  },
+  calHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: T.slate100,
+  },
+  calNavBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calHeaderText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: T.slate800,
+  },
+  calHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  calWeekdayRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 8,
+    paddingTop: 10,
+    paddingBottom: 4,
+  },
+  calWeekdayText: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 10,
+    fontWeight: '700',
+    color: T.slate400,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  calGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 8,
+    paddingBottom: 8,
+  },
+  calDayCell: {
+    width: '14.28%',
+    aspectRatio: 1.2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calDaySelected: {
+    backgroundColor: T.green700,
+    borderRadius: 10,
+  },
+  calDayToday: {
+    borderWidth: 1.5,
+    borderColor: T.green600,
+    borderRadius: 10,
+  },
+  calDayText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: T.slate800,
+  },
+  calDayTextSelected: {
+    color: T.white,
+    fontWeight: '700',
+  },
+  calDayTextFuture: {
+    color: T.slate300,
+  },
+  calMonthCell: {
+    width: '25%',
+    aspectRatio: 1.6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 4,
+  },
+  calMonthText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: T.slate700,
+  },
+  calYearCell: {
+    width: '25%',
+    aspectRatio: 1.6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 4,
+  },
+  calYearText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: T.slate700,
+  },
+  calFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: T.slate100,
+  },
+  calCloseBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  calCloseBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: T.slate500,
+  },
+  calDoneBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: T.green700,
+  },
+  calDoneBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: T.white,
+  },
 });
