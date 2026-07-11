@@ -33,7 +33,7 @@
 
 
 
-    <div class="grid gap-3 grid-cols-1 md:grid-cols-5 items-start mb-4">
+    <div class="grid gap-3 grid-cols-1 md:grid-cols-6 items-start mb-4">
         <div class="md:col-span-2 min-w-0">
             <label for="doctorManageApptSearch" class="block text-[0.7rem] text-slate-600 mb-1">Search</label>
             <input id="doctorManageApptSearch" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search by patient name or email">
@@ -64,6 +64,14 @@
                 <option value="no_show">No-show</option>
             </select>
         </div>
+        <div class="min-w-0">
+            <label for="doctorManageType" class="block text-[0.7rem] text-slate-600 mb-1">Type</label>
+            <select id="doctorManageType" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                <option value="">All types</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="walk_in">Walk In</option>
+            </select>
+        </div>
     </div>
 
     <div id="doctorManageTableArea" class="hidden">
@@ -78,6 +86,7 @@
                                 <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Patient</th>
                                 <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Service</th>
                                 <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Status</th>
+                                <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Type</th>
                                 <th class="text-right px-3 py-2 font-semibold whitespace-nowrap">Actions</th>
                             </tr>
                         </thead>
@@ -299,6 +308,12 @@
                 ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border ' + statusClass + '">' + escapeHtml(statusLabel) + '</span>'
                 : '-'
 
+            var apptTypeRaw = String(appt && appt.appointment_type ? appt.appointment_type : '').toLowerCase()
+            var isWalkIn = apptTypeRaw === 'walk_in' || apptTypeRaw === 'walk-in' || apptTypeRaw === 'walk in'
+            var apptTypeLabel = isWalkIn ? 'Walk In' : (apptTypeRaw === 'scheduled' ? 'Scheduled' : (apptTypeRaw || '-'))
+            var typeClass = isWalkIn ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-purple-200 bg-purple-50 text-purple-700'
+            var typeDisplay = apptTypeRaw ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border ' + typeClass + '">' + escapeHtml(apptTypeLabel) + '</span>' : '-'
+
             return (
                 '<tr data-appointment-id="' + escapeHtml(id) + '">' +
                     '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.date || '-') + '</td>' +
@@ -306,6 +321,7 @@
                     '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(patientName) + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 min-w-[14rem] whitespace-nowrap">' + escapeHtml(serviceText) + '</td>' +
                     '<td class="px-3 py-2 whitespace-nowrap">' + statusDisplay + '</td>' +
+                    '<td class="px-3 py-2 whitespace-nowrap">' + typeDisplay + '</td>' +
                     '<td class="px-3 py-2 text-right whitespace-nowrap">' +
                         '<button type="button" class="manage-see-history-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300" data-patient-id="' + escapeHtml(patient && patient.user_id != null ? patient.user_id : '') + '" data-patient-name="' + escapeHtml(patientName) + '">See Details</button>' +
                     '</td>' +
@@ -317,7 +333,7 @@
             if (!manageTableBody) return
             var rows = Array.isArray(list) ? list : []
             if (!rows.length) {
-                manageTableBody.innerHTML = '<tr><td colspan="6" class="px-3 py-6 text-center text-[0.78rem] text-slate-500">No appointments found.</td></tr>'
+                manageTableBody.innerHTML = '<tr><td colspan="7" class="px-3 py-6 text-center text-[0.78rem] text-slate-500">No appointments found.</td></tr>'
                 var pag = document.getElementById('doctorManagePagination')
                 if (pag) pag.innerHTML = ''
                 return
@@ -380,16 +396,17 @@
             for (var day = 1; day <= daysIn; day++) {
                 var d = new Date(year, month, day)
                 var iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
-                var notPast = d.getTime() >= today.getTime()
+                var isPast = d.getTime() < today.getTime()
                 var selected = selectedIso && selectedIso === iso
                 var base = 'relative w-full rounded-lg text-[0.75rem] font-semibold border transition-colors flex items-center justify-center'
-                var cls = base + ' ' + (notPast
-                    ? (selected ? 'bg-green-600 text-white border-green-600' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50')
-                    : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed')
+                var cls = base + ' ' + (isPast
+                    ? 'bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200'
+                    : (selected ? 'bg-green-600 text-white border-green-600' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'))
                 var count = manageMonthAppointments[iso] || 0
-                var showBadge = count > 0 && notPast
-                var badge = showBadge ? '<span class="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-red-500 text-white text-[0.5rem] leading-[14px] font-bold rounded-full px-0.5 text-center">' + count + '</span>' : ''
-                cells.push('<button type="button" class="' + cls + '" data-date="' + iso + '"' + (notPast ? '' : ' disabled') + '>' + day + badge + '</button>')
+                var showBadge = count > 0
+                var badgeCls = isPast ? 'bg-red-300' : 'bg-red-500'
+                var badge = showBadge ? '<span class="absolute -top-1 -right-1 min-w-[14px] h-[14px] ' + badgeCls + ' text-white text-[0.5rem] leading-[14px] font-bold rounded-full px-0.5 text-center">' + count + '</span>' : ''
+                cells.push('<button type="button" class="' + cls + '" data-date="' + iso + '">' + day + badge + '</button>')
             }
             var total = Math.ceil(cells.length / 7) * 7
             while (cells.length < total) cells.push('')
@@ -405,7 +422,7 @@
             var startDate = y + '-' + String(m + 1).padStart(2, '0') + '-01'
             var lastDay = new Date(y, m + 1, 0).getDate()
             var endDate = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(lastDay).padStart(2, '0')
-            apiFetch("{{ url('/api/appointments') }}?appointment_type=scheduled&start_date=" + encodeURIComponent(startDate) + "&end_date=" + encodeURIComponent(endDate) + "&per_page=200&doctor_id=" + encodeURIComponent(doctorId), { method: 'GET' })
+            apiFetch("{{ url('/api/appointments') }}?start_date=" + encodeURIComponent(startDate) + "&end_date=" + encodeURIComponent(endDate) + "&per_page=200&doctor_id=" + encodeURIComponent(doctorId), { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
@@ -413,7 +430,6 @@
                     raw.forEach(function (a) {
                         if (!a || !a.appointment_datetime) return
                         if (String(a.status || '').toLowerCase() === 'cancelled') return
-                        if (String(a.appointment_type || '').toLowerCase() !== 'scheduled') return
                         var d = new Date(a.appointment_datetime)
                         if (!isNaN(d.getTime())) {
                             var datePart = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
@@ -436,9 +452,9 @@
             showManageSuccess('')
             showManageResult(null)
             setManageSubmitting(true)
-            manageTableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading appointments&hellip;</td></tr>'
+            manageTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading appointments&hellip;</td></tr>'
 
-            var url = "{{ url('/api/appointments') }}" + '?per_page=10&page=' + page + '&appointment_type=scheduled'
+            var url = "{{ url('/api/appointments') }}" + '?per_page=10&page=' + page
             var order = manageSortSelect && manageSortSelect.value ? String(manageSortSelect.value) : 'latest'
             url += '&order=' + encodeURIComponent(order === 'oldest' ? 'oldest' : 'latest')
 
@@ -472,6 +488,9 @@
 
             var statusFilter = manageStatusSelect && manageStatusSelect.value ? String(manageStatusSelect.value) : ''
             if (statusFilter) url += '&status=' + encodeURIComponent(statusFilter)
+
+            var typeFilter = manageTypeSelect && manageTypeSelect.value ? String(manageTypeSelect.value) : ''
+            if (typeFilter) url += '&appointment_type=' + encodeURIComponent(typeFilter)
 
             apiFetch(url, { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
@@ -560,6 +579,7 @@
             var disabled = !!isSubmitting
             if (manageSortSelect) manageSortSelect.disabled = disabled
             if (manageStatusSelect) manageStatusSelect.disabled = disabled
+            if (manageTypeSelect) manageTypeSelect.disabled = disabled
             if (manageRefreshBtn) manageRefreshBtn.disabled = disabled
             if (manageTodayOnlyBtn) manageTodayOnlyBtn.disabled = disabled
         }
@@ -917,6 +937,7 @@
         var manageServiceResults = document.getElementById('doctorManageServiceResults')
         var manageSortSelect = document.getElementById('doctorManageSort')
         var manageStatusSelect = document.getElementById('doctorManageStatus')
+        var manageTypeSelect = document.getElementById('doctorManageType')
         var manageTableBody = document.getElementById('doctorManageAppointmentTableBody')
         var manageMeta = document.getElementById('doctorManageAppointmentMeta')
         var manageRefreshBtn = document.getElementById('doctorManageRefreshBtn')
@@ -1017,6 +1038,14 @@
         // Status select change
         if (manageStatusSelect) {
             manageStatusSelect.addEventListener('change', function () {
+                manageCurrentPage = 1
+                loadManageAppointments()
+            })
+        }
+
+        // Type select change
+        if (manageTypeSelect) {
+            manageTypeSelect.addEventListener('change', function () {
                 manageCurrentPage = 1
                 loadManageAppointments()
             })

@@ -109,9 +109,9 @@
         <div id="receptionManageDateHeader" class="hidden text-center text-sm font-semibold text-slate-700 mb-3"></div>
         <div class="flex items-center justify-between mb-3 gap-3">
             <div class="flex items-center gap-2">
-                <button id="receptionManageCalendarToggle" type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[0.7rem] font-semibold text-slate-700 transition-colors">
+                <button id="receptionManageCalendarToggle" type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-green-600 bg-green-600 px-3 py-1.5 text-[0.7rem] font-semibold text-white transition-colors">
                     <x-lucide-calendar class="w-[14px] h-[14px]" />
-                    <span id="receptionManageCalendarToggleText">Calendar view</span>
+                    <span id="receptionManageCalendarToggleText">Table view</span>
                 </button>
                 <button id="receptionManageClearFilterBtn" type="button" style="display:none" class="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-[0.7rem] font-semibold text-red-700 hover:bg-red-100 transition-colors">
                     <x-lucide-x class="w-[14px] h-[14px]" />
@@ -165,7 +165,7 @@
         </div>
     </div>
 
-    <div id="receptionManageTableArea">
+    <div id="receptionManageTableArea" class="hidden">
         <div class="w-full" style="display:grid;">
         <div class="rounded-2xl border border-slate-200 overflow-hidden">
          <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[470px]">
@@ -193,7 +193,7 @@
         <pre id="receptionManageAppointmentResult" class="hidden mt-3 text-[0.68rem] text-slate-600 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 overflow-x-auto"></pre>
     </div>
 
-    <div id="receptionManageCalendarArea" class="hidden">
+    <div id="receptionManageCalendarArea">
         <div class="rounded-2xl border border-slate-200 overflow-hidden bg-white">
             <div class="px-5 py-4 border-b border-slate-100">
                 <div class="flex items-center justify-between">
@@ -3217,16 +3217,17 @@ function setAppointmentTab(tab) {
             for (var day = 1; day <= daysIn; day++) {
                 var d = new Date(year, month, day)
                 var iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
-                var notPast = d.getTime() >= today.getTime()
+                var isPast = d.getTime() < today.getTime()
                 var selected = selectedIso && selectedIso === iso
                 var base = 'relative w-full rounded-lg text-[0.75rem] font-semibold border transition-colors flex items-center justify-center'
-                var cls = base + ' ' + (notPast
-                    ? (selected ? 'bg-green-600 text-white border-green-600' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50')
-                    : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed')
+                var cls = base + ' ' + (isPast
+                    ? 'bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200'
+                    : (selected ? 'bg-green-600 text-white border-green-600' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'))
                 var count = manageMonthAppointments[iso] || 0
-                var showBadge = count > 0 && notPast
-                var badge = showBadge ? '<span class="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-red-500 text-white text-[0.5rem] leading-[14px] font-bold rounded-full px-0.5 text-center">' + count + '</span>' : ''
-                cells.push('<button type="button" class="' + cls + '" data-date="' + iso + '"' + (notPast ? '' : ' disabled') + '>' + day + badge + '</button>')
+                var showBadge = count > 0
+                var badgeCls = isPast ? 'bg-red-300' : 'bg-red-500'
+                var badge = showBadge ? '<span class="absolute -top-1 -right-1 min-w-[14px] h-[14px] ' + badgeCls + ' text-white text-[0.5rem] leading-[14px] font-bold rounded-full px-0.5 text-center">' + count + '</span>' : ''
+                cells.push('<button type="button" class="' + cls + '" data-date="' + iso + '">' + day + badge + '</button>')
             }
             var total = Math.ceil(cells.length / 7) * 7
             while (cells.length < total) cells.push('')
@@ -4148,7 +4149,7 @@ function updateManageTodayButton() {
         var manageCalendarToggleText = document.getElementById('receptionManageCalendarToggleText')
         var manageTableArea = document.getElementById('receptionManageTableArea')
         var manageCalendarArea = document.getElementById('receptionManageCalendarArea')
-        var manageShowCalendar = false
+        var manageShowCalendar = true
         if (manageCalendarToggle && manageTableArea && manageCalendarArea) {
             manageCalendarToggle.addEventListener('click', function () {
                 manageShowCalendar = !manageShowCalendar
@@ -4189,6 +4190,13 @@ function updateManageTodayButton() {
                 loadManageMonthAppointments()
             })
         }
+
+        // Initialize calendar as default view
+        manageCalMonth = new Date()
+        manageCalMonth.setDate(1)
+        if (manageDateHeader) manageDateHeader.style.display = 'none'
+        if (manageClearFilterBtn) manageClearFilterBtn.style.display = 'none'
+        loadManageMonthAppointments()
 
         if (manageCalDateGrid) {
             manageCalDateGrid.addEventListener('click', function (e) {
