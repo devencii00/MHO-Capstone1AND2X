@@ -293,8 +293,12 @@
             var statusKey = String(appt && appt.status ? appt.status : '').toLowerCase()
             var isCheckedIn = statusKey === 'confirmed' && (appt && appt.check_in_time)
             var statusClass = ''
-            if (isCheckedIn || statusKey === 'completed') {
-                statusClass = 'border-emerald-200 bg-emerald-50 text-emerald-700'
+            if (statusKey === 'completed') {
+                statusClass = 'border-green-200 bg-green-50 text-green-700'
+            } else if (isCheckedIn || statusKey === 'confirmed') {
+                statusClass = 'border-orange-200 bg-orange-50 text-orange-700'
+            } else if (statusKey === 'consulted') {
+                statusClass = 'border-purple-200 bg-purple-50 text-purple-700'
             } else if (statusKey === 'cancelled') {
                 statusClass = 'border-rose-200 bg-rose-50 text-rose-700'
             } else if (statusKey === 'no_show') {
@@ -302,7 +306,7 @@
             } else if (statusKey === 'pending') {
                 statusClass = 'border-amber-200 bg-amber-50 text-amber-700'
             } else {
-                statusClass = 'border-green-200 bg-green-50 text-green-700'
+                statusClass = 'border-slate-200 bg-slate-100 text-slate-600'
             }
             var statusDisplay = statusLabel
                 ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border ' + statusClass + '">' + escapeHtml(statusLabel) + '</span>'
@@ -725,11 +729,13 @@
                 var stKey = String(a && a.status ? a.status : '').toLowerCase()
                 var isCI = stKey === 'confirmed' && (a && a.check_in_time)
                 var sc = ''
-                if (isCI || stKey === 'completed') sc = 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                if (stKey === 'completed') sc = 'border-green-200 bg-green-50 text-green-700'
+                else if (isCI || stKey === 'confirmed') sc = 'border-orange-200 bg-orange-50 text-orange-700'
+                else if (stKey === 'consulted') sc = 'border-purple-200 bg-purple-50 text-purple-700'
                 else if (stKey === 'cancelled') sc = 'border-rose-200 bg-rose-50 text-rose-700'
                 else if (stKey === 'no_show') sc = 'border-slate-200 bg-slate-100 text-slate-600'
                 else if (stKey === 'pending') sc = 'border-amber-200 bg-amber-50 text-amber-700'
-                else sc = 'border-green-200 bg-green-50 text-green-700'
+                else sc = 'border-slate-200 bg-slate-100 text-slate-600'
                 var typeRaw = String(a && a.appointment_type ? a.appointment_type : '').toLowerCase()
                 var typeLabel = (typeRaw === 'walk_in' || typeRaw === 'walk-in' || typeRaw === 'walk in') ? 'Walk In' : (typeRaw === 'scheduled' ? 'Scheduled' : typeRaw)
 
@@ -789,11 +795,13 @@
             var stKey = currentStatus
             var isCI = stKey === 'confirmed' && (appt && appt.check_in_time)
             var sc = ''
-            if (isCI || stKey === 'completed') sc = 'border-emerald-200 bg-emerald-50 text-emerald-700'
+            if (stKey === 'completed') sc = 'border-green-200 bg-green-50 text-green-700'
+            else if (isCI || stKey === 'confirmed') sc = 'border-orange-200 bg-orange-50 text-orange-700'
+            else if (stKey === 'consulted') sc = 'border-purple-200 bg-purple-50 text-purple-700'
             else if (stKey === 'cancelled') sc = 'border-rose-200 bg-rose-50 text-rose-700'
             else if (stKey === 'no_show') sc = 'border-slate-200 bg-slate-100 text-slate-600'
             else if (stKey === 'pending') sc = 'border-amber-200 bg-amber-50 text-amber-700'
-            else sc = 'border-green-200 bg-green-50 text-green-700'
+            else sc = 'border-slate-200 bg-slate-100 text-slate-600'
 
             var dt = appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
             var tx = appt.transaction || null

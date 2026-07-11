@@ -90,9 +90,8 @@
         <div id="receptionWalkInHistoryMeta" class="px-4 py-2 text-[0.72rem] text-slate-500 border-t border-slate-100 bg-slate-50">Loading walk-in history…</div>
         <div id="receptionWalkInPagination" class="px-4 py-2 border-t border-slate-50 bg-white flex items-center justify-center gap-1"></div>
     </div>
-    </div>
 
-    <div id="walkInCalendarArea">
+    <div id="walkInCalendarArea" class="hidden">
         <div class="rounded-2xl border border-slate-200 overflow-hidden bg-white">
             <div class="px-5 py-4 border-b border-slate-100">
                 <div class="flex items-center justify-between">
@@ -108,6 +107,7 @@
                 <div id="walkInCalDateGrid" class="grid grid-cols-7 grid-rows-[repeat(6,1fr)] gap-1.5 h-[520px]"></div>
             </div>
         </div>
+    </div>
     </div>
 
 <!-- Patient History Modal -->
@@ -726,11 +726,13 @@ function setWalkInTab(tab) {
 
         function statusBadgeClass(appt) {
             var status = normalizeText(appt && appt.status ? appt.status : '')
-            if (status === 'completed') return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+            if (status === 'completed') return 'border-green-200 bg-green-50 text-green-700'
+            if (status === 'confirmed') return 'border-orange-200 bg-orange-50 text-orange-700'
+            if (status === 'consulted') return 'border-purple-200 bg-purple-50 text-purple-700'
             if (status === 'cancelled') return 'border-rose-200 bg-rose-50 text-rose-700'
             if (status === 'no_show') return 'border-slate-200 bg-slate-100 text-slate-600'
             if (status === 'pending') return 'border-amber-200 bg-amber-50 text-amber-700'
-            return 'border-green-200 bg-green-50 text-green-700'
+            return 'border-slate-200 bg-slate-100 text-slate-600'
         }
 
         function showError(message) {
@@ -1490,6 +1492,8 @@ function setWalkInTab(tab) {
         walkInCalMonth.setDate(1)
         if (walkInDateHeader) walkInDateHeader.style.display = 'none'
         if (walkInClearFilterBtn) walkInClearFilterBtn.style.display = 'none'
+        if (walkInCalendarArea) walkInCalendarArea.classList.remove('hidden')
+        if (walkInTableArea) walkInTableArea.classList.add('hidden')
         loadWalkInMonthAppointments()
     })
 </script>

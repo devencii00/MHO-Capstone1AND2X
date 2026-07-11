@@ -273,7 +273,8 @@
                             $doctorName = optional(optional($queue->appointment)->doctor)->personalInformation->full_name ?? '';
                             $statusName = (string) ($queue->status ?? '');
                             $statusDropdownColor = match(strtolower($statusName)) {
-                                'serving' => 'text-green-700 border-green-300 bg-green-50',
+                                'serving' => 'text-blue-700 border-blue-300 bg-blue-50',
+                                'consulted' => 'text-blue-700 border-blue-300 bg-blue-50',
                                 'on_hold' => 'text-purple-700 border-purple-300 bg-purple-50',
                                 default => 'text-slate-700 border-slate-200 bg-white',
                             };
@@ -302,13 +303,14 @@
                                 : null;
                             $statusNameLower = strtolower($statusName);
                              $statusDropdownColor = match($statusNameLower) {
-                                 'serving' => 'text-green-700 border-green-300 bg-green-50',
+                                 'serving' => 'text-blue-700 border-blue-300 bg-blue-50',
+                                 'consulted' => 'text-blue-700 border-blue-300 bg-blue-50',
                                  'on_hold' => 'text-purple-700 border-purple-300 bg-purple-50',
                                  default => 'text-slate-700 border-slate-200 bg-white',
                              };
                              $statusBadgeColor = match($statusNameLower) {
-                                 'waiting' => 'bg-amber-50 text-amber-700 border-amber-100',
-                                 'serving' => 'bg-green-50 text-green-700 border-green-100',
+                                 'waiting' => 'border-orange-200 bg-orange-50 text-orange-700',
+                                 'serving' => 'bg-blue-50 text-blue-700 border-blue-100',
                                  'consulted' => 'bg-blue-50 text-blue-700 border-blue-100',
                                  'done' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
                                  'cancelled' => 'bg-red-50 text-red-700 border-red-100',
@@ -396,7 +398,7 @@
                                     @if (in_array(strtolower($statusName), ['done', 'cancelled', 'no_show', 'consulted'], true))
                                         <span class="inline-flex items-center gap-1.5 text-[0.7rem] text-slate-400">
                                             @if (strtolower($statusName) === 'consulted')
-                                                <span class="inline-flex items-center gap-1.5 rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-[0.68rem] font-medium text-green-700">
+                                                <span class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[0.68rem] font-medium text-slate-600">
                                                     <x-lucide-lock class="w-3 h-3" />
                                                     Waiting for payment
                                                 </span>

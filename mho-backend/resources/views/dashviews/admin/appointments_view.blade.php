@@ -233,8 +233,9 @@
             var key = String(status || '').toLowerCase()
             var map = {
                 pending: 'bg-amber-50 text-amber-700 border-amber-100',
-                confirmed: 'bg-green-50 text-green-700 border-green-100',
-                completed: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                confirmed: 'bg-orange-50 text-orange-700 border-orange-100',
+                consulted: 'bg-purple-50 text-purple-700 border-purple-100',
+                completed: 'bg-green-50 text-green-700 border-green-100',
                 cancelled: 'bg-slate-50 text-slate-600 border-slate-100',
                 no_show: 'bg-rose-50 text-rose-700 border-rose-100'
             }

@@ -90,9 +90,12 @@
 
     <div class="border border-slate-100 rounded-2xl p-4 mt-4">
         <div class="flex items-center justify-between mb-3">
-            <h3 class="text-xs font-semibold text-slate-900">Today's Transactions</h3>
+            <h3 class="text-xs font-semibold text-slate-900">Transaction Records</h3>
             <div class="flex items-center gap-2">
                 <span id="adminTxnTodayCount" class="text-[0.68rem] text-slate-400 uppercase tracking-widest">- entries</span>
+                <button type="button" id="adminTxnTodayToggle" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.68rem] font-semibold text-slate-600 hover:bg-slate-50">
+                    Show today only
+                </button>
                 <button type="button" id="adminTxnTodayRefreshBtn" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-2.5 py-1.5 text-[0.68rem] font-semibold text-orange-700 hover:bg-orange-100">
                     <x-lucide-refresh-cw class="w-[12px] h-[12px]" />
                     Refresh
@@ -127,7 +130,7 @@
                 <tbody id="adminTxnTodayBody">
                     <tr>
                         <td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">
-                            Loading today's transactions…
+                            Loading transactions…
                         </td>
                     </tr>
                 </tbody>
@@ -207,6 +210,8 @@
         var txnCount = document.getElementById('adminTxnTodayCount')
         var txnSearch = document.getElementById('admin_txn_today_search')
         var txnServiceFilter = document.getElementById('admin_txn_today_service')
+        var txnToggle = document.getElementById('adminTxnTodayToggle')
+        var showTodayOnly = false
         var genReportBtn = document.getElementById('adminGenReportBtn')
         var reportModal = document.getElementById('adminReportModal')
         var reportModalCard = document.getElementById('adminReportModalCard')
@@ -400,7 +405,7 @@
             var list = Array.isArray(payload.data) ? payload.data : []
 
             if (!list.length) {
-                txnBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No transactions recorded today.</td></tr>'
+                txnBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">' + (showTodayOnly ? 'No transactions recorded today.' : 'No transactions found.') + '</td></tr>'
                 if (txnPagination) txnPagination.innerHTML = ''
                 if (txnCount) txnCount.textContent = '0 entries'
                 return
@@ -467,11 +472,12 @@
         }
 
         function loadTodaysTransactions(page) {
-            var ds = todayIsoDate()
+            var ds = showTodayOnly ? todayIsoDate() : ''
             var q = trim(txnSearch ? txnSearch.value : '').toLowerCase()
             var svc = txnServiceFilter ? txnServiceFilter.value : ''
             txnBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading transactions…</td></tr>'
-            var url = '/api/transactions?per_page=15&start_date=' + ds + '&end_date=' + ds + '&order=latest'
+            var url = '/api/transactions?per_page=15&order=latest'
+            if (ds) url += '&start_date=' + ds + '&end_date=' + ds
             url += '&page=' + (page || 1)
             if (q) url += '&search=' + encodeURIComponent(q)
             if (svc) url += '&service_id=' + encodeURIComponent(svc)
@@ -626,6 +632,17 @@
         var txnRefreshBtn = document.getElementById('adminTxnTodayRefreshBtn')
         if (txnRefreshBtn) {
             txnRefreshBtn.addEventListener('click', function () { loadTodaysTransactions() })
+        }
+
+        if (txnToggle) {
+            txnToggle.addEventListener('click', function () {
+                showTodayOnly = !showTodayOnly
+                txnToggle.textContent = showTodayOnly ? 'Show all records' : 'Show today only'
+                txnToggle.className = showTodayOnly
+                    ? 'inline-flex items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-2.5 py-1.5 text-[0.68rem] font-semibold text-orange-700 hover:bg-orange-100'
+                    : 'inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.68rem] font-semibold text-slate-600 hover:bg-slate-50'
+                loadTodaysTransactions()
+            })
         }
     })
 </script>

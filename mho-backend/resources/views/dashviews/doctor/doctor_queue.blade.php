@@ -3,23 +3,14 @@
         ->sortBy(function ($queue) {
             $status = strtolower((string) ($queue->status ?? ''));
             $rank = match ($status) {
-                'serving' => 0,
-                'waiting' => 1,
-                'skipped' => 1,
+                'waiting', 'skipped' => 0,
+                'serving' => 1,
                 'on_hold' => 2,
-                'consulted' => 4,
-                'done' => 5,
-                'cancelled' => 6,
-                'no_show' => 7,
-                default => 8,
+                default => 3,
             };
-
-            return sprintf(
-                '%02d-%06d-%s',
-                $rank,
-                (int) ($queue->queue_number ?? 999999),
-                optional($queue->queue_datetime)->format('Y-m-d H:i:s') ?? ''
-            );
+            $priority = (int) ($queue->priority_level ?? 5);
+            $number = (int) ($queue->queue_number ?? 999999);
+            return str_pad((string) $rank, 6, '0', STR_PAD_LEFT) . '-' . str_pad((string) $priority, 6, '0', STR_PAD_LEFT) . '-' . str_pad((string) $number, 6, '0', STR_PAD_LEFT);
         })
         ->values();
     $doctorUserId = (int) ($currentUser->user_id ?? request()->query('user_id') ?? 0);
@@ -202,13 +193,16 @@
                             $timeKey = optional($queue->queue_datetime)->format('H:i') ?? '';
                             $dateTimeKey = optional($queue->queue_datetime)->format('Y-m-d H:i:s') ?? '';
                             $statusDropdownColor = match($statusName) {
-                                'serving' => 'text-green-700 border-green-300 bg-green-50',
+                                'waiting' => 'text-orange-700 border-orange-300 bg-orange-50',
+                                'serving' => 'text-blue-700 border-blue-300 bg-blue-50',
+                                'consulted' => 'text-blue-700 border-blue-300 bg-blue-50',
+                                'skipped' => 'text-orange-700 border-orange-300 bg-orange-50',
                                 'on_hold' => 'text-purple-700 border-purple-300 bg-purple-50',
                                 default => 'text-slate-700 border-slate-200 bg-white',
                             };
                             $statusBadgeColor = match($statusName) {
-                                'waiting' => 'bg-amber-50 text-amber-700 border-amber-100',
-                                'serving' => 'bg-green-50 text-green-700 border-green-100',
+                                'waiting' => 'border-orange-200 bg-orange-50 text-orange-700',
+                                'serving' => 'bg-blue-50 text-blue-700 border-blue-100',
                                 'consulted' => 'bg-blue-50 text-blue-700 border-blue-100',
                                 'done' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
                                 'cancelled' => 'bg-red-50 text-red-700 border-red-100',
@@ -272,7 +266,7 @@
                                             </div>
                                         </div>
                                         @if ($statusName === 'consulted')
-                                            <span class="inline-flex items-center rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-[0.68rem] font-medium text-green-700">
+                                            <span class="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[0.68rem] font-medium text-slate-600">
                                                 Waiting for payment
                                             </span>
                                         @endif
@@ -413,9 +407,6 @@
                     }
 
                     showSuccess(successMessage || 'Queue updated.')
-
-                    // Immediately refresh the table, serving card, and on-hold card
-                    refreshTableFromServer(document.getElementById('doctorQueueTbody'))
                 })
                 .catch(function () {
                     showError('Network error while updating queue.')
@@ -496,6 +487,33 @@
                     tableBodyEl.innerHTML = '<tr><td colspan="999" class="py-4 text-center text-[0.78rem] text-slate-400 text-red-500">Refresh failed.</td></tr>'
                 })
         }
+        // Silent refresh for Reverb (no loading state)
+        function silentRefreshTableFromServer(tableBodyEl) {
+            if (!tableBodyEl) return
+            var url = window.location.href
+            fetch(url)
+                .then(function (r) { return r.text() })
+                .then(function (html) {
+                    var parser = new DOMParser()
+                    var doc = parser.parseFromString(html, 'text/html')
+                    var freshBody = doc.getElementById(tableBodyEl.id)
+                    if (freshBody) {
+                        tableBodyEl.innerHTML = freshBody.innerHTML
+                    }
+                    var servingCard = document.getElementById('doctorQueueServingCard')
+                    var onHoldCard = document.getElementById('doctorQueueOnHoldCard')
+                    if (servingCard) {
+                        var freshServing = doc.getElementById('doctorQueueServingCard')
+                        if (freshServing) servingCard.outerHTML = freshServing.outerHTML
+                    }
+                    if (onHoldCard) {
+                        var freshOnHold = doc.getElementById('doctorQueueOnHoldCard')
+                        if (freshOnHold) onHoldCard.outerHTML = freshOnHold.outerHTML
+                    }
+                    rows = Array.prototype.slice.call(document.querySelectorAll('.doctor-queue-row'))
+                    applyDoctorQueueFilters()
+                })
+        }
         if (document.getElementById('docQueueRefreshBtn')) document.getElementById('docQueueRefreshBtn').addEventListener('click', function () { refreshTableFromServer(document.getElementById('doctorQueueTbody')) })
         if (callNextButton) {
             callNextButton.addEventListener('click', function () {
@@ -551,14 +569,14 @@
                                 var absoluteDelay = timeReceived - data.fired_at;
                                 console.log('[DoctorQueue] Reverb fired: ' + absoluteDelay + 'ms');
                             }
-                            refreshTableFromServer(document.getElementById('doctorQueueTbody'))
+                            silentRefreshTableFromServer(document.getElementById('doctorQueueTbody'))
                         })
                     console.log('[DoctorQueue] Echo listener attached to queue.' + doctorUserId)
 
                     // Also listen for appointment status changes (e.g. consulted) so the queue table updates
                     window.Echo.private('appointments.' + doctorUserId)
                         .listen('.appointment.updated', function () {
-                            refreshTableFromServer(document.getElementById('doctorQueueTbody'))
+                            silentRefreshTableFromServer(document.getElementById('doctorQueueTbody'))
                         })
                     console.log('[DoctorQueue] Echo listener attached to appointments.' + doctorUserId)
                 } catch (e) {

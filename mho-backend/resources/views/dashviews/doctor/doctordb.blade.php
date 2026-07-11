@@ -8,13 +8,36 @@
     $recentAppointments = $doctorRecentAppointments ?? [];
     $recentVisits = $doctorRecentVisits ?? [];
     $recentQueue = $doctorRecentQueue ?? [];
-    $todayAppointments = $doctorTodayAppointments ?? [];
+    $todayAppointments = collect($doctorTodayAppointments ?? [])->sortByDesc(function ($a) {
+        return optional($a->appointment_datetime)->format('Y-m-d H:i:s') ?? '';
+    })->values();
     $todayQueue = $doctorTodayQueue ?? [];
     $activeQueue = collect($todayQueue)->reject(function ($q) {
         return strtolower((string) ($q->status ?? '')) === 'on_hold';
+    })->sortBy(function ($queue) {
+        $status = strtolower((string) ($queue->status ?? ''));
+        $rank = match ($status) {
+            'serving' => 1,
+            'waiting', 'skipped' => 3,
+            'consulted' => 4,
+            'done' => 5,
+            default => 6,
+        };
+        $priority = (int) ($queue->priority_level ?? 5);
+        $number = (int) ($queue->queue_number ?? 999999);
+        return str_pad((string) $rank, 6, '0', STR_PAD_LEFT) . '-' . str_pad((string) $priority, 6, '0', STR_PAD_LEFT) . '-' . str_pad((string) $number, 6, '0', STR_PAD_LEFT);
     })->values();
     $onHoldQueue = collect($todayQueue)->filter(function ($q) {
         return strtolower((string) ($q->status ?? '')) === 'on_hold';
+    })->sortBy(function ($queue) {
+        $status = strtolower((string) ($queue->status ?? ''));
+        $rank = match ($status) {
+            'on_hold' => 2,
+            default => 3,
+        };
+        $priority = (int) ($queue->priority_level ?? 5);
+        $number = (int) ($queue->queue_number ?? 999999);
+        return str_pad((string) $rank, 6, '0', STR_PAD_LEFT) . '-' . str_pad((string) $priority, 6, '0', STR_PAD_LEFT) . '-' . str_pad((string) $number, 6, '0', STR_PAD_LEFT);
     })->values();
     $recentNotifications = $doctorRecentNotifications ?? collect();
     $todayIso = now()->toDateString();
@@ -154,11 +177,11 @@
                                     }
                                     $apptStatusColors = [
                                         'pending' => 'bg-amber-50 text-amber-700 border-amber-200',
-                                        'confirmed' => 'bg-blue-50 text-blue-700 border-blue-200',
-                                        'completed' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                        'confirmed' => 'border-orange-200 bg-orange-50 text-orange-700',
+                                        'completed' => 'border-green-200 bg-green-50 text-green-700',
                                         'cancelled' => 'bg-red-50 text-red-700 border-red-200',
                                         'no_show' => 'bg-slate-100 text-slate-600 border-slate-200',
-                                        'consulted' => 'bg-green-50 text-green-700 border-green-100',
+                                        'consulted' => 'border-purple-200 bg-purple-50 text-purple-700',
                                         'waiting' => 'bg-amber-50 text-amber-700 border-amber-100',
                                         'serving' => 'bg-blue-50 text-blue-700 border-blue-100',
                                         'done' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
@@ -289,9 +312,9 @@
                             $timeKey = optional($queue->queue_datetime)->format('H:i') ?? '-';
                             $statusLabel = $queue->status ? ucfirst(str_replace('_', ' ', $queue->status)) : '-';
                             $statusColors = [
-                                'waiting' => 'bg-amber-50 text-amber-700 border-amber-100',
+                                'waiting' => 'border-orange-200 bg-orange-50 text-orange-700',
                                 'serving' => 'bg-blue-50 text-blue-700 border-blue-100',
-                                'consulted' => 'bg-green-50 text-green-700 border-green-100',
+                                'consulted' => 'bg-blue-50 text-blue-700 border-blue-100',
                                 'done' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
                                 'cancelled' => 'bg-red-50 text-red-700 border-red-100',
                                 'no_show' => 'bg-slate-100 text-slate-600 border-slate-200',
@@ -756,11 +779,11 @@
                     var statusKey = a.status ? a.status.toLowerCase() : ''
                     var modalStatusColors = {
                         pending: 'bg-amber-50 text-amber-700 border-amber-200',
-                        confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
-                        completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                        confirmed: 'border-orange-200 bg-orange-50 text-orange-700',
+                        completed: 'border-green-200 bg-green-50 text-green-700',
                         cancelled: 'bg-red-50 text-red-700 border-red-200',
                         no_show: 'bg-slate-100 text-slate-600 border-slate-200',
-                        consulted: 'bg-green-50 text-green-700 border-green-100',
+                        consulted: 'border-purple-200 bg-purple-50 text-purple-700',
                         waiting: 'bg-amber-50 text-amber-700 border-amber-100',
                         serving: 'bg-blue-50 text-blue-700 border-blue-100',
                         done: 'bg-emerald-50 text-emerald-700 border-emerald-100',
@@ -848,13 +871,38 @@
                 var refreshBtn = document.getElementById('docScheduleRefreshBtn')
                 if (refreshBtn) refreshBtn.addEventListener('click', refreshAllCards)
 
+                // ── Silent Refresh (no loading states, used by Reverb) ─────
+                function silentRefreshCards() {
+                    loadUpcomingAppointments(1)
+                    var url = window.location.href.split('#')[0]
+                    url += (url.indexOf('?') > -1 ? '&' : '?') + '_t=' + Date.now()
+                    fetch(url)
+                        .then(function (r) { return r.text() })
+                        .then(function (html) {
+                            var parser = new DOMParser()
+                            var doc = parser.parseFromString(html, 'text/html')
+                            var freshTbody = doc.getElementById('doctorScheduleTbody')
+                            var curTbody = document.getElementById('doctorScheduleTbody')
+                            if (freshTbody && curTbody) curTbody.innerHTML = freshTbody.innerHTML
+                            var freshMetrics = doc.getElementById('doctorMetricsContainer')
+                            var curMetrics = document.getElementById('doctorMetricsContainer')
+                            if (freshMetrics && curMetrics) curMetrics.innerHTML = freshMetrics.innerHTML
+                            var freshActiveQ = doc.getElementById('doctorActiveQueueContainer')
+                            var curActiveQ = document.getElementById('doctorActiveQueueContainer')
+                            if (freshActiveQ && curActiveQ) curActiveQ.innerHTML = freshActiveQ.innerHTML
+                            var freshOnHold = doc.getElementById('doctorOnHoldContainer')
+                            var curOnHold = document.getElementById('doctorOnHoldContainer')
+                            if (freshOnHold && curOnHold) curOnHold.innerHTML = freshOnHold.innerHTML
+                        })
+                }
+
                 // ── Realtime queue updates via Reverb ──
                 if (typeof window.Echo !== 'undefined' && window.Echo && !window.__doctorDashboardQueueInited) {
                     try {
                         window.__doctorDashboardQueueInited = true
                         window.Echo.private('queue.all')
                             .listen('.queue.updated', function () {
-                                refreshAllCards()
+                                silentRefreshCards()
                             })
                         console.log('[DoctorDashboard] Echo listener attached to queue.all')
                     } catch (e) {

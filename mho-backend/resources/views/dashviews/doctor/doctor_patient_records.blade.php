@@ -936,11 +936,11 @@
                     var apptStatus = (appointment && appointment.status) ? String(appointment.status) : ''
                     var statusColors = {
                         pending: 'bg-amber-50 text-amber-700 border-amber-200',
-                        confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
-                        completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                        confirmed: 'border-orange-200 bg-orange-50 text-orange-700',
+                        completed: 'border-green-200 bg-green-50 text-green-700',
                         cancelled: 'bg-red-50 text-red-700 border-red-200',
                         no_show: 'bg-slate-100 text-slate-600 border-slate-200',
-                        consulted: 'bg-green-50 text-green-700 border-green-100',
+                        consulted: 'border-purple-200 bg-purple-50 text-purple-700',
                         waiting: 'bg-amber-50 text-amber-700 border-amber-100',
                         serving: 'bg-blue-50 text-blue-700 border-blue-100',
                         done: 'bg-emerald-50 text-emerald-700 border-emerald-100',
@@ -3021,11 +3021,11 @@
             var apptStatus = appt.status ? String(appt.status) : ''
             var statusColors = {
                 pending: 'bg-amber-50 text-amber-700 border-amber-200',
-                confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
-                completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                confirmed: 'border-orange-200 bg-orange-50 text-orange-700',
+                completed: 'border-green-200 bg-green-50 text-green-700',
                 cancelled: 'bg-red-50 text-red-700 border-red-200',
                 no_show: 'bg-slate-100 text-slate-600 border-slate-200',
-                consulted: 'bg-green-50 text-green-700 border-green-100',
+                consulted: 'border-purple-200 bg-purple-50 text-purple-700',
                 waiting: 'bg-amber-50 text-amber-700 border-amber-100',
                 serving: 'bg-blue-50 text-blue-700 border-blue-100',
                 done: 'bg-emerald-50 text-emerald-700 border-emerald-100',
