@@ -1632,7 +1632,11 @@
         })
 
         // Status dropdown toggle + status item clicks (event delegation)
-        document.addEventListener('click', function (e) {
+        // Use named function so SPA re-navigation can remove old duplicates before re-adding
+        if (window.__receptionQueueDocClick) {
+            document.removeEventListener('click', window.__receptionQueueDocClick)
+        }
+        window.__receptionQueueDocClick = function (e) {
             // Handle status dropdown trigger toggle
             var trigger = e.target && e.target.closest ? e.target.closest('.reception-status-dropdown-trigger') : null
             if (trigger) {
@@ -1669,7 +1673,8 @@
                     menu.classList.add('hidden')
                 }
             })
-        })
+        }
+        document.addEventListener('click', window.__receptionQueueDocClick)
 
         function updateQueueStatus(queueId, status, successMessage) {
             if (!queueId) {
