@@ -65,6 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/appointments/active-exists', [AppointmentController::class, 'activeExists']);
     Route::apiResource('appointments', AppointmentController::class);
     Route::apiResource('visits', VisitController::class);
+    Route::get('/consultation-history', [\App\Http\Controllers\ConsultationHistoryController::class, 'index']);
     Route::apiResource('prescriptions', PrescriptionController::class);
     Route::apiResource('medicines', MedicineController::class);
     Route::apiResource('queues', QueueController::class);

@@ -438,8 +438,7 @@
             @php
                 $isDoctorSchedule = $currentSection === 'my-schedule';
                 $isDoctorConsultation = $currentSection === 'consultation';
-                $isDoctorPrescription = $currentSection === 'prescriptions';
-                $isDoctorHistory = $currentSection === 'history';
+                $isDoctorConsultationHistory = $currentSection === 'consultation-history' || $currentSection === 'history' || $currentSection === 'visits';
                 $isDoctorPatientRecords = $currentSection === 'patient-records';
                 $isDoctorSettings = $currentSection === 'settings-doctor';
             @endphp
@@ -462,18 +461,10 @@
                 @endif
             </a>
 
-            <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'prescriptions']) }}" class="{{ $navBase }} {{ $isDoctorPrescription ? $navActive : $navInactive }}">
-                <x-lucide-pill class="w-[18px] h-[18px] {{ $isDoctorPrescription ? 'text-green-600' : '' }}" />
-                Prescription
-                @if ($isDoctorPrescription)
-                    
-                @endif
-            </a>
-
-            <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'history']) }}" class="{{ $navBase }} {{ $isDoctorHistory ? $navActive : $navInactive }} mb-3">
-                <x-lucide-history class="w-[18px] h-[18px] {{ $isDoctorHistory ? 'text-green-600' : '' }}" />
-                History
-                @if ($isDoctorHistory)
+            <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'consultation-history']) }}" class="{{ $navBase }} {{ $isDoctorConsultationHistory ? $navActive : $navInactive }} mb-3">
+                <x-lucide-history class="w-[18px] h-[18px] {{ $isDoctorConsultationHistory ? 'text-green-600' : '' }}" />
+                Consultation History
+                @if ($isDoctorConsultationHistory)
                     
                 @endif
             </a>

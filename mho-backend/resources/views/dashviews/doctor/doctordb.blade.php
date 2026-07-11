@@ -75,8 +75,8 @@
 
     if ($effectiveSectionKey === 'my-schedule') {
         $effectiveSectionKey = 'appointments';
-    } elseif ($effectiveSectionKey === 'history') {
-        $effectiveSectionKey = 'visits';
+    } elseif ($effectiveSectionKey === 'history' || $effectiveSectionKey === 'visits') {
+        $effectiveSectionKey = 'consultation-history';
     }
 
     $sectionTitles = [
@@ -86,6 +86,7 @@
         'visits' => 'History',
         'history' => 'History',
         'prescriptions' => 'Prescription',
+        'consultation-history' => 'Consultation History',
         'my-activity' => 'My activity',
         'patient-records' => 'Patient Records',
         'consultation' => 'Consultation',
@@ -95,10 +96,11 @@
     $sectionSubtitles = [
         'my-patients' => 'Patients you are actively seeing or have seen recently.',
         'appointments' => 'Review upcoming and recent appointments.',
-        'queue' => 'See today’s queue and recent queue entries.',
+        'queue' => 'See today\'s queue and recent queue entries.',
         'visits' => 'View past patient visits and records.',
         'history' => 'View past patient visits and records.',
         'prescriptions' => 'Review prescriptions you have issued.',
+        'consultation-history' => 'Combined consultation records with prescriptions and visit details.',
         'my-activity' => 'High-level view of your recent clinical activity.',
         'patient-records' => 'View and manage patient records.',
         'consultation' => 'Consult with a selected patient and record notes.',
@@ -928,6 +930,8 @@
             @include('dashviews.doctor.doctor_visits')
         @elseif ($effectiveSectionKey === 'prescriptions')
             @include('dashviews.doctor.doctor_prescriptions')
+        @elseif ($effectiveSectionKey === 'consultation-history')
+            @include('dashviews.doctor.doctor_consultation_history')
         @elseif ($effectiveSectionKey === 'my-activity')
             @include('dashviews.doctor.doctor_my_activity')
         @elseif ($effectiveSectionKey === 'consultation')
