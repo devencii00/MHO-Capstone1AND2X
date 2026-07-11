@@ -189,7 +189,7 @@
                                         'on_hold' => 'bg-purple-50 text-purple-700 border-purple-100',
                                     ];
                                     $apptStatusColor = $apptStatusColors[$statusKey] ?? 'bg-slate-50 text-slate-600 border-slate-100';
-                                    $showScheduleActions = $statusKey !== 'completed';
+                                    $showStartBtn = $isWalkIn ? ($statusKey === 'waiting') : ($statusKey === 'confirmed');
                                     $consultationParams = [
                                         'role' => 'doctor',
                                         'section' => 'consultation',
@@ -209,24 +209,22 @@
                                         </span>
                                     </td>
                                     <td class="py-2 px-3">
-                                        @if ($showScheduleActions)
-                                            <div class="flex flex-wrap gap-1.5">
-                                                <button type="button"
-                                                    class="doc-details-btn inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.7rem] font-medium text-slate-700 hover:bg-slate-50"
-                                                    data-appointment='@json($appointment)'>
-                                                    <x-lucide-info class="w-3.5 h-3.5" />
-                                                    Details
-                                                </button>
-                                                <a href="{{ route('dashboard', $consultationParams) }}"
-                                                    data-spa-nav="1"
-                                                    class="inline-flex items-center justify-center gap-1 rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-[0.7rem] font-semibold text-green-700 hover:bg-green-100">
-                                                    <x-lucide-play class="w-3.5 h-3.5" />
-                                                    Start
-                                                </a>
-                                            </div>
-                                        @else
-                                            <span class="text-[0.72rem] text-slate-400">-</span>
-                                        @endif
+                                        <div class="flex flex-wrap gap-1.5">
+                                            <button type="button"
+                                                class="doc-details-btn inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.7rem] font-medium text-slate-700 hover:bg-slate-50"
+                                                data-appointment='@json($appointment)'>
+                                                <x-lucide-info class="w-3.5 h-3.5" />
+                                                Details
+                                            </button>
+                                            @if ($showStartBtn)
+                                            <a href="{{ route('dashboard', $consultationParams) }}"
+                                                data-spa-nav="1"
+                                                class="inline-flex items-center justify-center gap-1 rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-[0.7rem] font-semibold text-green-700 hover:bg-green-100">
+                                                <x-lucide-play class="w-3.5 h-3.5" />
+                                                Start
+                                            </a>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
