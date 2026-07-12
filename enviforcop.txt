@@ -50,11 +50,11 @@ REDIS_PORT=6379
 MAIL_MAILER=smtp
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
-MAIL_USERNAME="opoldoctorsmedclinic@gmail.com"
-MAIL_PASSWORD="jkmx cwvb jkwb ifgj"
+MAIL_USERNAME="opolhealthcarefacility@gmail.com"
+MAIL_PASSWORD="wsib zsry idfr ijfe"
 # MAIL_PASSWORD="iunh uajv nhfv ifgj"
 MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS="opoldoctorsmedclinic@gmail.com"
+MAIL_FROM_ADDRESS="opolhealthcarefacility@gmail.com"
 MAIL_FROM_NAME="OPOL - MHO System"
 
 AWS_ACCESS_KEY_ID=

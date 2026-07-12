@@ -2643,8 +2643,14 @@
                     }).then(function (res) {
                         if (!res.ok) throw new Error('Update failed')
                         medBgEditingId = null
-                        loadPatientPanelData(currentPatientId)
                         if (typeof showToast === 'function') showToast('Entry updated.', 'success')
+                        // Reload only medical backgrounds for immediate UI update
+                        apiFetch(apiBaseUrl + "/medical-backgrounds?per_page=15&patient_id=" + encodeURIComponent(currentPatientId), { method: 'GET' })
+                            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d } }).catch(function () { return { ok: r.ok, data: null } }) })
+                            .then(function (result) {
+                                cachedMedBgRows = (!result || !result.ok || !result.data) ? [] : (Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : []))
+                                renderViewTabContent('background')
+                            })
                     }).catch(function () {
                         editSave.disabled = false
                         editSave.textContent = 'Save'
@@ -2690,8 +2696,14 @@
                     body: JSON.stringify(payload),
                 }).then(function (res) {
                     if (!res.ok) throw new Error('Save failed')
-                    loadPatientPanelData(currentPatientId)
                     if (typeof showToast === 'function') showToast('Entry added.', 'success')
+                    // Reload only medical backgrounds for immediate UI update
+                    apiFetch(apiBaseUrl + "/medical-backgrounds?per_page=15&patient_id=" + encodeURIComponent(currentPatientId), { method: 'GET' })
+                        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d } }).catch(function () { return { ok: r.ok, data: null } }) })
+                        .then(function (result) {
+                            cachedMedBgRows = (!result || !result.ok || !result.data) ? [] : (Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : []))
+                            renderViewTabContent('background')
+                        })
                 }).catch(function () {
                     saveBtn.disabled = false
                     saveBtn.textContent = 'Save'

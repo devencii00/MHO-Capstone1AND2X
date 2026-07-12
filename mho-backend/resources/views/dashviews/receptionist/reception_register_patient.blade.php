@@ -777,6 +777,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        var apiBaseUrl = "{{ url('/api') }}"
         var form = document.getElementById('receptionRegisterPatientForm')
         var errorBox = document.getElementById('receptionRegisterPatientError')
         var successBox = document.getElementById('receptionRegisterPatientSuccess')
@@ -2000,7 +2001,6 @@
             recCurrentPatientId = patientId
             recCachedMedBgRows = null; recCachedVisitRows = null; recCachedVitalRows = null; recCachedDependentRows = null; recCachedParentData = null
             recResetPanelMetaFields()
-            var apiBaseUrl = "{{ url('/api') }}"
 
             var medBgReq = apiFetch(apiBaseUrl + "/medical-backgrounds?per_page=15&patient_id=" + encodeURIComponent(patientId), { method: 'GET' })
                 .then(function (response) {
@@ -2731,8 +2731,14 @@
                     }).then(function (res) {
                         if (!res.ok) throw new Error('Update failed')
                         recMedBgEditingId = null
-                        recLoadPatientPanelData(recCurrentPatientId)
                         if (typeof showToast === 'function') showToast('Entry updated.', 'success')
+                        // Reload only medical backgrounds for immediate UI update
+                        apiFetch(apiBaseUrl + "/medical-backgrounds?per_page=15&patient_id=" + encodeURIComponent(recCurrentPatientId), { method: 'GET' })
+                            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d } }).catch(function () { return { ok: r.ok, data: null } }) })
+                            .then(function (result) {
+                                recCachedMedBgRows = (!result || !result.ok || !result.data) ? [] : (Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : []))
+                                recRenderViewTabContent('background')
+                            })
                     }).catch(function () {
                         editSave.disabled = false
                         editSave.textContent = 'Save'
@@ -2778,8 +2784,14 @@
                     body: JSON.stringify(payload),
                 }).then(function (res) {
                     if (!res.ok) throw new Error('Save failed')
-                    recLoadPatientPanelData(recCurrentPatientId)
                     if (typeof showToast === 'function') showToast('Entry added.', 'success')
+                    // Reload only medical backgrounds for immediate UI update
+                    apiFetch(apiBaseUrl + "/medical-backgrounds?per_page=15&patient_id=" + encodeURIComponent(recCurrentPatientId), { method: 'GET' })
+                        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d } }).catch(function () { return { ok: r.ok, data: null } }) })
+                        .then(function (result) {
+                            recCachedMedBgRows = (!result || !result.ok || !result.data) ? [] : (Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : []))
+                            recRenderViewTabContent('background')
+                        })
                 }).catch(function () {
                     saveBtn.disabled = false
                     saveBtn.textContent = 'Save'

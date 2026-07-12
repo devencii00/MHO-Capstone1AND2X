@@ -446,13 +446,46 @@
             })
         }
 
-        var deleteButtons = document.querySelectorAll('.admin-user-delete')
-        deleteButtons.forEach(function (button) {
-            button.addEventListener('click', function () {
-                var userId = this.getAttribute('data-user-id')
-                if (!userId) {
-                    return
-                }
+        // Event delegation for table action buttons (survives reloadTable)
+        document.getElementById('adminUserTable').addEventListener('click', function (e) {
+            var target = e.target
+            if (target.tagName !== 'BUTTON') return;
+
+            if (target.classList.contains('admin-user-edit')) {
+                var userId = target.getAttribute('data-user-id')
+                if (!userId) return
+                showUserError('')
+                showUserSuccess('')
+                var row = document.querySelector('.admin-user-row[data-user-id="' + userId + '"]')
+                var email = row ? row.getAttribute('data-email') : ''
+                var role = row ? row.getAttribute('data-role') : ''
+                openUserEditModal({ user_id: userId, email: email, role: role })
+                e.preventDefault()
+            } else if (target.classList.contains('admin-user-toggle-status')) {
+                var userId = target.getAttribute('data-user-id')
+                if (!userId) return
+                showUserError('')
+                showUserSuccess('')
+                fetchUser(userId)
+                    .then(function (result) {
+                        if (!result.ok || !result.data) {
+                            showUserError('Failed to load user details.')
+                            return
+                        }
+                        openUserStatusModal(result.data)
+                    })
+                    .catch(function () {
+                        showUserError('Network error while loading user.')
+                    })
+                e.preventDefault()
+            } else if (target.classList.contains('admin-user-dependents')) {
+                var userId = target.getAttribute('data-user-id')
+                openDependentsDrawer()
+                loadDependents(userId)
+                e.preventDefault()
+            } else if (target.classList.contains('admin-user-delete')) {
+                var userId = target.getAttribute('data-user-id')
+                if (!userId) return
                 showUserError('')
                 showUserSuccess('')
                 confirmAction('Delete this user?')
@@ -479,7 +512,7 @@
                             })
                             .catch(function () {})
                     })
-            })
+            }
         })
 
         var searchInput = document.getElementById('admin_user_search')
@@ -488,9 +521,7 @@
         var sortSelect = document.getElementById('admin_user_sort')
         var rows = Array.prototype.slice.call(document.querySelectorAll('.admin-user-row'))
 
-        var editButtons = document.querySelectorAll('.admin-user-edit')
-        var statusButtons = document.querySelectorAll('.admin-user-toggle-status')
-        var dependentsButtons = document.querySelectorAll('.admin-user-dependents')
+        // (edit/status/dependents buttons handled via event delegation on #adminUserTable)
         var dependentsOverlay = document.getElementById('adminDependentsOverlay')
         var dependentsDrawer = document.getElementById('adminDependentsDrawer')
         var dependentsClose = document.getElementById('adminDependentsClose')
@@ -669,37 +700,7 @@
             })
         }
 
-        editButtons.forEach(function (button) {
-            button.addEventListener('click', function () {
-                var userId = this.getAttribute('data-user-id')
-                if (!userId) return
-                showUserError('')
-                showUserSuccess('')
-                var row = document.querySelector('.admin-user-row[data-user-id="' + userId + '"]')
-                var email = row ? row.getAttribute('data-email') : ''
-                openUserEditModal({ user_id: userId, email: email })
-            })
-        })
-
-        statusButtons.forEach(function (button) {
-            button.addEventListener('click', function () {
-                var userId = this.getAttribute('data-user-id')
-                if (!userId) return
-                showUserError('')
-                showUserSuccess('')
-                fetchUser(userId)
-                    .then(function (result) {
-                        if (!result.ok || !result.data) {
-                            showUserError('Failed to load user details.')
-                            return
-                        }
-                        openUserStatusModal(result.data)
-                    })
-                    .catch(function () {
-                        showUserError('Network error while loading user.')
-                    })
-            })
-        })
+        // (edit/status buttons handled via event delegation on #adminUserTable)
 
         if (userEditRole) {
             userEditRole.addEventListener('change', function () {
@@ -754,8 +755,15 @@
                             setUserEditSubmitting(false)
                             return
                         }
-                        // Password verified, proceed with save
-                        doSaveUserEdit(newRole)
+                        // Password verified, confirm before save
+                        confirmAction('Save changes to this user?')
+                            .then(function (confirmed) {
+                                if (!confirmed) {
+                                    setUserEditSubmitting(false)
+                                    return
+                                }
+                                doSaveUserEdit(newRole)
+                            })
                     })
                     .catch(function () {
                         showInlineBox(userEditError, 'Network error while verifying password.')
@@ -764,8 +772,12 @@
                     return
                 }
 
-                // No role change, save directly
-                doSaveUserEdit(newRole)
+                // No role change, confirm before save
+                confirmAction('Save changes to this user?')
+                    .then(function (confirmed) {
+                        if (!confirmed) return
+                        doSaveUserEdit(newRole)
+                    })
             })
         }
 
@@ -1134,21 +1146,7 @@
                 })
         }
 
-        statusButtons.forEach(function (button) {
-            button.addEventListener('click', function () {
-                var userId = this.getAttribute('data-user-id')
-                var row = document.querySelector('.admin-user-row[data-user-id="' + userId + '"]')
-                toggleUserStatus(userId, row)
-            })
-        })
-
-        dependentsButtons.forEach(function (button) {
-            button.addEventListener('click', function () {
-                var userId = this.getAttribute('data-user-id')
-                openDependentsDrawer()
-                loadDependents(userId)
-            })
-        })
+        // (status/dependents buttons handled via event delegation on #adminUserTable)
 
         if (dependentsClose) {
             dependentsClose.addEventListener('click', function () {
