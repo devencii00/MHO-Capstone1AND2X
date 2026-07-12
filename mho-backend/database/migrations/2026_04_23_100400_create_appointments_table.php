@@ -35,6 +35,9 @@ return new class extends Migration
 
             $table->index('patient_id');
             $table->index('doctor_id');
+            $table->index('appointment_datetime', 'idx_appointments_datetime');
+            $table->index(['doctor_id', 'appointment_datetime'], 'idx_appointments_doctor_datetime');
+            $table->index(['patient_id', 'appointment_type', 'appointment_datetime'], 'idx_appointments_patient_type_datetime');
         });
     }
 

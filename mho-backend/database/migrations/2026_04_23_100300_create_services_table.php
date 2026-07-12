@@ -18,6 +18,8 @@ return new class extends Migration
             $table->decimal('price', 10, 2)->nullable();
             $table->integer('duration_minutes')->default(30);
             $table->boolean('is_active')->default(true);
+
+            $table->index('service_name', 'idx_services_name');
             
         });
     }

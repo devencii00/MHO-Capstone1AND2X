@@ -1005,11 +1005,13 @@
             doctorUserId: null,
             appointmentId: null,
             patientId: null,
+            patientRecord: null,
             parentUserId: null,
             transactionId: null,
             prescriptionId: null,
             existingItemIds: [],
             medicalBackground: [],
+            medicalBackgroundLoaded: false,
             medicines: [],
             medicinesById: {},
             medicinePage: 1,
@@ -1021,7 +1023,10 @@
             appointmentServices: [],
             appointmentServicesExpanded: false,
             history: [],
+            historyLoaded: false,
             historyVitalsByAppointment: {},
+            vitalsHistory: [],
+            vitalsHistoryLoaded: false,
             lastSavedTransactionId: null,
             vitals: null,
             selectedMedicines: [],
@@ -1699,13 +1704,18 @@
         function resetWorkspace() {
             state.appointmentId = null
             state.patientId = null
+            state.patientRecord = null
             state.parentUserId = null
             state.transactionId = null
             state.prescriptionId = null
             state.existingItemIds = []
             state.lastSavedTransactionId = null
             state.medicalBackground = []
+            state.medicalBackgroundLoaded = false
             state.history = []
+            state.historyLoaded = false
+            state.vitalsHistory = []
+            state.vitalsHistoryLoaded = false
             state.vitals = null
             state.appointmentServices = []
             state.appointmentServicesExpanded = false
@@ -2069,6 +2079,7 @@
             return api('{{ url('/api/appointments') }}/' + appointmentId).then(function (appt) {
                 state.appointmentId = appt.appointment_id
                 state.patientId = appt.patient_id
+                state.patientRecord = appt.patient || null
                 state.parentUserId = appt.patient && appt.patient.parent_user_id ? appt.patient.parent_user_id : null
                 state.transactionId = appt.transaction ? appt.transaction.transaction_id : null
                 state.prescriptionId = null
@@ -2132,11 +2143,13 @@
                 state.medicalBackground = getPaginatedData(resp)
                 renderBackground(state.medicalBackground)
                 renderSafety()
+                syncCurrentPatientPanelCacheFromState(patientId)
             })
         }
 
         function loadVitalsData(patientId, appointmentId) {
             state.vitals = null
+            state.vitalsHistory = []
             state.historyVitalsByAppointment = {}
             renderVitalsSummary()
             applyVitalsToForm(null)
@@ -2154,6 +2167,7 @@
                     var historyResp = responses[0]
                     var currentResp = responses[1]
                     var rows = getPaginatedData(historyResp)
+                    state.vitalsHistory = rows
 
                     // Build vitals-by-appointment map for history tab
                     var byAppointment = {}
@@ -2173,11 +2187,14 @@
                     renderVitalsSummary()
                     // Re-render history with vitals data now available
                     renderHistory()
+                    syncCurrentPatientPanelCacheFromState(patientId)
                 }).catch(function () {
                     state.vitals = null
+                    state.vitalsHistory = []
                     state.historyVitalsByAppointment = {}
                     applyVitalsToForm(null)
                     renderVitalsSummary()
+                    syncCurrentPatientPanelCacheFromState(patientId)
                 })
         }
 
@@ -2190,6 +2207,7 @@
                 var dt = last ? (last.visit_datetime || last.transaction_datetime || '') : ''
                 setText(elLastVisit, dt ? dt.toString().slice(0, 10) : '-')
                 renderHistory()
+                syncCurrentPatientPanelCacheFromState(patientId)
             }).catch(function (err) {
                 if (typeof showToast === 'function') showToast(err && err.body ? err.body : 'Unable to load patient history.', 'error')
             }).finally(function () {
@@ -2838,6 +2856,7 @@
             if (!id) return
             state.appointmentId = id
             loadAppointment(id).then(function () {
+                warmConsultPatientPanelData(state.patientId)
                 return Promise.all([
                     loadMedicalBackground(state.patientId),
                     loadHistory(state.patientId),
@@ -3387,6 +3406,7 @@
         var cachedVitalRows = null
         var cachedDependentRows = null
         var cachedParentData = null
+        var consultPatientPanelCache = {}
 
         var viewOverlay = document.getElementById('doctorPrViewOverlay')
         var viewClose = document.getElementById('doctorPrViewClose')
@@ -3431,6 +3451,188 @@
         var defaultProfilePicHtml = '<div class="w-full h-full flex items-center justify-center text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>'
 
         // --- Helper functions ---
+        function cloneList(list) {
+            return Array.isArray(list) ? list.slice() : []
+        }
+
+        function sortVitalsRows(rows) {
+            return cloneList(rows).sort(function (a, b) {
+                var aDate = new Date(a && (a.recorded_at || a.appointment_datetime || a.created_at || 0)).getTime() || 0
+                var bDate = new Date(b && (b.recorded_at || b.appointment_datetime || b.created_at || 0)).getTime() || 0
+                return bDate - aDate
+            })
+        }
+
+        function buildVitalsRowsFromState() {
+            var rows = cloneList(state.vitalsHistory)
+            if (state.vitals && state.vitals.appointment_id != null) {
+                var currentAppointmentId = String(state.vitals.appointment_id)
+                var exists = rows.some(function (row) {
+                    return row && row.appointment_id != null && String(row.appointment_id) === currentAppointmentId
+                })
+                if (!exists) rows.unshift(state.vitals)
+            }
+            return sortVitalsRows(rows)
+        }
+
+        function getConsultPatientPanelCache(patientId) {
+            var key = String(patientId || '')
+            if (!key) return null
+            if (!consultPatientPanelCache[key]) {
+                consultPatientPanelCache[key] = {
+                    patient: null,
+                    medBgRows: null,
+                    visitRows: null,
+                    vitalRows: null,
+                    verification: null,
+                    dependents: null,
+                    parent: null,
+                    promises: {}
+                }
+            }
+            return consultPatientPanelCache[key]
+        }
+
+        function applyVerificationToView(verification) {
+            if (!verification) {
+                if (viewVerificationStatus) viewVerificationStatus.textContent = '-'
+                if (viewPatientType) viewPatientType.textContent = '-'
+                if (viewVerificationId) viewVerificationId.textContent = '-'
+                return
+            }
+            var verStatus = verification.status ? String(verification.status) : 'Not submitted'
+            var verType = verification.type ? String(verification.type) : '-'
+            if (viewVerificationStatus) viewVerificationStatus.textContent = verStatus
+            if (viewPatientType) viewPatientType.textContent = verType
+            var isVerified = verStatus.toLowerCase() === 'verified' || verStatus.toLowerCase() === 'approved'
+            if (viewVerificationId) {
+                if (isVerified && verification.document_url) {
+                    var docUrl = String(verification.document_url)
+                    viewVerificationId.innerHTML = '<a href="' + docUrl.replace(/"/g, '&quot;') + '" target="_blank" class="text-green-700 underline hover:text-green-800">View ID</a>'
+                } else {
+                    viewVerificationId.textContent = isVerified ? '-' : '—'
+                }
+            }
+        }
+
+        function syncModalRowsFromCache(patientId) {
+            var entry = getConsultPatientPanelCache(patientId)
+            if (!entry) return
+            cachedMedBgRows = entry.medBgRows == null ? null : cloneList(entry.medBgRows)
+            cachedVisitRows = entry.visitRows == null ? null : cloneList(entry.visitRows)
+            cachedVitalRows = entry.vitalRows == null ? null : cloneList(entry.vitalRows)
+            cachedDependentRows = entry.dependents == null ? null : cloneList(entry.dependents)
+            cachedParentData = entry.parent || null
+            applyVerificationToView(entry.verification)
+        }
+
+        function syncCurrentPatientPanelCacheFromState(patientId) {
+            var entry = getConsultPatientPanelCache(patientId)
+            if (!entry) return
+            if (state.patientRecord && String(state.patientId || '') === String(patientId)) {
+                entry.patient = Object.assign({}, entry.patient || {}, state.patientRecord)
+                cachedPatientData = entry.patient
+            }
+            if (Array.isArray(state.medicalBackground)) {
+                entry.medBgRows = cloneList(state.medicalBackground)
+            }
+            if (Array.isArray(state.history)) {
+                entry.visitRows = cloneList(state.history)
+            }
+            var vitalRows = buildVitalsRowsFromState()
+            entry.vitalRows = vitalRows
+            if (currentPatientId && String(currentPatientId) === String(patientId)) {
+                syncModalRowsFromCache(patientId)
+            }
+        }
+
+        function ensureConsultPatientBasicInfo(patientId) {
+            var entry = getConsultPatientPanelCache(patientId)
+            if (!entry) return Promise.resolve(null)
+            if (entry.patient) return Promise.resolve(entry.patient)
+            if (state.patientRecord && String(state.patientId || '') === String(patientId)) {
+                entry.patient = Object.assign({}, state.patientRecord)
+                return Promise.resolve(entry.patient)
+            }
+            if (entry.promises.patient) return entry.promises.patient
+            entry.promises.patient = api('{{ url('/api/users') }}/' + encodeURIComponent(String(patientId)))
+                .then(function (patientData) {
+                    entry.patient = patientData || null
+                    if (currentPatientId && String(currentPatientId) === String(patientId) && entry.patient) {
+                        cachedPatientData = entry.patient
+                        populatePatientDetails(entry.patient)
+                    }
+                    return entry.patient
+                })
+                .catch(function () { return entry.patient || null })
+                .finally(function () { entry.promises.patient = null })
+            return entry.promises.patient
+        }
+
+        function ensureConsultPatientVerification(patientId) {
+            var entry = getConsultPatientPanelCache(patientId)
+            if (!entry) return Promise.resolve(null)
+            if (entry.verification !== null) {
+                if (currentPatientId && String(currentPatientId) === String(patientId)) applyVerificationToView(entry.verification)
+                return Promise.resolve(entry.verification)
+            }
+            if (entry.promises.verification) return entry.promises.verification
+            entry.promises.verification = api('{{ url('/api/patient-verifications') }}?per_page=1&patient_id=' + encodeURIComponent(String(patientId)))
+                .then(function (data) {
+                    var rows = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : [])
+                    entry.verification = rows && rows.length ? rows[0] : { status: 'Not submitted', type: '-', document_url: '' }
+                    if (currentPatientId && String(currentPatientId) === String(patientId)) applyVerificationToView(entry.verification)
+                    return entry.verification
+                })
+                .catch(function () {
+                    entry.verification = { status: '-', type: '-', document_url: '' }
+                    if (currentPatientId && String(currentPatientId) === String(patientId)) applyVerificationToView(entry.verification)
+                    return entry.verification
+                })
+                .finally(function () { entry.promises.verification = null })
+            return entry.promises.verification
+        }
+
+        function ensureConsultPatientDependents(patientId) {
+            var entry = getConsultPatientPanelCache(patientId)
+            if (!entry) return Promise.resolve(null)
+            if (entry.dependents !== null) {
+                if (currentPatientId && String(currentPatientId) === String(patientId)) {
+                    cachedDependentRows = cloneList(entry.dependents)
+                }
+                return Promise.resolve(entry.dependents)
+            }
+            if (entry.promises.dependents) return entry.promises.dependents
+            entry.promises.dependents = api('{{ url('/api/users') }}/' + encodeURIComponent(String(patientId)) + '/dependents')
+                .then(function (data) {
+                    entry.dependents = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : [])
+                    if (currentPatientId && String(currentPatientId) === String(patientId)) {
+                        cachedDependentRows = cloneList(entry.dependents)
+                        if (currentViewTab === 'dependents') renderViewTabContent('dependents')
+                    }
+                    return entry.dependents
+                })
+                .catch(function () {
+                    entry.dependents = []
+                    if (currentPatientId && String(currentPatientId) === String(patientId)) {
+                        cachedDependentRows = []
+                        if (currentViewTab === 'dependents') renderViewTabContent('dependents')
+                    }
+                    return entry.dependents
+                })
+                .finally(function () { entry.promises.dependents = null })
+            return entry.promises.dependents
+        }
+
+        function warmConsultPatientPanelData(patientId) {
+            var entry = getConsultPatientPanelCache(patientId)
+            if (!entry) return
+            syncCurrentPatientPanelCacheFromState(patientId)
+            ensureConsultPatientBasicInfo(patientId)
+            ensureConsultPatientVerification(patientId)
+            ensureConsultPatientDependents(patientId)
+        }
+
         function displayValue(value) {
             return (value != null && value !== '') ? String(value) : '-'
         }
@@ -3895,16 +4097,22 @@
         function findPatientById(patientId) {
             var value = String(patientId || '')
             if (cachedPatientData && String(cachedPatientData.user_id) === value) return cachedPatientData
+            var entry = getConsultPatientPanelCache(value)
+            if (entry && entry.patient && String(entry.patient.user_id || '') === value) return entry.patient
             return null
         }
 
         function mergePatientRecord(updatedPatient) {
             if (!updatedPatient || updatedPatient.user_id == null) return
             var updatedId = String(updatedPatient.user_id)
+            var entry = getConsultPatientPanelCache(updatedId)
             if (cachedPatientData && String(cachedPatientData.user_id) === updatedId) {
                 cachedPatientData = Object.assign({}, cachedPatientData, updatedPatient)
             } else {
                 cachedPatientData = updatedPatient
+            }
+            if (entry) {
+                entry.patient = Object.assign({}, entry.patient || {}, cachedPatientData)
             }
             if (currentPatientId && currentPatientId === updatedId) {
                 populatePatientDetails(cachedPatientData)
@@ -3919,11 +4127,6 @@
 
         function loadPatientPanelData(patientId) {
             currentPatientId = String(patientId || '')
-            cachedMedBgRows = null
-            cachedVisitRows = null
-            cachedVitalRows = null
-            cachedDependentRows = null
-            cachedParentData = null
             activeDependentRecord = null
             activeDependentTab = 'background'
             activeDependentMedBgRows = null
@@ -3931,100 +4134,82 @@
             activeDependentVitalRows = null
             activeDependentVerification = null
             resetPanelMetaFields()
+            var entry = getConsultPatientPanelCache(currentPatientId)
+            syncCurrentPatientPanelCacheFromState(currentPatientId)
+            syncModalRowsFromCache(currentPatientId)
 
-            var medBgReq = api('{{ url('/api/medical-backgrounds') }}?per_page=15&patient_id=' + encodeURIComponent(currentPatientId))
-                .then(function (data) {
-                    return { ok: true, data: data }
-                }).catch(function () {
-                    return { ok: false, data: null }
-                })
+            cachedPatientData = entry && entry.patient ? entry.patient : null
+            if (cachedPatientData) {
+                populatePatientDetails(cachedPatientData)
+            } else {
+                populatePatientDetails(state.patientRecord || {})
+            }
 
-            var visitsReq = api('{{ url('/api/visits') }}?per_page=15&patient_id=' + encodeURIComponent(currentPatientId))
-                .then(function (data) {
-                    return { ok: true, data: data }
-                }).catch(function () {
-                    return { ok: false, data: null }
-                })
+            ensureConsultPatientBasicInfo(currentPatientId)
+            ensureConsultPatientVerification(currentPatientId)
+            ensureConsultPatientDependents(currentPatientId)
 
-            var vitalsReq = api('{{ url('/api/vitals') }}?per_page=15&patient_id=' + encodeURIComponent(currentPatientId))
-                .then(function (data) {
-                    return { ok: true, data: data }
-                }).catch(function () {
-                    return { ok: false, data: null }
-                })
-
-            var verificationReq = api('{{ url('/api/patient-verifications') }}?per_page=1&patient_id=' + encodeURIComponent(currentPatientId))
-                .then(function (data) {
-                    return { ok: true, data: data }
-                }).catch(function () {
-                    return { ok: false, data: null }
-                })
-
-            var dependentsReq = api('{{ url('/api/users') }}/' + encodeURIComponent(currentPatientId) + '/dependents')
-                .then(function (data) {
-                    return { ok: true, data: data }
-                }).catch(function () {
-                    return { ok: false, data: null }
-                })
-
-            Promise.all([medBgReq, visitsReq, vitalsReq, verificationReq, dependentsReq])
-                .then(function (results) {
-                    if (String(patientId || '') !== currentPatientId) return
-
-                    var medBgRes = results[0]
-                    cachedMedBgRows = (!medBgRes || !medBgRes.ok || !medBgRes.data)
-                        ? []
-                        : (Array.isArray(medBgRes.data.data) ? medBgRes.data.data : (Array.isArray(medBgRes.data) ? medBgRes.data : []))
-
-                    var visitsRes = results[1]
-                    cachedVisitRows = (!visitsRes || !visitsRes.ok || !visitsRes.data)
-                        ? []
-                        : (Array.isArray(visitsRes.data.data) ? visitsRes.data.data : (Array.isArray(visitsRes.data) ? visitsRes.data : []))
-
-                    var vitalsRes = results[2]
-                    cachedVitalRows = (!vitalsRes || !vitalsRes.ok || !vitalsRes.data)
-                        ? []
-                        : (Array.isArray(vitalsRes.data.data) ? vitalsRes.data.data : (Array.isArray(vitalsRes.data) ? vitalsRes.data : []))
-
-                    var verRes = results[3]
-                    if (!verRes || !verRes.ok || !verRes.data) {
-                        if (viewVerificationStatus) viewVerificationStatus.textContent = '-'
-                        if (viewPatientType) viewPatientType.textContent = '-'
-                        if (viewVerificationId) viewVerificationId.textContent = '-'
-                    } else {
-                        var verRows = Array.isArray(verRes.data.data) ? verRes.data.data : (Array.isArray(verRes.data) ? verRes.data : [])
-                        var latest = verRows && verRows.length ? verRows[0] : null
-                        var verStatus = latest && latest.status ? String(latest.status) : 'Not submitted'
-                        var verType = latest && latest.type ? String(latest.type) : '-'
-                        if (viewVerificationStatus) viewVerificationStatus.textContent = verStatus
-                        if (viewPatientType) viewPatientType.textContent = verType
-                        var isVerified = verStatus.toLowerCase() === 'verified' || verStatus.toLowerCase() === 'approved'
-                        if (viewVerificationId) {
-                            if (isVerified && latest && latest.document_url) {
-                                var docUrl = String(latest.document_url)
-                                viewVerificationId.innerHTML = '<a href="' + docUrl.replace(/"/g, '&quot;') + '" target="_blank" class="text-green-700 underline hover:text-green-800">View ID</a>'
-                            } else {
-                                viewVerificationId.textContent = isVerified ? '-' : '—'
-                            }
+            if (entry && entry.medBgRows == null && !entry.promises.medBg) {
+                entry.promises.medBg = api('{{ url('/api/medical-backgrounds') }}?per_page=15&patient_id=' + encodeURIComponent(currentPatientId))
+                    .then(function (data) {
+                        entry.medBgRows = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : [])
+                        if (String(patientId || '') === currentPatientId) {
+                            cachedMedBgRows = cloneList(entry.medBgRows)
+                            if (currentViewTab === 'background') renderViewTabContent('background')
                         }
-                    }
+                    })
+                    .catch(function () {
+                        entry.medBgRows = []
+                        if (String(patientId || '') === currentPatientId) {
+                            cachedMedBgRows = []
+                            if (currentViewTab === 'background') renderViewTabContent('background')
+                        }
+                    })
+                    .finally(function () { entry.promises.medBg = null })
+            }
 
-                    var dependentsRes = results[4]
-                    cachedDependentRows = (!dependentsRes || !dependentsRes.ok || !dependentsRes.data)
-                        ? []
-                        : (Array.isArray(dependentsRes.data) ? dependentsRes.data : (Array.isArray(dependentsRes.data.data) ? dependentsRes.data.data : []))
+            if (entry && entry.visitRows == null && !entry.promises.visits) {
+                entry.promises.visits = api('{{ url('/api/visits') }}?per_page=15&patient_id=' + encodeURIComponent(currentPatientId))
+                    .then(function (data) {
+                        entry.visitRows = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : [])
+                        if (String(patientId || '') === currentPatientId) {
+                            cachedVisitRows = cloneList(entry.visitRows)
+                            if (currentViewTab === 'visits') renderViewTabContent('visits')
+                        }
+                    })
+                    .catch(function () {
+                        entry.visitRows = []
+                        if (String(patientId || '') === currentPatientId) {
+                            cachedVisitRows = []
+                            if (currentViewTab === 'visits') renderViewTabContent('visits')
+                        }
+                    })
+                    .finally(function () { entry.promises.visits = null })
+            }
 
-                    if (currentViewTab && currentViewTab !== 'profile' && currentViewTab !== 'verification') {
-                        setViewTab(currentViewTab)
-                    }
-                })
-                .catch(function () {
-                    if (String(patientId || '') !== currentPatientId) return
-                    cachedMedBgRows = []
-                    cachedVisitRows = []
-                    cachedVitalRows = []
-                    cachedDependentRows = []
-                })
+            if (entry && entry.vitalRows == null && !entry.promises.vitals) {
+                entry.promises.vitals = api('{{ url('/api/vitals') }}?per_page=15&patient_id=' + encodeURIComponent(currentPatientId))
+                    .then(function (data) {
+                        var rows = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : [])
+                        entry.vitalRows = sortVitalsRows(rows)
+                        if (String(patientId || '') === currentPatientId) {
+                            cachedVitalRows = cloneList(entry.vitalRows)
+                            if (currentViewTab === 'vitals') renderViewTabContent('vitals')
+                        }
+                    })
+                    .catch(function () {
+                        entry.vitalRows = []
+                        if (String(patientId || '') === currentPatientId) {
+                            cachedVitalRows = []
+                            if (currentViewTab === 'vitals') renderViewTabContent('vitals')
+                        }
+                    })
+                    .finally(function () { entry.promises.vitals = null })
+            }
+
+            if (currentViewTab && currentViewTab !== 'profile' && currentViewTab !== 'verification') {
+                setViewTab(currentViewTab)
+            }
         }
 
         function populatePatientDetails(patient) {
@@ -4153,13 +4338,28 @@
 
         // --- Parent/dependents data ---
         function fetchConsultParentData(parentId) {
+            var entry = getConsultPatientPanelCache(currentPatientId)
+            if (entry && entry.parent && String(entry.parent.user_id || '') === String(parentId || '')) {
+                cachedParentData = entry.parent
+                renderViewTabContent('dependents')
+                return
+            }
             api('{{ url('/api/users') }}/' + encodeURIComponent(parentId))
                 .then(function (data) {
-                    if (data && !data.error) cachedParentData = data
-                    else cachedParentData = null
+                    if (data && !data.error) {
+                        cachedParentData = data
+                        if (entry) entry.parent = data
+                    } else {
+                        cachedParentData = null
+                        if (entry) entry.parent = null
+                    }
                     renderViewTabContent('dependents')
                 })
-                .catch(function () { cachedParentData = null; renderViewTabContent('dependents') })
+                .catch(function () {
+                    cachedParentData = null
+                    if (entry) entry.parent = null
+                    renderViewTabContent('dependents')
+                })
         }
 
         function renderParentOrDependentCards(container, rows, type) {
@@ -4480,16 +4680,6 @@
                 // Open modal immediately, load data in background
                 openViewModal()
                 loadPatientPanelData(currentPatientId)
-
-                // Fetch patient basic info in parallel
-                api('{{ url('/api/users') }}/' + currentPatientId).then(function (patientData) {
-                    if (patientData) {
-                        cachedPatientData = patientData
-                        populatePatientDetails(patientData)
-                    }
-                }).catch(function () {
-                    // Silently fail — display fields just show "-"
-                })
             })
         }
     })

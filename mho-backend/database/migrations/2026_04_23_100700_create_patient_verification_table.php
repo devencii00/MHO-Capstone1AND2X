@@ -46,6 +46,7 @@ return new class extends Migration
 
             $table->index('patient_id');
             $table->index('status');
+            $table->index(['patient_id', 'status'], 'idx_verifications_patient_status');
         });
     }
 
