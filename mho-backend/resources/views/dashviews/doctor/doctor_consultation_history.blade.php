@@ -462,7 +462,7 @@
                     });
                     histPatientVisits = visits;
                     detailSubtitle.textContent = (pName || 'Patient') + ' (' + visits.length + ' records)';
-                    renderVisitHistoryList(visits, txId, 'all');
+                    renderVisitHistoryList(visits, '', 'all');
                 })
                 .catch(function() {
                     detailList.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Failed to load history.</div>';
