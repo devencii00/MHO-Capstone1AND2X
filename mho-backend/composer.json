@@ -48,9 +48,9 @@
             "npm install",
             "npm run build"
         ],
-     "dev-server": [
+        "dev-server": [
             "Composer\\Config::disableProcessTimeout",
-            "npx concurrently --kill-others \"php artisan serve --host=0.0.0.0 --port=8000\" \"npm run dev\" \"php artisan queue:work --queue=high,default --sleep=0.5 --tries=1\""
+            "npx concurrently --kill-others \"php artisan serve --host=0.0.0.0 --port=8000\" \"npm run dev\" \"php artisan queue:work --queue=high,default --sleep=0.5 --tries=1\" \"php artisan reverb:start\""
         ],
         "dev": "@dev-server",
         "test": [

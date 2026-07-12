@@ -20,11 +20,10 @@ import { persistCurrentUser } from '@/lib/auth-storage';
 
 // ─── Design Tokens ───────────────────────────────────────────────────────────
 const T = {
-  green500: '#06b6d4',
+  green400: '#4ade80',
+  green500: '#22c55e',
   green600: '#16A34A',
   green700: '#15803D',
-  green400: '#22d3ee',
-  green100: '#cffafe',
   slate50:  '#f8fafc',
   slate100: '#f1f5f9',
   slate200: '#e2e8f0',
@@ -37,7 +36,6 @@ const T = {
   slate900: '#0f172a',
   white:    '#ffffff',
   green100: 'rgba(34,197,94,0.12)',
-  green700: '#15803d',
   red100:   'rgba(239,68,68,0.12)',
   red700:   '#b91c1c',
   amber100: 'rgba(245,158,11,0.12)',
@@ -124,6 +122,8 @@ export default function PatientVerificationScreen() {
   const [success, setSuccess] = useState('');
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const [submittedDocPreview, setSubmittedDocPreview] = useState<PickedDoc | null>(null);
+  const [existingDocUrl, setExistingDocUrl] = useState<string | null>(null);
+  const [existingDocIsImage, setExistingDocIsImage] = useState(false);
 
   const latestRejected = useMemo(() => {
     return verificationItems.find(v => v.status === 'rejected');
@@ -168,6 +168,24 @@ export default function PatientVerificationScreen() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (latestDocumentItem?.document_path) {
+      const ext = (latestDocumentItem.document_path ?? '').split('.').pop()?.toLowerCase() ?? '';
+      const isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext);
+      const token = (globalThis as any)?.apiToken as string | undefined;
+      if (isImg && token) {
+        setExistingDocUrl(`${API_BASE_URL}/patient-verifications/${latestDocumentItem.verification_id}/document`);
+        setExistingDocIsImage(true);
+      } else {
+        setExistingDocUrl(null);
+        setExistingDocIsImage(false);
+      }
+    } else {
+      setExistingDocUrl(null);
+      setExistingDocIsImage(false);
+    }
+  }, [latestDocumentItem]);
 
   async function handlePickDoc() {
     setError('');
@@ -415,7 +433,7 @@ export default function PatientVerificationScreen() {
                   size={32}
                   color={verificationDoc ? T.green700 : T.slate400}
                 />
-                <Text style={[styles.uploadBoxText, verificationDoc && styles.uploadBoxTextActive]}>
+                <Text style={[styles.uploadBoxText, verificationDoc && styles.uploadBoxTextActive]} numberOfLines={1} ellipsizeMode="tail">
                   {verificationDoc ? verificationDoc.name : 'Tap to select document'}
                 </Text>
                 <Text style={styles.uploadBoxSub}>Supports JPG, JPEG, PNG, PDF, DOC, DOCX</Text>
@@ -441,7 +459,7 @@ export default function PatientVerificationScreen() {
                   ) : (
                     <View style={styles.documentPreviewFile}>
                       <Ionicons name="document-outline" size={22} color={T.green700} />
-                      <Text style={styles.documentPreviewName}>{submittedDocPreview.name}</Text>
+                      <Text style={styles.documentPreviewName} numberOfLines={1} ellipsizeMode="tail">{submittedDocPreview.name}</Text>
                     </View>
                   )}
                   <Text style={styles.documentPreviewMeta}>Uploaded in this session</Text>
@@ -449,10 +467,20 @@ export default function PatientVerificationScreen() {
               ) : latestDocumentItem?.document_path ? (
                 <View style={styles.documentPreviewCard}>
                   <Text style={styles.documentPreviewTitle}>Current uploaded document</Text>
-                  <View style={styles.documentPreviewFile}>
-                    <Ionicons name="document-attach-outline" size={22} color={T.green700} />
-                    <Text style={styles.documentPreviewName}>{fileNameFromPath(latestDocumentItem.document_path)}</Text>
-                  </View>
+                  {existingDocIsImage && existingDocUrl ? (
+                    <Image
+                      source={{ uri: existingDocUrl, headers: { Authorization: `Bearer ${(globalThis as any)?.apiToken}` } }}
+                      style={styles.documentPreviewImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.documentPreviewFile}>
+                      <Ionicons name="document-attach-outline" size={22} color={T.green700} />
+                      <Text style={styles.documentPreviewName} numberOfLines={1} ellipsizeMode="tail">
+                        {fileNameFromPath(latestDocumentItem.document_path)}
+                      </Text>
+                    </View>
+                  )}
                   <Text style={styles.documentPreviewMeta}>
                     {latestDocumentItem.status === 'pending' ? 'Pending review' : `Status: ${latestDocumentItem.status}`}
                   </Text>
@@ -515,11 +543,11 @@ export default function PatientVerificationScreen() {
                     </View>
                     <View style={styles.historyMain}>
                       <Text style={styles.historyTitle}>
-                        {v.type === 'none' ? 'None' : v.type === 'pwd' ? 'PWD' : v.type === 'senior' ? 'Senior Citizen' : 'Pregnant'}
+                        {v.type === 'none' ? 'None' : v.type === 'pwd' ? 'PWD' : v.type === 'senior' ? 'Senior Citizen' : v.type === 'pregnant' ? 'Pregnant' : 'None'}
                       </Text>
                       <Text style={styles.historyStatus}>{v.status.toUpperCase()}</Text>
                       {v.document_path ? (
-                        <Text style={styles.historyDocName}>{fileNameFromPath(v.document_path)}</Text>
+                        <Text style={styles.historyDocName} numberOfLines={1} ellipsizeMode="tail">{fileNameFromPath(v.document_path)}</Text>
                       ) : null}
                     </View>
                     <Text style={styles.historyDate}>
@@ -669,7 +697,7 @@ const styles = StyleSheet.create({
     borderBottomColor: T.slate100,
   },
   sectionBadge: {
-    backgroundColor: 'rgba(6,182,212,0.1)',
+    backgroundColor: 'rgba(34,197,94,0.1)',
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -697,8 +725,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   dropdownTriggerActive: {
-    borderColor: 'rgba(6,182,212,0.3)',
-    backgroundColor: 'rgba(6,182,212,0.08)',
+    borderColor: 'rgba(34,197,94,0.35)',
+    backgroundColor: 'rgba(34,197,94,0.08)',
   },
   dropdownTriggerText: { fontSize: 13, fontWeight: '600', color: T.slate700, flex: 1 },
   dropdownMenu: {
@@ -721,7 +749,7 @@ const styles = StyleSheet.create({
     borderBottomColor: T.slate100,
   },
   dropdownItemActive: {
-    backgroundColor: 'rgba(6,182,212,0.08)',
+    backgroundColor: 'rgba(34,197,94,0.08)',
   },
   dropdownItemText: { fontSize: 13, color: T.slate700, flex: 1 },
   dropdownItemTextActive: { color: T.green700, fontWeight: '700' },
@@ -739,10 +767,10 @@ const styles = StyleSheet.create({
   },
   uploadBoxActive: {
     borderColor: T.green500,
-    backgroundColor: 'rgba(6,182,212,0.04)',
+    backgroundColor: 'rgba(34,197,94,0.06)',
     borderStyle: 'solid',
   },
-  uploadBoxText: { fontSize: 13, fontWeight: '600', color: T.slate600, textAlign: 'center', paddingHorizontal: 20 },
+  uploadBoxText: { fontSize: 13, fontWeight: '600', color: T.slate600, textAlign: 'center', paddingHorizontal: 20, overflow: 'hidden' },
   uploadBoxTextActive: { color: T.green700 },
   uploadBoxSub: { fontSize: 10, color: T.slate400 },
   documentPreviewCard: {
@@ -773,7 +801,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  documentPreviewName: { flex: 1, fontSize: 12, fontWeight: '600', color: T.slate700 },
+  documentPreviewName: { flex: 1, fontSize: 12, fontWeight: '600', color: T.slate700, overflow: 'hidden' },
   documentPreviewMeta: { fontSize: 11, color: T.slate500 },
   actionSection: { marginTop: 4 },
   submitBtn: {

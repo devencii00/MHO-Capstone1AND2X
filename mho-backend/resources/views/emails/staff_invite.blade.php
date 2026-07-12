@@ -13,7 +13,7 @@
             <div style="height:6px;background:#16A34A;"></div>
 
             <div style="padding:28px 32px 20px;text-align:center;border-bottom:1px solid #f1f5f9;">
-                <img src="{{ $logoCid }}" alt="OPOL Primary Healthcare Facility" width="64" height="64" style="display:block;margin:0 auto 14px;border-radius:12px;">
+                <img src="{{ $message->embed(public_path('images/MHOLogoV2.png')) }}" alt="OPOL Primary Healthcare Facility" width="64" height="64" style="display:block;margin:0 auto 14px;border-radius:12px;">
 
                 <div style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#64748b;">
                     OPOL Primary Healthcare Facility

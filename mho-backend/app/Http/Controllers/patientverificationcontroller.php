@@ -76,6 +76,10 @@ class PatientVerificationController extends Controller
             'remarks' => ['nullable', 'string'],
         ]);
 
+        if (($data['type'] ?? '') === 'none') {
+            $data['type'] = null;
+        }
+
         if ($isPatient) {
             $data['patient_id'] = $currentUser->user_id;
             $data['status'] = 'pending';

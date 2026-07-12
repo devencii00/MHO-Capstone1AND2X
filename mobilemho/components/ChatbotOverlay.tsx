@@ -25,6 +25,7 @@ export default function ChatbotOverlay() {
   const isFillupInfoRoute = (segments as string[]).includes('fillup-info');
   const isPendingApprovalRoute = (segments as string[]).includes('pending-approval');
   const isMedicalBgRoute = (segments as string[]).includes('medical-bg');
+  const isVerifyRoute = (segments as string[]).includes('verify');
 
   const [chatOpen, setChatOpen] = useState(false);
   const [chatLoading, setChatLoading] = useState(false);
@@ -170,7 +171,7 @@ export default function ChatbotOverlay() {
   }, []);
 
   const fabBottom = insets.bottom + (isTabsRoute ? 92 : 24);
-  const hideOverlay = isFirstLoginRoute || isFillupInfoRoute || isPendingApprovalRoute || isMedicalBgRoute;
+  const hideOverlay = isFirstLoginRoute || isFillupInfoRoute || isPendingApprovalRoute || isMedicalBgRoute || isVerifyRoute;
 
   return (
     <>
@@ -185,7 +186,7 @@ export default function ChatbotOverlay() {
           pressed && styles.fabPressed,
         ]}
       >
-        <Ionicons name="hardware-chip-outline" size={22} color="#ffffff" />
+        <Ionicons name="headset-outline" size={22} color="#ffffff" />
       </Pressable>
 
       <Modal visible={chatOpen} transparent animationType="fade" onRequestClose={() => setChatOpen(false)}>
@@ -295,11 +296,7 @@ const styles = StyleSheet.create({
     zIndex: 60,
     opacity: 0.45,
   },
-  fabHovered: {
-    opacity: 0.82,
-    backgroundColor: 'rgba(14,116,144,0.96)',
-    transform: [{ scale: 1.04 }],
-  },
+  fabHovered: { backgroundColor: 'rgba(21,128,61,0.96)', transform: [{ scale: 1.06 }] },
   fabPressed: {
     opacity: 0.92,
   },

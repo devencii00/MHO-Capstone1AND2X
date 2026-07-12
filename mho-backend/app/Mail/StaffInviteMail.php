@@ -37,11 +37,4 @@ class StaffInviteMail extends Mailable
             view: 'emails.staff_invite',
         );
     }
-
-    protected function buildViewData(): array
-    {
-        $data = parent::buildViewData();
-        $data['logoCid'] = $this->embed(public_path('images/MHOLogoV2.png'));
-        return $data;
-    }
 }

@@ -37,7 +37,8 @@ return new class extends Migration
         'appointments',
         'queues',
         'payments',
-        'medical_backgrounds'
+        'medical_backgrounds',
+        'patient_verifications'
     ])->nullable();
 
     $table->timestamp('read_at')->nullable();
