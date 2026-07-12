@@ -647,6 +647,35 @@
 </div>
 
 {{-- ═══════════════════════════════════════════════════════════════════ --}}
+{{-- Prescription Receipt Modal --}}
+{{-- ═══════════════════════════════════════════════════════════════════ --}}
+<div id="rxReceiptModal" class="hidden fixed inset-0 z-[70] bg-slate-900/60 flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl max-h-[90vh] rounded-2xl bg-white border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,0.35)] flex flex-col overflow-hidden">
+        {{-- Modal header --}}
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+            <div>
+                <div class="text-sm font-semibold text-slate-900">Prescription Receipt</div>
+                <div id="rxReceiptSubtitle" class="text-[0.72rem] text-slate-500">Printable prescription slip.</div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" id="rxReceiptPrintBtn" class="inline-flex items-center gap-1.5 rounded-xl bg-green-700 px-3 py-2 text-[0.78rem] font-semibold text-white hover:bg-green-800">
+                    <x-lucide-printer class="w-4 h-4" />
+                    Print / PDF
+                </button>
+                <button type="button" id="rxReceiptCloseBtn" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">
+                    Close
+                </button>
+            </div>
+        </div>
+
+        {{-- Iframe body --}}
+        <div class="flex-1 min-h-0 bg-slate-50">
+            <iframe id="rxReceiptIframe" src="" class="w-full h-full border-0" style="min-height: 70vh;"></iframe>
+        </div>
+    </div>
+</div>
+
+{{-- ═══════════════════════════════════════════════════════════════════ --}}
 {{-- View Details and History Modal --}}
 {{-- ═══════════════════════════════════════════════════════════════════ --}}
 <div id="doctorPrViewOverlay" class="hidden fixed inset-0 z-[60] bg-slate-900/40 items-center justify-center p-4">
@@ -1518,7 +1547,7 @@
         function renderMedicineLoadMore() {
             if (!consultMedicineLoadMore) return
             consultMedicineLoadMore.disabled = state.medicineLoading || !state.medicineHasMore
-            consultMedicineLoadMore.textContent = state.medicineLoading ? 'Loading...' : 'See more'
+            consultMedicineLoadMore.textContent = (state.medicineHasMore && state.medicineLoading) ? 'Loading...' : (state.medicineHasMore ? 'See more' : '')
         }
 
         function renderMedicineList() {
@@ -1569,6 +1598,15 @@
             var contra = med.contraindications || '-'
             var dosageForm = med.dosage_form || '-'
             var strength = med.strength || '-'
+
+            // Pre-fill inputs from existing selected medicine entry if any
+            var existing = state.selectedMedicines.filter(function (m) { return String(m.medicine_id) === String(medicineId) })
+            var existingData = existing.length ? existing[0] : null
+            var dosage = existingData && existingData.dosage ? escapeHtml(String(existingData.dosage).replace(/"/g, '&quot;')) : ''
+            var frequency = existingData && existingData.frequency ? escapeHtml(String(existingData.frequency).replace(/"/g, '&quot;')) : ''
+            var duration = existingData && existingData.duration ? escapeHtml(String(existingData.duration).replace(/"/g, '&quot;')) : ''
+            var instructions = existingData && existingData.instructions ? escapeHtml(String(existingData.instructions).replace(/"/g, '&quot;')) : ''
+
             consultMedicineDetailBody.innerHTML =
                 '<div class="rounded-xl border border-slate-100 bg-white p-4 space-y-2.5">' +
                     '<div class="text-sm font-semibold text-slate-800">' + escapeHtml(name) + '</div>' +
@@ -1579,6 +1617,28 @@
                     '</div>' +
                     '<div class="text-[0.72rem]"><span class="text-slate-400">Indications:</span><br><span class="text-slate-600">' + escapeHtml(indications) + '</span></div>' +
                     '<div class="text-[0.72rem]"><span class="text-slate-400">Contraindications:</span><br><span class="text-slate-600">' + escapeHtml(contra) + '</span></div>' +
+                    // Prescription item inputs
+                    '<div class="border-t border-slate-100 pt-2.5 mt-1">' +
+                        '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Prescription Details</div>' +
+                        '<div class="grid grid-cols-2 gap-x-3 gap-y-2">' +
+                            '<div>' +
+                                '<label class="block text-[0.65rem] text-slate-500 mb-0.5">Dosage</label>' +
+                                '<input type="text" class="rx-input-dosage w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.75rem] text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-300" placeholder="e.g. 500mg" value="' + dosage + '">' +
+                            '</div>' +
+                            '<div>' +
+                                '<label class="block text-[0.65rem] text-slate-500 mb-0.5">Frequency</label>' +
+                                '<input type="text" class="rx-input-frequency w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.75rem] text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-300" placeholder="e.g. 3x/day" value="' + frequency + '">' +
+                            '</div>' +
+                            '<div>' +
+                                '<label class="block text-[0.65rem] text-slate-500 mb-0.5">Duration</label>' +
+                                '<input type="text" class="rx-input-duration w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.75rem] text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-300" placeholder="e.g. 7 days" value="' + duration + '">' +
+                            '</div>' +
+                            '<div>' +
+                                '<label class="block text-[0.65rem] text-slate-500 mb-0.5">Instructions</label>' +
+                                '<input type="text" class="rx-input-instructions w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.75rem] text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-300" placeholder="e.g. After meals" value="' + instructions + '">' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
                     '<div class="pt-1">' +
                         '<button type="button" class="med-item-add w-full rounded-lg px-3 py-1.5 text-[0.72rem] font-semibold text-white bg-green-600 hover:bg-green-700 border border-green-500">Select this medicine</button>' +
                     '</div>' +
@@ -2730,6 +2790,7 @@
 
             var prescriptionRows = getPrescriptionRows()
             var shouldSavePrescription = prescriptionRows.length > 0 || !!state.prescriptionId
+            var savedPrescriptionId = null
 
             // Step 1: Mark appointment as "consulted" FIRST so TransactionController allows payment recording
             var consultedPromise = api('{{ url('/api/appointments') }}/' + state.appointmentId, {
@@ -2805,44 +2866,51 @@
                     return rxPromise.then(function (rx) {
                         state.prescriptionId = rx.prescription_id
 
-                        var deletes = state.existingItemIds.reduce(function (p, id) {
-                            return p.then(function () {
+                        // Delete existing items in parallel
+                        var deletes = Promise.all(
+                            state.existingItemIds.map(function (id) {
                                 return api('{{ url('/api/prescription-items') }}/' + id, { method: 'DELETE' }).catch(function () {})
                             })
-                        }, Promise.resolve())
+                        )
 
                         return deletes.then(function () {
-                            return prescriptionRows.reduce(function (p, row) {
-                                return p.then(function () {
-                                    return api('{{ url('/api/prescription-items') }}', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({
-                                            prescription_id: state.prescriptionId,
-                                            medicine_id: Number(row.medicine_id),
-                                            dosage: row.dosage || null,
-                                            frequency: row.frequency || null,
-                                            duration: row.duration || null,
-                                            instructions: row.instructions || null,
-                                        }),
-                                    })
+                            // Create new items in parallel
+                            var creates = prescriptionRows.map(function (row) {
+                                return api('{{ url('/api/prescription-items') }}', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        prescription_id: state.prescriptionId,
+                                        medicine_id: Number(row.medicine_id),
+                                        dosage: row.dosage || null,
+                                        frequency: row.frequency || null,
+                                        duration: row.duration || null,
+                                        instructions: row.instructions || null,
+                                    }),
                                 })
-                            }, Promise.resolve())
+                            })
+                            return Promise.all(creates)
                         })
                     })
                 })
             }).then(function () {
+                // Capture prescription ID before resetWorkspace clears it
+                savedPrescriptionId = state.prescriptionId
+
                 // Clear workspace and reset appointment selection after successful submission
                 resetWorkspace()
                 if (appointmentSelect) appointmentSelect.value = ''
-                return loadExistingDraft()
-            }).then(function () {
+
                 var successMessage = shouldSavePrescription
                     ? 'Consultation & prescription saved. Pending payment.'
                     : 'Consultation & notes saved. Pending payment.'
                 showSaveSuccess(successMessage, !!state.lastSavedTransactionId)
                 return loadHistory(state.patientId)
             }).then(function () {
+                // Show prescription receipt modal after successful submission if prescription exists
+                if (shouldSavePrescription && savedPrescriptionId) {
+                    openRxReceiptModal(savedPrescriptionId)
+                }
                 return true
             }).catch(function (err) {
                 if (typeof showToast === 'function') showToast(err && err.body ? err.body : 'Unable to save consultation.', 'error')
@@ -3128,28 +3196,46 @@
                 // We'll track active selected medicine via a simple variable
                 var detailId = consultMedicineDetailBody.getAttribute('data-active-med-id')
                 if (!detailId) return
-                // Check if already selected
+
+                // Read prescription detail inputs
+                var detailBox = consultMedicineDetailBody.querySelector('.rounded-xl')
+                var dosageVal = detailBox ? modalValue(detailBox.querySelector('.rx-input-dosage')) : ''
+                var frequencyVal = detailBox ? modalValue(detailBox.querySelector('.rx-input-frequency')) : ''
+                var durationVal = detailBox ? modalValue(detailBox.querySelector('.rx-input-duration')) : ''
+                var instructionsVal = detailBox ? modalValue(detailBox.querySelector('.rx-input-instructions')) : ''
+
+                // Check if already selected — update existing entry instead
                 var exists = state.selectedMedicines.some(function (m) { return String(m.medicine_id) === String(detailId) })
                 if (exists) {
-                    if (typeof showToast === 'function') showToast('Medicine already selected.', 'info')
+                    state.selectedMedicines.forEach(function (m) {
+                        if (String(m.medicine_id) === String(detailId)) {
+                            m.dosage = dosageVal
+                            m.frequency = frequencyVal
+                            m.duration = durationVal
+                            m.instructions = instructionsVal
+                        }
+                    })
+                    renderSelectedMedicines()
+                    renderPrescriptionSummary()
                     return
                 }
+
                 var med = state.medicinesById[detailId]
                 if (!med) return
+
                 state.selectedMedicines.push({
                     medicine_id: med.medicine_id,
                     medicine_name: medicineDisplayName(med),
-                    dosage: '',
-                    frequency: '',
-                    duration: '',
-                    instructions: '',
+                    dosage: dosageVal,
+                    frequency: frequencyVal,
+                    duration: durationVal,
+                    instructions: instructionsVal,
                 })
                 renderMedicineList()
                 renderMedicineDetail(detailId)
                 renderSelectedMedicines()
                 renderPrescriptionSummary()
                 renderSafety()
-                if (typeof showToast === 'function') showToast('"' + medicineDisplayName(med) + '" added.', 'success')
             })
         }
         if (consultMedicineSelectedBody) {
@@ -3192,7 +3278,6 @@
                 closeMedicineSelector()
                 renderPrescriptionSummary()
                 renderSafety()
-                if (typeof showToast === 'function') showToast('Medicines updated.', 'success')
             })
         }
 
@@ -4680,6 +4765,38 @@
                 // Open modal immediately, load data in background
                 openViewModal()
                 loadPatientPanelData(currentPatientId)
+            })
+        }
+
+        // ── Prescription Receipt Modal ──
+        var rxReceiptModal = document.getElementById('rxReceiptModal')
+        var rxReceiptIframe = document.getElementById('rxReceiptIframe')
+        var rxReceiptPrintBtn = document.getElementById('rxReceiptPrintBtn')
+        var rxReceiptCloseBtn = document.getElementById('rxReceiptCloseBtn')
+
+        function openRxReceiptModal(prescriptionId) {
+            if (!rxReceiptModal || !rxReceiptIframe) return
+            rxReceiptIframe.src = '{{ url('/print/prescriptions') }}/' + prescriptionId
+            rxReceiptModal.classList.remove('hidden')
+        }
+
+        function closeRxReceiptModal() {
+            if (!rxReceiptModal) return
+            rxReceiptModal.classList.add('hidden')
+            if (rxReceiptIframe) rxReceiptIframe.src = ''
+        }
+
+        if (rxReceiptCloseBtn) {
+            rxReceiptCloseBtn.addEventListener('click', closeRxReceiptModal)
+        }
+
+        if (rxReceiptPrintBtn && rxReceiptIframe) {
+            rxReceiptPrintBtn.addEventListener('click', function () {
+                var iframeWin = rxReceiptIframe.contentWindow
+                if (iframeWin) {
+                    iframeWin.focus()
+                    iframeWin.print()
+                }
             })
         }
     })
