@@ -263,11 +263,16 @@
 
         function serviceSummary(appt) {
             var services = appt && Array.isArray(appt.services) ? appt.services : []
-            var names = services
-                .map(function (s) { return String((s && s.service_name) ? s.service_name : '').trim() })
+            var labels = services
+                .map(function (s) {
+                    var name = String((s && s.service_name) ? s.service_name : '').trim()
+                    var desc = String((s && s.description) ? s.description : '').trim()
+                    if (!name) return ''
+                    return desc ? name + ' - ' + desc : name
+                })
                 .filter(function (v) { return v !== '' })
-            if (!names.length) return '-'
-            return names.join(', ')
+            if (!labels.length) return '-'
+            return labels.join(', ')
         }
 
         function manageStatusLabel(appt) {
@@ -323,7 +328,7 @@
                     '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.date || '-') + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.time ? formatTime12h(when.time) : '-') + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(patientName) + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 min-w-[14rem] whitespace-nowrap">' + escapeHtml(serviceText) + '</td>' +
+                    '<td class="px-3 py-2 text-slate-700 truncate max-w-[18rem]" title="' + escapeHtml(serviceText.replace(/"/g, '&quot;')) + '">' + escapeHtml(serviceText) + '</td>' +
                     '<td class="px-3 py-2 whitespace-nowrap">' + statusDisplay + '</td>' +
                     '<td class="px-3 py-2 whitespace-nowrap">' + typeDisplay + '</td>' +
                     '<td class="px-3 py-2 text-right whitespace-nowrap">' +

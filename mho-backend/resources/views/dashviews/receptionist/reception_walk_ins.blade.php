@@ -580,10 +580,13 @@ function setWalkInTab(tab) {
 
         function serviceSummary(appt) {
             var list = appt && Array.isArray(appt.services) ? appt.services : []
-            var names = list.map(function (item) {
-                return String(item && item.service_name ? item.service_name : '').trim()
+            var labels = list.map(function (item) {
+                var name = String(item && item.service_name ? item.service_name : '').trim()
+                var desc = String(item && item.description ? item.description : '').trim()
+                if (!name) return ''
+                return desc ? name + ' - ' + desc : name
             }).filter(Boolean)
-            return names.length ? names.join(', ') : '-'
+            return labels.length ? labels.join(', ') : '-'
         }
 
         function statusText(appt) {
@@ -633,7 +636,7 @@ function setWalkInTab(tab) {
                     '<tr>' +
                         '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(formatTime12h(when.time)) + '</td>' +
                         '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(patientName) + '</td>' +
-                        '<td class="px-3 py-2 text-slate-700 min-w-[14rem] whitespace-nowrap">' + escapeHtml(serviceSummary(appt)) + '</td>' +
+                        '<td class="px-3 py-2 text-slate-700 truncate max-w-[18rem]" title="' + escapeHtml(serviceSummary(appt).replace(/"/g, '&quot;')) + '">' + escapeHtml(serviceSummary(appt)) + '</td>' +
                         '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(doctorName) + '</td>' +
                         '<td class="px-3 py-2 whitespace-nowrap"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] border ' + statusBadgeClass(appt) + '">' + escapeHtml(status) + '</span></td>' +
                         '<td class="text-right px-3 py-2 whitespace-nowrap">' +

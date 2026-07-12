@@ -316,10 +316,10 @@
                                     ];
                                 });
                             $serviceCount = $services->count();
-                            $servicePrimary = $serviceCount ? $services->first() : null;
-                            $servicePrimaryLabel = $servicePrimary
-                                ? ($servicePrimary['name'] . ($servicePrimary['description'] ? ' - ' . $servicePrimary['description'] : ''))
-                                : null;
+                            $serviceLabels = $services->map(function ($svc) {
+                                return $svc['name'] . ($svc['description'] ? ' - ' . $svc['description'] : '');
+                            });
+                            $servicesDisplay = $serviceLabels->join(', ');
                             $statusNameLower = strtolower($statusName);
                              $statusBadgeColor = match($statusNameLower) {
                                  'waiting' => 'border-orange-200 bg-orange-50 text-orange-700',
@@ -375,20 +375,12 @@
                                     @endif
                                 @endif
                             </td>
-                            <td class="py-2 pr-4 text-[0.78rem] text-slate-500 max-w-[180px]">
+                            <td class="py-2 pr-4 text-[0.78rem] text-slate-500 truncate max-w-[180px]"
                                 @if ($serviceCount > 0)
-                                    <div class="inline-flex items-center gap-1">
-                                        <span class="truncate">{{ $servicePrimaryLabel }}</span>
-                                        @if ($serviceCount > 1)
-                                            <button type="button"
-                                                class="inline-flex items-center rounded-lg border border-slate-200 px-2 py-0.5 text-[0.65rem] text-slate-600 hover:bg-slate-50 reception-service-overlay-trigger"
-                                                data-services='@json($services->values()->all())'
-                                                data-patient="{{ $patientName ?: 'Patient' }}"
-                                                data-queue-label="{{ $queue->queue_code ?? $queue->queue_number }}">
-                                                +{{ $serviceCount - 1 }}more
-                                            </button>
-                                        @endif
-                                    </div>
+                                    title="{{ $servicesDisplay }}"
+                                @endif>
+                                @if ($serviceCount > 0)
+                                    <span class="truncate block">{{ $servicesDisplay }}</span>
                                 @else
                                     <span class="text-[0.7rem] text-slate-400">No service</span>
                                 @endif
