@@ -386,7 +386,7 @@ class UserController extends Controller
         }
 
         $data = $request->validate([
-            'signature' => ['required', 'image', 'max:2048'],
+            'signature' => ['required', 'image', 'max:5120'],
         ]);
 
         $file = $data['signature'];

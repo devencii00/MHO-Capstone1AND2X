@@ -205,7 +205,7 @@
                     return;
                 }
 
-                sigBox.innerHTML = '<img alt="Signature" src="' + escapeHtml(signatureUrl) + '" class="max-h-16 max-w-full object-contain">';
+                sigBox.innerHTML = '<img alt="Signature" src="' + escapeHtml(signatureUrl) + '?t=' + Date.now() + '" class="max-h-16 max-w-full object-contain">';
             }
 
             function load() {

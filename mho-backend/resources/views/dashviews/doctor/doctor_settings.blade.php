@@ -171,7 +171,8 @@
                             </button>
                         </div>
                         <input id="doctorSettingsSignatureUploadInput" type="file" accept="image/*" class="hidden">
-                        <p class="text-[0.65rem] text-slate-400 mt-2">Upload a clear image of your signature. JPG, PNG. Max 2MB.</p>
+                        <canvas id="doctorSettingsSignatureCanvas" class="hidden"></canvas>
+                        <span class="mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[0.6rem] font-medium text-amber-700">Upload a signature on a white canvas for the best result.</span>
                     </div>
                 </div>
             </div>
@@ -327,7 +328,6 @@
     document.addEventListener('DOMContentLoaded', function () {
         var currentUserId = null
         var pendingProfileFile = null
-        var pendingSignatureFile = null
 
         // ── Tab switching ──
         var tabProfile = document.getElementById('doctorSettingsTabProfile')
@@ -1002,7 +1002,8 @@
                     if (user.signature_url) {
                         var sigPreview = document.getElementById('doctorSettingsSignaturePreview')
                         var sigPlaceholder = document.getElementById('doctorSettingsSignaturePlaceholder')
-                        if (sigPreview) { sigPreview.src = user.signature_url; sigPreview.classList.remove('hidden') }
+                        // Append cache-buster since signature_url is a fixed route (not file-based)
+                        if (sigPreview) { sigPreview.src = user.signature_url + '?t=' + Date.now(); sigPreview.classList.remove('hidden') }
                         if (sigPlaceholder) sigPlaceholder.classList.add('hidden')
                     }
                 })
@@ -1037,26 +1038,81 @@
         var sigPlaceholder = document.getElementById('doctorSettingsSignaturePlaceholder')
         var sigSave = document.getElementById('doctorSettingsSignatureSave')
         var sigSaveSpinner = document.getElementById('doctorSettingsSignatureSaveSpinner')
+        var sigCanvas = document.getElementById('doctorSettingsSignatureCanvas')
+        var pendingSignatureBlob = null
+        var sigBgThreshold = 200  // pixels with R,G,B all above this are considered "white" → made transparent
+
+        function processSignatureImage(file) {
+            return new Promise(function (resolve, reject) {
+                if (!sigCanvas) { resolve(file); return }
+                var reader = new FileReader()
+                reader.onload = function (e) {
+                    var img = new Image()
+                    img.onload = function () {
+                        var ctx = sigCanvas.getContext('2d')
+                        // Resize to a max width of 600px (signatures don't need full resolution)
+                        var MAX_W = 600
+                        var w = img.naturalWidth
+                        var h = img.naturalHeight
+                        if (w > MAX_W) {
+                            h = Math.round(h * (MAX_W / w))
+                            w = MAX_W
+                        }
+                        sigCanvas.width = w
+                        sigCanvas.height = h
+                        // Draw image onto canvas
+                        ctx.drawImage(img, 0, 0, w, h)
+                        // Get pixel data
+                        var imageData = ctx.getImageData(0, 0, sigCanvas.width, sigCanvas.height)
+                        var data = imageData.data
+                        // Loop through each pixel and make white-ish pixels transparent
+                        for (var i = 0; i < data.length; i += 4) {
+                            var r = data[i], g = data[i + 1], b = data[i + 2]
+                            if (r > sigBgThreshold && g > sigBgThreshold && b > sigBgThreshold) {
+                                data[i + 3] = 0  // set alpha to 0 (transparent)
+                            }
+                        }
+                        ctx.putImageData(imageData, 0, 0)
+                        // Convert to blob
+                        sigCanvas.toBlob(function (blob) {
+                            if (blob) {
+                                // Name the blob as a PNG
+                                var namedBlob = new Blob([blob], { type: 'image/png' })
+                                resolve(namedBlob)
+                            } else {
+                                // Fall back to original file if canvas processing fails
+                                resolve(file)
+                            }
+                        }, 'image/png')
+                    }
+                    img.onerror = function () { resolve(file) }
+                    img.src = e.target.result
+                }
+                reader.onerror = function () { resolve(file) }
+                reader.readAsDataURL(file)
+            })
+        }
 
         if (sigUploadBtn && sigUploadInput) {
             sigUploadBtn.addEventListener('click', function () { sigUploadInput.click() })
             sigUploadInput.addEventListener('change', function () {
                 var file = sigUploadInput.files && sigUploadInput.files[0]
                 if (!file) return
-                pendingSignatureFile = file
-                var reader = new FileReader()
-                reader.onload = function (e) {
-                    if (sigPreview) { sigPreview.src = e.target.result; sigPreview.classList.remove('hidden') }
+                // Process the image to remove white background
+                processSignatureImage(file).then(function (processedBlob) {
+                    pendingSignatureBlob = processedBlob
+                    // Preview the processed image
+                    var previewUrl = URL.createObjectURL(processedBlob)
+                    if (sigPreview) { sigPreview.src = previewUrl; sigPreview.classList.remove('hidden') }
                     if (sigPlaceholder) sigPlaceholder.classList.add('hidden')
-                }
-                reader.readAsDataURL(file)
+                })
             })
         }
 
         if (sigSave) {
             sigSave.addEventListener('click', function () {
-                if (sigSave.disabled || !pendingSignatureFile) {
-                    if (!pendingSignatureFile) showAccountError('Please select a signature image first.')
+                if (sigSave.disabled || !pendingSignatureBlob) {
+                    if (!pendingSignatureBlob) showAccountError('Please select a signature image first.')
                     return
                 }
                 showAccountError('')
@@ -1065,7 +1121,7 @@
                 if (sigSaveSpinner) sigSaveSpinner.classList.remove('hidden')
 
                 var fd = new FormData()
-                fd.append('signature', pendingSignatureFile)
+                fd.append('signature', pendingSignatureBlob, 'signature.png')
 
                 apiFetch("{{ url('/api/users/me/signature') }}", {
                     method: 'POST',
@@ -1083,7 +1139,7 @@
                         showAccountError((result.data && result.data.message) ? result.data.message : 'Unable to upload signature.')
                         return
                     }
-                    pendingSignatureFile = null
+                    pendingSignatureBlob = null
                     showAccountNotice('Signature uploaded.')
                     loadCurrentUser()
                 })
