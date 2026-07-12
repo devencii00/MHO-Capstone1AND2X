@@ -6,15 +6,15 @@
 
     <div class="bg-white border border-slate-200 rounded-[18px] shadow-[0_2px_10px_rgba(15,23,42,0.04)] overflow-hidden">
     <div class="grid grid-cols-2 border-b border-slate-200">
-        <button id="receptionPatientTabRegister" type="button" class="px-4 py-3 text-xs font-semibold text-white bg-green-500 border-b-2 border-green-600">
-            Register patient
-        </button>
-        <button id="receptionPatientTabRecords" type="button" class="px-4 py-3 text-xs font-semibold text-slate-900 bg-white hover:bg-slate-50 border-l border-slate-200">
+        <button id="receptionPatientTabRecords" type="button" class="px-4 py-3 text-xs font-semibold text-white bg-green-500 border-b-2 border-green-600">
             Patient Records
+        </button>
+        <button id="receptionPatientTabRegister" type="button" class="px-4 py-3 text-xs font-semibold text-slate-900 bg-white hover:bg-slate-50 border-l border-slate-200">
+            Register patient
         </button>
     </div>
 
-    <div id="receptionRegisterPatientPanel" class="p-5">
+    <div id="receptionRegisterPatientPanel" class="hidden p-5">
 
         <div id="receptionRegisterPatientError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
         <div id="receptionRegisterPatientSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
@@ -117,7 +117,7 @@
         </p>
     </div>
 
-    <div id="receptionPatientRecordsPanel" class="hidden">
+    <div id="receptionPatientRecordsPanel">
         <div class="p-5">
             <div class="flex items-center justify-between mb-3">
                 <h2 class="text-sm font-semibold text-slate-900"></h2>
@@ -1551,7 +1551,7 @@
         var panelRegister = document.getElementById('receptionRegisterPatientPanel')
         var panelRecords = document.getElementById('receptionPatientRecordsPanel')
 
-        function switchPatientTab(tab) {
+        window.switchPatientTab = function (tab) {
             var isRegister = tab === 'register'
             tabRegister.className = 'px-4 py-3 text-xs font-semibold ' + (isRegister ? 'text-white bg-green-500 border-b-2 border-green-600' : 'text-slate-900 bg-white hover:bg-slate-50 border-l border-slate-200')
             tabRecords.className = 'px-4 py-3 text-xs font-semibold ' + (!isRegister ? 'text-white bg-green-500 border-b-2 border-green-600' : 'text-slate-900 bg-white hover:bg-slate-50 border-l border-slate-200')
@@ -1559,8 +1559,8 @@
             panelRecords.classList.toggle('hidden', isRegister)
         }
 
-        if (tabRegister) tabRegister.addEventListener('click', function () { switchPatientTab('register') })
-        if (tabRecords) tabRecords.addEventListener('click', function () { switchPatientTab('records') })
+        if (tabRegister) tabRegister.addEventListener('click', function () { window.switchPatientTab('register') })
+        if (tabRecords) tabRecords.addEventListener('click', function () { window.switchPatientTab('records') })
 
         // ── Patient Records (duplicated from admin patient_records) ──
         var recDefaultProfilePicHtml = '<div class="w-full h-full flex items-center justify-center text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>'
@@ -1875,7 +1875,7 @@
                 return recMatchesAgeFilter(age, recActiveAgeFilter)
             })
             if (!filtered.length) {
-                recPatientsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No patients found.</td></tr>'
+                recPatientsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No patients found.<br><button type="button" onclick="window.switchPatientTab(\'register\')" class="mt-2 inline-flex items-center gap-1 text-green-700 hover:text-green-800 font-semibold underline underline-offset-2">Register patient?</button></td></tr>'
                 if (recPagination) recPagination.innerHTML = ''
                 return
             }
