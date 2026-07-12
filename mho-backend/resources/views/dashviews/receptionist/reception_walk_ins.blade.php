@@ -1689,9 +1689,6 @@ function setWalkInTab(tab) {
         var selectorCancelBtn = document.getElementById('receptionWalkInSelectorCancel')
         var selectorConfirmBtn = document.getElementById('receptionWalkInSelectorConfirm')
 
-        // Clear stale sessionStorage cache on page load to ensure fresh patient data (with in_queue) is fetched
-        try { if (window.sessionStorage) window.sessionStorage.removeItem(receptionBrowseCacheKeyPrefix + 'patients_latest') } catch (e) {}
-
         function getReceptionBrowseCacheRoot() {
             if (typeof window === 'undefined') return {}
             if (!window.__receptionBrowseModalCache) window.__receptionBrowseModalCache = {}
@@ -2161,6 +2158,18 @@ function setWalkInTab(tab) {
                 walkInPatientSearchHasMore = !!cacheEntry.hasMore
                 walkInPatientSearchQuery = ''
                 walkInPatientSearchPage = 1
+                // Silently refresh in background so stale cache is updated (e.g. other receptionist added a queue)
+                fetchWalkInPatientsPage('', 1).then(function (result) {
+                    saveReceptionBrowseCacheEntry(cacheKey, result.data, result.hasMore)
+                    walkInPatientSearchResults = Array.isArray(result.data) ? result.data.slice() : []
+                    walkInPatientSearchHasMore = !!result.hasMore
+                    walkInPatientSearchQuery = ''
+                    walkInPatientSearchPage = 1
+                    // If modal is open, update the displayed list silently
+                    if (selectorState && selectorState.type === 'patient' && typeof buildWalkInPatientList === 'function') {
+                        buildWalkInPatientList(walkInPatientSearchResults, '', walkInPatientSearchHasMore)
+                    }
+                }).catch(function () {})
                 return Promise.resolve(cloneBrowsePageResult(walkInPatientSearchResults, walkInPatientSearchHasMore))
             }
             if (cacheEntry.promise) {
@@ -4459,9 +4468,6 @@ function setWalkInTab(tab) {
 
                             var created = result.data || {}
                             function afterQueue(queueCode) {
-                                // Invalidate patient cache so the "On queue" badge shows immediately next time
-                                try { if (window.__receptionBrowseModalCache) delete window.__receptionBrowseModalCache['patients_latest'] } catch (e) {}
-                                try { if (window.sessionStorage) window.sessionStorage.removeItem(receptionBrowseCacheKeyPrefix + 'patients_latest') } catch (e) {}
                                 showSuccess(type === 'walk_in'
                                     ? 'Walk-in successfuly created and currently on the queue.'
                                     : 'Appointment has been created successfully. Queue entry created.')
@@ -4469,6 +4475,15 @@ function setWalkInTab(tab) {
                                     receptionShowQueueCard(queueCode, selectedPatient, selectedDoctor)
                                 }
                                 resetFormState()
+                                // Silently refresh patient cache in background so "On queue" badge updates without loading spinner
+                                var cacheKey = 'patients_latest'
+                                fetchWalkInPatientsPage('', 1).then(function (result) {
+                                    saveReceptionBrowseCacheEntry(cacheKey, result.data, result.hasMore)
+                                    walkInPatientSearchResults = Array.isArray(result.data) ? result.data.slice() : []
+                                    walkInPatientSearchHasMore = !!result.hasMore
+                                    walkInPatientSearchQuery = ''
+                                    walkInPatientSearchPage = 1
+                                }).catch(function () {})
                             }
 
                             if (autoQueue && created && created.appointment_id) {
