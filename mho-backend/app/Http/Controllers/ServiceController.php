@@ -17,6 +17,7 @@ class ServiceController extends Controller
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'in:name_asc,name_desc,price_asc,price_desc,created_desc,created_asc'],
             'search' => ['nullable', 'string', 'max:255'],
+            'service_names' => ['nullable', 'string', 'max:500'],
         ]);
 
         $perPage = (int) $request->query('per_page', 15);
@@ -29,6 +30,15 @@ class ServiceController extends Controller
 
         $sort = strtolower((string) $request->query('sort', 'name_asc'));
         $query = Service::query();
+
+        // Filter by specific service names (comma-separated)
+        if ($namesFilter = $request->query('service_names')) {
+            $names = array_map('trim', explode(',', $namesFilter));
+            $names = array_filter($names);
+            if (! empty($names)) {
+                $query->whereIn('service_name', $names);
+            }
+        }
 
         if ($search = $request->query('search')) {
             $search = trim($search);
@@ -79,6 +89,7 @@ class ServiceController extends Controller
 
         $request->validate([
             'limit' => ['nullable', 'integer', 'min:1', 'max:20'],
+            'service_names' => ['nullable', 'string', 'max:500'],
         ]);
 
         $limit = (int) $request->query('limit', 10);
@@ -110,6 +121,15 @@ class ServiceController extends Controller
             ])
             ->orderByDesc('usage_count')
             ->orderBy('services.service_name');
+
+        // Filter by specific service names (comma-separated)
+        if ($namesFilter = $request->query('service_names')) {
+            $names = array_map('trim', explode(',', $namesFilter));
+            $names = array_filter($names);
+            if (! empty($names)) {
+                $query->whereIn('services.service_name', $names);
+            }
+        }
 
         if (! $currentUser || $currentUser->role !== 'admin') {
             $query->where('services.is_active', true);

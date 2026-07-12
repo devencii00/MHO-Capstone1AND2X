@@ -48,6 +48,14 @@ class PatientController extends Controller
 
         $query = User::query()->where('role', 'patient');
 
+        // Preload has_pending_verification via subquery to avoid N+1
+        $query->addSelect([
+            'pending_verification_exists' => \App\Models\PatientVerification::selectRaw('CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END')
+                ->whereColumn('patient_id', 'users.user_id')
+                ->where('status', 'pending')
+                ->limit(1),
+        ]);
+
         if ($parentsOnly) {
             $query->where('is_dependent', false);
         }

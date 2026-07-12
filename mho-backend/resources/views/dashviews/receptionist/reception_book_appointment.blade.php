@@ -28,7 +28,7 @@
                     Browse
                 </button>
             </div>
-            <div id="receptionPatientPreview" class="hidden mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.78rem] text-slate-700 break-words"></div>
+            <div id="receptionPatientPreview" class="hidden mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2 min-h-[3rem] max-h-24 overflow-y-auto overscroll-contain"></div>
         </div>
         <div class="min-w-0">
             <label for="reception_appointment_service_id" class="block text-[0.7rem] text-slate-600 mb-1">Service</label>
@@ -54,7 +54,7 @@
                     Browse
                 </button>
             </div>
-            <div id="receptionDoctorPreview" class="hidden mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.78rem] text-slate-700 break-words"></div>
+            <div id="receptionDoctorPreview" class="hidden mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2 min-h-[3rem] max-h-24 overflow-y-auto overscroll-contain"></div>
         </div>
         <div class="min-w-0">
             <div class="block text-[0.7rem] text-slate-600 mb-1">Last Scheduled visit</div>
@@ -661,6 +661,7 @@ function setAppointmentTab(tab) {
         var bookPatientSearchHasMore = false
         var bookPatientSearchQuery = ''
         var bookPatientSearchLoading = false
+        var receptionBrowseCacheKeyPrefix = 'reception_browse_cache:'
         var bookDoctorSearchPage = 1
         var bookDoctorSearchResults = []
         var bookDoctorSearchHasMore = false
@@ -681,6 +682,64 @@ function setAppointmentTab(tab) {
         var selectorDetailBody = document.getElementById('receptionSelectorDetailBody')
         var selectorCancelBtn = document.getElementById('receptionSelectorCancel')
         var selectorConfirmBtn = document.getElementById('receptionSelectorConfirm')
+
+        function getReceptionBrowseCacheRoot() {
+            if (typeof window === 'undefined') return {}
+            if (!window.__receptionBrowseModalCache) window.__receptionBrowseModalCache = {}
+            return window.__receptionBrowseModalCache
+        }
+
+        function getReceptionBrowseCacheEntry(key) {
+            var root = getReceptionBrowseCacheRoot()
+            if (!root[key]) {
+                root[key] = {
+                    items: [],
+                    hasMore: false,
+                    loaded: false,
+                    promise: null
+                }
+            }
+            return root[key]
+        }
+
+        function loadReceptionBrowseCacheEntry(key) {
+            var entry = getReceptionBrowseCacheEntry(key)
+            if (entry.loaded) return entry
+            try {
+                if (!window.sessionStorage) return entry
+                var raw = window.sessionStorage.getItem(receptionBrowseCacheKeyPrefix + key)
+                if (!raw) return entry
+                var parsed = JSON.parse(raw)
+                if (!parsed || !Array.isArray(parsed.items)) return entry
+                if (parsed.saved_at && (Date.now() - parsed.saved_at) > (5 * 60 * 1000)) return entry
+                entry.items = parsed.items.slice()
+                entry.hasMore = !!parsed.hasMore
+                entry.loaded = true
+            } catch (e) {}
+            return entry
+        }
+
+        function saveReceptionBrowseCacheEntry(key, items, hasMore) {
+            var entry = getReceptionBrowseCacheEntry(key)
+            entry.items = Array.isArray(items) ? items.slice() : []
+            entry.hasMore = !!hasMore
+            entry.loaded = true
+            try {
+                if (!window.sessionStorage) return
+                window.sessionStorage.setItem(receptionBrowseCacheKeyPrefix + key, JSON.stringify({
+                    items: entry.items,
+                    hasMore: entry.hasMore,
+                    saved_at: Date.now()
+                }))
+            } catch (e) {}
+        }
+
+        function cloneBrowsePageResult(items, hasMore) {
+            return {
+                data: Array.isArray(items) ? items.slice() : [],
+                hasMore: !!hasMore
+            }
+        }
         var selectorState = {
             type: '',
             items: [],
@@ -1074,6 +1133,40 @@ function setAppointmentTab(tab) {
                     }
                 })
                 .catch(function () { return { data: [], hasMore: false } })
+        }
+
+        function ensureBookPatientsLoaded() {
+            var cacheKey = 'patients_latest'
+            var cacheEntry = loadReceptionBrowseCacheEntry(cacheKey)
+            if (cacheEntry.loaded) {
+                bookPatientSearchResults = Array.isArray(cacheEntry.items) ? cacheEntry.items.slice() : []
+                bookPatientSearchHasMore = !!cacheEntry.hasMore
+                bookPatientSearchQuery = ''
+                bookPatientSearchPage = 1
+                return Promise.resolve(cloneBrowsePageResult(bookPatientSearchResults, bookPatientSearchHasMore))
+            }
+            if (cacheEntry.promise) {
+                return cacheEntry.promise.then(function (result) {
+                    bookPatientSearchResults = Array.isArray(result.data) ? result.data.slice() : []
+                    bookPatientSearchHasMore = !!result.hasMore
+                    bookPatientSearchQuery = ''
+                    bookPatientSearchPage = 1
+                    return cloneBrowsePageResult(bookPatientSearchResults, bookPatientSearchHasMore)
+                })
+            }
+            cacheEntry.promise = fetchBookPatientsPage('', 1)
+                .then(function (result) {
+                    saveReceptionBrowseCacheEntry(cacheKey, result.data, result.hasMore)
+                    bookPatientSearchResults = Array.isArray(result.data) ? result.data.slice() : []
+                    bookPatientSearchHasMore = !!result.hasMore
+                    bookPatientSearchQuery = ''
+                    bookPatientSearchPage = 1
+                    return cloneBrowsePageResult(bookPatientSearchResults, bookPatientSearchHasMore)
+                })
+                .finally(function () {
+                    cacheEntry.promise = null
+                })
+            return cacheEntry.promise
         }
 
         function fetchBookDoctorsPage(query, page) {
@@ -1470,48 +1563,73 @@ function setAppointmentTab(tab) {
         }
 
         function ensureBookServicesLoaded() {
-            if (servicesLoaded && services.length) return Promise.resolve(services)
-            if (servicesLoading) return new Promise(function (resolve) {
-                var check = setInterval(function () {
-                    if (servicesLoaded) { clearInterval(check); resolve(services) }
-                }, 16)
-            })
+            var cacheKey = 'book_services_latest'
+            var cacheEntry = loadReceptionBrowseCacheEntry(cacheKey)
+            if (cacheEntry.loaded) {
+                services = Array.isArray(cacheEntry.items) ? cacheEntry.items.slice() : []
+                servicesLoaded = true
+                return Promise.resolve(services)
+            }
+            if (cacheEntry.promise) {
+                return cacheEntry.promise.then(function (items) {
+                    services = Array.isArray(items) ? items.slice() : []
+                    servicesLoaded = true
+                    return services
+                })
+            }
             if (typeof apiFetch !== 'function') return Promise.resolve([])
             servicesLoading = true
-            return apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
+            var allowedNames = encodeURIComponent('general surgeon,obstetrician-gynecologist,obstetrician - gynecologist,internal medicine')
+            cacheEntry.promise = apiFetch("{{ url('/api/services') }}?per_page=15&service_names=" + allowedNames, { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) return services || []
                     var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
-                    var allowedServiceNames = [
-                        'general surgeon',
-                        'obstetrician-gynecologist',
-                        'obstetrician - gynecologist',
-                        'internal medicine'
-                    ]
-                    services = (raw || []).filter(function (s) {
-                        var name = normalizeText(s && s.service_name ? s.service_name : '')
-                        return allowedServiceNames.indexOf(name) !== -1
-                    })
+                    services = raw || []
                     servicesLoaded = true
+                    saveReceptionBrowseCacheEntry(cacheKey, services, false)
                     return services
                 })
                 .catch(function () { return services || [] })
-                .finally(function () { servicesLoading = false })
+                .finally(function () {
+                    servicesLoading = false
+                    cacheEntry.promise = null
+                })
+            return cacheEntry.promise
         }
 
         function ensureBookDoctorsLoaded() {
-            if (doctorsLoaded && doctors.length) return Promise.resolve(doctors)
+            var cacheKey = 'doctors_latest'
+            var cacheEntry = loadReceptionBrowseCacheEntry(cacheKey)
+            if (cacheEntry.loaded) {
+                doctors = Array.isArray(cacheEntry.items) ? cacheEntry.items.slice() : []
+                doctorsLoaded = true
+                return Promise.resolve(doctors)
+            }
+            if (cacheEntry.promise) {
+                return cacheEntry.promise.then(function (items) {
+                    doctors = Array.isArray(items) ? items.slice() : []
+                    doctorsLoaded = true
+                    return doctors
+                })
+            }
             if (typeof apiFetch !== 'function') return Promise.resolve([])
-            return apiFetch("{{ url('/api/doctors') }}?per_page=15", { method: 'GET' })
+            doctorsLoading = true
+            cacheEntry.promise = apiFetch("{{ url('/api/doctors') }}?per_page=15", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) return doctors || []
                     doctors = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
                     doctorsLoaded = true
+                    saveReceptionBrowseCacheEntry(cacheKey, doctors, false)
                     return doctors
                 })
                 .catch(function () { return doctors || [] })
+                .finally(function () {
+                    doctorsLoading = false
+                    cacheEntry.promise = null
+                })
+            return cacheEntry.promise
         }
 
         function openSelectorModal(type) {
@@ -1528,12 +1646,8 @@ function setAppointmentTab(tab) {
                 if (selectorConfirmBtn) selectorConfirmBtn.textContent = 'Select Patient'
                 setSelectorOpen(true)
                 setSelectorLoading('Loading patients…')
-                bookPatientSearchQuery = ''
-                bookPatientSearchPage = 1
-                fetchBookPatientsPage('', 1).then(function (result) {
+                ensureBookPatientsLoaded().then(function (result) {
                     if (selectorState.type !== 'patient') return
-                    bookPatientSearchResults = result.data
-                    bookPatientSearchHasMore = result.hasMore
                     buildBookPatientList(result.data, '', result.hasMore)
                 })
             } else if (type === 'service') {
@@ -1628,17 +1742,17 @@ function setAppointmentTab(tab) {
 
             if (patientPreview) {
                 if (!patient) {
-                    patientPreview.textContent = ''
+                    patientPreview.innerHTML = ''
                     patientPreview.classList.add('hidden')
                 } else {
-                    var parts = []
+                    var lines = []
                     var name = [patient.firstname, patient.middlename, patient.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
                     if (!name) name = patient.email ? String(patient.email) : ''
-                    parts.push('Name: ' + name)
-                    if (patient.birthdate) parts.push('Birthdate: ' + String(patient.birthdate).slice(0, 10))
-                    if (patient.contact_number) parts.push('Contact: ' + patient.contact_number)
-                    if (patient.address) parts.push('Address: ' + patient.address)
-                    patientPreview.textContent = parts.join(' • ')
+                    lines.push('<div class="text-[0.78rem] text-slate-700"><span class="font-semibold text-slate-800">Name:</span> ' + escapeHtml(name) + '</div>')
+                    if (patient.birthdate) lines.push('<div class="text-[0.7rem] text-slate-500"><span class="font-semibold text-slate-600">Birthdate:</span> ' + escapeHtml(String(patient.birthdate).slice(0, 10)) + '</div>')
+                    if (patient.contact_number) lines.push('<div class="text-[0.7rem] text-slate-500"><span class="font-semibold text-slate-600">Contact:</span> ' + escapeHtml(patient.contact_number) + '</div>')
+                    if (patient.address) lines.push('<div class="text-[0.7rem] text-slate-500"><span class="font-semibold text-slate-600">Address:</span> ' + escapeHtml(patient.address) + '</div>')
+                    patientPreview.innerHTML = lines.join('')
                     patientPreview.classList.remove('hidden')
                 }
             }
@@ -2309,7 +2423,8 @@ function setAppointmentTab(tab) {
                         setSelectorLoading(query ? 'Searching patients…' : 'Loading patients…')
                         bookPatientSearchQuery = query
                         bookPatientSearchPage = 1
-                        fetchBookPatientsPage(query, 1).then(function (result) {
+                        var request = query ? fetchBookPatientsPage(query, 1) : ensureBookPatientsLoaded()
+                        request.then(function (result) {
                             if (selectorState.type !== 'patient' || selectorState.searchSeq !== requestId) return
                             bookPatientSearchResults = result.data
                             bookPatientSearchHasMore = result.hasMore
@@ -2764,55 +2879,17 @@ function setAppointmentTab(tab) {
 
         function loadServicesAndDoctors() {
             if (typeof apiFetch !== 'function') return
-            if (!servicesLoaded && !servicesLoading) {
-                servicesLoading = true
-                apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
-                    .then(function (response) { return readResponse(response) })
-                    .then(function (result) {
-                        if (!result.ok) return
-                        var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
-                        var allowedServiceNames = [
-                            'general surgeon',
-                            'obstetrician-gynecologist',
-                            'obstetrician - gynecologist',
-                            'internal medicine'
-                        ]
-                        services = (raw || []).filter(function (s) {
-                            var name = normalizeText(s && s.service_name ? s.service_name : '')
-                            return allowedServiceNames.indexOf(name) !== -1
-                        })
-                        servicesLoaded = true
-                        if (serviceSearch && serviceSearch.value) {
-                            renderServiceResults()
-                        }
-                    })
-                    .catch(function () {})
-                    .finally(function () {
-                        servicesLoading = false
-                    })
-            }
-
-            doctorsLoading = true
-            apiFetch("{{ url('/api/doctors') }}?per_page=15", { method: 'GET' })
-                .then(function (response) {
-                    return response.json().then(function (data) {
-                        return { ok: response.ok, data: data }
-                    }).catch(function () {
-                        return { ok: response.ok, data: null }
-                    })
-                })
-                .then(function (result) {
-                    var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
-                    doctors = raw || []
-                    doctorsLoaded = true
-                    if (doctorSearch && doctorSearch.value) {
-                        renderDoctorResults()
-                    }
+            ensureBookPatientsLoaded().catch(function () {})
+            ensureBookServicesLoaded()
+                .then(function () {
+                    if (serviceSearch && serviceSearch.value) renderServiceResults()
                 })
                 .catch(function () {})
-                .finally(function () {
-                    doctorsLoading = false
+            ensureBookDoctorsLoaded()
+                .then(function () {
+                    if (doctorSearch && doctorSearch.value) renderDoctorResults()
                 })
+                .catch(function () {})
         }
 
         function bindSelectorTrigger(inputEl, buttonEl, type) {
@@ -2984,6 +3061,7 @@ function setAppointmentTab(tab) {
             }
         })
 
+        // Preload services and doctors immediately (async — does not block render)
         loadServicesAndDoctors()
         if (dateInput) {
             var today = new Date()
@@ -4783,16 +4861,22 @@ function updateManageTodayButton() {
         // Render doctor list (filtered by allowedSpecs and having schedules for any day)
         function recBookRenderDoctorList() {
             if (!recBookDocPickerBody || !recBookCurrentDoctor) return
+            // Lazy-load doctors if not yet loaded
+            if (typeof doctors === 'undefined' || !Array.isArray(doctors) || !doctors.length) {
+                recBookDocPickerBody.innerHTML = '<div class="text-[0.78rem] text-slate-400">Loading doctors...</div>'
+                if (typeof ensureBookDoctorsLoaded === 'function') {
+                    ensureBookDoctorsLoaded().then(function () { recBookRenderDoctorList() })
+                }
+                return
+            }
             var currentDoctorId = String(recBookCurrentDoctor.user_id)
-            var allDoctors = (typeof doctors !== 'undefined' && Array.isArray(doctors))
-                ? doctors.filter(function (d) {
+            var allDoctors = doctors.filter(function (d) {
                     var spec = String(d.specialization || '').trim().toLowerCase()
                     var allowedSpecs = ['general surgeon', 'obstetrician-gynecologist', 'obstetrician - gynecologist', 'internal medicine']
                     if (allowedSpecs.indexOf(spec) === -1) return false
                     var schedules = Array.isArray(d.doctor_schedules) ? d.doctor_schedules : []
                     return schedules.length > 0
                 })
-                : []
             if (!allDoctors.length) {
                 recBookDocPickerBody.innerHTML = '<div class="text-[0.78rem] text-slate-400">No doctors available.</div>'
             } else {

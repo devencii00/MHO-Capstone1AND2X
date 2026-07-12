@@ -216,6 +216,11 @@ class User extends Authenticatable
             return false;
         }
 
+        // Use pre-loaded subquery value when available (eliminates N+1)
+        if (array_key_exists('pending_verification_exists', $this->attributes)) {
+            return (bool) $this->attributes['pending_verification_exists'];
+        }
+
         if (! $this->exists || ! $this->user_id) {
             return false;
         }

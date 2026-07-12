@@ -187,7 +187,7 @@
                         Browse
                     </button>
                 </div>
-                <div id="receptionWalkInPatientPreview" class="hidden mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.78rem] text-slate-700 break-words"></div>
+                <div id="receptionWalkInPatientPreview" class="hidden mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2 min-h-[3rem] max-h-24 overflow-y-auto overscroll-contain"></div>
             </div>
             <div class="min-w-0">
                 <label for="reception_walkin_service_ids" class="block text-[0.7rem] text-slate-600 mb-1">Services</label>
@@ -211,7 +211,7 @@
                         Browse
                     </button>
                 </div>
-                <div id="receptionWalkInDoctorPreview" class="hidden mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.78rem] text-slate-700 break-words"></div>
+                <div id="receptionWalkInDoctorPreview" class="hidden mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2 min-h-[3rem] max-h-24 overflow-y-auto overscroll-contain"></div>
             </div>
             <div class="min-w-0">
                 <div class="block text-[0.7rem] text-slate-600 mb-1">Last Walk-in visit</div>
@@ -922,7 +922,8 @@ function setWalkInTab(tab) {
         function loadServices() {
             if (servicesLoaded || servicesLoading || typeof apiFetch !== 'function') return
             servicesLoading = true
-            apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
+            var allowedNames = encodeURIComponent('general medicine,pediatrics')
+            apiFetch("{{ url('/api/services') }}?per_page=15&service_names=" + allowedNames, { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -2651,6 +2652,7 @@ function setWalkInTab(tab) {
         var walkInPatientSearchHasMore = false
         var walkInPatientSearchQuery = ''
         var walkInPatientSearchLoading = false
+        var receptionBrowseCacheKeyPrefix = 'reception_browse_cache:'
         var walkInDoctorSearchPage = 1
         var walkInDoctorSearchResults = []
         var walkInDoctorSearchHasMore = false
@@ -2672,6 +2674,64 @@ function setWalkInTab(tab) {
         var selectorDetailBody = document.getElementById('receptionWalkInSelectorDetailBody')
         var selectorCancelBtn = document.getElementById('receptionWalkInSelectorCancel')
         var selectorConfirmBtn = document.getElementById('receptionWalkInSelectorConfirm')
+
+        function getReceptionBrowseCacheRoot() {
+            if (typeof window === 'undefined') return {}
+            if (!window.__receptionBrowseModalCache) window.__receptionBrowseModalCache = {}
+            return window.__receptionBrowseModalCache
+        }
+
+        function getReceptionBrowseCacheEntry(key) {
+            var root = getReceptionBrowseCacheRoot()
+            if (!root[key]) {
+                root[key] = {
+                    items: [],
+                    hasMore: false,
+                    loaded: false,
+                    promise: null
+                }
+            }
+            return root[key]
+        }
+
+        function loadReceptionBrowseCacheEntry(key) {
+            var entry = getReceptionBrowseCacheEntry(key)
+            if (entry.loaded) return entry
+            try {
+                if (!window.sessionStorage) return entry
+                var raw = window.sessionStorage.getItem(receptionBrowseCacheKeyPrefix + key)
+                if (!raw) return entry
+                var parsed = JSON.parse(raw)
+                if (!parsed || !Array.isArray(parsed.items)) return entry
+                if (parsed.saved_at && (Date.now() - parsed.saved_at) > (5 * 60 * 1000)) return entry
+                entry.items = parsed.items.slice()
+                entry.hasMore = !!parsed.hasMore
+                entry.loaded = true
+            } catch (e) {}
+            return entry
+        }
+
+        function saveReceptionBrowseCacheEntry(key, items, hasMore) {
+            var entry = getReceptionBrowseCacheEntry(key)
+            entry.items = Array.isArray(items) ? items.slice() : []
+            entry.hasMore = !!hasMore
+            entry.loaded = true
+            try {
+                if (!window.sessionStorage) return
+                window.sessionStorage.setItem(receptionBrowseCacheKeyPrefix + key, JSON.stringify({
+                    items: entry.items,
+                    hasMore: entry.hasMore,
+                    saved_at: Date.now()
+                }))
+            } catch (e) {}
+        }
+
+        function cloneBrowsePageResult(items, hasMore) {
+            return {
+                data: Array.isArray(items) ? items.slice() : [],
+                hasMore: !!hasMore
+            }
+        }
         var selectorState = {
             type: '',
             items: [],
@@ -3075,6 +3135,40 @@ function setWalkInTab(tab) {
                 .catch(function () { return { data: [], hasMore: false } })
         }
 
+        function ensureWalkInPatientsLoaded() {
+            var cacheKey = 'patients_latest'
+            var cacheEntry = loadReceptionBrowseCacheEntry(cacheKey)
+            if (cacheEntry.loaded) {
+                walkInPatientSearchResults = Array.isArray(cacheEntry.items) ? cacheEntry.items.slice() : []
+                walkInPatientSearchHasMore = !!cacheEntry.hasMore
+                walkInPatientSearchQuery = ''
+                walkInPatientSearchPage = 1
+                return Promise.resolve(cloneBrowsePageResult(walkInPatientSearchResults, walkInPatientSearchHasMore))
+            }
+            if (cacheEntry.promise) {
+                return cacheEntry.promise.then(function (result) {
+                    walkInPatientSearchResults = Array.isArray(result.data) ? result.data.slice() : []
+                    walkInPatientSearchHasMore = !!result.hasMore
+                    walkInPatientSearchQuery = ''
+                    walkInPatientSearchPage = 1
+                    return cloneBrowsePageResult(walkInPatientSearchResults, walkInPatientSearchHasMore)
+                })
+            }
+            cacheEntry.promise = fetchWalkInPatientsPage('', 1)
+                .then(function (result) {
+                    saveReceptionBrowseCacheEntry(cacheKey, result.data, result.hasMore)
+                    walkInPatientSearchResults = Array.isArray(result.data) ? result.data.slice() : []
+                    walkInPatientSearchHasMore = !!result.hasMore
+                    walkInPatientSearchQuery = ''
+                    walkInPatientSearchPage = 1
+                    return cloneBrowsePageResult(walkInPatientSearchResults, walkInPatientSearchHasMore)
+                })
+                .finally(function () {
+                    cacheEntry.promise = null
+                })
+            return cacheEntry.promise
+        }
+
         function fetchWalkInDoctorsPage(query, page) {
             if (typeof apiFetch !== 'function') return Promise.resolve({ data: [], hasMore: false })
             var params = 'per_page=10&page=' + page
@@ -3110,13 +3204,9 @@ function setWalkInTab(tab) {
                     buildWalkInPatientList(result.data, rawQuery, result.hasMore)
                 })
             } else {
-                walkInPatientSearchQuery = ''
-                walkInPatientSearchPage = 1
                 setSelectorLoading('Loading patients…')
-                fetchWalkInPatientsPage('', 1).then(function (result) {
+                ensureWalkInPatientsLoaded().then(function (result) {
                     if (selectorState.type !== 'patient') return
-                    walkInPatientSearchResults = result.data
-                    walkInPatientSearchHasMore = result.hasMore
                     buildWalkInPatientList(result.data, '', result.hasMore)
                 })
             }
@@ -3578,40 +3668,73 @@ function setWalkInTab(tab) {
         }
 
         function ensureWalkInServicesLoaded() {
-            if (servicesLoaded && services.length) return Promise.resolve(services)
-            if (servicesLoading) return new Promise(function (resolve) {
-                var check = setInterval(function () {
-                    if (servicesLoaded) { clearInterval(check); resolve(services) }
-                }, 16)
-            })
+            var cacheKey = 'walkin_services_latest'
+            var cacheEntry = loadReceptionBrowseCacheEntry(cacheKey)
+            if (cacheEntry.loaded) {
+                services = Array.isArray(cacheEntry.items) ? cacheEntry.items.slice() : []
+                servicesLoaded = true
+                return Promise.resolve(services)
+            }
+            if (cacheEntry.promise) {
+                return cacheEntry.promise.then(function (items) {
+                    services = Array.isArray(items) ? items.slice() : []
+                    servicesLoaded = true
+                    return services
+                })
+            }
             if (typeof apiFetch !== 'function') return Promise.resolve([])
-            return apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
+            servicesLoading = true
+            var allowedNames = encodeURIComponent('general medicine,pediatrics')
+            cacheEntry.promise = apiFetch("{{ url('/api/services') }}?per_page=15&service_names=" + allowedNames, { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) return services || []
                     var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
-                    var allowed = ['general medicine', 'pediatrics']
-                    services = raw.filter(function (s) {
-                        return allowed.indexOf(normalizeText(s && s.service_name ? s.service_name : '')) !== -1
-                    })
+                    services = raw || []
                     servicesLoaded = true
+                    saveReceptionBrowseCacheEntry(cacheKey, services, false)
                     return services
                 })
                 .catch(function () { return services || [] })
+                .finally(function () {
+                    servicesLoading = false
+                    cacheEntry.promise = null
+                })
+            return cacheEntry.promise
         }
 
         function ensureWalkInDoctorsLoaded() {
-            if (doctorsLoaded && doctors.length) return Promise.resolve(doctors)
+            var cacheKey = 'doctors_latest'
+            var cacheEntry = loadReceptionBrowseCacheEntry(cacheKey)
+            if (cacheEntry.loaded) {
+                doctors = Array.isArray(cacheEntry.items) ? cacheEntry.items.slice() : []
+                doctorsLoaded = true
+                return Promise.resolve(doctors)
+            }
+            if (cacheEntry.promise) {
+                return cacheEntry.promise.then(function (items) {
+                    doctors = Array.isArray(items) ? items.slice() : []
+                    doctorsLoaded = true
+                    return doctors
+                })
+            }
             if (typeof apiFetch !== 'function') return Promise.resolve([])
-            return apiFetch("{{ url('/api/doctors') }}?per_page=15", { method: 'GET' })
+            doctorsLoading = true
+            cacheEntry.promise = apiFetch("{{ url('/api/doctors') }}?per_page=15", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) return doctors || []
                     doctors = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
                     doctorsLoaded = true
+                    saveReceptionBrowseCacheEntry(cacheKey, doctors, false)
                     return doctors
                 })
                 .catch(function () { return doctors || [] })
+                .finally(function () {
+                    doctorsLoading = false
+                    cacheEntry.promise = null
+                })
+            return cacheEntry.promise
         }
 
         function openSelectorModal(type, mode) {
@@ -3629,7 +3752,10 @@ function setWalkInTab(tab) {
                 if (selectorConfirmBtn) selectorConfirmBtn.textContent = 'Select Patient'
                 setSelectorOpen(true)
                 setSelectorLoading('Loading patients…')
-                renderSelectorPatientList()
+                ensureWalkInPatientsLoaded().then(function (result) {
+                    if (selectorState.type !== 'patient') return
+                    buildWalkInPatientList(result.data, '', result.hasMore)
+                })
             } else if (type === 'service') {
                 selectorState.stagedServices = Array.isArray(selectedServices) ? selectedServices.slice() : []
                 if (selectorTitle) selectorTitle.textContent = 'Select Service/s'
@@ -3768,17 +3894,17 @@ function setWalkInTab(tab) {
 
             if (patientPreview) {
                 if (!patient) {
-                    patientPreview.textContent = ''
+                    patientPreview.innerHTML = ''
                     patientPreview.classList.add('hidden')
                 } else {
-                    var parts = []
+                    var lines = []
                     var name = [patient.firstname, patient.middlename, patient.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
                     if (!name) name = patient.email || ''
-                    parts.push('Name: ' + name)
-                    if (patient.birthdate) parts.push('Birthdate: ' + String(patient.birthdate).slice(0, 10))
-                    if (patient.contact_number) parts.push('Contact: ' + patient.contact_number)
-                    if (patient.address) parts.push('Address: ' + patient.address)
-                    patientPreview.textContent = parts.join(' • ')
+                    lines.push('<div class="text-[0.78rem] text-slate-700"><span class="font-semibold text-slate-800">Name:</span> ' + escapeHtml(name) + '</div>')
+                    if (patient.birthdate) lines.push('<div class="text-[0.7rem] text-slate-500"><span class="font-semibold text-slate-600">Birthdate:</span> ' + escapeHtml(String(patient.birthdate).slice(0, 10)) + '</div>')
+                    if (patient.contact_number) lines.push('<div class="text-[0.7rem] text-slate-500"><span class="font-semibold text-slate-600">Contact:</span> ' + escapeHtml(patient.contact_number) + '</div>')
+                    if (patient.address) lines.push('<div class="text-[0.7rem] text-slate-500"><span class="font-semibold text-slate-600">Address:</span> ' + escapeHtml(patient.address) + '</div>')
+                    patientPreview.innerHTML = lines.join('')
                     patientPreview.classList.remove('hidden')
                 }
             }
@@ -4151,10 +4277,10 @@ function setWalkInTab(tab) {
 
             if (doctorPreview) {
                 if (!doctor) {
-                    doctorPreview.textContent = ''
+                    doctorPreview.innerHTML = ''
                     doctorPreview.classList.add('hidden')
                 } else {
-                    var parts = []
+                    var lines = []
                     var name = [doctor.firstname, doctor.middlename, doctor.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
                     if (!name) name = doctor.email || ''
                     var type = getAppointmentType()
@@ -4172,12 +4298,12 @@ function setWalkInTab(tab) {
                     var spec = doctor && doctor.specialization ? doctor.specialization : ''
                     var matchesService = !categories.length || categories.every(function (c) { return specializationMatches(c, spec) })
 
-                    parts.push('Name: ' + name)
-                    if (doctor.specialization) parts.push('Specialization: ' + doctor.specialization)
-                    if (previousDoctorId && parseInt(doctor.user_id, 10) === previousDoctorId) parts.push('Last provider')
-                    parts.push('Availability: ' + ((doctor.is_available !== false && hasSchedule) ? 'Available' : 'Unavailable'))
-                    if (categories.length) parts.push('Service match: ' + (matchesService ? 'Yes' : 'No'))
-                    doctorPreview.textContent = parts.join(' • ')
+                    lines.push('<div class="text-[0.78rem] text-slate-700"><span class="font-semibold text-slate-800">Name:</span> ' + escapeHtml(name) + '</div>')
+                    if (doctor.specialization) lines.push('<div class="text-[0.7rem] text-slate-500"><span class="font-semibold text-slate-600">Specialization:</span> ' + escapeHtml(doctor.specialization) + '</div>')
+                    if (previousDoctorId && parseInt(doctor.user_id, 10) === previousDoctorId) lines.push('<div class="text-[0.7rem] text-slate-500"><span class="font-semibold text-slate-600">Note:</span> Last provider</div>')
+                    lines.push('<div class="text-[0.7rem] text-slate-500"><span class="font-semibold text-slate-600">Availability:</span> ' + ((doctor.is_available !== false && hasSchedule) ? 'Available' : 'Unavailable') + '</div>')
+                    if (categories.length) lines.push('<div class="text-[0.7rem] text-slate-500"><span class="font-semibold text-slate-600">Service match:</span> ' + (matchesService ? 'Yes' : 'No') + '</div>')
+                    doctorPreview.innerHTML = lines.join('')
                     doctorPreview.classList.remove('hidden')
                 }
             }
@@ -4940,41 +5066,24 @@ function setWalkInTab(tab) {
 
         function loadServicesAndDoctors() {
             if (typeof apiFetch !== 'function') return
-            if (!servicesLoaded && !servicesLoading) {
-                servicesLoading = true
-                servicesLoadError = ''
-                apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
-                    .then(function (r) { return readResponse(r) })
-                    .then(function (res) {
-                        if (res.ok) {
-                            services = res.data && Array.isArray(res.data.data) ? res.data.data : (Array.isArray(res.data) ? res.data : [])
-                            var allowed = ['general medicine', 'pediatrics']
-                            services = services.filter(function (s) {
-                                return allowed.indexOf(normalizeText(s && s.service_name ? s.service_name : '')) !== -1
-                            })
-                            servicesLoaded = true
-                            if (serviceSearch && document.activeElement === serviceSearch) {
-                                searchServices(String(serviceSearch.value || '').trim())
-                            }
-                        } else {
-                            servicesLoadError = (res.data && res.data.message) ? String(res.data.message) : 'Failed to load services.'
-                        }
-                    })
-                    .catch(function () { servicesLoadError = 'Failed to load services.' })
-                    .finally(function () { servicesLoading = false })
-            }
+            ensureWalkInPatientsLoaded().catch(function () {})
+            ensureWalkInServicesLoaded()
+                .then(function () {
+                    servicesLoadError = ''
+                    if (serviceSearch && document.activeElement === serviceSearch) {
+                        searchServices(String(serviceSearch.value || '').trim())
+                    }
+                })
+                .catch(function () { servicesLoadError = 'Failed to load services.' })
             if (!popularServicesLoaded && !popularServicesLoading) {
                 popularServicesLoading = true
                 popularServicesLoadError = ''
-                apiFetch("{{ url('/api/services-popular') }}?limit=10", { method: 'GET' })
+                var popAllowedNames = encodeURIComponent('general medicine,pediatrics')
+                apiFetch("{{ url('/api/services-popular') }}?limit=10&service_names=" + popAllowedNames, { method: 'GET' })
                     .then(function (r) { return readResponse(r) })
                     .then(function (res) {
                         if (res.ok) {
                             popularServices = Array.isArray(res.data) ? res.data : (res.data && Array.isArray(res.data.data) ? res.data.data : [])
-                            var allowed = ['general medicine', 'pediatrics']
-                            popularServices = popularServices.filter(function (s) {
-                                return allowed.indexOf(normalizeText(s && s.service_name ? s.service_name : '')) !== -1
-                            })
                             popularServicesLoaded = true
                         } else {
                             popularServicesLoadError = (res.data && res.data.message) ? String(res.data.message) : 'Failed to load popular services.'
@@ -4983,26 +5092,15 @@ function setWalkInTab(tab) {
                     .catch(function () { popularServicesLoadError = 'Failed to load popular services.' })
                     .finally(function () { popularServicesLoading = false })
             }
-            if (!doctorsLoaded && !doctorsLoading) {
-                doctorsLoading = true
-                doctorsLoadError = ''
-                apiFetch("{{ url('/api/doctors') }}?per_page=15", { method: 'GET' })
-                    .then(function (r) { return readResponse(r) })
-                    .then(function (res) {
-                        if (res.ok) {
-                            doctors = res.data && Array.isArray(res.data.data) ? res.data.data : (Array.isArray(res.data) ? res.data : [])
-                            doctorsLoaded = true
-                            filterDoctorsByService()
-                            if (doctorSearch && document.activeElement === doctorSearch) {
-                                searchDoctors(String(doctorSearch.value || '').trim())
-                            }
-                        } else {
-                            doctorsLoadError = (res.data && res.data.message) ? String(res.data.message) : 'Failed to load doctors.'
-                        }
-                    })
-                    .catch(function () { doctorsLoadError = 'Failed to load doctors.' })
-                    .finally(function () { doctorsLoading = false })
-            }
+            ensureWalkInDoctorsLoaded()
+                .then(function () {
+                    doctorsLoadError = ''
+                    filterDoctorsByService()
+                    if (doctorSearch && document.activeElement === doctorSearch) {
+                        searchDoctors(String(doctorSearch.value || '').trim())
+                    }
+                })
+                .catch(function () { doctorsLoadError = 'Failed to load doctors.' })
         }
 
         var typeScheduledBtn = accountQuery('#receptionWalkInTypeScheduledBtn')
@@ -5169,6 +5267,7 @@ function setWalkInTab(tab) {
             }
         })
 
+        // Preload services and doctors immediately (async — does not block render)
         loadServicesAndDoctors()
         syncServiceHiddenInput()
         renderSelectedServices()
