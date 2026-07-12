@@ -126,7 +126,7 @@
     <div class="w-full max-w-4xl h-[90vh] max-h-none rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] flex overflow-hidden">
         <!-- History list (left) -->
         <div class="w-1/2 border-r border-slate-200 flex flex-col min-h-0">
-            <div id="doctorManageHistListSection">
+            <div id="doctorManageHistListSection" class="flex flex-col min-h-0 h-full">
                 <div class="px-4 py-3 border-b border-slate-100 shrink-0 flex items-center justify-between">
                     <div>
                         <div class="text-sm font-semibold text-slate-900">Patient History</div>
@@ -136,7 +136,11 @@
                         <x-lucide-x class="w-[20px] h-[20px]" />
                     </button>
                 </div>
-                <div class="px-4 py-2 border-b border-slate-100 shrink-0 grid grid-cols-3 gap-2">
+                <div class="px-4 py-2 border-b border-slate-100 shrink-0 grid grid-cols-4 gap-2">
+                    <div>
+                        <label class="block text-[0.6rem] text-slate-500 mb-0.5">Search</label>
+                        <input id="doctorManageHistSearch" type="text" placeholder="Search&hellip;" class="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[0.7rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    </div>
                     <div>
                         <label class="block text-[0.6rem] text-slate-500 mb-0.5">Date</label>
                         <input id="doctorManageHistDate" type="date" class="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[0.7rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
@@ -163,6 +167,9 @@
                 </div>
                 <div id="doctorManageHistBody" class="flex-1 overflow-y-auto p-3 space-y-2">
                     <div class="text-center text-[0.78rem] text-slate-400 py-8">Loading history&hellip;</div>
+                </div>
+                <div class="px-4 py-2 border-t border-slate-100 shrink-0 text-center">
+                    <button id="doctorManageHistSeeMore" type="button" class="inline-flex items-center gap-1 px-4 py-1.5 rounded-lg border border-slate-200 bg-white text-[0.72rem] font-semibold text-slate-600 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed" disabled>See more</button>
                 </div>
             </div>
             <!-- NO Change Appointment panel -->
@@ -457,15 +464,16 @@
         function loadManageAppointments(page) {
             if (typeof apiFetch !== 'function') return
             page = page || manageCurrentPage
+            manageCurrentPage = page
             showManageError('')
             showManageSuccess('')
             showManageResult(null)
             setManageSubmitting(true)
             manageTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading appointments&hellip;</td></tr>'
 
-            var url = "{{ url('/api/appointments') }}" + '?per_page=10&page=' + page
+            var baseUrl = "{{ url('/api/appointments') }}" + '?per_page=10'
             var order = manageSortSelect && manageSortSelect.value ? String(manageSortSelect.value) : 'latest'
-            url += '&order=' + encodeURIComponent(order === 'oldest' ? 'oldest' : 'latest')
+            baseUrl += '&order=' + encodeURIComponent(order === 'oldest' ? 'oldest' : 'latest')
 
             var now = new Date()
             var startIso = ''
@@ -483,73 +491,94 @@
                 startIso = formatLocalDateIso(start)
                 endIso = formatLocalDateIso(end)
             }
-            url += '&start_date=' + encodeURIComponent(startIso)
-            url += '&end_date=' + encodeURIComponent(endIso)
+            baseUrl += '&start_date=' + encodeURIComponent(startIso)
+            baseUrl += '&end_date=' + encodeURIComponent(endIso)
 
             // Always filter by the current doctor
-            url += '&doctor_id=' + encodeURIComponent(doctorId)
+            baseUrl += '&doctor_id=' + encodeURIComponent(doctorId)
 
             var search = manageSearchInput ? normalizeText(manageSearchInput.value) : ''
-            if (search) url += '&search=' + encodeURIComponent(search)
+            if (search) baseUrl += '&search=' + encodeURIComponent(search)
 
             var serviceId = manageServiceId && manageServiceId.value ? parseInt(manageServiceId.value, 10) : 0
-            if (serviceId) url += '&service_id=' + encodeURIComponent(serviceId)
+            if (serviceId) baseUrl += '&service_id=' + encodeURIComponent(serviceId)
 
             var statusFilter = manageStatusSelect && manageStatusSelect.value ? String(manageStatusSelect.value) : ''
-            if (statusFilter) url += '&status=' + encodeURIComponent(statusFilter)
+            if (statusFilter) baseUrl += '&status=' + encodeURIComponent(statusFilter)
 
             var typeFilter = manageTypeSelect && manageTypeSelect.value ? String(manageTypeSelect.value) : ''
-            if (typeFilter) url += '&appointment_type=' + encodeURIComponent(typeFilter)
+            if (typeFilter) baseUrl += '&appointment_type=' + encodeURIComponent(typeFilter)
 
-            apiFetch(url, { method: 'GET' })
-                .then(function (response) { return readResponse(response) })
-                .then(function (result) {
-                    if (!result.ok) {
-                        var msg = (result.data && result.data.message) ? String(result.data.message) : 'Failed to load appointments.'
-                        showManageError(msg)
-                        renderManageAppointments([])
-                        return
-                    }
-                    var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
-                    var rows = Array.isArray(raw) ? raw.slice() : []
+            var pool = []
+            var seenPids = {}
+            var serverPage = 1
+            var maxServerPages = 100
 
-                    // Keep only the most recent appointment per patient
-                    rows.sort(function (a, b) {
-                        var da = a && a.appointment_datetime ? String(a.appointment_datetime) : ''
-                        var db = b && b.appointment_datetime ? String(b.appointment_datetime) : ''
-                        if (da < db) return 1; if (da > db) return -1; return 0
-                    })
-                    var seenPatient = {}
-                    rows = rows.filter(function (a) {
-                        var pid = a && a.patient && a.patient.user_id != null ? String(a.patient.user_id) : ''
-                        if (!pid) return true
-                        if (seenPatient[pid]) return false
-                        seenPatient[pid] = true
-                        return true
-                    })
+            function fetchNext() {
+                if (serverPage > maxServerPages) { finish(pool, page); return }
 
-                    manageCurrentPage = result.data.current_page || page
-                    manageLastPage = result.data.last_page || 1
-                    manageTotal = rows.length || result.data.total
+                apiFetch(baseUrl + '&page=' + serverPage, { method: 'GET' })
+                    .then(function (response) { return readResponse(response) })
+                    .then(function (result) {
+                        if (!result.ok) { finish(pool, page); return }
 
-                    renderManageAppointments(rows)
+                        var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                        raw.forEach(function (a) {
+                            var pid = a && a.patient && a.patient.user_id != null ? String(a.patient.user_id) : ''
+                            if (pid && !seenPids[pid]) {
+                                seenPids[pid] = true
+                                pool.push(a)
+                            } else if (!pid) {
+                                pool.push(a)
+                            }
+                        })
 
-                    if (manageMeta) {
-                        if (manageShowTodayOnly) {
-                            manageMeta.textContent = 'Showing page ' + manageCurrentPage + ' of ' + manageLastPage + ' (' + manageTotal + ' appointments for ' + startIso + ').'
+                        var uniqueCount = Object.keys(seenPids).length
+                        var lastServerPage = result.data.last_page || serverPage
+
+                        if (uniqueCount >= page * managePerPage || raw.length === 0 || serverPage >= lastServerPage) {
+                            finish(pool, page)
                         } else {
-                            var monthLabel = startIso.slice(0, 7)
-                            manageMeta.textContent = 'Showing page ' + manageCurrentPage + ' of ' + manageLastPage + ' (' + manageTotal + ' appointments for ' + monthLabel + ').'
+                            serverPage++
+                            fetchNext()
                         }
+                    })
+                    .catch(function () { finish(pool, page) })
+            }
+
+            fetchNext()
+
+            function finish(pool, page) {
+                // Sort pool by datetime descending (most recent first)
+                pool.sort(function (a, b) {
+                    var da = a && a.appointment_datetime ? String(a.appointment_datetime) : ''
+                    var db = b && b.appointment_datetime ? String(b.appointment_datetime) : ''
+                    if (da < db) return 1; if (da > db) return -1; return 0
+                })
+
+                // Slice to current visual page
+                var pageStart = (page - 1) * managePerPage
+                var rows = pool.slice(pageStart, pageStart + managePerPage)
+
+                var uniqueCount = Object.keys(seenPids).length
+                var totalUniquePages = Math.ceil(uniqueCount / managePerPage) || 1
+
+                manageCurrentPage = Math.min(page, totalUniquePages)
+                manageLastPage = totalUniquePages
+                manageTotal = uniqueCount
+
+                renderManageAppointments(rows)
+
+                if (manageMeta) {
+                    if (manageShowTodayOnly) {
+                        manageMeta.textContent = 'Showing page ' + manageCurrentPage + ' of ' + manageLastPage + ' (' + manageTotal + ' appointments for ' + startIso + ').'
+                    } else {
+                        var monthLabel = startIso.slice(0, 7)
+                        manageMeta.textContent = 'Showing page ' + manageCurrentPage + ' of ' + manageLastPage + ' (' + manageTotal + ' appointments for ' + monthLabel + ').'
                     }
-                })
-                .catch(function () {
-                    showManageError('Network error while loading appointments.')
-                    renderManageAppointments([])
-                })
-                .finally(function () {
-                    setManageSubmitting(false)
-                })
+                }
+                setManageSubmitting(false)
+            }
         }
 
         function loadManageServices() {
@@ -659,12 +688,17 @@
 
         function openManageHistoryModal(patientId, patientName) {
             manageHistoryPatientId = patientId
+            manageHistoryPage = 1
+            manageHistoryTotalPages = 1
+            manageHistoryAppointments = []
             if (manageHistSubtitle) manageHistSubtitle.textContent = patientName || 'Loading&hellip;'
             if (manageHistBody) manageHistBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading history&hellip;</div>'
             if (manageHistDetailBody) manageHistDetailBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Select an appointment to view details.</div>'
+            if (manageHistSearch) manageHistSearch.value = ''
             if (manageHistDate) manageHistDate.value = ''
             if (manageHistStatus) manageHistStatus.value = ''
             if (manageHistType) manageHistType.value = ''
+            if (manageHistSeeMore) manageHistSeeMore.disabled = true
             if (manageHistOverlay) {
                 manageHistOverlay.classList.remove('hidden')
                 manageHistOverlay.classList.add('flex')
@@ -681,26 +715,65 @@
             manageHistoryAppointments = []
         }
 
-        function loadManagePatientHistory(patientId) {
-            if (!patientId || typeof apiFetch !== 'function') return
-            if (manageHistBody) manageHistBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading history&hellip;</div>'
-            apiFetch("{{ url('/api/appointments') }}?per_page=15&patient_id=" + encodeURIComponent(patientId), { method: 'GET' })
+        function fetchManagePatientHistory(patientId, page, append) {
+            if (!patientId || typeof apiFetch !== 'function') return Promise.resolve()
+            var search = manageHistSearch ? encodeURIComponent(manageHistSearch.value.trim()) : ''
+            var url = "{{ url('/api/appointments') }}?per_page=10&page=" + page + "&patient_id=" + encodeURIComponent(patientId)
+            if (search) url += '&search=' + search
+            return apiFetch(url, { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result || !result.ok || !result.data) {
-                        if (manageHistBody) manageHistBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Failed to load history.</div>'
+                        if (!append && manageHistBody) manageHistBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Failed to load history.</div>'
                         return
                     }
                     var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
-                    manageHistoryAppointments = Array.isArray(raw) ? raw.slice() : []
+                    var total = parseInt(result.data.total || result.data.count || result.data.length || 0, 10)
+                    manageHistoryTotalPages = parseInt(result.data.last_page || Math.ceil(total / 10) || 1, 10)
+                    if (append) {
+                        manageHistoryAppointments = manageHistoryAppointments.concat(Array.isArray(raw) ? raw.slice() : [])
+                    } else {
+                        manageHistoryAppointments = Array.isArray(raw) ? raw.slice() : []
+                    }
                     if (manageHistSubtitle) {
-                        manageHistSubtitle.textContent = (manageHistSubtitle.textContent || '') + ' (' + String(manageHistoryAppointments.length) + ' records)'
+                        manageHistSubtitle.textContent = (manageHistSubtitle.textContent || '').replace(/\s*\(.*records.*\)/i, '') + ' (' + String(manageHistoryAppointments.length) + ' records' + (manageHistoryTotalPages > 1 ? ', ' + String(manageHistoryTotalPages) + ' pages' : '') + ')'
+                    }
+                    if (manageHistSeeMore) {
+                        manageHistSeeMore.disabled = page >= manageHistoryTotalPages
                     }
                     renderManagePatientHistory()
                 })
                 .catch(function () {
-                    if (manageHistBody) manageHistBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Network error.</div>'
+                    if (!append) {
+                        if (manageHistBody) manageHistBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Network error.</div>'
+                    }
                 })
+        }
+
+        function loadManagePatientHistory(patientId) {
+            if (!patientId || typeof apiFetch !== 'function') return
+            manageHistoryPatientId = patientId
+            manageHistoryPage = 1
+            manageHistoryAppointments = []
+            if (manageHistBody) manageHistBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">Loading history&hellip;</div>'
+            if (manageHistSeeMore) manageHistSeeMore.disabled = true
+            fetchManagePatientHistory(patientId, 1, false)
+        }
+
+        function loadMoreManagePatientHistory() {
+            var nextPage = manageHistoryPage + 1
+            if (nextPage > manageHistoryTotalPages) {
+                if (manageHistSeeMore) manageHistSeeMore.disabled = true
+                return
+            }
+            if (manageHistSeeMore) { manageHistSeeMore.disabled = true; manageHistSeeMore.textContent = 'Loading\u2026' }
+            fetchManagePatientHistory(manageHistoryPatientId, nextPage, true).then(function () {
+                manageHistoryPage = nextPage
+                if (manageHistSeeMore) {
+                    manageHistSeeMore.textContent = 'See more'
+                    manageHistSeeMore.disabled = nextPage >= manageHistoryTotalPages
+                }
+            })
         }
 
         function renderManagePatientHistory() {
@@ -997,11 +1070,16 @@
         var manageHistSubtitle = document.getElementById('doctorManageHistSubtitle')
         var manageHistBody = document.getElementById('doctorManageHistBody')
         var manageHistDetailBody = document.getElementById('doctorManageHistDetailBody')
+        var manageHistSearch = document.getElementById('doctorManageHistSearch')
         var manageHistDate = document.getElementById('doctorManageHistDate')
         var manageHistStatus = document.getElementById('doctorManageHistStatus')
         var manageHistType = document.getElementById('doctorManageHistType')
+        var manageHistSeeMore = document.getElementById('doctorManageHistSeeMore')
         var manageHistoryPatientId = ''
         var manageHistoryAppointments = []
+        var manageHistoryPage = 1
+        var manageHistoryTotalPages = 1
+        var manageHistorySearchTimer = null
 
         var manageCalMonth = new Date()
         manageCalMonth.setDate(1)
@@ -1102,6 +1180,34 @@
                 updateManageTodayButton()
                 manageCurrentPage = 1
                 loadManageAppointments()
+            })
+        }
+
+        // ── Patient History Modal event listeners ──
+
+        // History search (debounced 300ms)
+        if (manageHistSearch) {
+            manageHistSearch.addEventListener('input', function () {
+                if (manageHistorySearchTimer) clearTimeout(manageHistorySearchTimer)
+                manageHistorySearchTimer = setTimeout(function () {
+                    if (manageHistoryPatientId) loadManagePatientHistory(manageHistoryPatientId)
+                }, 300)
+            })
+        }
+
+        // History date/status/type filter changes — reload from page 1
+        function reloadManagePatientHistory() {
+            if (manageHistoryPatientId) loadManagePatientHistory(manageHistoryPatientId)
+        }
+        if (manageHistDate) manageHistDate.addEventListener('change', reloadManagePatientHistory)
+        if (manageHistStatus) manageHistStatus.addEventListener('change', reloadManagePatientHistory)
+        if (manageHistType) manageHistType.addEventListener('change', reloadManagePatientHistory)
+
+        // See more button
+        if (manageHistSeeMore) {
+            manageHistSeeMore.addEventListener('click', function () {
+                if (manageHistSeeMore.disabled) return
+                loadMoreManagePatientHistory()
             })
         }
 

@@ -18,6 +18,10 @@
 
     <div class="mb-3 grid grid-cols-1 md:grid-cols-6 gap-2 md:items-end">
         <div>
+            <label for="admin_appt_search" class="block text-[0.7rem] text-slate-600 mb-1">Search</label>
+            <input id="admin_appt_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Patient/doctor name">
+        </div>
+        <div>
             <label for="admin_appt_date" class="block text-[0.7rem] text-slate-600 mb-1">Date</label>
             <input id="admin_appt_date" type="date" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
         </div>
@@ -52,10 +56,6 @@
                 <option value="newest" selected>Newest first</option>
                 <option value="oldest">Oldest first</option>
             </select>
-        </div>
-        <div>
-            <label for="admin_appt_search" class="block text-[0.7rem] text-slate-600 mb-1">Search</label>
-            <input id="admin_appt_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Patient/doctor name">
         </div>
     </div>
 
@@ -596,34 +596,58 @@
             showError('')
             page = page || 1
             apptCurrentPage = page
-            apiFetch("{{ url('/api/appointments') }}?per_page=10&page=" + page, { method: 'GET' })
-                .then(function (response) {
-                    return response.json().then(function (data) {
-                        return { ok: response.ok, data: data }
-                    }).catch(function () { return { ok: false, data: null } })
-                })
-                .then(function (result) {
-                    if (!result.ok) {
-                        showError('Failed to load appointments.')
-                        appointments = []
-                        apptMeta = { current_page: 1, last_page: 1, total: 0 }
-                        renderAppointments()
-                        return
-                    }
-                    appointments = Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
-                    apptMeta = {
-                        current_page: result.data.current_page || 1,
-                        last_page: result.data.last_page || 1,
-                        total: result.data.total || 0
-                    }
-                    renderAppointments()
-                })
-                .catch(function () {
-                    showError('Network error while loading appointments.')
-                    appointments = []
-                    apptMeta = { current_page: 1, last_page: 1, total: 0 }
-                    renderAppointments()
-                })
+
+            var pool = []
+            var seenPids = {}
+            var serverPage = 1
+            var maxServerPages = 100
+            var baseUrl = "{{ url('/api/appointments') }}?per_page=10&order=latest"
+
+            function fetchNext() {
+                if (serverPage > maxServerPages) { finish(pool, page); return }
+
+                apiFetch(baseUrl + '&page=' + serverPage, { method: 'GET' })
+                    .then(function (response) {
+                        return response.json().then(function (data) {
+                            return { ok: response.ok, data: data }
+                        }).catch(function () { return { ok: false, data: null } })
+                    })
+                    .then(function (result) {
+                        if (!result.ok) { finish(pool, page); return }
+
+                        var items = Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                        items.forEach(function (a) {
+                            var pid = a.patient_id || (a.patient && a.patient.user_id) || ''
+                            if (pid) seenPids[pid] = true
+                            pool.push(a)
+                        })
+
+                        var uniqueCount = Object.keys(seenPids).length
+                        var lastServerPage = result.data.last_page || serverPage
+
+                        if (uniqueCount >= page * 10 || items.length === 0 || serverPage >= lastServerPage) {
+                            finish(pool, page)
+                        } else {
+                            serverPage++
+                            fetchNext()
+                        }
+                    })
+                    .catch(function () { finish(pool, page) })
+            }
+
+            fetchNext()
+
+            function finish(pool, page) {
+                appointments = pool
+                var uniqueCount = Object.keys(seenPids).length
+                var totalUniquePages = Math.ceil(uniqueCount / 10) || 1
+                apptMeta = {
+                    current_page: Math.min(page, totalUniquePages),
+                    last_page: totalUniquePages,
+                    total: uniqueCount
+                }
+                renderAppointments()
+            }
         }
 
         function renderAppointments() {
@@ -688,6 +712,10 @@
                     return true
                 })
             }
+
+            // Slice to current visual page (10 per page)
+            var pageStart = (apptCurrentPage - 1) * 10
+            sorted = sorted.slice(pageStart, pageStart + 10)
 
             if (!sorted.length) {
                 tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No appointments found.</td></tr>'

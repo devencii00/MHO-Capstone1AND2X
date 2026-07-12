@@ -218,7 +218,7 @@
         <!-- History list (left) -->
         <div class="w-1/2 border-r border-slate-200 flex flex-col min-h-0">
             <!-- History list content -->
-            <div id="manageHistListSection">
+            <div id="manageHistListSection" class="flex flex-col min-h-0 h-full">
                 <div class="px-4 py-3 border-b border-slate-100 shrink-0 flex items-center justify-between">
                     <div>
                         <div class="text-sm font-semibold text-slate-900">Patient History</div>
@@ -4099,15 +4099,16 @@ function updateManageTodayButton() {
         function loadManageAppointments(page) {
             if (typeof apiFetch !== 'function') return
             page = page || manageCurrentPage
+            manageCurrentPage = page
             showManageError('')
             showManageSuccess('')
             showManageResult(null)
             setManageSubmitting(true)
             manageTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading appointments…</td></tr>'
 
-            var url = "{{ url('/api/appointments') }}" + '?per_page=10&page=' + page + '&appointment_type=scheduled'
+            var baseUrl = "{{ url('/api/appointments') }}" + '?per_page=10&appointment_type=scheduled'
             var order = manageSortSelect && manageSortSelect.value ? String(manageSortSelect.value) : 'latest'
-            url += '&order=' + encodeURIComponent(order === 'oldest' ? 'oldest' : 'latest')
+            baseUrl += '&order=' + encodeURIComponent(order === 'oldest' ? 'oldest' : 'latest')
 
             var now = new Date()
             var startIso = ''
@@ -4125,67 +4126,88 @@ function updateManageTodayButton() {
                 startIso = formatLocalDateIso(start)
                 endIso = formatLocalDateIso(end)
             }
-            url += '&start_date=' + encodeURIComponent(startIso)
-            url += '&end_date=' + encodeURIComponent(endIso)
+            baseUrl += '&start_date=' + encodeURIComponent(startIso)
+            baseUrl += '&end_date=' + encodeURIComponent(endIso)
 
             var search = manageSearchInput ? normalizeText(manageSearchInput.value) : ''
-            if (search) url += '&search=' + encodeURIComponent(search)
+            if (search) baseUrl += '&search=' + encodeURIComponent(search)
 
             var serviceId = manageServiceId && manageServiceId.value ? parseInt(manageServiceId.value, 10) : 0
-            if (serviceId) url += '&service_id=' + encodeURIComponent(serviceId)
+            if (serviceId) baseUrl += '&service_id=' + encodeURIComponent(serviceId)
 
             var statusFilter = manageStatusSelect && manageStatusSelect.value ? String(manageStatusSelect.value) : ''
-            if (statusFilter) url += '&status=' + encodeURIComponent(statusFilter)
+            if (statusFilter) baseUrl += '&status=' + encodeURIComponent(statusFilter)
 
-            apiFetch(url, { method: 'GET' })
-                .then(function (response) { return readResponse(response) })
-                .then(function (result) {
-                    if (!result.ok) {
-                        var msg = (result.data && result.data.message) ? String(result.data.message) : 'Failed to load appointments.'
-                        showManageError(msg)
-                        renderManageAppointments([])
-                        return
-                    }
-                    var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
-                    var rows = Array.isArray(raw) ? raw.slice() : []
+            var pool = []
+            var seenPids = {}
+            var serverPage = 1
+            var maxServerPages = 100
 
-                    // Keep only the most recent appointment per patient
-                    rows.sort(function (a, b) {
-                        var da = a && a.appointment_datetime ? String(a.appointment_datetime) : ''
-                        var db = b && b.appointment_datetime ? String(b.appointment_datetime) : ''
-                        if (da < db) return 1; if (da > db) return -1; return 0
-                    })
-                    var seenPatient = {}
-                    rows = rows.filter(function (a) {
-                        var pid = a && a.patient && a.patient.user_id != null ? String(a.patient.user_id) : ''
-                        if (!pid) return true
-                        if (seenPatient[pid]) return false
-                        seenPatient[pid] = true
-                        return true
-                    })
+            function fetchNext() {
+                if (serverPage > maxServerPages) { finish(pool, page); return }
 
-                    manageCurrentPage = result.data.current_page || page
-                    manageLastPage = result.data.last_page || 1
-                    manageTotal = rows.length
+                apiFetch(baseUrl + '&page=' + serverPage, { method: 'GET' })
+                    .then(function (response) { return readResponse(response) })
+                    .then(function (result) {
+                        if (!result.ok) { finish(pool, page); return }
 
-                    renderManageAppointments(rows)
+                        var raw = result.data && Array.isArray(result.data.data) ? result.data.data : (Array.isArray(result.data) ? result.data : [])
+                        raw.forEach(function (a) {
+                            var pid = a && a.patient && a.patient.user_id != null ? String(a.patient.user_id) : ''
+                            if (pid && !seenPids[pid]) {
+                                seenPids[pid] = true
+                                pool.push(a)
+                            } else if (!pid) {
+                                pool.push(a)
+                            }
+                        })
 
-                    if (manageMeta) {
-                        if (manageShowTodayOnly) {
-                            manageMeta.textContent = 'Showing page ' + manageCurrentPage + ' of ' + manageLastPage + ' (' + manageTotal + ' appointments for ' + startIso + ').'
+                        var uniqueCount = Object.keys(seenPids).length
+                        var lastServerPage = result.data.last_page || serverPage
+
+                        if (uniqueCount >= page * managePerPage || raw.length === 0 || serverPage >= lastServerPage) {
+                            finish(pool, page)
                         } else {
-                            var monthLabel = startIso.slice(0, 7)
-                            manageMeta.textContent = 'Showing page ' + manageCurrentPage + ' of ' + manageLastPage + ' (' + manageTotal + ' appointments for ' + monthLabel + ').'
+                            serverPage++
+                            fetchNext()
                         }
+                    })
+                    .catch(function () { finish(pool, page) })
+            }
+
+            fetchNext()
+
+            function finish(pool, page) {
+                // Sort pool by datetime descending (most recent first)
+                pool.sort(function (a, b) {
+                    var da = a && a.appointment_datetime ? String(a.appointment_datetime) : ''
+                    var db = b && b.appointment_datetime ? String(b.appointment_datetime) : ''
+                    if (da < db) return 1; if (da > db) return -1; return 0
+                })
+
+                // Slice to current visual page
+                var pageStart = (page - 1) * managePerPage
+                var rows = pool.slice(pageStart, pageStart + managePerPage)
+
+                var uniqueCount = Object.keys(seenPids).length
+                var totalUniquePages = Math.ceil(uniqueCount / managePerPage) || 1
+
+                manageCurrentPage = Math.min(page, totalUniquePages)
+                manageLastPage = totalUniquePages
+                manageTotal = uniqueCount
+
+                renderManageAppointments(rows)
+
+                if (manageMeta) {
+                    if (manageShowTodayOnly) {
+                        manageMeta.textContent = 'Showing page ' + manageCurrentPage + ' of ' + manageLastPage + ' (' + manageTotal + ' appointments for ' + startIso + ').'
+                    } else {
+                        var monthLabel = startIso.slice(0, 7)
+                        manageMeta.textContent = 'Showing page ' + manageCurrentPage + ' of ' + manageLastPage + ' (' + manageTotal + ' appointments for ' + monthLabel + ').'
                     }
-                })
-                .catch(function () {
-                    showManageError('Network error while loading appointments.')
-                    renderManageAppointments([])
-                })
-                .finally(function () {
-                    setManageSubmitting(false)
-                })
+                }
+                setManageSubmitting(false)
+            }
         }
 
         if (manageServiceSearch) {

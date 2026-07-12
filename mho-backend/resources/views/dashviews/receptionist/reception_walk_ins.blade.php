@@ -888,82 +888,102 @@ function setWalkInTab(tab) {
         function loadHistory(page) {
             if (typeof apiFetch !== 'function') return
             page = page || walkinCurrentPage
+            walkinCurrentPage = page
             showError('')
             tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading walk-in history…</td></tr>'
             var metaBox = document.getElementById('receptionWalkInHistoryMeta')
             if (metaBox) metaBox.textContent = 'Loading walk-in history…'
 
-            var url = "{{ url('/api/appointments') }}" + '?per_page=10&page=' + page + '&appointment_type=walk_in'
+            var baseUrl = "{{ url('/api/appointments') }}" + '?per_page=10&appointment_type=walk_in'
             var order = sortSelect && sortSelect.value === 'oldest' ? 'oldest' : 'latest'
-            url += '&order=' + encodeURIComponent(order)
+            baseUrl += '&order=' + encodeURIComponent(order)
 
             if (walkinFilterDate) {
-                url += '&start_date=' + encodeURIComponent(walkinFilterDate)
-                url += '&end_date=' + encodeURIComponent(walkinFilterDate)
+                baseUrl += '&start_date=' + encodeURIComponent(walkinFilterDate)
+                baseUrl += '&end_date=' + encodeURIComponent(walkinFilterDate)
             } else if (walkinShowTodayOnly) {
                 var todayIso = formatLocalDateIso(new Date())
-                url += '&start_date=' + encodeURIComponent(todayIso)
-                url += '&end_date=' + encodeURIComponent(todayIso)
+                baseUrl += '&start_date=' + encodeURIComponent(todayIso)
+                baseUrl += '&end_date=' + encodeURIComponent(todayIso)
             }
 
             var search = searchInput ? normalizeText(searchInput.value) : ''
-            if (search) url += '&search=' + encodeURIComponent(search)
+            if (search) baseUrl += '&search=' + encodeURIComponent(search)
 
             var serviceId = serviceIdInput && serviceIdInput.value ? parseInt(serviceIdInput.value, 10) : 0
-            if (serviceId) url += '&service_id=' + encodeURIComponent(serviceId)
+            if (serviceId) baseUrl += '&service_id=' + encodeURIComponent(serviceId)
 
             var status = statusSelect && statusSelect.value ? String(statusSelect.value) : ''
-            if (status) url += '&status=' + encodeURIComponent(status)
+            if (status) baseUrl += '&status=' + encodeURIComponent(status)
 
-            apiFetch(url, { method: 'GET' })
-                .then(function (response) {
-                    return response.json().then(function (data) {
-                        return { ok: response.ok, data: data }
-                    }).catch(function () {
-                        return { ok: response.ok, data: null }
+            var pool = []
+            var seenPids = {}
+            var serverPage = 1
+            var maxServerPages = 100
+
+            function fetchNext() {
+                if (serverPage > maxServerPages) { finish(pool, page); return }
+
+                apiFetch(baseUrl + '&page=' + serverPage, { method: 'GET' })
+                    .then(function (response) {
+                        return response.json().then(function (data) {
+                            return { ok: response.ok, data: data }
+                        }).catch(function () {
+                            return { ok: response.ok, data: null }
+                        })
                     })
-                })
-                .then(function (result) {
-                    if (!result.ok) {
-                        showError((result.data && result.data.message) ? String(result.data.message) : 'Failed to load walk-in history.')
-                        renderRows([])
-                        var metaBox = document.getElementById('receptionWalkInHistoryMeta')
-                        if (metaBox) metaBox.textContent = 'No walk-in history loaded.'
-                        return
-                    }
+                    .then(function (result) {
+                        if (!result.ok) { finish(pool, page); return }
 
-                    var rows = result.data && Array.isArray(result.data.data) ? result.data.data.slice() : (Array.isArray(result.data) ? result.data.slice() : [])
+                        var raw = result.data && Array.isArray(result.data.data) ? result.data.data.slice() : (Array.isArray(result.data) ? result.data.slice() : [])
+                        raw.forEach(function (a) {
+                            var pid = a && a.patient && a.patient.user_id != null ? String(a.patient.user_id) : ''
+                            if (pid && !seenPids[pid]) {
+                                seenPids[pid] = true
+                                pool.push(a)
+                            } else if (!pid) {
+                                pool.push(a)
+                            }
+                        })
 
-                    // Keep only the most recent appointment per patient
-                    rows.sort(function (a, b) {
-                        var da = a && a.appointment_datetime ? String(a.appointment_datetime) : ''
-                        var db = b && b.appointment_datetime ? String(b.appointment_datetime) : ''
-                        if (da < db) return 1; if (da > db) return -1; return 0
+                        var uniqueCount = Object.keys(seenPids).length
+                        var lastServerPage = result.data.last_page || serverPage
+
+                        if (uniqueCount >= page * walkinPerPage || raw.length === 0 || serverPage >= lastServerPage) {
+                            finish(pool, page)
+                        } else {
+                            serverPage++
+                            fetchNext()
+                        }
                     })
-                    var seenPatient = {}
-                    rows = rows.filter(function (a) {
-                        var pid = a && a.patient && a.patient.user_id != null ? String(a.patient.user_id) : ''
-                        if (!pid) return true
-                        if (seenPatient[pid]) return false
-                        seenPatient[pid] = true
-                        return true
-                    })
+                    .catch(function () { finish(pool, page) })
+            }
 
-                    walkinCurrentPage = result.data.current_page || page
-                    walkinLastPage = result.data.last_page || 1
-                    walkinTotal = rows.length
+            fetchNext()
 
-                    renderRows(rows)
-                    var metaBox = document.getElementById('receptionWalkInHistoryMeta')
-                    var dateText = walkinFilterDate ? ' on ' + walkinFilterDate : (walkinShowTodayOnly ? ' for today' : ' (all dates)')
-                    metaBox.textContent = 'Showing page ' + walkinCurrentPage + ' of ' + walkinLastPage + ' (' + walkinTotal + ' walk-in(s)' + dateText + ').'
+            function finish(pool, page) {
+                // Sort pool by datetime descending (most recent first)
+                pool.sort(function (a, b) {
+                    var da = a && a.appointment_datetime ? String(a.appointment_datetime) : ''
+                    var db = b && b.appointment_datetime ? String(b.appointment_datetime) : ''
+                    if (da < db) return 1; if (da > db) return -1; return 0
                 })
-                .catch(function () {
-                    showError('Network error while loading walk-in history.')
-                    renderRows([])
-                    var metaBox = document.getElementById('receptionWalkInHistoryMeta')
-                    if (metaBox) metaBox.textContent = 'No walk-in history loaded.'
-                })
+
+                // Slice to current visual page
+                var pageStart = (page - 1) * walkinPerPage
+                var rows = pool.slice(pageStart, pageStart + walkinPerPage)
+
+                var uniqueCount = Object.keys(seenPids).length
+                var totalUniquePages = Math.ceil(uniqueCount / walkinPerPage) || 1
+
+                walkinCurrentPage = Math.min(page, totalUniquePages)
+                walkinLastPage = totalUniquePages
+                walkinTotal = uniqueCount
+
+                renderRows(rows)
+                var dateText = walkinFilterDate ? ' on ' + walkinFilterDate : (walkinShowTodayOnly ? ' for today' : ' (all dates)')
+                metaBox.textContent = 'Showing page ' + walkinCurrentPage + ' of ' + walkinLastPage + ' (' + walkinTotal + ' walk-in(s)' + dateText + ').'
+            }
         }
 
         // ── Patient history modal functions ──
