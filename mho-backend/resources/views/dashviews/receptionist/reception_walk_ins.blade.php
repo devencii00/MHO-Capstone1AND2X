@@ -1689,6 +1689,9 @@ function setWalkInTab(tab) {
         var selectorCancelBtn = document.getElementById('receptionWalkInSelectorCancel')
         var selectorConfirmBtn = document.getElementById('receptionWalkInSelectorConfirm')
 
+        // Clear stale sessionStorage cache on page load to ensure fresh patient data (with in_queue) is fetched
+        try { if (window.sessionStorage) window.sessionStorage.removeItem(receptionBrowseCacheKeyPrefix + 'patients_latest') } catch (e) {}
+
         function getReceptionBrowseCacheRoot() {
             if (typeof window === 'undefined') return {}
             if (!window.__receptionBrowseModalCache) window.__receptionBrowseModalCache = {}
@@ -2239,18 +2242,39 @@ function setWalkInTab(tab) {
             var html = ''
             selectorState.items.forEach(function (patient, idx) {
                 var active = selectorState.activeItem && String(selectorState.activeItem.user_id) === String(patient.user_id)
+                var inQueue = !!(patient.in_queue)
                 var name = patientDisplayName(patient)
                 var meta = []
                 if (patient.email) meta.push(patient.email)
                 if (patient.contact_number) meta.push(patient.contact_number)
+                var cardClasses = 'reception-selector-patient w-full rounded-xl border px-3 py-3 text-left transition-colors '
+                if (inQueue) {
+                    cardClasses += 'border-slate-200 bg-slate-100 opacity-50 cursor-not-allowed'
+                } else if (active) {
+                    cardClasses += 'border-green-200 bg-green-50'
+                } else {
+                    cardClasses += 'border-slate-200 bg-white hover:border-green-200 hover:bg-slate-50'
+                }
+                var badgeClasses = 'inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] font-semibold border '
+                var badgeText = ''
+                if (inQueue) {
+                    badgeClasses += 'border-amber-200 bg-amber-50 text-amber-700'
+                    badgeText = 'On queue'
+                } else if (active) {
+                    badgeClasses += 'border-green-200 bg-white text-green-700'
+                    badgeText = 'Selected'
+                } else {
+                    badgeClasses += 'border-slate-200 bg-slate-50 text-slate-500'
+                    badgeText = 'Recent'
+                }
                 html += '' +
-                    '<button type="button" class="reception-selector-patient w-full rounded-xl border px-3 py-3 text-left transition-colors ' + (active ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-white hover:border-green-200 hover:bg-slate-50') + '" data-index="' + idx + '">' +
+                    '<button type="button" class="' + cardClasses + '" data-index="' + idx + '"' + (inQueue ? ' disabled' : '') + '>' +
                         '<div class="flex items-start justify-between gap-3">' +
                             '<div class="min-w-0">' +
                                 '<div class="text-[0.8rem] font-semibold text-slate-900 truncate">' + escapeHtml(name) + '</div>' +
                                 '<div class="mt-1 text-[0.72rem] text-slate-500">' + escapeHtml(meta.join(' • ') || (patient && patient.email ? patient.email : '')) + '</div>' +
                             '</div>' +
-                            '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] font-semibold border ' + (active ? 'border-green-200 bg-white text-green-700' : 'border-slate-200 bg-slate-50 text-slate-500') + '">' + (active ? 'Selected' : 'Recent') + '</span>' +
+                            '<span class="' + badgeClasses + '">' + badgeText + '</span>' +
                         '</div>' +
                     '</button>'
             })
@@ -3531,6 +3555,11 @@ function setWalkInTab(tab) {
                 if (selectorState.type === 'patient') {
                     if (selectorState.mode === 'guest') return
                     if (!selectorState.activeItem) return
+                    // Guard: prevent selecting a patient already in queue
+                    if (selectorState.activeItem && selectorState.activeItem.in_queue) {
+                        if (typeof showError === 'function') showError('This patient is already in the queue.')
+                        return
+                    }
                     setPatientSelection(selectorState.activeItem)
                     closeSelectorModal()
                     return
@@ -4430,6 +4459,9 @@ function setWalkInTab(tab) {
 
                             var created = result.data || {}
                             function afterQueue(queueCode) {
+                                // Invalidate patient cache so the "On queue" badge shows immediately next time
+                                try { if (window.__receptionBrowseModalCache) delete window.__receptionBrowseModalCache['patients_latest'] } catch (e) {}
+                                try { if (window.sessionStorage) window.sessionStorage.removeItem(receptionBrowseCacheKeyPrefix + 'patients_latest') } catch (e) {}
                                 showSuccess(type === 'walk_in'
                                     ? 'Walk-in successfuly created and currently on the queue.'
                                     : 'Appointment has been created successfully. Queue entry created.')

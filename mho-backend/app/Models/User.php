@@ -79,6 +79,7 @@ class User extends Authenticatable
     protected $appends = [
         'must_change_credentials',
         'has_pending_verification',
+        'in_queue',
         'current_role',
         'signature_url',
         'prof_path_url',
@@ -227,6 +228,17 @@ class User extends Authenticatable
 
         return $this->patientVerifications()
             ->where('status', 'pending')
+            ->exists();
+    }
+
+    public function getInQueueAttribute(): bool
+    {
+        return \Illuminate\Support\Facades\DB::table('queues')
+            ->join('appointments', 'queues.appointment_id', '=', 'appointments.appointment_id')
+            ->where('appointments.patient_id', $this->user_id)
+            ->whereDate('queues.queue_datetime', now()->toDateString())
+            ->whereIn('queues.status', ['waiting', 'serving', 'consulted', 'skipped', 'on_hold'])
+            ->whereNull('queues.deleted_at')
             ->exists();
     }
 

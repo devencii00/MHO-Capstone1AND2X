@@ -30,6 +30,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('appointment_id');
+            $table->index(['queue_datetime', 'status', 'appointment_id'], 'queues_subquery_idx');
         });
     }
 

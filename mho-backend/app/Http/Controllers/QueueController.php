@@ -184,7 +184,7 @@ class QueueController extends Controller
 
         $exists = Queue::query()
             ->whereDate('queue_datetime', $date)
-            ->whereIn('status', Queue::activeStatuses())
+            ->whereIn('status', array_merge(Queue::activeStatuses(), ['consulted']))
             ->whereHas('appointment', function ($q) use ($patientId) {
                 $q->where('patient_id', $patientId);
             })
@@ -382,7 +382,7 @@ class QueueController extends Controller
         if ($patientId > 0) {
             $duplicatePatient = Queue::query()
                 ->whereDate('queue_datetime', $date)
-                ->whereIn('status', Queue::activeStatuses())
+                ->whereIn('status', array_merge(Queue::activeStatuses(), ['consulted']))
                 ->whereHas('appointment', function ($q) use ($patientId) {
                     $q->where('patient_id', $patientId);
                 })
