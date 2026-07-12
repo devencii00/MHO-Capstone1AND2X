@@ -313,11 +313,43 @@
 </div>
 
 <style>
+    /* ── Receipt card styles (shared with print/payment_receipt.blade.php) ── */
+    .letterhead-logo {
+        width: 42px;
+        height: 42px;
+        object-fit: contain;
+    }
+    .receipt-figures {
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum" 1;
+    }
+    .receipt-torn {
+        height: 14px;
+        background-image:
+            linear-gradient(-45deg, transparent 8px, #fff 8px),
+            linear-gradient(45deg, transparent 8px, #fff 8px);
+        background-size: 16px 32px;
+        background-position: left bottom;
+        background-repeat: repeat-x;
+    }
+    /* State toggling: set data-state="finalized" or data-state="review" on #receiptRoot */
+    #receiptRoot[data-state="finalized"] .state-review { display: none; }
+    #receiptRoot[data-state="review"] .state-finalized { display: none; }
+    #receiptRoot[data-state="review"] .receipt-accent { color: rgb(180 83 9); }
+    #receiptRoot[data-state="finalized"] .receipt-accent { color: rgb(4 120 87); }
+
+    * {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
     @media print {
+        @page { size: A4 portrait; margin: 14mm 12mm; }
+
         body * { visibility: hidden; }
         body { background: white !important; }
 
-        /* ── Receipt modal printing (only when visible on screen) ── */
+        /* ── Receipt modal printing ── */
         #receptionPaymentReceiptOverlay.flex {
             position: absolute !important;
             left: 0 !important;
@@ -338,8 +370,12 @@
             box-shadow: none !important;
             border: none !important;
         }
+        #receptionPaymentReceiptOverlay.flex .receipt-shell {
+            border: 0 !important;
+            box-shadow: none !important;
+        }
 
-        /* ── Transaction history detail printing (1:1 receipt modal look) ── */
+        /* ── Transaction history detail printing ── */
         #receptionTxHistoryOverlay.flex {
             visibility: visible !important;
             background: white !important;
@@ -375,34 +411,19 @@
             padding: 0 !important;
             background: transparent !important;
         }
-        /* Replicate receipt modal's #receptionPaymentReceiptContent styling */
         #receptionTxHistoryOverlay.flex #receptionTxHistoryDetailBody > div:first-child {
             visibility: visible !important;
-            background: white !important;
-            border: 2px solid #e2e8f0 !important;
-            border-radius: 12px !important;
-            padding: 1.25rem !important;
-            font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace !important;
-            font-size: 0.875rem !important;
-            line-height: 1.625 !important;
-            color: #334155 !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-            box-sizing: border-box !important;
         }
-        #receptionTxHistoryOverlay.flex #receptionTxHistoryDetailBody > div:first-child * {
-            visibility: visible !important;
-        }
-        #receptionTxHistoryOverlay.flex #receptionTxHistoryDetailBody button {
-            display: none !important;
-        }
-        /* Hide the empty print button container to avoid extra whitespace */
-        #receptionTxHistoryOverlay.flex #receptionTxHistoryDetailBody > div:first-child > div.text-center.mt-3 {
+        #receptionTxHistoryOverlay.flex #receptionTxHistoryDetailBody button:not(.receipt-print-btn) {
             display: none !important;
         }
     }
 </style>
+
+{{-- Hidden receipt card template (cloned and populated by JS) --}}
+<div id="receiptCardTemplate" class="hidden" aria-hidden="true">
+    <x-receipt-card />
+</div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -766,7 +787,21 @@
             if (paymentSubmitLabel) paymentSubmitLabel.textContent = isSubmitting ? 'Saving...' : 'Record payment'
         }
 
-        function formatReceiptHtml(details, isFinalized) {
+        function cloneReceiptCard(txnId) {
+            var tpl = document.getElementById('receiptCardTemplate')
+            if (!tpl) return null
+            // Clone the inner receipt card (first child of template wrapper)
+            var inner = tpl.firstElementChild
+            if (!inner) return null
+            var clone = inner.cloneNode(true)
+            // Set transaction ID
+            var txnIdEl = clone.querySelector('.receipt-txn-id')
+            if (txnIdEl && txnId != null) txnIdEl.textContent = txnId
+            return clone
+        }
+
+        function populateReceiptCard(root, details) {
+            if (!root || !details) return
             var patient = details['Patient'] || '-'
             var doctor = details['Doctor'] || '-'
             var servicesHtml = details['Services'] || ''
@@ -778,38 +813,32 @@
             var txnDate = details['Transaction Date'] || '-'
             var paid = details['Paid'] || 'PHP 0.00'
             var change = details['Change'] || 'PHP 0.00'
-            var title = isFinalized ? 'OFFICIAL RECEIPT' : 'PAYMENT REVIEW'
-            var separator = '─'.repeat(40)
 
-            var html = ''
-            html += '<div style="text-align:center;font-weight:700;font-size:1rem;margin-bottom:8px;">' + escapeHtml(title) + '</div>'
-            html += '<div style="text-align:center;font-size:0.72rem;color:#888;margin-bottom:12px;">Opol Municipal Health Office</div>'
-            html += '<div style="border-top:2px dashed #aaa;margin:8px 0;"></div>'
-            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Patient:</span><span style="font-weight:600;">' + escapeHtml(patient) + '</span></div>'
-            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Doctor:</span><span style="font-weight:600;">' + escapeHtml(doctor) + '</span></div>'
-            if (servicesHtml) {
-                html += '<div style="border-top:1px dashed #ccc;margin:6px 0;"></div>'
-                html += '<div style="font-size:0.72rem;color:#555;margin-bottom:2px;">Services:</div>'
-                html += servicesHtml
-            }
-            html += '<div style="border-top:1px dashed #ccc;margin:6px 0;"></div>'
-            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Gross Amount:</span><span>' + escapeHtml(gross) + '</span></div>'
-            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Discount Type:</span><span>' + escapeHtml(discType) + '</span></div>'
-            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Discount Amount:</span><span>' + escapeHtml(discAmt) + '</span></div>'
-            html += '<div style="border-top:1px dashed #ccc;margin:6px 0;"></div>'
-            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;font-weight:700;"><span>Net Amount:</span><span>' + escapeHtml(net) + '</span></div>'
-            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Payment Mode:</span><span>' + escapeHtml(mode) + '</span></div>'
-            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Transaction Date:</span><span>' + escapeHtml(txnDate) + '</span></div>'
-            html += '<div style="border-top:2px dashed #aaa;margin:8px 0;"></div>'
-            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;font-size:1.05rem;"><span>Paid:</span><span style="font-weight:700;">' + escapeHtml(paid) + '</span></div>'
-            html += '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Change:</span><span style="font-weight:600;">' + escapeHtml(change) + '</span></div>'
-            html += '<div style="border-top:2px dashed #aaa;margin:8px 0;"></div>'
-            if (isFinalized) {
-                html += '<div style="text-align:center;font-size:0.68rem;color:#888;margin-top:4px;">Thank you for your payment!</div>'
-            } else {
-                html += '<div style="text-align:center;font-size:0.68rem;color:#e67e22;margin-top:4px;">Please verify before confirming.</div>'
-            }
-            return html
+            var patientEl = root.querySelector('.receipt-patient')
+            var doctorEl = root.querySelector('.receipt-doctor')
+            var servicesContainer = root.querySelector('.receipt-services')
+            var grossEl = root.querySelector('.receipt-gross')
+            var discTypeEl = root.querySelector('.receipt-discount-type')
+            var discAmtEl = root.querySelector('.receipt-discount-amount')
+            var netEl = root.querySelector('.receipt-net')
+            var modeEl = root.querySelector('.receipt-mode')
+            var dateEl = root.querySelector('.receipt-date')
+            var paidEl = root.querySelector('.receipt-paid')
+            var changeEl = root.querySelector('.receipt-change')
+            var metaEl = root.querySelector('#receiptMeta')
+
+            if (patientEl) patientEl.textContent = patient
+            if (doctorEl) doctorEl.textContent = doctor
+            if (servicesContainer) servicesContainer.innerHTML = servicesHtml || '<div class="flex justify-between text-slate-400"><span>-</span><span>-</span></div>'
+            if (grossEl) grossEl.textContent = gross
+            if (discTypeEl) discTypeEl.textContent = discType
+            if (discAmtEl) discAmtEl.textContent = discAmt
+            if (netEl) netEl.textContent = net
+            if (modeEl) modeEl.textContent = mode
+            if (dateEl) dateEl.textContent = txnDate
+            if (paidEl) paidEl.textContent = paid
+            if (changeEl) changeEl.textContent = change
+            if (metaEl && txnDate) metaEl.textContent = '\u00B7  ' + txnDate
         }
 
         var reviewConfirming = false
@@ -853,7 +882,15 @@
                 reviewConfirming = false
                 reviewConfirm.innerHTML = reviewConfirmDefaultHtml || 'Confirm Payment'
 
-                reviewContent.innerHTML = formatReceiptHtml(details, false)
+                var rc = cloneReceiptCard(null)
+                if (rc) {
+                    rc.setAttribute('data-state', 'review')
+                    populateReceiptCard(rc, details)
+                    reviewContent.innerHTML = ''
+                    reviewContent.appendChild(rc)
+                } else {
+                    reviewContent.innerHTML = '<div class="text-center text-slate-400 py-4">Receipt template not found.</div>'
+                }
                 reviewResolver = resolve
                 reviewOverlay.classList.remove('hidden')
                 reviewOverlay.classList.add('flex')
@@ -878,7 +915,15 @@
 
         function showReceipt(details) {
             if (!receiptOverlay || !receiptContent) return
-            receiptContent.innerHTML = formatReceiptHtml(details, true)
+            var rc = cloneReceiptCard(null)
+            if (rc) {
+                rc.setAttribute('data-state', 'finalized')
+                populateReceiptCard(rc, details)
+                receiptContent.innerHTML = ''
+                receiptContent.appendChild(rc)
+            } else {
+                receiptContent.innerHTML = '<div class="text-center text-slate-400 py-4">Receipt template not found.</div>'
+            }
             receiptOverlay.classList.remove('hidden')
             receiptOverlay.classList.add('flex')
         }
@@ -1102,7 +1147,7 @@
                 if (isNaN(price)) price = 0
                 if (!name) return ''
                 var desc = description ? ' · ' + escapeHtml(description) : ''
-                return '<div style="display:flex;justify-content:space-between;font-size:0.72rem;padding:1px 0;"><span>' + escapeHtml(name) + desc + '</span><span>' + escapeHtml(price.toFixed(2)) + '</span></div>'
+                return '<div class="flex justify-between text-[0.85rem] receipt-figures"><span class="text-slate-700">' + escapeHtml(name) + desc + '</span><span class="text-slate-800 font-medium">PHP ' + price.toLocaleString('en-US', {minimumFractionDigits:2}) + '</span></div>'
             }).filter(function (v) { return v !== '' }).join('')
             if (!items) return ''
             return items
@@ -1435,7 +1480,22 @@
                 details['Paid'] = '\u2014'
                 details['Change'] = '\u2014'
             }
-            detailBody.innerHTML = '<div class="max-w-sm mx-auto">' + formatReceiptHtml(details, true) + '<div class="text-center mt-3"><button type="button" onclick="window.print()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-[0.72rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg> Print / PDF</button></div></div>'
+            var rc = cloneReceiptCard(tx.transaction_id)
+            if (rc) {
+                rc.setAttribute('data-state', tx.payment_status === 'paid' ? 'finalized' : 'review')
+                populateReceiptCard(rc, details)
+                detailBody.innerHTML = '<div class="max-w-sm mx-auto"></div>'
+                var wrapper = detailBody.querySelector('.max-w-sm')
+                if (wrapper) {
+                    wrapper.appendChild(rc)
+                    var printBtn = document.createElement('div')
+                    printBtn.className = 'text-center mt-3'
+                    printBtn.innerHTML = '<button type="button" class="receipt-print-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-[0.72rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300" onclick="window.print()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg> Print / PDF</button>'
+                    wrapper.appendChild(printBtn)
+                }
+            } else {
+                detailBody.innerHTML = '<div class="text-center text-slate-400 py-8">Receipt template not found.</div>'
+            }
         }
 
         // ── Event delegation for See Details & History button ──
