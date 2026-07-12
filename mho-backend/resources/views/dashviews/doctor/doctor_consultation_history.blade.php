@@ -225,6 +225,35 @@
     </div>
 </div>
 
+{{-- ═══════════════════════════════════════════════════════════════════ --}}
+{{-- Prescription Receipt Modal --}}
+{{-- ═══════════════════════════════════════════════════════════════════ --}}
+<div id="histRxReceiptModal" class="hidden fixed inset-0 z-[80] bg-slate-900/60 flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl max-h-[90vh] rounded-2xl bg-white border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,0.35)] flex flex-col overflow-hidden">
+        {{-- Modal header --}}
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+            <div>
+                <div class="text-sm font-semibold text-slate-900">Prescription Receipt</div>
+                <div id="histRxReceiptSubtitle" class="text-[0.72rem] text-slate-500">Printable prescription slip.</div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" id="histRxReceiptPrintBtn" class="inline-flex items-center gap-1.5 rounded-xl bg-green-700 px-3 py-2 text-[0.78rem] font-semibold text-white hover:bg-green-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                    Print / PDF
+                </button>
+                <button type="button" id="histRxReceiptCloseBtn" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">
+                    Close
+                </button>
+            </div>
+        </div>
+
+        {{-- Iframe body --}}
+        <div class="flex-1 min-h-0 bg-slate-50">
+            <iframe id="histRxReceiptIframe" src="" class="w-full h-full border-0" style="min-height: 70vh;"></iframe>
+        </div>
+    </div>
+</div>
+
 <script>
 (function () {
     try { // debug: confirm script runs
@@ -599,6 +628,7 @@
             // Read-only prescriptions
             if (prescs.length) {
                 prescs.forEach(function(rx) {
+                    var rxId = rx.prescription_id;
                     var items = Array.isArray(rx.items) ? rx.items : [];
                     prescHtml += '<div class="rounded-xl border border-slate-200 bg-white p-3 mb-2">' +
                         '<div class="flex items-center justify-between text-[0.7rem] text-slate-500 mb-1.5">' +
@@ -617,6 +647,7 @@
                                 (i.duration ? '<span class="text-slate-500">' + esc(i.duration) + '</span>' : '') +
                             '</div>';
                         }).join('') : '<div class="text-[0.72rem] text-slate-400">No items recorded.</div>') +
+                        (rxId ? '<div class="mt-2 pt-2 border-t border-slate-100"><button type="button" onclick="window.openHistRxReceiptModal(' + rxId + ')" class="inline-flex items-center gap-1 text-[0.72rem] font-semibold text-green-700 hover:text-green-800 underline underline-offset-2">Prescription Receipt</button></div>' : '') +
                     '</div>';
                 });
             } else {
@@ -1287,11 +1318,45 @@
 
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            if (histMedModal && !histMedModal.classList.contains('hidden')) closeHistMedicineSelector();
+            var rxModal = document.getElementById('histRxReceiptModal');
+            if (rxModal && !rxModal.classList.contains('hidden')) closeHistRxReceiptModal();
+            else if (histMedModal && !histMedModal.classList.contains('hidden')) closeHistMedicineSelector();
             else if (editOverlay && !editOverlay.classList.contains('hidden')) closeEditModal();
             else if (detailOverlay && !detailOverlay.classList.contains('hidden')) closeDetailModal();
         }
     });
+
+    // ── Prescription Receipt Modal ──
+    var histRxReceiptModal = document.getElementById('histRxReceiptModal');
+    var histRxReceiptIframe = document.getElementById('histRxReceiptIframe');
+    var histRxReceiptPrintBtn = document.getElementById('histRxReceiptPrintBtn');
+    var histRxReceiptCloseBtn = document.getElementById('histRxReceiptCloseBtn');
+
+    window.openHistRxReceiptModal = function (prescriptionId) {
+        if (!histRxReceiptModal || !histRxReceiptIframe) return;
+        histRxReceiptIframe.src = '{{ url('/print/prescriptions') }}/' + prescriptionId;
+        histRxReceiptModal.classList.remove('hidden');
+    }
+
+    function closeHistRxReceiptModal() {
+        if (!histRxReceiptModal) return;
+        histRxReceiptModal.classList.add('hidden');
+        if (histRxReceiptIframe) histRxReceiptIframe.src = '';
+    }
+
+    if (histRxReceiptCloseBtn) {
+        histRxReceiptCloseBtn.addEventListener('click', closeHistRxReceiptModal);
+    }
+
+    if (histRxReceiptPrintBtn && histRxReceiptIframe) {
+        histRxReceiptPrintBtn.addEventListener('click', function () {
+            var iframeWin = histRxReceiptIframe.contentWindow;
+            if (iframeWin) {
+                iframeWin.focus();
+                iframeWin.print();
+            }
+        });
+    }
 
     try {
         loadData(1);
