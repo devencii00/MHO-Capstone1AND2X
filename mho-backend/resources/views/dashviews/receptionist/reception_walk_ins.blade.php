@@ -464,8 +464,79 @@ function setWalkInTab(tab) {
     })
 </script>
 
+<!-- Queue Card Modal -->
+<div id="receptionQueueCardOverlay" class="hidden fixed inset-0 z-[90] bg-black/60 items-center justify-center p-4">
+    <div class="w-full max-w-xl rounded-2xl shadow-2xl border border-slate-100 overflow-hidden bg-gradient-to-b from-green-50 to-white">
+        <!-- Upper Part - dominant -->
+        <div class="px-10 pt-10 pb-6 text-center">
+            <p class="text-sm font-bold uppercase tracking-[0.25em] text-green-600">Queue Code</p>
+            <p id="receptionQueueCardCode" class="text-5xl font-bold text-slate-800 mt-3 tracking-wider">—</p>
+            <hr class="my-6 border-slate-200">
+            <div class="flex justify-between items-start gap-6 pt-1">
+                <div class="flex-1 text-left">
+                    <p class="text-[0.7rem] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Patient</p>
+                    <p id="receptionQueueCardPatientName" class="text-xl font-bold text-slate-700">—</p>
+                </div>
+                <div class="flex-1 text-right">
+                    <p class="text-[0.7rem] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Doctor</p>
+                    <p id="receptionQueueCardDoctorName" class="text-xl font-bold text-slate-700">—</p>
+                </div>
+            </div>
+        </div>
+        <!-- Lower Part -->
+        <div class="px-10 py-4 border-t border-slate-100 text-center">
+            <button type="button" id="receptionQueueCardClose" class="px-6 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-all duration-150">Close</button>
+        </div>
+    </div>
+</div>
+
 <script>
+    // ── Queue Card (global scope — available immediately) ──
+    function formatQueueInitials(person) {
+        if (!person) return '—'
+        var first = (person.firstname || '').trim()
+        var middle = (person.middlename || '').trim()
+        var last = (person.lastname || '').trim()
+        var parts = []
+        if (first) parts.push(first[0].toUpperCase() + '.')
+        if (middle) parts.push(middle[0].toUpperCase() + '.')
+        if (last) parts.push(last)
+        return parts.join(' ') || '—'
+    }
+    function receptionShowQueueCard(queueCode, patient, doctor) {
+        var overlay = document.getElementById('receptionQueueCardOverlay')
+        var codeEl = document.getElementById('receptionQueueCardCode')
+        var pNameEl = document.getElementById('receptionQueueCardPatientName')
+        var dNameEl = document.getElementById('receptionQueueCardDoctorName')
+        if (codeEl) codeEl.textContent = queueCode ? '# ' + queueCode : '—'
+        if (pNameEl) pNameEl.textContent = patient ? formatQueueInitials(patient) : '—'
+        if (dNameEl) dNameEl.textContent = doctor ? formatQueueInitials(doctor) : '—'
+        if (overlay) {
+            overlay.classList.remove('hidden')
+            overlay.classList.add('flex')
+        }
+    }
+    window.receptionShowQueueCard = receptionShowQueueCard
+
     document.addEventListener('DOMContentLoaded', function () {
+        // ── Queue Card close events (needs DOM) ──
+        function closeQueueCard() {
+            var overlay = document.getElementById('receptionQueueCardOverlay')
+            if (overlay) {
+                overlay.classList.add('hidden')
+                overlay.classList.remove('flex')
+            }
+        }
+        var closeBtn = document.getElementById('receptionQueueCardClose')
+        var overlay = document.getElementById('receptionQueueCardOverlay')
+        if (closeBtn) closeBtn.addEventListener('click', closeQueueCard)
+        if (overlay) {
+            overlay.addEventListener('click', function (e) {
+                if (e.target === overlay) closeQueueCard()
+            })
+        }
+        // ── End Queue Card ──
+
         var errorBox = document.getElementById('receptionWalkInHistoryError')
         var searchInput = document.getElementById('receptionWalkInHistorySearch')
         var serviceSearch = document.getElementById('receptionWalkInHistoryServiceSearch')
@@ -1761,6 +1832,7 @@ function setWalkInTab(tab) {
             if (!name) name = patient.email || ''
             return name
         }
+        window.patientDisplayName = patientDisplayName
 
         function appointmentDoctorDisplayName(appointment) {
             if (!appointment) return '-'
@@ -3223,6 +3295,7 @@ function setWalkInTab(tab) {
             if (!name) name = 'Doctor #' + (doctor.user_id != null ? doctor.user_id : '')
             return name
         }
+        window.doctorDisplayName = doctorDisplayName
 
         function setDoctorSelection(doctor) {
             selectedDoctor = doctor || null
@@ -4356,10 +4429,13 @@ function setWalkInTab(tab) {
                             }
 
                             var created = result.data || {}
-                            function afterQueue() {
+                            function afterQueue(queueCode) {
                                 showSuccess(type === 'walk_in'
                                     ? 'Walk-in successfuly created and currently on the queue.'
                                     : 'Appointment has been created successfully. Queue entry created.')
+                                if (type === 'walk_in' && queueCode && typeof receptionShowQueueCard === 'function') {
+                                    receptionShowQueueCard(queueCode, selectedPatient, selectedDoctor)
+                                }
                                 resetFormState()
                             }
 
@@ -4373,10 +4449,14 @@ function setWalkInTab(tab) {
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify(queueBody)
                                 })
-                                    .then(function () { afterQueue() })
-                                    .catch(function () { afterQueue() })
+                                    .then(function (resp) { return resp.json().catch(function () { return {} }) })
+                                    .then(function (queueResult) {
+                                        var queueCode = queueResult && queueResult.queue_code ? queueResult.queue_code : ''
+                                        afterQueue(queueCode)
+                                    })
+                                    .catch(function () { afterQueue('') })
                             }
-                            afterQueue()
+                            afterQueue('')
                         })
                         .catch(function () {
                             showError('Network error while creating appointment.')
@@ -4393,22 +4473,9 @@ function setWalkInTab(tab) {
                             .then(function (res) {
                                 var exists = !!(res && res.ok && res.data && res.data.exists)
                                 if (!exists) return createAndQueue()
-                                var ask = window.receptionWalkInConfirm
-                                if (typeof ask === 'function') {
-                                    return ask('This patient is already in the queue, would you still like to register this queue entry?', 3000)
-                                        .then(function (confirmed) {
-                                            if (!confirmed) {
-                                                setSubmitting(false)
-                                                return
-                                            }
-                                            return createAndQueue({ forceDuplicateQueue: true, forceDuplicatePatient: true })
-                                        })
-                                }
-                                if (!window.confirm('This patient is already in the queue, would you still like to register this queue entry?')) {
-                                    setSubmitting(false)
-                                    return
-                                }
-                                return createAndQueue({ forceDuplicateQueue: true, forceDuplicatePatient: true })
+                                showError('This patient already has an active queue.')
+                                setSubmitting(false)
+                                return
                             })
                             .catch(function () {
                                 return createAndQueue()
