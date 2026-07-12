@@ -322,6 +322,30 @@
     </div>
 </div>
 
+{{-- Consultation Receipt Modal --}}
+<div id="manageApptConsultReceiptModal" class="hidden fixed inset-0 z-[70] bg-slate-900/60 flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl max-h-[90vh] rounded-2xl bg-white border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,0.35)] flex flex-col overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+            <div>
+                <div class="text-sm font-semibold text-slate-900">Consultation Summary</div>
+                <div id="manageApptConsultReceiptSubtitle" class="text-[0.72rem] text-slate-500">Printable consultation summary.</div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" id="manageApptConsultReceiptPrintBtn" class="inline-flex items-center gap-1.5 rounded-xl bg-green-700 px-3 py-2 text-[0.78rem] font-semibold text-white hover:bg-green-800">
+                    <x-lucide-printer class="w-4 h-4" />
+                    Print / PDF
+                </button>
+                <button type="button" id="manageApptConsultReceiptCloseBtn" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">
+                    Close
+                </button>
+            </div>
+        </div>
+        <div class="flex-1 min-h-0 bg-slate-50">
+            <iframe id="manageApptConsultReceiptIframe" src="" class="w-full h-full border-0" style="min-height: 70vh;"></iframe>
+        </div>
+    </div>
+</div>
+
 <div id="receptionSelectorOverlay" class="hidden fixed inset-0 z-[80] bg-slate-900/50 items-center justify-center p-4">
     <div class="w-full max-w-5xl h-[88vh] rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] overflow-hidden grid grid-cols-1 md:grid-cols-2">
         <div class="border-b md:border-b-0 md:border-r border-slate-200 flex flex-col min-h-0">
@@ -3240,6 +3264,12 @@ function setAppointmentTab(tab) {
         var manageMeta = document.getElementById('receptionManageAppointmentMeta')
         var manageRefreshBtn = document.getElementById('recBookRefreshBtn')
         var manageTodayOnlyBtn = document.getElementById('receptionManageTodayOnlyBtn')
+
+        // Consultation Receipt Modal
+        var manageApptConsultReceiptModal = document.getElementById('manageApptConsultReceiptModal')
+        var manageApptConsultReceiptIframe = document.getElementById('manageApptConsultReceiptIframe')
+        var manageApptConsultReceiptPrintBtn = document.getElementById('manageApptConsultReceiptPrintBtn')
+        var manageApptConsultReceiptCloseBtn = document.getElementById('manageApptConsultReceiptCloseBtn')
         var manageShowTodayOnly = false
         var manageSearchTimer = null
         var manageServices = []
@@ -3771,6 +3801,44 @@ function updateManageTodayButton() {
             }).join('')
         }
 
+        // ── Consultation Receipt Modal ──
+        window.openManageApptConsultReceipt = function (txId) {
+            if (!manageApptConsultReceiptModal || !manageApptConsultReceiptIframe || !txId) return
+            manageApptConsultReceiptIframe.src = '{{ url('/print/consultations') }}/' + encodeURIComponent(String(txId))
+            manageApptConsultReceiptModal.classList.remove('hidden')
+        }
+
+        function closeManageApptConsultReceipt() {
+            if (!manageApptConsultReceiptModal) return
+            manageApptConsultReceiptModal.classList.add('hidden')
+            if (manageApptConsultReceiptIframe) manageApptConsultReceiptIframe.src = ''
+        }
+
+        // ── Consultation Receipt Modal events ──
+        if (manageApptConsultReceiptCloseBtn) {
+            manageApptConsultReceiptCloseBtn.addEventListener('click', closeManageApptConsultReceipt)
+        }
+        if (manageApptConsultReceiptPrintBtn && manageApptConsultReceiptIframe) {
+            manageApptConsultReceiptPrintBtn.addEventListener('click', function () {
+                var iframeWin = manageApptConsultReceiptIframe.contentWindow
+                if (iframeWin) {
+                    iframeWin.focus()
+                    iframeWin.print()
+                }
+            })
+        }
+        if (manageApptConsultReceiptModal) {
+            manageApptConsultReceiptModal.addEventListener('click', function (e) {
+                if (e.target === manageApptConsultReceiptModal) closeManageApptConsultReceipt()
+            })
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && manageApptConsultReceiptModal && !manageApptConsultReceiptModal.classList.contains('hidden')) {
+                closeManageApptConsultReceipt()
+            }
+        })
+
         function renderManageApptDetail(appt) {
             if (!appt || !manageHistDetailBody) {
                 if (manageHistDetailBody) manageHistDetailBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No appointment selected.</div>'
@@ -3825,6 +3893,11 @@ function updateManageTodayButton() {
 
             manageHistDetailBody.innerHTML =
                 '<div class="space-y-3">' +
+                    (stKey === 'completed' && txId ?
+                        '<div class="text-right">' +
+                            '<button type="button" class="text-[0.72rem] font-semibold text-green-700 hover:text-green-800 underline underline-offset-2" onclick="window.openManageApptConsultReceipt(\'' + String(txId).replace(/'/g, "\\'") + '\')">Generate Consultation Summary</button>' +
+                        '</div>' :
+                    '') +
                     // Appointment card
                     '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
                         '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Appointment</div>' +

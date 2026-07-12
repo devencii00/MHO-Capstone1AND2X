@@ -151,6 +151,30 @@
     </div>
 </div>
 
+{{-- Consultation Receipt Modal --}}
+<div id="adminConsultReceiptModal" class="hidden fixed inset-0 z-[70] bg-slate-900/60 flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl max-h-[90vh] rounded-2xl bg-white border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,0.35)] flex flex-col overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+            <div>
+                <div class="text-sm font-semibold text-slate-900">Consultation Summary</div>
+                <div id="adminConsultReceiptSubtitle" class="text-[0.72rem] text-slate-500">Printable consultation summary.</div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" id="adminConsultReceiptPrintBtn" class="inline-flex items-center gap-1.5 rounded-xl bg-green-700 px-3 py-2 text-[0.78rem] font-semibold text-white hover:bg-green-800">
+                    <x-lucide-printer class="w-4 h-4" />
+                    Print / PDF
+                </button>
+                <button type="button" id="adminConsultReceiptCloseBtn" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">
+                    Close
+                </button>
+            </div>
+        </div>
+        <div class="flex-1 min-h-0 bg-slate-50">
+            <iframe id="adminConsultReceiptIframe" src="" class="w-full h-full border-0" style="min-height: 70vh;"></iframe>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         var errorBox = document.getElementById('adminAppointmentsError')
@@ -261,6 +285,12 @@
         var detailBody = document.getElementById('adminApptDetailBody')
         var detailStatusSelect = document.getElementById('adminApptDetailStatusSelect')
         var detailUpdateBtn = document.getElementById('adminApptDetailUpdateBtn')
+
+        // Consultation Receipt Modal
+        var adminConsultReceiptModal = document.getElementById('adminConsultReceiptModal')
+        var adminConsultReceiptIframe = document.getElementById('adminConsultReceiptIframe')
+        var adminConsultReceiptPrintBtn = document.getElementById('adminConsultReceiptPrintBtn')
+        var adminConsultReceiptCloseBtn = document.getElementById('adminConsultReceiptCloseBtn')
         var historyPatientId = null
         var historyAppointments = []
 
@@ -451,6 +481,11 @@
             var treatment = tx ? (tx.treatment_notes || '-') : '-'
 
             var html = '<div class="space-y-3">' +
+                (String(appt.status || '').toLowerCase() === 'completed' && tx ?
+                    '<div class="text-right">' +
+                        '<button type="button" class="text-[0.72rem] font-semibold text-green-700 hover:text-green-800 underline underline-offset-2" onclick="window.openAdminConsultReceipt(\'' + String(tx.transaction_id || tx.id || '').replace(/'/g, "\\'") + '\')">Generate Consultation Summary</button>' +
+                    '</div>' :
+                '') +
                 '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
                     '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Appointment</div>' +
                     '<div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[0.78rem]">' +
@@ -511,6 +546,44 @@
             // Store current appointment ID for status update
             window.__adminCurrentApptId = appt.appointment_id || appt.id || null
         }
+
+        // ── Consultation Receipt Modal ──
+        window.openAdminConsultReceipt = function (txId) {
+            if (!adminConsultReceiptModal || !adminConsultReceiptIframe || !txId) return
+            adminConsultReceiptIframe.src = '{{ url('/print/consultations') }}/' + encodeURIComponent(String(txId))
+            adminConsultReceiptModal.classList.remove('hidden')
+        }
+
+        function closeAdminConsultReceipt() {
+            if (!adminConsultReceiptModal) return
+            adminConsultReceiptModal.classList.add('hidden')
+            if (adminConsultReceiptIframe) adminConsultReceiptIframe.src = ''
+        }
+
+        // ── Consultation Receipt Modal events ──
+        if (adminConsultReceiptCloseBtn) {
+            adminConsultReceiptCloseBtn.addEventListener('click', closeAdminConsultReceipt)
+        }
+        if (adminConsultReceiptPrintBtn && adminConsultReceiptIframe) {
+            adminConsultReceiptPrintBtn.addEventListener('click', function () {
+                var iframeWin = adminConsultReceiptIframe.contentWindow
+                if (iframeWin) {
+                    iframeWin.focus()
+                    iframeWin.print()
+                }
+            })
+        }
+        if (adminConsultReceiptModal) {
+            adminConsultReceiptModal.addEventListener('click', function (e) {
+                if (e.target === adminConsultReceiptModal) closeAdminConsultReceipt()
+            })
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && adminConsultReceiptModal && !adminConsultReceiptModal.classList.contains('hidden')) {
+                closeAdminConsultReceipt()
+            }
+        })
 
         // ── Status update handler ──
         if (detailUpdateBtn) {

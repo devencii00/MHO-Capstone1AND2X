@@ -21,7 +21,6 @@ class ConsultationHistoryController extends Controller
         $currentUser = $request->user();
         $searchTerm = $request->query('search');
 
-        // Sort order
         $sortOrder = $request->query('sort', 'desc');
         if (!in_array($sortOrder, ['asc', 'desc'])) {
             $sortOrder = 'desc';

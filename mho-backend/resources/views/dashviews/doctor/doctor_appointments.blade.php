@@ -186,6 +186,30 @@
     </div>
 </div>
 
+{{-- Consultation Receipt Modal --}}
+<div id="doctorManageConsultReceiptModal" class="hidden fixed inset-0 z-[70] bg-slate-900/60 flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl max-h-[90vh] rounded-2xl bg-white border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,0.35)] flex flex-col overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+            <div>
+                <div class="text-sm font-semibold text-slate-900">Consultation Summary</div>
+                <div id="doctorManageConsultReceiptSubtitle" class="text-[0.72rem] text-slate-500">Printable consultation summary.</div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" id="doctorManageConsultReceiptPrintBtn" class="inline-flex items-center gap-1.5 rounded-xl bg-green-700 px-3 py-2 text-[0.78rem] font-semibold text-white hover:bg-green-800">
+                    <x-lucide-printer class="w-4 h-4" />
+                    Print / PDF
+                </button>
+                <button type="button" id="doctorManageConsultReceiptCloseBtn" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">
+                    Close
+                </button>
+            </div>
+        </div>
+        <div class="flex-1 min-h-0 bg-slate-50">
+            <iframe id="doctorManageConsultReceiptIframe" src="" class="w-full h-full border-0" style="min-height: 70vh;"></iframe>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // ── Helper functions ──
@@ -919,6 +943,11 @@
 
             manageHistDetailBody.innerHTML =
                 '<div class="space-y-3">' +
+                    (stKey === 'completed' && txId ?
+                        '<div class="text-right">' +
+                            '<button type="button" class="text-[0.72rem] font-semibold text-green-700 hover:text-green-800 underline underline-offset-2" onclick="window.openManageConsultReceipt(\'' + String(txId).replace(/'/g, "\\'") + '\')">Generate Consultation Summary</button>' +
+                        '</div>' :
+                    '') +
                     '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
                         '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Appointment</div>' +
                         '<div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[0.78rem]">' +
@@ -1036,6 +1065,19 @@
             }
         }
 
+        // ── Consultation Receipt Modal ──
+        window.openManageConsultReceipt = function (txId) {
+            if (!manageConsultReceiptModal || !manageConsultReceiptIframe || !txId) return
+            manageConsultReceiptIframe.src = '{{ url('/print/consultations') }}/' + encodeURIComponent(String(txId))
+            manageConsultReceiptModal.classList.remove('hidden')
+        }
+
+        function closeManageConsultReceipt() {
+            if (!manageConsultReceiptModal) return
+            manageConsultReceiptModal.classList.add('hidden')
+            if (manageConsultReceiptIframe) manageConsultReceiptIframe.src = ''
+        }
+
         // ── Variable declarations ──
         var doctorId = {{ $currentUser?->user_id ?? 'null' }};
 
@@ -1080,6 +1122,11 @@
         var manageHistoryPage = 1
         var manageHistoryTotalPages = 1
         var manageHistorySearchTimer = null
+
+        var manageConsultReceiptModal = document.getElementById('doctorManageConsultReceiptModal')
+        var manageConsultReceiptIframe = document.getElementById('doctorManageConsultReceiptIframe')
+        var manageConsultReceiptPrintBtn = document.getElementById('doctorManageConsultReceiptPrintBtn')
+        var manageConsultReceiptCloseBtn = document.getElementById('doctorManageConsultReceiptCloseBtn')
 
         var manageCalMonth = new Date()
         manageCalMonth.setDate(1)
@@ -1210,6 +1257,30 @@
                 loadMoreManagePatientHistory()
             })
         }
+
+        // Consultation Receipt Modal events
+        if (manageConsultReceiptCloseBtn) {
+            manageConsultReceiptCloseBtn.addEventListener('click', closeManageConsultReceipt)
+        }
+        if (manageConsultReceiptPrintBtn && manageConsultReceiptIframe) {
+            manageConsultReceiptPrintBtn.addEventListener('click', function () {
+                var iframeWin = manageConsultReceiptIframe.contentWindow
+                if (iframeWin) {
+                    iframeWin.focus()
+                    iframeWin.print()
+                }
+            })
+        }
+        if (manageConsultReceiptModal) {
+            manageConsultReceiptModal.addEventListener('click', function (e) {
+                if (e.target === manageConsultReceiptModal) closeManageConsultReceipt()
+            })
+        }
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && manageConsultReceiptModal && !manageConsultReceiptModal.classList.contains('hidden')) {
+                closeManageConsultReceipt()
+            }
+        })
 
         // Calendar toggle click
         if (manageCalendarToggle && manageTableArea && manageCalendarArea) {

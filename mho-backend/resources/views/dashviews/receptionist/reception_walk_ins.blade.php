@@ -165,6 +165,30 @@
     </div>
 </div>
 
+{{-- Consultation Receipt Modal --}}
+<div id="walkinConsultReceiptModal" class="hidden fixed inset-0 z-[70] bg-slate-900/60 flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl max-h-[90vh] rounded-2xl bg-white border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,0.35)] flex flex-col overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+            <div>
+                <div class="text-sm font-semibold text-slate-900">Consultation Summary</div>
+                <div id="walkinConsultReceiptSubtitle" class="text-[0.72rem] text-slate-500">Printable consultation summary.</div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" id="walkinConsultReceiptPrintBtn" class="inline-flex items-center gap-1.5 rounded-xl bg-green-700 px-3 py-2 text-[0.78rem] font-semibold text-white hover:bg-green-800">
+                    <x-lucide-printer class="w-4 h-4" />
+                    Print / PDF
+                </button>
+                <button type="button" id="walkinConsultReceiptCloseBtn" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">
+                    Close
+                </button>
+            </div>
+        </div>
+        <div class="flex-1 min-h-0 bg-slate-50">
+            <iframe id="walkinConsultReceiptIframe" src="" class="w-full h-full border-0" style="min-height: 70vh;"></iframe>
+        </div>
+    </div>
+</div>
+
     <div id="receptionWalkInPanelAccount" class="p-5 pt-4">
     <div id="receptionWalkInAccountFormWrapper" class="rounded-2xl   p-4">
         <div id="receptionWalkInAccountError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
@@ -559,6 +583,12 @@ function setWalkInTab(tab) {
         var walkinFilterDate = ''
         var walkinShowTodayOnly = false
 
+        // Consultation Receipt Modal
+        var walkinConsultReceiptModal = document.getElementById('walkinConsultReceiptModal')
+        var walkinConsultReceiptIframe = document.getElementById('walkinConsultReceiptIframe')
+        var walkinConsultReceiptPrintBtn = document.getElementById('walkinConsultReceiptPrintBtn')
+        var walkinConsultReceiptCloseBtn = document.getElementById('walkinConsultReceiptCloseBtn')
+
         // Calendar vars
         var walkInCalMonth = new Date()
         walkInCalMonth.setDate(1)
@@ -648,6 +678,44 @@ function setWalkInTab(tab) {
             if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) age -= 1
             return age >= 0 ? String(age) : ''
         }
+
+        // ── Consultation Receipt Modal ──
+        window.openWalkinConsultReceipt = function (txId) {
+            if (!walkinConsultReceiptModal || !walkinConsultReceiptIframe || !txId) return
+            walkinConsultReceiptIframe.src = '{{ url('/print/consultations') }}/' + encodeURIComponent(String(txId))
+            walkinConsultReceiptModal.classList.remove('hidden')
+        }
+
+        function closeWalkinConsultReceipt() {
+            if (!walkinConsultReceiptModal) return
+            walkinConsultReceiptModal.classList.add('hidden')
+            if (walkinConsultReceiptIframe) walkinConsultReceiptIframe.src = ''
+        }
+
+        // ── Consultation Receipt Modal events ──
+        if (walkinConsultReceiptCloseBtn) {
+            walkinConsultReceiptCloseBtn.addEventListener('click', closeWalkinConsultReceipt)
+        }
+        if (walkinConsultReceiptPrintBtn && walkinConsultReceiptIframe) {
+            walkinConsultReceiptPrintBtn.addEventListener('click', function () {
+                var iframeWin = walkinConsultReceiptIframe.contentWindow
+                if (iframeWin) {
+                    iframeWin.focus()
+                    iframeWin.print()
+                }
+            })
+        }
+        if (walkinConsultReceiptModal) {
+            walkinConsultReceiptModal.addEventListener('click', function (e) {
+                if (e.target === walkinConsultReceiptModal) closeWalkinConsultReceipt()
+            })
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && walkinConsultReceiptModal && !walkinConsultReceiptModal.classList.contains('hidden')) {
+                closeWalkinConsultReceipt()
+            }
+        })
 
         function serviceSummary(appt) {
             var list = appt && Array.isArray(appt.services) ? appt.services : []
@@ -1158,6 +1226,11 @@ function setWalkInTab(tab) {
             var reason = appt.reason_for_visit ? escapeHtml(appt.reason_for_visit) : '<span class="text-slate-400">-</span>'
 
             var html = '<div class="space-y-3">' +
+                (String(appt.status || '').toLowerCase().trim() === 'completed' && (tx ? (tx.transaction_id || tx.id || '') : '') ?
+                    '<div class="text-right">' +
+                        '<button type="button" class="text-[0.72rem] font-semibold text-green-700 hover:text-green-800 underline underline-offset-2" onclick="window.openWalkinConsultReceipt(\'' + String(tx.transaction_id || tx.id || '').replace(/'/g, "\\'") + '\')">Generate Consultation Summary</button>' +
+                    '</div>' :
+                '') +
                 '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
                     '<div class="text-[0.68rem] uppercase tracking-widest text-slate-400 mb-2">Appointment</div>' +
                     '<div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[0.78rem]">' +
@@ -4343,14 +4416,6 @@ function setWalkInTab(tab) {
                 timeOverlay.classList.toggle('hidden')
             })
         }
-
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                closeSelectorModal()
-                closeDateOverlay()
-                closeTimeOverlay()
-            }
-        })
 
         // Preload services and doctors immediately (async — does not block render)
         loadServicesAndDoctors()
