@@ -180,6 +180,23 @@ class WalkInController extends Controller
             ];
         });
 
+        // Notify assigned doctor about the new walk-in appointment
+        $assignedDoctorId = (int) ($result['appointment']->doctor_id ?? 0);
+        if ($assignedDoctorId > 0 && $result['appointment']->appointment_datetime) {
+            $scheduledAt = $result['appointment']->appointment_datetime instanceof Carbon
+                ? $result['appointment']->appointment_datetime
+                : Carbon::parse((string) $result['appointment']->appointment_datetime);
+
+            Notification::notifyUsers(
+                [$assignedDoctorId],
+                '[Walk-in Appointment] A new walk-in appointment has been assigned to you on '.$scheduledAt->format('F j \a\t g:i A').'.',
+                'appointment',
+                'New Walk-in Appointment',
+                $result['appointment']->appointment_id,
+                'appointments'
+            );
+        }
+
         if ($createQueue) {
             Notification::notifyReceptionists(
                 '[Walk-in Appointment] A new walk-in appointment was registered.',
