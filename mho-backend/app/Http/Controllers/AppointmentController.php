@@ -23,6 +23,18 @@ class AppointmentController extends Controller
 {
     public function index(Request $request)
     {
+        // Auto-mark past confirmed scheduled appointments as no_show
+        Appointment::where('appointment_type', 'scheduled')
+            ->where('status', 'confirmed')
+            ->whereDate('appointment_datetime', '<', now()->toDateString())
+            ->update(['status' => 'no_show']);
+
+        // Auto-mark past walk-in appointments that are not completed/cancelled as no_show
+        Appointment::where('appointment_type', 'walk_in')
+            ->whereNotIn('status', ['completed', 'cancelled'])
+            ->whereDate('appointment_datetime', '<', now()->toDateString())
+            ->update(['status' => 'no_show']);
+
         $perPage = (int) $request->query('per_page', 15);
         if ($perPage < 1) {
             $perPage = 15;
@@ -576,6 +588,23 @@ class AppointmentController extends Controller
 
         if ((string) $appointment->appointment_type === 'scheduled' && $appointment->appointment_datetime) {
             $this->notifyDoctorNewAppointment($appointment);
+        }
+
+        if ((string) $appointment->appointment_type === 'walk_in' && $appointment->appointment_datetime) {
+            $doctorId = (int) ($appointment->doctor_id ?? 0);
+            if ($doctorId > 0) {
+                $scheduledAt = $appointment->appointment_datetime instanceof Carbon
+                    ? $appointment->appointment_datetime
+                    : Carbon::parse((string) $appointment->appointment_datetime);
+                Notification::notifyUsers(
+                    [$doctorId],
+                    '[Walk-in Appointment] A new walk-in appointment has been assigned to you on '.$scheduledAt->format('F j \a\t g:i A').'.',
+                    'appointment',
+                    'New Walk-in Appointment',
+                    $appointment->appointment_id,
+                    'appointments'
+                );
+            }
         }
 
         if ($isPatient && (string) $appointment->appointment_type === 'scheduled' && $appointment->appointment_datetime) {
