@@ -141,6 +141,7 @@ class TransactionController extends Controller
             'visit_datetime' => ['nullable', 'date'],
             'diagnosis' => ['nullable', 'string'],
             'treatment_notes' => ['nullable', 'string'],
+            'money_paid' => ['nullable', 'numeric'],
         ]);
 
         $appointment = Appointment::query()->with('services')->findOrFail((int) $data['appointment_id']);

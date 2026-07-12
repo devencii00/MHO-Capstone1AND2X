@@ -2650,15 +2650,21 @@ function setWalkInTab(tab) {
             return cacheEntry.promise
         }
 
-        function ensureWalkInDoctorsLoaded() {
+        function ensureWalkInDoctorsLoaded(forceRefresh) {
             var cacheKey = 'doctors_latest'
+            // Force-refresh: clear the sessionStorage cache entry so stale schedules don't block selection
+            if (forceRefresh) {
+                try {
+                    if (window.sessionStorage) window.sessionStorage.removeItem(receptionBrowseCacheKeyPrefix + cacheKey)
+                } catch (e) {}
+            }
             var cacheEntry = loadReceptionBrowseCacheEntry(cacheKey)
-            if (cacheEntry.loaded) {
+            if (!forceRefresh && cacheEntry.loaded) {
                 doctors = Array.isArray(cacheEntry.items) ? cacheEntry.items.slice() : []
                 doctorsLoaded = true
                 return Promise.resolve(doctors)
             }
-            if (cacheEntry.promise) {
+            if (!forceRefresh && cacheEntry.promise) {
                 return cacheEntry.promise.then(function (items) {
                     doctors = Array.isArray(items) ? items.slice() : []
                     doctorsLoaded = true
@@ -2723,7 +2729,8 @@ function setWalkInTab(tab) {
                 if (selectorConfirmBtn) selectorConfirmBtn.textContent = 'Select Doctor'
                 setSelectorOpen(true)
                 setSelectorLoading('Loading doctors…')
-                Promise.all([ensureWalkInServicesLoaded(), ensureWalkInDoctorsLoaded()]).then(function () {
+                // Force-refresh doctors to get latest schedules from admin panel
+                Promise.all([ensureWalkInServicesLoaded(), ensureWalkInDoctorsLoaded(true)]).then(function () {
                     if (selectorState.type !== 'doctor') return
                     renderSelectorDoctorList()
                 })

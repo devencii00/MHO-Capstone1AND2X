@@ -448,6 +448,23 @@
             var payload = lastPayload || {}
             var items = Array.isArray(payload.data) ? payload.data : []
 
+            // Sort by datetime descending, keep only 1 per patient (most recent)
+            items.sort(function (a, b) {
+                var da = String(a && a.created_at ? a.created_at : '')
+                var db = String(b && b.created_at ? b.created_at : '')
+                if (da < db) return 1
+                if (da > db) return -1
+                return 0
+            })
+            var seenPatient = {}
+            items = items.filter(function (v) {
+                var pid = v && (v.patient_id || (v.patient && v.patient.user_id))
+                if (!pid) return true
+                if (seenPatient[pid]) return false
+                seenPatient[pid] = true
+                return true
+            })
+
             if (!items.length) {
                 tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No verifications found.</td></tr>'
                 var pag = document.getElementById('recVerifPagination')

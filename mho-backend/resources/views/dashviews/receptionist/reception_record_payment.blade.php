@@ -244,7 +244,7 @@
         </div>
     </div>
 </div>
-<div id="receptionPaymentReviewOverlay" class="hidden fixed inset-0 z-[80] bg-slate-900/50 backdrop-blur-sm items-center justify-center p-4 transition-all duration-200">
+<div id="receptionPaymentReviewOverlay" class="hidden fixed inset-0 z-[80] bg-black/70 items-center justify-center p-4 transition-all duration-200">
     <div class="w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-slate-100 flex flex-col" style="max-height:90vh">
         <!-- Header (fixed) -->
         <div class="flex-shrink-0 px-5 pt-5 pb-3 border-b border-slate-100 bg-gradient-to-r from-white to-slate-50/50">
@@ -256,6 +256,9 @@
                     <h3 id="receptionPaymentReviewTitle" class="text-base font-semibold text-slate-800 tracking-tight">Review Payment Details</h3>
                     <p id="receptionPaymentReviewSubtitle" class="text-xs text-slate-500 mt-0.5">Please verify all payment information before confirming</p>
                 </div>
+                <button id="receptionPaymentReviewClose" type="button" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors flex-shrink-0">
+                    <x-lucide-x class="w-[18px] h-[18px]" />
+                </button>
             </div>
         </div>
 
@@ -271,7 +274,40 @@
         <div id="receptionPaymentReviewFooter" class="flex-shrink-0 px-5 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-end gap-2.5">
             <button type="button" id="receptionPaymentReviewCancel" class="px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all duration-150">Cancel</button>
             <button type="button" id="receptionPaymentReviewConfirm" class="px-5 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 shadow-sm transition-all duration-150">Confirm Payment</button>
-            <button type="button" id="receptionPaymentPrintBtn" class="hidden px-5 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 shadow-sm transition-all duration-150">Print</button>
+        </div>
+    </div>
+</div>
+
+<!-- Separate Receipt Modal (after confirmation) -->
+<div id="receptionPaymentReceiptOverlay" class="hidden fixed inset-0 z-[80] bg-black/70 items-center justify-center p-4 transition-all duration-200">
+    <div class="w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-slate-100 flex flex-col" style="max-height:90vh">
+        <!-- Header (fixed) -->
+        <div class="flex-shrink-0 px-5 pt-5 pb-3 border-b border-slate-100 bg-gradient-to-r from-white to-slate-50/50">
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-full bg-green-50 border border-green-200 flex items-center justify-center text-green-600 shadow-sm flex-shrink-0">
+                    <x-lucide-receipt class="w-5 h-5" />
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 id="receptionPaymentReceiptTitle" class="text-base font-semibold text-slate-800 tracking-tight">Payment Receipt</h3>
+                    <p id="receptionPaymentReceiptSubtitle" class="text-xs text-slate-500 mt-0.5">Payment has been recorded successfully</p>
+                </div>
+                <button id="receptionPaymentReceiptClose" type="button" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors flex-shrink-0">
+                    <x-lucide-x class="w-[18px] h-[18px]" />
+                </button>
+            </div>
+        </div>
+
+        <!-- Receipt content area (scrollable) -->
+        <div class="flex-1 overflow-y-auto px-5 py-4 bg-white">
+            <div id="receptionPaymentReceiptContent" class="bg-white rounded-xl border-2 border-slate-200 p-5 text-sm text-slate-700 font-mono leading-relaxed">
+                <div class="text-center text-slate-400 py-4">Loading receipt data...</div>
+            </div>
+        </div>
+
+        <!-- Footer buttons (fixed) -->
+        <div id="receptionPaymentReceiptFooter" class="flex-shrink-0 px-5 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+            <button type="button" id="receptionPaymentReceiptCloseBtn" class="px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all duration-150">Close</button>
+            <button type="button" id="receptionPaymentReceiptPrintBtn" class="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 shadow-sm transition-all duration-150"><x-lucide-printer class="w-[18px] h-[18px]" /> Print</button>
         </div>
     </div>
 </div>
@@ -279,27 +315,91 @@
 <style>
     @media print {
         body * { visibility: hidden; }
-        #receptionPaymentReviewOverlay,
-        #receptionPaymentReviewOverlay * { visibility: visible; }
-        #receptionPaymentReviewOverlay {
+        body { background: white !important; }
+
+        /* ── Receipt modal printing (only when visible on screen) ── */
+        #receptionPaymentReceiptOverlay.flex {
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
             z-index: 9999 !important;
             background: white !important;
             backdrop-filter: none !important;
-            display: flex !important;
             align-items: flex-start !important;
             justify-content: center !important;
             padding: 0.5in !important;
+            visibility: visible !important;
         }
-        #receptionPaymentReviewOverlay .rounded-2xl {
+        #receptionPaymentReceiptOverlay.flex #receptionPaymentReceiptContent,
+        #receptionPaymentReceiptOverlay.flex #receptionPaymentReceiptContent * { visibility: visible !important; }
+        #receptionPaymentReceiptOverlay.flex .rounded-2xl > div:first-child { display: none !important; }
+        #receptionPaymentReceiptOverlay.flex #receptionPaymentReceiptFooter { display: none !important; }
+        #receptionPaymentReceiptOverlay.flex .rounded-2xl {
             box-shadow: none !important;
-            border: 1px solid #ccc !important;
+            border: none !important;
         }
-        #receptionPaymentReviewOverlay #receptionPaymentReviewFooter { display: none !important; }
-        #receptionPaymentReviewOverlay #receptionPaymentReviewContent {
-            border-color: #ccc !important;
+
+        /* ── Transaction history detail printing (1:1 receipt modal look) ── */
+        #receptionTxHistoryOverlay.flex {
+            visibility: visible !important;
+            background: white !important;
+            display: flex !important;
+            align-items: flex-start !important;
+            justify-content: center !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            padding: 0.5in !important;
+            z-index: 9999 !important;
+        }
+        #receptionTxHistoryOverlay.flex > div {
+            visibility: visible !important;
+            width: 100% !important;
+            max-width: 32rem !important;
+            box-shadow: none !important;
+            border: none !important;
+            overflow: visible !important;
+            background: transparent !important;
+        }
+        #receptionTxHistoryOverlay.flex > div > div:first-child { display: none !important; }
+        #receptionTxHistoryOverlay.flex > div > div:last-child {
+            visibility: visible !important;
+            width: 100% !important;
+            border: none !important;
+            background: transparent !important;
+        }
+        #receptionTxHistoryOverlay.flex #receptionTxHistoryDetailBody {
+            visibility: visible !important;
+            overflow: visible !important;
+            padding: 0 !important;
+            background: transparent !important;
+        }
+        /* Replicate receipt modal's #receptionPaymentReceiptContent styling */
+        #receptionTxHistoryOverlay.flex #receptionTxHistoryDetailBody > div:first-child {
+            visibility: visible !important;
+            background: white !important;
+            border: 2px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            padding: 1.25rem !important;
+            font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace !important;
+            font-size: 0.875rem !important;
+            line-height: 1.625 !important;
+            color: #334155 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
+        }
+        #receptionTxHistoryOverlay.flex #receptionTxHistoryDetailBody > div:first-child * {
+            visibility: visible !important;
+        }
+        #receptionTxHistoryOverlay.flex #receptionTxHistoryDetailBody button {
+            display: none !important;
+        }
+        /* Hide the empty print button container to avoid extra whitespace */
+        #receptionTxHistoryOverlay.flex #receptionTxHistoryDetailBody > div:first-child > div.text-center.mt-3 {
+            display: none !important;
         }
     }
 </style>
@@ -355,10 +455,18 @@
         var reviewSubtitle = document.getElementById('receptionPaymentReviewSubtitle')
         var reviewCancel = document.getElementById('receptionPaymentReviewCancel')
         var reviewConfirm = document.getElementById('receptionPaymentReviewConfirm')
-        var reviewPrintBtn = document.getElementById('receptionPaymentPrintBtn')
+        var reviewCloseBtn = document.getElementById('receptionPaymentReviewClose')
         var reviewConfirmDefaultHtml = reviewConfirm ? reviewConfirm.innerHTML : ''
         var reviewResolver = null
         var reviewDelayTimer = null
+
+        var receiptOverlay = document.getElementById('receptionPaymentReceiptOverlay')
+        var receiptContent = document.getElementById('receptionPaymentReceiptContent')
+        var receiptTitle = document.getElementById('receptionPaymentReceiptTitle')
+        var receiptSubtitle = document.getElementById('receptionPaymentReceiptSubtitle')
+        var receiptCloseBtn = document.getElementById('receptionPaymentReceiptCloseBtn')
+        var receiptPrintBtn = document.getElementById('receptionPaymentReceiptPrintBtn')
+        var receiptCloseX = document.getElementById('receptionPaymentReceiptClose')
 
         var apptModal = document.getElementById('receptionPaymentAppointmentModal')
         var apptModalClose = document.getElementById('receptionPaymentApptModalClose')
@@ -719,10 +827,11 @@
                 reviewConfirm.disabled = false
                 reviewConfirm.innerHTML = reviewConfirmDefaultHtml || 'Confirm Payment'
             }
-            if (reviewPrintBtn) reviewPrintBtn.classList.add('hidden')
             if (reviewCancel) reviewCancel.classList.remove('hidden')
             reviewConfirm.classList.remove('hidden')
             reviewConfirming = false
+            // Clear stale content so print CSS doesn't show old text
+            if (reviewContent) reviewContent.innerHTML = '<div class="text-center text-slate-400 py-4"></div>'
             var resolver = reviewResolver
             reviewResolver = null
             if (typeof resolver === 'function') resolver(!!result)
@@ -737,7 +846,7 @@
 
                 if (reviewTitle) reviewTitle.textContent = 'Review Payment Details'
                 if (reviewSubtitle) reviewSubtitle.textContent = 'Please verify all payment information before confirming'
-                reviewPrintBtn.classList.add('hidden')
+                reviewCancel.textContent = 'Cancel'
                 reviewCancel.classList.remove('hidden')
                 reviewConfirm.classList.remove('hidden')
                 reviewConfirm.disabled = true
@@ -768,15 +877,17 @@
         }
 
         function showReceipt(details) {
-            if (!reviewOverlay || !reviewContent) return
-            if (reviewTitle) reviewTitle.textContent = 'Payment Receipt'
-            if (reviewSubtitle) reviewSubtitle.textContent = 'Payment has been recorded successfully'
-            reviewConfirm.classList.add('hidden')
-            reviewCancel.classList.add('hidden')
-            reviewPrintBtn.classList.remove('hidden')
-            reviewContent.innerHTML = formatReceiptHtml(details, true)
-            reviewOverlay.classList.remove('hidden')
-            reviewOverlay.classList.add('flex')
+            if (!receiptOverlay || !receiptContent) return
+            receiptContent.innerHTML = formatReceiptHtml(details, true)
+            receiptOverlay.classList.remove('hidden')
+            receiptOverlay.classList.add('flex')
+        }
+
+        function closeReceipt() {
+            if (receiptOverlay) {
+                receiptOverlay.classList.add('hidden')
+                receiptOverlay.classList.remove('flex')
+            }
         }
 
         // ── Appointment Modal Functions ──
@@ -877,8 +988,10 @@
                     el.classList.add('hover:border-green-300')
                 }
             })
-            // Enable select button
-            if (apptModalSelect) apptModalSelect.disabled = false
+            // Check if appointment is already paid — disallow selection but still show details
+            var txn = appt && appt.transaction ? appt.transaction : null
+            var isPaid = txn && String(txn.payment_status || '').toLowerCase() === 'paid'
+            if (apptModalSelect) apptModalSelect.disabled = isPaid
             // Render details on right panel
             renderApptDetail(appt)
         }
@@ -1296,7 +1409,8 @@
             var payStatus = tx && tx.payment_status ? String(tx.payment_status).toLowerCase() : ''
             var paid = parseFloat(tx && tx.money_paid != null ? tx.money_paid : (tx.amount || 0))
             if (isNaN(paid)) paid = gross
-            var change = Math.max(0, paid - net)
+            var change = parseFloat(tx && tx.money_change != null ? tx.money_change : Math.max(0, paid - net))
+            if (isNaN(change)) change = Math.max(0, paid - net)
 
             var details = {
                 'Patient': patientName,
@@ -1321,7 +1435,7 @@
                 details['Paid'] = '\u2014'
                 details['Change'] = '\u2014'
             }
-            detailBody.innerHTML = '<div class="max-w-sm mx-auto">' + formatReceiptHtml(details, true) + '<div class="text-center mt-3"><button type="button" onclick="window.print()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-[0.72rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300">\ud83d\udde8\ufe0f Print / PDF</button></div></div>'
+            detailBody.innerHTML = '<div class="max-w-sm mx-auto">' + formatReceiptHtml(details, true) + '<div class="text-center mt-3"><button type="button" onclick="window.print()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-[0.72rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg> Print / PDF</button></div></div>'
         }
 
         // ── Event delegation for See Details & History button ──
@@ -1497,12 +1611,28 @@
                 closeReview(true)
             })
         }
-        if (reviewPrintBtn) {
-            reviewPrintBtn.addEventListener('click', function () { window.print() })
+        if (reviewCloseBtn) {
+            reviewCloseBtn.addEventListener('click', function () { closeReview(false) })
         }
         if (reviewOverlay) {
             reviewOverlay.addEventListener('click', function (e) {
                 if (e.target === reviewOverlay) closeReview(false)
+            })
+        }
+
+        // ── Receipt modal events ──
+        if (receiptPrintBtn) {
+            receiptPrintBtn.addEventListener('click', function () { window.print() })
+        }
+        if (receiptCloseBtn) {
+            receiptCloseBtn.addEventListener('click', closeReceipt)
+        }
+        if (receiptCloseX) {
+            receiptCloseX.addEventListener('click', closeReceipt)
+        }
+        if (receiptOverlay) {
+            receiptOverlay.addEventListener('click', function (e) {
+                if (e.target === receiptOverlay) closeReceipt()
             })
         }
 

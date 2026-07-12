@@ -123,6 +123,7 @@
                 </div>
                 <div class="mt-3 flex items-center justify-between gap-3">
                     <div id="adminVerifDocHint" class="text-[0.72rem] text-slate-500">Image previews can be opened fullscreen for closer inspection.</div>
+                    <button type="button" id="adminVerifOverrideBtn" class="px-2.5 py-1 rounded-lg border border-amber-200 bg-amber-50 text-[0.72rem] font-semibold text-amber-700 text-center hover:bg-amber-100 shrink-0">Override status</button>
                 </div>
             </div>
         </div>
@@ -182,6 +183,14 @@
                 <option value="Cropped Document">Cropped Document</option>
             </select>
         </div>
+        <div id="adminVerifOverrideStatusWrap" class="hidden mt-3">
+            <label for="adminVerifOverrideStatus" class="block text-[0.7rem] text-slate-600 mb-1">New status</label>
+            <select id="adminVerifOverrideStatus" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+            </select>
+        </div>
         <div class="mt-4 flex items-center justify-end gap-2">
             <button id="adminVerifActionCancel" type="button" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
             <button id="adminVerifActionConfirm" type="button" class="px-3 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700">Confirm</button>
@@ -237,6 +246,9 @@
         var actionDelayTimer = null
         var actionCountdownTimer = null
         var actionConfirmDefaultHtml = actionConfirm ? actionConfirm.innerHTML : ''
+        var overrideStatusWrap = document.getElementById('adminVerifOverrideStatusWrap')
+        var overrideStatusSelect = document.getElementById('adminVerifOverrideStatus')
+        var overrideBtn = document.getElementById('adminVerifOverrideBtn')
         var imageViewer = document.getElementById('adminVerifImageViewer')
         var imageViewerTitle = document.getElementById('adminVerifImageViewerTitle')
         var imageViewerStage = document.getElementById('adminVerifImageViewerStage')
@@ -447,6 +459,23 @@
             if (!tableBody) return
             var payload = lastPayload || {}
             var items = Array.isArray(payload.data) ? payload.data : []
+
+            // Sort by datetime descending, keep only 1 per patient (most recent)
+            items.sort(function (a, b) {
+                var da = String(a && a.created_at ? a.created_at : '')
+                var db = String(b && b.created_at ? b.created_at : '')
+                if (da < db) return 1
+                if (da > db) return -1
+                return 0
+            })
+            var seenPatient = {}
+            items = items.filter(function (v) {
+                var pid = v && (v.patient_id || (v.patient && v.patient.user_id))
+                if (!pid) return true
+                if (seenPatient[pid]) return false
+                seenPatient[pid] = true
+                return true
+            })
 
             if (!items.length) {
                 tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No verifications found.</td></tr>'
@@ -913,6 +942,8 @@
                 actionConfirm.disabled = false
                 actionConfirm.innerHTML = actionConfirmDefaultHtml || 'Confirm'
             }
+            if (rejectReasonWrap) rejectReasonWrap.classList.add('hidden')
+            if (overrideStatusWrap) overrideStatusWrap.classList.add('hidden')
             setPreviewHtml(actionDocWrap, '<div class="text-[0.74rem] text-slate-500">No document preview.</div>')
             var resolver = actionResolver
             actionResolver = null
@@ -950,10 +981,17 @@
                     actionTitle.textContent = 'Reject Verification'
                     actionMessage.textContent = "Do you want to reject this patient's verification request?"
                     if (rejectReasonWrap) rejectReasonWrap.classList.remove('hidden')
+                    if (overrideStatusWrap) overrideStatusWrap.classList.add('hidden')
+                } else if (status === 'override') {
+                    actionTitle.textContent = 'Override Verification Status'
+                    actionMessage.textContent = 'Force-set the verification status for this patient.'
+                    if (rejectReasonWrap) rejectReasonWrap.classList.add('hidden')
+                    if (overrideStatusWrap) overrideStatusWrap.classList.remove('hidden')
                 } else {
                     actionTitle.textContent = 'Approve Verification'
                     actionMessage.textContent = 'Do you want to approve this patient verification request?'
                     if (rejectReasonWrap) rejectReasonWrap.classList.add('hidden')
+                    if (overrideStatusWrap) overrideStatusWrap.classList.add('hidden')
                 }
 
                 actionResolver = resolve
@@ -1125,10 +1163,38 @@
                 }).catch(function () {})
             })
         }
+        if (overrideBtn) {
+            overrideBtn.addEventListener('click', function () {
+                if (!currentPanelVerif) return
+                var verifId = currentPanelVerif.verification_id || currentPanelVerif.id
+                if (!verifId) return
+                openActionModal('override', currentPanelVerif).then(function (result) {
+                    if (!result || !result.overrideStatus) return
+                    var newStatus = result.overrideStatus
+                    updateVerificationStatus(String(verifId), newStatus, '').then(function (updateResult) {
+                        if (!updateResult || !updateResult.ok) {
+                            showError('Failed to update verification status.')
+                            return
+                        }
+                        showError('')
+                        if (typeof showToast === 'function') showToast('Verification status overridden to ' + newStatus + '.', 'success')
+                        loadStats()
+                        loadVerifications(currentPage)
+                        currentHistoryRows = []
+                        if (docPanelOverlay && !docPanelOverlay.classList.contains('hidden')) {
+                            openDocumentPanelFor(updateResult.data || currentPanelVerif)
+                        }
+                    }).catch(function () {
+                        showError('Network error while updating verification status.')
+                    })
+                }).catch(function () {})
+            })
+        }
         if (actionCancel) actionCancel.addEventListener('click', function () { closeActionModal(null) })
         if (actionConfirm) {
             actionConfirm.addEventListener('click', function () {
-                closeActionModal({ confirmed: true })
+                var overrideStatus = overrideStatusSelect && !overrideStatusWrap.classList.contains('hidden') ? overrideStatusSelect.value : null
+                closeActionModal({ confirmed: true, overrideStatus: overrideStatus })
             })
         }
         if (actionOverlay) {

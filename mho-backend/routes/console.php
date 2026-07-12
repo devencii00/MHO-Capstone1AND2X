@@ -13,13 +13,21 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Artisan::command('appointments:auto-no-show', function () {
-    $count = Appointment::where('appointment_type', 'scheduled')
+    // Auto-mark past confirmed scheduled appointments as no_show
+    $scheduledCount = Appointment::where('appointment_type', 'scheduled')
         ->where('status', 'confirmed')
         ->where('appointment_datetime', '<', Carbon::now())
         ->update(['status' => 'no_show']);
 
-    $this->info("Auto-marked {$count} past confirmed appointment(s) as no_show.");
-})->purpose('Auto-mark past confirmed scheduled appointments as No Show');
+    // Auto-mark past walk-in appointments (from yesterday or earlier) that are not completed/cancelled
+    $walkInCount = Appointment::where('appointment_type', 'walk_in')
+        ->whereNotIn('status', ['completed', 'cancelled'])
+        ->where('appointment_datetime', '<', Carbon::today())
+        ->update(['status' => 'no_show']);
+
+    $total = $scheduledCount + $walkInCount;
+    $this->info("Auto-marked {$total} past appointment(s) as no_show (scheduled: {$scheduledCount}, walk-in: {$walkInCount}).");
+})->purpose('Auto-mark past confirmed scheduled and walk-in appointments as No Show');
 
 Artisan::command('appointments:send-doctor-reminders', function () {
     $windowStart = Carbon::now()->startOfMinute();
