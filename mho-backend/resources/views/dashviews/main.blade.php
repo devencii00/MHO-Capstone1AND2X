@@ -37,19 +37,38 @@
             if (mc) mc.style.display = '';
         }
 
+        function handleUserData(data) {
+            if (!data) { showOverlay(); return }
+            revealContent()
+
+            // Role mismatch redirect
+            var expectedRole = "{{ strtolower($role ?? 'admin') }}"
+            var actualRole = data && data.role ? String(data.role).toLowerCase() : ''
+            var userUuid = data && data.uuid ? String(data.uuid) : ''
+            if (actualRole && actualRole !== expectedRole) {
+                var target = "{{ request()->getBaseUrl() }}/dashboard/" + encodeURIComponent(actualRole)
+                if (actualRole !== 'admin' && userUuid) {
+                    target += '?user_uuid=' + encodeURIComponent(userUuid)
+                }
+                window.location.href = target
+            }
+        }
+
         if (typeof window.axios === 'function') {
             window.axios.get("{{ url('/api/user') }}", {
                 headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
             }).then(function (response) {
-                if (response.status !== 200) showOverlay();
-                else revealContent();
+                if (response.status !== 200) showOverlay()
+                else handleUserData(response.data)
             }).catch(showOverlay);
         } else {
             fetch("{{ url('/api/user') }}", {
                 headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
             }).then(function (r) {
-                if (!r.ok) showOverlay();
-                else revealContent();
+                return r.json().then(function (d) { return { ok: r.ok, data: d } }).catch(function () { return { ok: false, data: null } })
+            }).then(function (result) {
+                if (!result.ok) showOverlay()
+                else handleUserData(result.data)
             }).catch(showOverlay);
         }
     })();
@@ -215,26 +234,6 @@
                 }
             }
         })()
-
-        apiFetch("{{ request()->getBasePath() }}/api/user", { method: 'GET' })
-            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, status: r.status, data: d } }).catch(function () { return { ok: r.ok, status: r.status, data: null } }) })
-            .then(function (result) {
-                if (!result.ok || !result.data) {
-                    return
-                }
-
-                var actualRole = result.data && result.data.role ? String(result.data.role).toLowerCase() : ''
-                var userUuid = result.data && result.data.uuid ? String(result.data.uuid) : ''
-                if (!actualRole) return
-                if (actualRole === expectedRole) return
-
-                var target = "{{ request()->getBaseUrl() }}/dashboard/" + encodeURIComponent(actualRole)
-                if (actualRole !== 'admin' && userUuid) {
-                    target += '?user_uuid=' + encodeURIComponent(userUuid)
-                }
-                window.location.href = target
-            })
-            .catch(function () {})
     })()
 </script>
 @endsection
