@@ -68,13 +68,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/consultation-history', [\App\Http\Controllers\ConsultationHistoryController::class, 'index']);
     Route::apiResource('prescriptions', PrescriptionController::class);
     Route::apiResource('medicines', MedicineController::class);
-    Route::apiResource('queues', QueueController::class);
     Route::post('/queues/call-next', [QueueController::class, 'callNext']);
     Route::post('/queues/join', [QueueController::class, 'join']);
     Route::get('/queues/active-exists', [QueueController::class, 'activeExists']);
     Route::get('/queues/guest-requests', [QueueController::class, 'guestRequests']);
     Route::post('/queues/guest-requests/{appointment}', [QueueController::class, 'processGuestRequest']);
     Route::post('/queues/{queue}/move', [QueueController::class, 'move']);
+    Route::apiResource('queues', QueueController::class);
     Route::get('/transactions/report/print', [TransactionController::class, 'printReport']);
     Route::apiResource('transactions', TransactionController::class);
     Route::apiResource('walk-ins', WalkInController::class)->only(['index', 'show', 'store']);

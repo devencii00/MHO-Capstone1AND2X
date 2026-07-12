@@ -289,6 +289,8 @@
         }
 
         function afterContentSwap(url) {
+            // Signal to pages that this is an SPA cache load (scripts can refresh only their data)
+            window.__spaCacheLoad = true
             // Re-run all inline scripts in main-content
             Array.prototype.forEach.call(mainContent.querySelectorAll('script'), function (oldScript) {
                 var newScript = document.createElement('script');

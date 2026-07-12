@@ -702,6 +702,29 @@
 <script>
     var __queueAvailableDoctors = @json($queueAvailableDoctors);
 
+    // Utility: normalize day-of-week values to 3-letter keys (used by doctor schedule functions)
+    function normalizeDayKey(raw) {
+        var v = String(raw == null ? '' : raw).trim().toLowerCase()
+        if (!v) return ''
+        if (/^\d+$/.test(v)) {
+            var n = parseInt(v, 10)
+            var keys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+            return keys[n] || ''
+        }
+        var map = {
+            sun: 'sun', sunday: 'sun',
+            mon: 'mon', monday: 'mon',
+            tue: 'tue', tues: 'tue', tuesday: 'tue',
+            wed: 'wed', wednesday: 'wed',
+            thu: 'thu', thur: 'thu', thurs: 'thu', thursday: 'thu',
+            fri: 'fri', friday: 'fri',
+            sat: 'sat', saturday: 'sat'
+        }
+        if (map[v]) return map[v]
+        var s3 = v.slice(0, 3)
+        return map[s3] || ''
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         var searchInput = document.getElementById('reception_queue_search')
         var sortSelect = document.getElementById('reception_queue_sort')
@@ -2080,21 +2103,148 @@
             })
         }
 
-        // Echo listener: refresh table on queue updates (debounced by __refreshPending)
-        if (!window.__queueInited) {
-            window.__queueInited = true
-            fetchQueueSnapshot()
-
-            if (typeof window.Echo !== 'undefined' && window.Echo) {
+        // ── Build a queue table row from event data ──
+        function buildQueueRowHtml(qd) {
+            var patientName = ''
+            if (qd.appointment && qd.appointment.patient) {
+                var p = qd.appointment.patient
+                patientName = [p.first_name, p.last_name].filter(Boolean).join(' ')
+            }
+            var doctorName = ''
+            if (qd.appointment && qd.appointment.doctor) {
+                var d = qd.appointment.doctor
+                doctorName = [d.first_name, d.last_name].filter(Boolean).join(' ')
+            }
+            var queueCode = qd.queue_code || String(qd.queue_number) || ''
+            var status = (qd.status_name || 'waiting').toLowerCase()
+            var priority = typeof qd.priority === 'number' ? qd.priority : 0
+            var dateKey = ''
+            if (qd.created_at) {
                 try {
-                    window.Echo.private('queue.all')
-                        .listen('.queue.updated', function () {
-                            refreshFullPage()
-                        })
-                    console.log('[ReceptionQueue] Echo listener attached to private queue.all')
-                } catch (e) {
-                    console.error('[ReceptionQueue] Echo subscribe failed:', e)
+                    var dt = new Date(qd.created_at.replace(' ', 'T'))
+                    dateKey = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                } catch (_) {}
+            }
+            var badgeColor = 'border-slate-200 bg-slate-50 text-slate-600'
+            var statusMap = {
+                waiting:    'border-amber-200 bg-amber-50 text-amber-700',
+                serving:    'border-emerald-200 bg-emerald-50 text-emerald-700',
+                done:       'border-sky-200 bg-sky-50 text-sky-700',
+                skipped:    'border-orange-200 bg-orange-50 text-orange-700',
+                on_hold:    'border-violet-200 bg-violet-50 text-violet-700',
+                cancelled:  'border-red-200 bg-red-50 text-red-700',
+                no_show:    'border-red-200 bg-red-50 text-red-700',
+                consulted:  'border-blue-200 bg-blue-50 text-blue-700',
+            }
+            if (statusMap[status]) badgeColor = statusMap[status]
+            var statusLabel = status.replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase() })
+
+            var servicesHtml = '<span class="text-[0.7rem] text-slate-400">No service</span>'
+            if (qd.appointment && qd.appointment.services && qd.appointment.services.length > 0) {
+                var svc = qd.appointment.services
+                var primaryLabel = svc[0].service_name || svc[0].name || 'Service'
+                if (svc.length === 1) {
+                    servicesHtml = '<span class="truncate">' + primaryLabel + '</span>'
+                } else {
+                    servicesHtml = '<div class="inline-flex items-center gap-1"><span class="truncate">' + primaryLabel + '</span><span class="inline-flex items-center rounded-lg border border-slate-200 px-2 py-0.5 text-[0.65rem] text-slate-600 bg-white">+' + (svc.length - 1) + 'more</span></div>'
                 }
+            }
+            var priorityLabel = ['Low', 'Normal', 'High', 'Urgent'][priority] || 'Normal'
+
+            var tr = document.createElement('tr')
+            tr.className = 'reception-queue-row'
+            tr.setAttribute('data-queue-id', qd.queue_id || '')
+            tr.setAttribute('data-queue-number', qd.queue_number || '')
+            tr.setAttribute('data-queue-code', queueCode)
+            tr.setAttribute('data-patient', patientName.toLowerCase())
+            tr.setAttribute('data-doctor', doctorName.toLowerCase())
+            tr.setAttribute('data-date', dateKey)
+            tr.setAttribute('data-status', status)
+            tr.setAttribute('data-priority', priority)
+            if (qd.appointment && qd.appointment.appointment_id) tr.setAttribute('data-appointment-id', qd.appointment.appointment_id)
+            if (qd.appointment && qd.appointment.doctor && qd.appointment.doctor.user_id) tr.setAttribute('data-doctor-id', qd.appointment.doctor.user_id)
+            tr.innerHTML = [
+                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + queueCode + '</td>',
+                '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + (patientName || '<span class="text-slate-400">Patient</span>') + '</td>',
+                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (doctorName || '<span class="text-[0.7rem] text-slate-400">Assign doctor</span>') + '</td>',
+                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500 max-w-[180px]">' + servicesHtml + '</td>',
+                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + priority + ' - ' + priorityLabel + '</td>',
+                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + dateKey + '</td>',
+                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500"><span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border ' + badgeColor + '">' + statusLabel + '</span></td>',
+                '<td class="py-2 pr-4 text-[0.78rem] text-right text-slate-500"><div class="inline-flex items-center gap-1.5"><span class="text-[0.7rem] text-slate-400">—</span></div></td>',
+            ].join('')
+            return tr
+        }
+
+        // ── Handle Echo queue event: surgically update the table ──
+        function handleQueueEvent(eventData) {
+            if (!eventData || !eventData.queue_data) return
+            var qd = eventData.queue_data
+            if (!qd || !qd.queue_id) return
+
+            var tbody = document.getElementById('receptionQueueTableBody')
+            if (!tbody) return
+
+            var existing = tbody.querySelector('.reception-queue-row[data-queue-id="' + qd.queue_id + '"]')
+
+            if (existing) {
+                // Update existing row status
+                var status = (qd.status_name || '').toLowerCase()
+                if (status) {
+                    existing.setAttribute('data-status', status)
+                    var badge = existing.querySelector('td:nth-child(7) .inline-flex')
+                    if (badge) {
+                        var bc = 'border-slate-200 bg-slate-50 text-slate-600'
+                        var sm = {
+                            waiting: 'border-amber-200 bg-amber-50 text-amber-700',
+                            serving: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+                            done: 'border-sky-200 bg-sky-50 text-sky-700',
+                            skipped: 'border-orange-200 bg-orange-50 text-orange-700',
+                            on_hold: 'border-violet-200 bg-violet-50 text-violet-700',
+                            cancelled: 'border-red-200 bg-red-50 text-red-700',
+                            no_show: 'border-red-200 bg-red-50 text-red-700',
+                            consulted: 'border-blue-200 bg-blue-50 text-blue-700',
+                        }
+                        if (sm[status]) bc = sm[status]
+                        badge.className = 'inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border ' + bc
+                        badge.textContent = status.replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase() })
+                    }
+                }
+            } else {
+                // New entry — insert a row
+                var newRow = buildQueueRowHtml(qd)
+                tbody.insertBefore(newRow, tbody.firstChild)
+            }
+
+            rows = Array.prototype.slice.call(document.querySelectorAll('.reception-queue-row'))
+            applyReceptionQueueFilters()
+            initQueuePagination()
+        }
+
+        // ── Echo listener ──
+        fetchQueueSnapshot()
+
+        // On SPA cache load → refresh only the queue table body with fresh data
+        if (window.__spaCacheLoad && typeof refreshFullPage === 'function') {
+            refreshFullPage()
+        }
+
+        if (typeof window.Echo !== 'undefined' && window.Echo && !window.__echoAttached_receptionQueue) {
+            window.__echoAttached_receptionQueue = true
+            try {
+                window.Echo.private('queue.all')
+                    .listen('.queue.updated', function (e) {
+                        handleQueueEvent(e)
+                    })
+                    .listen('.queue.created', function (e) {
+                        handleQueueEvent(e)
+                    })
+                    .listen('.queue.deleted', function () {
+                        refreshFullPage()
+                    })
+                console.log('[ReceptionQueue] Echo listeners attached to private queue.all')
+            } catch (e) {
+                console.error('[ReceptionQueue] Echo subscribe failed:', e)
             }
         }
 
