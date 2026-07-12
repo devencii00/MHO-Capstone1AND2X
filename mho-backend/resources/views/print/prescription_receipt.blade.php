@@ -114,19 +114,8 @@
                 </div>
  
                 {{-- Medicines --}}
-                <div class="flex-1 min-w-0 rx-ruled-lines">
-                    <table class="w-full text-left text-[0.82rem] text-slate-700 border-collapse">
-                        <thead>
-                            <tr class="text-[0.68rem] uppercase tracking-widest text-slate-400">
-                                <th class="pb-2 pr-4 font-semibold">Medicine</th>
-                                <th class="pb-2 pr-4 font-semibold">Dosage</th>
-                                <th class="pb-2 pr-4 font-semibold">Frequency</th>
-                                <th class="pb-2 pr-4 font-semibold">Duration</th>
-                                <th class="pb-2 pr-0 font-semibold">Instructions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="rxItemsBody"></tbody>
-                    </table>
+                <div class="flex-1 min-w-0">
+                    <div id="rxItemsContainer" class="space-y-0"></div>
                 </div>
             </div>
  
@@ -158,7 +147,7 @@
             var patientName = document.getElementById('rxPatientName');
             var doctorName = document.getElementById('rxDoctorName');
             var doctorInfo = document.getElementById('rxDoctorInfo');
-            var itemsBody = document.getElementById('rxItemsBody');
+            var itemsContainer = document.getElementById('rxItemsContainer');
             var sigBox = document.getElementById('rxSignatureBox');
             var sigName = document.getElementById('rxSignatureName');
 
@@ -255,20 +244,41 @@
                             doctorInfo.textContent = dmeta.length ? dmeta.join(' • ') : '-';
                         }
 
-                        if (itemsBody) {
+                        if (itemsContainer) {
                             if (!items.length) {
-                                itemsBody.innerHTML = '<tr><td colspan="5" class="py-3 text-slate-500 text-[0.85rem]">No medicines listed.</td></tr>';
+                                itemsContainer.innerHTML = '<div class="text-[0.85rem] text-slate-500 py-3">No medicines listed.</div>';
                             } else {
-                                itemsBody.innerHTML = items.map(function (it) {
-                                    return '' +
-                                        '<tr class="border-b border-slate-100 last:border-0">' +
-                                            '<td class="py-2 pr-4 font-semibold text-slate-900">' + escapeHtml(medicineName(it)) + '</td>' +
-                                            '<td class="py-2 pr-4">' + escapeHtml(it.dosage || '-') + '</td>' +
-                                            '<td class="py-2 pr-4">' + escapeHtml(it.frequency || '-') + '</td>' +
-                                            '<td class="py-2 pr-4">' + escapeHtml(it.duration || '-') + '</td>' +
-                                            '<td class="py-2 pr-0">' + escapeHtml(it.instructions || '-') + '</td>' +
-                                        '</tr>';
-                                }).join('');
+                                var CHUNK_SIZE = 6;
+                                var html = '';
+                                for (var ci = 0; ci < items.length; ci += CHUNK_SIZE) {
+                                    var chunk = items.slice(ci, ci + CHUNK_SIZE);
+                                    var pageBreak = ci > 0 ? ' style="page-break-before: always;"' : '';
+                                    html += '<div' + pageBreak + ' class="rx-ruled-lines">' +
+                                        '<table class="w-full text-left text-[0.82rem] text-slate-700 border-collapse">' +
+                                            '<thead>' +
+                                                '<tr class="text-[0.68rem] uppercase tracking-widest text-slate-400">' +
+                                                    '<th class="pb-2 pr-4 font-semibold">Medicine</th>' +
+                                                    '<th class="pb-2 pr-4 font-semibold">Dosage</th>' +
+                                                    '<th class="pb-2 pr-4 font-semibold">Frequency</th>' +
+                                                    '<th class="pb-2 pr-4 font-semibold">Duration</th>' +
+                                                    '<th class="pb-2 pr-0 font-semibold">Instructions</th>' +
+                                                '</tr>' +
+                                            '</thead>' +
+                                            '<tbody>' +
+                                                chunk.map(function (it) {
+                                                    return '<tr class="border-b border-slate-100 last:border-0">' +
+                                                        '<td class="py-2 pr-4 font-semibold text-slate-900">' + escapeHtml(medicineName(it)) + '</td>' +
+                                                        '<td class="py-2 pr-4">' + escapeHtml(it.dosage || '-') + '</td>' +
+                                                        '<td class="py-2 pr-4">' + escapeHtml(it.frequency || '-') + '</td>' +
+                                                        '<td class="py-2 pr-4">' + escapeHtml(it.duration || '-') + '</td>' +
+                                                        '<td class="py-2 pr-0">' + escapeHtml(it.instructions || '-') + '</td>' +
+                                                    '</tr>';
+                                                }).join('') +
+                                            '</tbody>' +
+                                        '</table>' +
+                                    '</div>';
+                                }
+                                itemsContainer.innerHTML = html;
                             }
                         }
 

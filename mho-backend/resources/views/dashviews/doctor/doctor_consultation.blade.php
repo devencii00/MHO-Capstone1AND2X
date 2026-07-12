@@ -316,63 +316,12 @@
             </div>
             <div class="px-5 py-4 flex-1 overflow-y-auto">
                 <div id="consultAppointmentModalGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    @forelse ($appointments as $appointment)
-                        @php
-                            $patientName = $formatUserName($appointment->patient);
-                            $apptTime = optional($appointment->appointment_datetime)->format('H:i') ?? '-';
-                            $apptDate = optional($appointment->appointment_datetime)->format('Y-m-d') ?? '-';
-                            $statusKey = strtolower((string) ($appointment->status ?? ''));
-                            $statusLabel = $appointment->status ? ucfirst(str_replace('_', ' ', $appointment->status)) : '-';
-                            $statusColors = [
-                                'pending' => 'bg-amber-50 text-amber-700 border-amber-200',
-                                'confirmed' => 'border-orange-200 bg-orange-50 text-orange-700',
-                                'consulted' => 'border-purple-200 bg-purple-50 text-purple-700',
-                                'completed' => 'border-green-200 bg-green-50 text-green-700',
-                                'cancelled' => 'bg-red-50 text-red-700 border-red-200',
-                                'no_show' => 'bg-slate-100 text-slate-600 border-slate-200',
-                                'waiting' => 'bg-amber-50 text-amber-700 border-amber-100',
-                                'serving' => 'bg-blue-50 text-blue-700 border-blue-100',
-                                'done' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
-                                'skipped' => 'bg-orange-50 text-orange-700 border-orange-100',
-                                'on_hold' => 'bg-purple-50 text-purple-700 border-purple-100',
-                            ];
-                            $statusColor = $statusColors[$statusKey] ?? 'bg-slate-50 text-slate-600 border-slate-100';
-                            $queueCode = optional($appointment->queue)->queue_code ?? '#A' . $appointment->appointment_id;
-                        @endphp
-                        <button type="button"
-                            class="consult-appt-card text-left rounded-xl border border-slate-200 bg-white px-4 py-3.5 hover:border-green-300 hover:bg-green-50/30 transition-all duration-150 shadow-[0_1px_4px_rgba(15,23,42,0.04)]"
-                            data-appointment-id="{{ $appointment->appointment_id }}"
-                            data-patient-name="{{ $patientName }}"
-                            data-datetime="{{ $apptDate }} {{ $apptTime }}"
-                            data-status="{{ $statusKey }}"
-                            data-status-label="{{ $statusLabel }}">
-                            <div class="flex items-center justify-between gap-2 mb-2">
-                                <span class="inline-flex items-center gap-1.5 text-[0.82rem] font-semibold text-slate-800">
-                                    <x-lucide-hash class="w-3.5 h-3.5 text-slate-400" />
-                                    {{ $queueCode }}
-                                </span>
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.65rem] font-medium border whitespace-nowrap {{ $statusColor }}">
-                                    {{ $statusLabel }}
-                                </span>
-                            </div>
-                            <div class="flex items-center gap-1.5 mt-1.5">
-                                <x-lucide-user class="w-3 h-3 text-slate-400" />
-                                <span class="text-[0.75rem] text-slate-600 truncate">{{ $patientName }}</span>
-                            </div>
-                            <div class="flex items-center gap-1.5 mt-1.5 text-[0.7rem] text-slate-500">
-                                <x-lucide-clock class="w-3 h-3 text-slate-400" />
-                                <span>{{ $apptTime }}</span>
-                            </div>
-                        </button>
-                    @empty
-                        <div class="col-span-3 flex flex-col items-center justify-center py-12 text-center">
-                            <div class="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-2">
-                                <x-lucide-calendar-x class="w-5 h-5 text-slate-300" />
-                            </div>
-                            <p class="text-[0.78rem] font-medium text-slate-500">No appointments available</p>
-                            <p class="text-[0.68rem] text-slate-400 mt-0.5">There are no patients in today&rsquo;s queue.</p>
+                    <div class="col-span-3 flex flex-col items-center justify-center py-12 text-center">
+                        <div class="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-2">
+                            <svg class="w-5 h-5 text-slate-300 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                         </div>
-                    @endforelse
+                        <p class="text-[0.78rem] font-medium text-slate-500">Loading patients...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1044,7 +993,7 @@
             medicines: [],
             medicinesById: {},
             medicinePage: 1,
-            medicinePerPage: 10,
+            medicinePerPage: 100,
             medicineHasMore: false,
             medicineSearchQuery: '',
             medicineLoading: false,
@@ -2791,113 +2740,46 @@
             var prescriptionRows = getPrescriptionRows()
             var shouldSavePrescription = prescriptionRows.length > 0 || !!state.prescriptionId
             var savedPrescriptionId = null
+            var diagnosis = diagnosisEl ? modalValue(diagnosisEl) : ''
+            var treatmentNotes = treatmentEl ? modalValue(treatmentEl) : ''
 
-            // Step 1: Mark appointment as "consulted" FIRST so TransactionController allows payment recording
-            var consultedPromise = api('{{ url('/api/appointments') }}/' + state.appointmentId, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'consulted' }),
-            })
-            // For walk-in, also mark the connected queue as "consulted"
-            if (isWalkInAppointment() && state.currentQueueId) {
-                consultedPromise = consultedPromise.then(function () {
-                    // Skip if queue is already consulted (backend may auto-transition it)
-                    if (normalizeString(state.currentQueueStatus) === 'consulted') return
-                    return api('{{ url('/api/queues') }}/' + state.currentQueueId, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ status: 'consulted' }),
-                    }).catch(function () {
-                        // Queue update is best-effort — appointment is already marked consulted
-                    })
-                })
+            // Single API call — handles appointment status, queue, transaction, prescription & items
+            var payload = {
+                appointment_id: state.appointmentId,
+                doctor_id: state.doctorUserId,
+                diagnosis: diagnosis || null,
+                treatment_notes: treatmentNotes || null,
+                notes: null,
+                items: prescriptionRows.map(function (row) {
+                    return {
+                        medicine_id: Number(row.medicine_id),
+                        dosage: row.dosage || null,
+                        frequency: row.frequency || null,
+                        duration: row.duration || null,
+                        instructions: row.instructions || null,
+                    }
+                }),
             }
-            return consultedPromise.then(function () {
+            if (state.currentQueueId) {
+                payload.queue_id = state.currentQueueId
+            }
+
+            return api('{{ url('/api/consultations/submit') }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            }).then(function (rx) {
+                // Extract IDs from the response
+                state.prescriptionId = rx.prescription_id
+                var tx = rx.transaction || null
+                state.transactionId = tx ? tx.transaction_id : null
+                state.lastSavedTransactionId = state.transactionId
                 markSelectedAppointmentConsulted()
 
-                // Step 2: Save transaction (now allowed because status is "consulted")
-                var payload = {
-                    appointment_id: state.appointmentId,
-                    diagnosis: diagnosisEl ? diagnosisEl.value : '',
-                    treatment_notes: treatmentEl ? treatmentEl.value : '',
-                    visit_datetime: new Date().toISOString().slice(0, 19).replace('T', ' '),
-                }
-
-                return (state.transactionId
-                    ? api('{{ url('/api/transactions') }}/' + state.transactionId, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload),
-                    })
-                    : api('{{ url('/api/transactions') }}', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload),
-                    })
-                ).then(function (tx) {
-                    state.transactionId = tx.transaction_id
-                    state.lastSavedTransactionId = tx.transaction_id
-
-                    // Step 3: Save prescription (if any)
-                    if (!shouldSavePrescription) {
-                        state.prescriptionId = null
-                        return null
-                    }
-
-                    var rxPayload = {
-                        transaction_id: state.transactionId,
-                        doctor_id: state.doctorUserId,
-                        prescribed_datetime: new Date().toISOString().slice(0, 19).replace('T', ' '),
-                        notes: null,
-                    }
-
-                    var rxPromise = state.prescriptionId
-                        ? api('{{ url('/api/prescriptions') }}/' + state.prescriptionId, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(rxPayload),
-                        })
-                        : api('{{ url('/api/prescriptions') }}', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(rxPayload),
-                        })
-
-                    return rxPromise.then(function (rx) {
-                        state.prescriptionId = rx.prescription_id
-
-                        // Delete existing items in parallel
-                        var deletes = Promise.all(
-                            state.existingItemIds.map(function (id) {
-                                return api('{{ url('/api/prescription-items') }}/' + id, { method: 'DELETE' }).catch(function () {})
-                            })
-                        )
-
-                        return deletes.then(function () {
-                            // Create new items in parallel
-                            var creates = prescriptionRows.map(function (row) {
-                                return api('{{ url('/api/prescription-items') }}', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        prescription_id: state.prescriptionId,
-                                        medicine_id: Number(row.medicine_id),
-                                        dosage: row.dosage || null,
-                                        frequency: row.frequency || null,
-                                        duration: row.duration || null,
-                                        instructions: row.instructions || null,
-                                    }),
-                                })
-                            })
-                            return Promise.all(creates)
-                        })
-                    })
-                })
-            }).then(function () {
                 // Capture prescription ID before resetWorkspace clears it
                 savedPrescriptionId = state.prescriptionId
 
-                // Clear workspace and reset appointment selection after successful submission
+                // Clear workspace and reset appointment selection
                 resetWorkspace()
                 if (appointmentSelect) appointmentSelect.value = ''
 
@@ -2905,15 +2787,16 @@
                     ? 'Consultation & prescription saved. Pending payment.'
                     : 'Consultation & notes saved. Pending payment.'
                 showSaveSuccess(successMessage, !!state.lastSavedTransactionId)
-                return loadHistory(state.patientId)
-            }).then(function () {
-                // Show prescription receipt modal after successful submission if prescription exists
+
+                // Show prescription receipt modal
                 if (shouldSavePrescription && savedPrescriptionId) {
                     openRxReceiptModal(savedPrescriptionId)
                 }
                 return true
             }).catch(function (err) {
-                if (typeof showToast === 'function') showToast(err && err.body ? err.body : 'Unable to save consultation.', 'error')
+                var msg = err && err.body ? err.body : 'Unable to save consultation.'
+                try { var p = JSON.parse(msg); if (p && p.message) msg = p.message } catch (e) {}
+                if (typeof showToast === 'function') showToast(msg, 'error')
                 return false
             })
         }
@@ -3281,18 +3164,17 @@
             })
         }
 
-        Promise.all([loadDoctorUser(), loadMedicines()]).then(function () {
+        // Load appointments independently — don't wait for medicines
+        loadDoctorUser().then(function () {
             ensureConsultationQueueSync()
+            refreshAppointmentOptions().catch(function () {})
+        })
+
+        // Load medicines in parallel (may be slower)
+        loadMedicines().then(function () {
             if (appointmentSelect) {
                 Array.prototype.slice.call(appointmentSelect.options).forEach(syncAppointmentOptionLabel)
             }
-            return refreshAppointmentOptions().catch(function () {
-                if (appointmentSelect && appointmentSelect.value) {
-                    appointmentSelect.dispatchEvent(new Event('change', { bubbles: true }))
-                } else {
-                    updateAppointmentButtonDisplay()
-                }
-            })
         }).catch(function () {
             if (typeof showToast === 'function') showToast('Unable to load medicines or user profile.', 'error')
         })
@@ -3322,6 +3204,11 @@
         if (consultAppointmentModal) {
             consultAppointmentModal.addEventListener('click', function (e) {
                 if (e.target === consultAppointmentModal) closeAppointmentModal()
+                // Also close when clicking the centering wrapper (the inner absolute inset-0 div)
+                var wrapper = consultAppointmentModal.querySelector('.max-w-4xl')
+                if (wrapper && e.target !== wrapper && !wrapper.contains(e.target)) {
+                    closeAppointmentModal()
+                }
             })
         }
 
@@ -3362,6 +3249,8 @@
         if (appointmentSelect) {
             appointmentSelect.addEventListener('change', updateAppointmentButtonDisplay)
         }
+        // Sync button display immediately with server-rendered select state (no API wait)
+        updateAppointmentButtonDisplay()
 
         // ── Visit Details Modal ──
         var consultVisitDetailOverlay = document.getElementById('consultVisitDetailOverlay')

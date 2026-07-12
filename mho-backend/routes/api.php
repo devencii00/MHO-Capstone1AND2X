@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\DoctorScheduleController;
 use App\Http\Controllers\MedicalBackgroundController;
@@ -75,6 +76,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/queues/guest-requests/{appointment}', [QueueController::class, 'processGuestRequest']);
     Route::post('/queues/{queue}/move', [QueueController::class, 'move']);
     Route::apiResource('queues', QueueController::class);
+
+// Single-endpoint consultation submission (handles appointment, transaction, prescription, items in one call)
+Route::post('consultations/submit', [ConsultationController::class, 'submit']);
     Route::get('/transactions/report/print', [TransactionController::class, 'printReport']);
     Route::apiResource('transactions', TransactionController::class);
     Route::apiResource('walk-ins', WalkInController::class)->only(['index', 'show', 'store']);

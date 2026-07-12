@@ -6,71 +6,118 @@
     <title>Consultation Receipt - Opol Primary Healthcare</title>
     @vite('resources/css/app.css')
     <style>
+        @page {
+            size: A4 landscape;
+            margin: 10mm 12mm;
+        }
+
         @media print {
             .no-print { display: none !important; }
             body { background: #fff !important; }
+            .rx-shell {
+                border: 0 !important;
+                box-shadow: none !important;
+            }
+        }
+
+        * {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .letterhead-logo {
+            width: 52px;
+            height: 52px;
+            object-fit: contain;
+        }
+
+        .rx-ruled-lines {
+            background-image: repeating-linear-gradient(
+                to bottom,
+                transparent,
+                transparent 34px,
+                rgb(226 232 240) 34px,
+                rgb(226 232 240) 35px
+            );
         }
     </style>
 </head>
 <body class="min-h-screen bg-slate-100 text-slate-900">
     <div class="no-print sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-slate-200 px-4 py-3">
-        <div class="max-w-4xl mx-auto flex items-center justify-between gap-3">
+        <div class="max-w-[1150px] mx-auto flex items-center justify-between gap-3">
             <div class="text-sm font-semibold text-slate-900">Consultation Receipt</div>
             <button type="button" id="consultationPrintBtn" class="px-3 py-2 rounded-xl bg-slate-900 text-white text-[0.78rem] font-semibold hover:bg-slate-800">Print</button>
         </div>
     </div>
 
-    <div class="max-w-4xl mx-auto p-4 md:p-6">
+    <div class="max-w-[1150px] mx-auto p-4 md:p-6">
         <div id="consultationPrintError" class="hidden mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[0.85rem] text-red-700"></div>
 
-        <div class="bg-white border border-slate-200 rounded-3xl p-5 md:p-7">
-            <div class="flex items-start justify-between gap-4">
-                <div>
-                    <div class="text-[0.72rem] uppercase tracking-widest text-slate-400">Opol Primary Healthcare</div>
-                    <div class="text-lg font-semibold text-slate-900 mt-1">Consultation Summary</div>
-                    <div id="consultationMeta" class="text-[0.78rem] text-slate-500 mt-1">Loading…</div>
+        <div class="rx-shell bg-white border border-slate-200 rounded-3xl overflow-hidden">
+
+            {{-- ===== LETTERHEAD (full width) ===== --}}
+            <div class="border-b-4 border-double border-slate-900 px-6 md:px-8 pt-6 pb-4 flex items-start justify-between gap-4">
+                <div class="flex items-start gap-4">
+                    <img src="{{ asset('images/MHOLogoV2.png') }}" alt="Opol MHO logo"
+                         class="letterhead-logo flex-shrink-0 mt-0.5">
+                    <div class="min-w-0">
+                        <div class="text-[0.78rem] font-semibold uppercase tracking-[0.35em] text-slate-500">
+                            Opol Primary Healthcare
+                        </div>
+                        <h1 class="mt-1 text-2xl font-bold tracking-wide text-slate-900">CONSULTATION SUMMARY</h1>
+                        <div id="consultationMeta" class="text-[0.78rem] text-slate-500 mt-1">Loading…</div>
+                    </div>
                 </div>
-                <div class="text-right">
-                    <div class="text-[0.72rem] text-slate-400">Transaction ID</div>
-                    <div class="text-sm font-semibold text-slate-900">#{{ $transactionId }}</div>
+                <div class="text-right shrink-0 pt-1">
+                    <div class="text-[0.7rem] uppercase tracking-widest text-slate-400">Transaction ID</div>
+                    <div class="text-sm font-semibold text-slate-900 mt-1">#{{ $transactionId }}</div>
                 </div>
             </div>
 
-            <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-[0.85rem]">
-                <div class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
-                    <div class="text-[0.7rem] uppercase tracking-widest text-slate-400">Patient</div>
+            {{-- ===== PATIENT & DOCTOR STRIP ===== --}}
+            <div class="grid grid-cols-2 md:grid-cols-4 divide-x divide-slate-100 border-b border-slate-100 px-6 md:px-8">
+                <div class="py-3 pr-4">
+                    <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient</div>
                     <div id="consultationPatientName" class="text-sm font-semibold text-slate-900 mt-1">-</div>
+                </div>
+                <div class="py-3 px-4">
+                    <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Patient Info</div>
                     <div id="consultationPatientInfo" class="text-[0.78rem] text-slate-600 mt-1">-</div>
                 </div>
-                <div class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
-                    <div class="text-[0.7rem] uppercase tracking-widest text-slate-400">Doctor</div>
+                <div class="py-3 px-4">
+                    <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Doctor</div>
                     <div id="consultationDoctorName" class="text-sm font-semibold text-slate-900 mt-1">-</div>
+                </div>
+                <div class="py-3 pl-4">
+                    <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Doctor Info</div>
                     <div id="consultationDoctorInfo" class="text-[0.78rem] text-slate-600 mt-1">-</div>
                 </div>
             </div>
 
-            <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <div class="text-[0.75rem] uppercase tracking-widest text-slate-400 mb-2">Diagnosis</div>
-                    <div id="consultationDiagnosis" class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-[0.85rem] text-slate-700 whitespace-pre-line">-</div>
+            {{-- ===== DIAGNOSIS & TREATMENT (side by side, landscape width) ===== --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100 border-b border-slate-100">
+                <div class="px-6 md:px-8 py-5">
+                    <div class="text-[0.7rem] uppercase tracking-widest text-slate-400 mb-2">Diagnosis</div>
+                    <div id="consultationDiagnosis" class="text-[0.85rem] text-slate-700 whitespace-pre-line leading-relaxed">-</div>
                 </div>
-                <div>
-                    <div class="text-[0.75rem] uppercase tracking-widest text-slate-400 mb-2">Treatment Notes</div>
-                    <div id="consultationTreatment" class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-[0.85rem] text-slate-700 whitespace-pre-line">-</div>
+                <div class="px-6 md:px-8 py-5">
+                    <div class="text-[0.7rem] uppercase tracking-widest text-slate-400 mb-2">Treatment Notes</div>
+                    <div id="consultationTreatment" class="text-[0.85rem] text-slate-700 whitespace-pre-line leading-relaxed">-</div>
                 </div>
             </div>
 
-            <div class="mt-5">
-                <div class="text-[0.75rem] uppercase tracking-widest text-slate-400 mb-2">Prescription Items</div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-left text-[0.82rem] text-slate-700">
+            {{-- ===== PRESCRIPTION ITEMS ===== --}}
+            <div class="px-6 md:px-8 py-6">
+                <div class="text-[0.7rem] uppercase tracking-widest text-slate-400 mb-3">Prescription Items</div>
+                <div class="rx-ruled-lines">
+                    <table class="w-full text-left text-[0.82rem] text-slate-700 border-collapse">
                         <thead>
-                            <tr class="border-b border-slate-200 text-[0.7rem] uppercase tracking-widest text-slate-400">
-                                <th class="py-2 pr-4 font-semibold">Medicine</th>
-                                <th class="py-2 pr-4 font-semibold">Dosage</th>
-                                <th class="py-2 pr-4 font-semibold">Frequency</th>
-                                <th class="py-2 pr-4 font-semibold">Duration</th>
-                                <th class="py-2 pr-0 font-semibold">Instructions</th>
+                            <tr class="text-[0.68rem] uppercase tracking-widest text-slate-400">
+                                <th class="pb-2 pr-4 font-semibold">Medicine</th>
+                                <th class="pb-2 pr-4 font-semibold">Dosage</th>
+                                <th class="pb-2 pr-4 font-semibold">Frequency</th>
+                                <th class="pb-2 pr-4 font-semibold">Duration</th>
+                                <th class="pb-2 pr-0 font-semibold">Instructions</th>
                             </tr>
                         </thead>
                         <tbody id="consultationItemsBody"></tbody>
@@ -79,6 +126,8 @@
             </div>
         </div>
     </div>
+</body>
+</html>
 
     <script>
         (function () {
