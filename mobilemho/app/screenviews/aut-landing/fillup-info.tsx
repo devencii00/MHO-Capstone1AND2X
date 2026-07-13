@@ -1,7 +1,10 @@
-import { clearPersistedAuthSession, persistCurrentUser } from '@/lib/auth-storage';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import {
+  clearPersistedAuthSession,
+  persistCurrentUser,
+} from "@/lib/auth-storage";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Modal,
@@ -13,31 +16,33 @@ import {
   Text,
   TextInput,
   View,
-} from 'react-native';
+} from "react-native";
 
 const T = {
-  green500: '#06b6d4',
-  green600: '#16A34A',
-  green700: '#15803D',
-  slate50: '#f8fafc',
-  slate100: '#f1f5f9',
-  slate200: '#e2e8f0',
-  slate300: '#cbd5e1',
-  slate400: '#94a3b8',
-  slate500: '#64748b',
-  slate600: '#475569',
-  slate700: '#334155',
-  slate800: '#1e293b',
-  slate900: '#0f172a',
-  white: '#ffffff',
-  red100: 'rgba(239,68,68,0.12)',
-  red700: '#b91c1c',
-  green100: 'rgba(34,197,94,0.12)',
+  green500: "#06b6d4",
+  green600: "#16A34A",
+  green700: "#15803D",
+  slate50: "#f8fafc",
+  slate100: "#f1f5f9",
+  slate200: "#e2e8f0",
+  slate300: "#cbd5e1",
+  slate400: "#94a3b8",
+  slate500: "#64748b",
+  slate600: "#475569",
+  slate700: "#334155",
+  slate800: "#1e293b",
+  slate900: "#0f172a",
+  white: "#ffffff",
+  red100: "rgba(239,68,68,0.12)",
+  red700: "#b91c1c",
+  green100: "rgba(34,197,94,0.12)",
 };
 
-const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api').replace(/\/+$/, '');
+const API_BASE_URL = (
+  process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api"
+).replace(/\/+$/, "");
 
-type SexValue = '' | 'Male' | 'Female';
+type SexValue = "" | "Male" | "Female";
 
 type FormState = {
   firstname: string;
@@ -50,12 +55,12 @@ type FormState = {
 };
 
 function normalizeText(value: any): string {
-  return typeof value === 'string' ? value.trim() : '';
+  return typeof value === "string" ? value.trim() : "";
 }
 
 function isValidPersonName(value: string): boolean {
-  const v = String(value || '').trim();
-  if (v === '') {
+  const v = String(value || "").trim();
+  if (v === "") {
     return true;
   }
 
@@ -67,53 +72,71 @@ function isValidPersonName(value: string): boolean {
 }
 
 function normalizePersonName(value: string): string {
-  let s = String(value || '').trim();
-  if (!s) return '';
-  s = s.replace(/\s+/g, ' ');
-  s = s.replace(/\s*([.'\-\u00B7])\s*/g, '$1');
+  let s = String(value || "").trim();
+  if (!s) return "";
+  s = s.replace(/\s+/g, " ");
+  s = s.replace(/\s*([.'\-\u00B7])\s*/g, "$1");
   return s;
 }
 
 function normalizePHContact(value: string): string {
-  const raw = String(value || '').trim();
-  if (!raw) return '';
+  const raw = String(value || "").trim();
+  if (!raw) return "";
 
-  const compact = raw.replace(/[^\d+]/g, '');
-  if (compact === '+63') return '';
+  const compact = raw.replace(/[^\d+]/g, "");
+  if (compact === "+63") return "";
 
-  const digits = compact.replace(/[^\d]/g, '');
-  if (!digits) return '';
+  const digits = compact.replace(/[^\d]/g, "");
+  if (!digits) return "";
 
-  if (digits.length === 11 && digits.startsWith('09')) {
+  if (digits.length === 11 && digits.startsWith("09")) {
     return `+63${digits.slice(1)}`;
   }
-  if (digits.length === 10 && digits.startsWith('9')) {
+  if (digits.length === 10 && digits.startsWith("9")) {
     return `+63${digits}`;
   }
-  if (digits.length === 12 && digits.startsWith('639')) {
+  if (digits.length === 12 && digits.startsWith("639")) {
     return `+${digits}`;
   }
-  if (compact.startsWith('+') && digits.length === 12 && digits.startsWith('639')) {
+  if (
+    compact.startsWith("+") &&
+    digits.length === 12 &&
+    digits.startsWith("639")
+  ) {
     return `+${digits}`;
   }
 
-  return '';
+  return "";
 }
 
 function isValidPHContact(value: string): boolean {
-  return /^\+639\d{9}$/.test(String(value || ''));
+  return /^\+639\d{9}$/.test(String(value || ""));
+}
+
+function formatPhoneInput(value: string): string {
+  const raw = String(value || "").replace(/[^\d]/g, "");
+  let digits = raw;
+  if (digits.startsWith("63")) digits = digits.slice(2);
+  if (digits.startsWith("0")) digits = digits.slice(1);
+  digits = digits.slice(0, 10);
+  if (!digits) return "";
+  let formatted = "+63 ";
+  formatted += digits.slice(0, 3);
+  if (digits.length > 3) formatted += " " + digits.slice(3, 6);
+  if (digits.length > 6) formatted += " " + digits.slice(6);
+  return formatted;
 }
 
 function formatDateInput(value: Date): string {
   const year = value.getFullYear();
-  const month = String(value.getMonth() + 1).padStart(2, '0');
-  const day = String(value.getDate()).padStart(2, '0');
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
 function parseDateInput(value: string): Date {
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    const [year, month, day] = value.split('-').map(Number);
+    const [year, month, day] = value.split("-").map(Number);
     return new Date(year, (month || 1) - 1, day || 1);
   }
   return new Date();
@@ -121,24 +144,50 @@ function parseDateInput(value: string): Date {
 
 function formatDateToWords(value: string): string {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return '';
+    return "";
   }
 
   const date = parseDateInput(value);
   if (Number.isNaN(date.getTime())) {
-    return '';
+    return "";
   }
 
-  return date.toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+const MONTHS_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 function CalendarModal({
   visible,
@@ -159,7 +208,7 @@ function CalendarModal({
     if (value) return value.getMonth();
     return new Date().getMonth();
   });
-  const [pickerMode, setPickerMode] = useState<'day' | 'month' | 'year'>('day');
+  const [pickerMode, setPickerMode] = useState<"day" | "month" | "year">("day");
   const [decadeStart, setDecadeStart] = useState(() => {
     const y = value ? value.getFullYear() : new Date().getFullYear();
     return Math.floor(y / 10) * 10;
@@ -178,51 +227,64 @@ function CalendarModal({
   const firstWeekday = new Date(viewYear, viewMonth, 1).getDay();
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
-  const selectedStr = value ? `${value.getFullYear()}-${value.getMonth()}-${value.getDate()}` : '';
+  const selectedStr = value
+    ? `${value.getFullYear()}-${value.getMonth()}-${value.getDate()}`
+    : "";
 
   const cells: (number | null)[] = [];
   for (let i = 0; i < firstWeekday; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
   function prev() {
-    if (pickerMode === 'day') {
-      if (viewMonth === 0) { setViewYear((y) => y - 1); setViewMonth(11); }
-      else { setViewMonth((m) => m - 1); }
-    } else if (pickerMode === 'year') {
+    if (pickerMode === "day") {
+      if (viewMonth === 0) {
+        setViewYear((y) => y - 1);
+        setViewMonth(11);
+      } else {
+        setViewMonth((m) => m - 1);
+      }
+    } else if (pickerMode === "year") {
       setDecadeStart((d) => d - 10);
     }
   }
 
   function next() {
-    if (pickerMode === 'day') {
-      if (viewMonth === 11) { setViewYear((y) => y + 1); setViewMonth(0); }
-      else { setViewMonth((m) => m + 1); }
-    } else if (pickerMode === 'year') {
+    if (pickerMode === "day") {
+      if (viewMonth === 11) {
+        setViewYear((y) => y + 1);
+        setViewMonth(0);
+      } else {
+        setViewMonth((m) => m + 1);
+      }
+    } else if (pickerMode === "year") {
       setDecadeStart((d) => d + 10);
     }
   }
 
   const canGoNextDay = useMemo(() => {
-    if (pickerMode !== 'day') return true;
-    const next = viewMonth === 11 ? new Date(viewYear + 1, 0, 1) : new Date(viewYear, viewMonth + 1, 1);
+    if (pickerMode !== "day") return true;
+    const next =
+      viewMonth === 11
+        ? new Date(viewYear + 1, 0, 1)
+        : new Date(viewYear, viewMonth + 1, 1);
     return next <= today;
   }, [viewYear, viewMonth, pickerMode]);
 
   function selectMonth(m: number) {
     setViewMonth(m);
-    setPickerMode('day');
+    setPickerMode("day");
   }
 
   function selectYear(y: number) {
     setViewYear(y);
-    setPickerMode('month');
+    setPickerMode("month");
   }
 
   const years: number[] = [];
   for (let i = 0; i < 10; i++) years.push(decadeStart + i);
 
   function renderHeaderNav() {
-    if (pickerMode === 'year') {
+    if (pickerMode === "year") {
       return (
         <View style={styles.calHeader}>
           <Pressable onPress={prev} style={styles.calNavBtn}>
@@ -243,9 +305,14 @@ function CalendarModal({
         <Pressable onPress={prev} style={styles.calNavBtn}>
           <Ionicons name="chevron-back" size={20} color={T.slate700} />
         </Pressable>
-        <Pressable onPress={() => setPickerMode(pickerMode === 'day' ? 'month' : 'year')} style={styles.calHeaderBtn}>
+        <Pressable
+          onPress={() => setPickerMode(pickerMode === "day" ? "month" : "year")}
+          style={styles.calHeaderBtn}
+        >
           <Text style={styles.calHeaderText}>
-            {pickerMode === 'day' ? `${MONTHS[viewMonth]} ${viewYear}` : viewYear}
+            {pickerMode === "day"
+              ? `${MONTHS[viewMonth]} ${viewYear}`
+              : viewYear}
           </Text>
           <Ionicons name="chevron-down" size={14} color={T.slate500} />
         </Pressable>
@@ -260,20 +327,34 @@ function CalendarModal({
   }
 
   function renderBody() {
-    if (pickerMode === 'month') {
+    if (pickerMode === "month") {
       return (
         <View style={styles.calGrid}>
           {MONTHS_SHORT.map((m, i) => {
             const date = new Date(viewYear, i, 1);
             const isFuture = date > today;
-            const isSelected = value && value.getFullYear() === viewYear && value.getMonth() === i;
+            const isSelected =
+              value &&
+              value.getFullYear() === viewYear &&
+              value.getMonth() === i;
             return (
               <Pressable
                 key={m}
-                onPress={() => { if (!isFuture) selectMonth(i); }}
-                style={[styles.calMonthCell, isSelected && styles.calDaySelected]}
+                onPress={() => {
+                  if (!isFuture) selectMonth(i);
+                }}
+                style={[
+                  styles.calMonthCell,
+                  isSelected && styles.calDaySelected,
+                ]}
               >
-                <Text style={[styles.calMonthText, isSelected && styles.calDayTextSelected, isFuture && styles.calDayTextFuture]}>
+                <Text
+                  style={[
+                    styles.calMonthText,
+                    isSelected && styles.calDayTextSelected,
+                    isFuture && styles.calDayTextFuture,
+                  ]}
+                >
                   {m}
                 </Text>
               </Pressable>
@@ -283,7 +364,7 @@ function CalendarModal({
       );
     }
 
-    if (pickerMode === 'year') {
+    if (pickerMode === "year") {
       return (
         <View style={styles.calGrid}>
           {years.map((y) => {
@@ -293,10 +374,21 @@ function CalendarModal({
             return (
               <Pressable
                 key={y}
-                onPress={() => { if (!isFuture) selectYear(y); }}
-                style={[styles.calYearCell, isSelected && styles.calDaySelected]}
+                onPress={() => {
+                  if (!isFuture) selectYear(y);
+                }}
+                style={[
+                  styles.calYearCell,
+                  isSelected && styles.calDaySelected,
+                ]}
               >
-                <Text style={[styles.calYearText, isSelected && styles.calDayTextSelected, isFuture && styles.calDayTextFuture]}>
+                <Text
+                  style={[
+                    styles.calYearText,
+                    isSelected && styles.calDayTextSelected,
+                    isFuture && styles.calDayTextFuture,
+                  ]}
+                >
                   {y}
                 </Text>
               </Pressable>
@@ -312,12 +404,15 @@ function CalendarModal({
         {/* Weekday headers */}
         <View style={styles.calWeekdayRow}>
           {WEEKDAYS.map((w) => (
-            <Text key={w} style={styles.calWeekdayText}>{w}</Text>
+            <Text key={w} style={styles.calWeekdayText}>
+              {w}
+            </Text>
           ))}
         </View>
         <View style={styles.calGrid}>
           {cells.map((day, i) => {
-            if (day == null) return <View key={`blank-${i}`} style={styles.calDayCell} />;
+            if (day == null)
+              return <View key={`blank-${i}`} style={styles.calDayCell} />;
             const date = new Date(viewYear, viewMonth, day);
             const dayStr = `${viewYear}-${viewMonth}-${day}`;
             const isToday = dayStr === todayStr;
@@ -326,10 +421,25 @@ function CalendarModal({
             return (
               <Pressable
                 key={`day-${day}`}
-                onPress={() => { if (!isFuture) { onSelect(date); onClose(); } }}
-                style={[styles.calDayCell, isSelected && styles.calDaySelected, isToday && !isSelected && styles.calDayToday]}
+                onPress={() => {
+                  if (!isFuture) {
+                    onSelect(date);
+                    onClose();
+                  }
+                }}
+                style={[
+                  styles.calDayCell,
+                  isSelected && styles.calDaySelected,
+                  isToday && !isSelected && styles.calDayToday,
+                ]}
               >
-                <Text style={[styles.calDayText, isSelected && styles.calDayTextSelected, isFuture && styles.calDayTextFuture]}>
+                <Text
+                  style={[
+                    styles.calDayText,
+                    isSelected && styles.calDayTextSelected,
+                    isFuture && styles.calDayTextFuture,
+                  ]}
+                >
                   {day}
                 </Text>
               </Pressable>
@@ -341,9 +451,17 @@ function CalendarModal({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <Pressable style={styles.calOverlay} onPress={onClose}>
-        <Pressable style={styles.calContainer} onPress={(e) => e.stopPropagation()}>
+        <Pressable
+          style={styles.calContainer}
+          onPress={(e) => e.stopPropagation()}
+        >
           {renderHeaderNav()}
           {renderBody()}
           {/* Footer */}
@@ -351,13 +469,16 @@ function CalendarModal({
             <Pressable onPress={onClose} style={styles.calCloseBtn}>
               <Text style={styles.calCloseBtnText}>Cancel</Text>
             </Pressable>
-            {pickerMode === 'day' && value ? (
+            {pickerMode === "day" && value ? (
               <Pressable onPress={onClose} style={styles.calDoneBtn}>
                 <Text style={styles.calDoneBtnText}>Done</Text>
               </Pressable>
             ) : null}
-            {pickerMode !== 'day' ? (
-              <Pressable onPress={() => setPickerMode('day')} style={styles.calDoneBtn}>
+            {pickerMode !== "day" ? (
+              <Pressable
+                onPress={() => setPickerMode("day")}
+                style={styles.calDoneBtn}
+              >
                 <Text style={styles.calDoneBtnText}>Back</Text>
               </Pressable>
             ) : null}
@@ -369,12 +490,17 @@ function CalendarModal({
 }
 
 function buildInitialForm(user: any): FormState {
-  let birthdate = user?.birthdate != null ? String(user.birthdate) : '';
-  if (birthdate && birthdate.includes('T')) {
-    birthdate = birthdate.split('T')[0];
+  let birthdate = user?.birthdate != null ? String(user.birthdate) : "";
+  if (birthdate && birthdate.includes("T")) {
+    birthdate = birthdate.split("T")[0];
   }
   const normalizedSex = normalizeText(user?.sex).toLowerCase();
-  const sexValue: SexValue = normalizedSex === 'male' ? 'Male' : normalizedSex === 'female' ? 'Female' : '';
+  const sexValue: SexValue =
+    normalizedSex === "male"
+      ? "Male"
+      : normalizedSex === "female"
+        ? "Female"
+        : "";
 
   return {
     firstname: normalizeText(user?.firstname),
@@ -392,10 +518,12 @@ export default function FillupInfoScreen() {
   const currentUser = (globalThis as any)?.currentUser as any | undefined;
   const userId = Number(currentUser?.user_id || 0);
 
-  const [form, setForm] = useState<FormState>(() => buildInitialForm(currentUser ?? null));
+  const [form, setForm] = useState<FormState>(() =>
+    buildInitialForm(currentUser ?? null),
+  );
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [showBirthdatePicker, setShowBirthdatePicker] = useState(false);
   const [birthdateDate, setBirthdateDate] = useState<Date | null>(() => {
     const bd = buildInitialForm(currentUser ?? null).birthdate;
@@ -408,11 +536,17 @@ export default function FillupInfoScreen() {
 
   const canContinue = useMemo(() => {
     if (saving) return false;
-    if (!normalizeText(form.firstname) || !normalizeText(form.lastname)) return false;
-    if (!form.birthdate || !/^\d{4}-\d{2}-\d{2}$/.test(form.birthdate)) return false;
-    if (form.sex !== 'Male' && form.sex !== 'Female') return false;
+    if (!normalizeText(form.firstname) || !normalizeText(form.lastname))
+      return false;
+    if (!form.birthdate || !/^\d{4}-\d{2}-\d{2}$/.test(form.birthdate))
+      return false;
+    if (form.sex !== "Male" && form.sex !== "Female") return false;
     if (!normalizeText(form.address)) return false;
-    if (!normalizePHContact(form.contact_number) || !isValidPHContact(normalizePHContact(form.contact_number))) return false;
+    if (
+      !normalizePHContact(form.contact_number) ||
+      !isValidPHContact(normalizePHContact(form.contact_number))
+    )
+      return false;
     return true;
   }, [form, saving]);
 
@@ -425,22 +559,25 @@ export default function FillupInfoScreen() {
       const token = (globalThis as any)?.apiToken as string | undefined;
       if (token) {
         await fetch(`${API_BASE_URL}/logout`, {
-          method: 'POST',
-          headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         }).catch(() => null);
       }
     } finally {
       await clearPersistedAuthSession();
-      router.replace('/screenviews/aut-landing/login-screen' as any);
+      router.replace("/screenviews/aut-landing/login-screen" as any);
     }
   }
 
   async function handleSaveAndContinue() {
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     if (!userId) {
-      router.replace('/screenviews/aut-landing/login-screen' as any);
+      router.replace("/screenviews/aut-landing/login-screen" as any);
       return;
     }
 
@@ -452,37 +589,39 @@ export default function FillupInfoScreen() {
     const contact = normalizePHContact(form.contact_number);
 
     if (!firstname || !lastname) {
-      setError('First name and last name are required.');
+      setError("First name and last name are required.");
       return;
     }
     if (
       !isValidPersonName(firstname) ||
-      (middlename !== '' && !isValidPersonName(middlename)) ||
+      (middlename !== "" && !isValidPersonName(middlename)) ||
       !isValidPersonName(lastname)
     ) {
-      setError('Name fields must contain letters only (accents allowed), plus hyphens, apostrophes, periods, and middle dots.');
+      setError(
+        "Name fields must contain letters only (accents allowed), plus hyphens, apostrophes, periods, and middle dots.",
+      );
       return;
     }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
-      setError('Birthdate must use YYYY-MM-DD format.');
+      setError("Birthdate must use YYYY-MM-DD format.");
       return;
     }
-    if (form.sex !== 'Male' && form.sex !== 'Female') {
-      setError('Sex must be either Male or Female.');
+    if (form.sex !== "Male" && form.sex !== "Female") {
+      setError("Sex must be either Male or Female.");
       return;
     }
     if (!address) {
-      setError('Address is required.');
+      setError("Address is required.");
       return;
     }
     if (!contact || !isValidPHContact(contact)) {
-      setError('Please enter a valid PH contact number (e.g. +639750443410).');
+      setError("Please enter a valid PH contact number (e.g. +639750443410).");
       return;
     }
 
     const token = (globalThis as any)?.apiToken as string | undefined;
     if (!token) {
-      router.replace('/screenviews/aut-landing/login-screen' as any);
+      router.replace("/screenviews/aut-landing/login-screen" as any);
       return;
     }
 
@@ -498,35 +637,40 @@ export default function FillupInfoScreen() {
         contact_number: contact || null,
       };
 
-      const response = await fetch(`${API_BASE_URL}/personal-information/${userId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        `${API_BASE_URL}/personal-information/${userId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload),
-      });
+      );
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         const validationMessage =
-          data?.errors && typeof data.errors === 'object'
-            ? Object.values(data.errors).flat().filter(Boolean).join(' ')
-            : '';
+          data?.errors && typeof data.errors === "object"
+            ? Object.values(data.errors).flat().filter(Boolean).join(" ")
+            : "";
         const message =
           validationMessage ||
-          (typeof data?.message === 'string' && data.message.length > 0 ? data.message : 'Unable to save personal info.');
+          (typeof data?.message === "string" && data.message.length > 0
+            ? data.message
+            : "Unable to save personal info.");
         setError(message);
         return;
       }
 
       const nextUser = { ...(globalThis as any)?.currentUser, ...data };
       await persistCurrentUser(nextUser);
-      setSuccess('Saved.');
-      router.push('/screenviews/medical-bg' as any);
+      setSuccess("Saved.");
+      router.push("/screenviews/medical-bg" as any);
     } catch {
-      setError('Network error. Please try again.');
+      setError("Network error. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -535,7 +679,11 @@ export default function FillupInfoScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" backgroundColor={T.green700} />
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <View style={styles.circleTopRight} />
           <View style={styles.circleBottomLeft} />
@@ -543,14 +691,31 @@ export default function FillupInfoScreen() {
           <View style={styles.headerInner}>
             <View style={{ flex: 1 }}>
               <View style={styles.eyebrowRow}>
-                <View style={[styles.eyebrowDot, { backgroundColor: 'rgba(255,255,255,0.7)' }]} />
-                <Text style={[styles.eyebrowText, { color: 'rgba(255,255,255,0.8)' }]}>Patient Portal</Text>
+                <View
+                  style={[
+                    styles.eyebrowDot,
+                    { backgroundColor: "rgba(255,255,255,0.7)" },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.eyebrowText,
+                    { color: "rgba(255,255,255,0.8)" },
+                  ]}
+                >
+                  Patient Portal
+                </Text>
               </View>
               <Text style={styles.headerTitle}>Tell us about yourself</Text>
-              <Text style={styles.headerSub}>Step 1 of 3 · Personal information is required on first login.</Text>
+              <Text style={styles.headerSub}>
+                Step 1 of 3 · Personal information is required on first login.
+              </Text>
             </View>
             <Pressable
-              style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.85 }]}
+              style={({ pressed }) => [
+                styles.headerBtn,
+                pressed && { opacity: 0.85 },
+              ]}
               onPress={handleLogout}
             >
               <Text style={styles.headerBtnText}>Log out</Text>
@@ -571,16 +736,18 @@ export default function FillupInfoScreen() {
               <Text style={styles.label}>First name</Text>
               <TextInput
                 value={form.firstname}
-                onChangeText={(v) => update('firstname', v)}
+                onChangeText={(v) => update("firstname", v)}
                 placeholder="First name"
                 placeholderTextColor="#9ca3af"
                 style={styles.input}
               />
 
-              <Text style={[styles.label, { marginTop: 12 }]}>Middle name (optional)</Text>
+              <Text style={[styles.label, { marginTop: 12 }]}>
+                Middle name (optional)
+              </Text>
               <TextInput
                 value={form.middlename}
-                onChangeText={(v) => update('middlename', v)}
+                onChangeText={(v) => update("middlename", v)}
                 placeholder="Middle name"
                 placeholderTextColor="#9ca3af"
                 style={styles.input}
@@ -589,30 +756,52 @@ export default function FillupInfoScreen() {
               <Text style={[styles.label, { marginTop: 12 }]}>Last name</Text>
               <TextInput
                 value={form.lastname}
-                onChangeText={(v) => update('lastname', v)}
+                onChangeText={(v) => update("lastname", v)}
                 placeholder="Last name"
                 placeholderTextColor="#9ca3af"
                 style={styles.input}
               />
 
-              <Text style={[styles.label, { marginTop: 12 }]}>Date of birth</Text>
+              <Text style={[styles.label, { marginTop: 12 }]}>
+                Date of birth
+              </Text>
               <Pressable
                 onPress={() => {
                   setSexMenuOpen(false);
                   // Sync birthdateDate from current form value before opening
-                  if (form.birthdate && /^\d{4}-\d{2}-\d{2}$/.test(form.birthdate)) {
+                  if (
+                    form.birthdate &&
+                    /^\d{4}-\d{2}-\d{2}$/.test(form.birthdate)
+                  ) {
                     setBirthdateDate(parseDateInput(form.birthdate));
                   }
                   setShowBirthdatePicker(true);
                 }}
-                style={({ pressed }) => [styles.selectInput, pressed && { opacity: 0.85 }]}
+                style={({ pressed }) => [
+                  styles.selectInput,
+                  pressed && { opacity: 0.85 },
+                ]}
               >
-                <Text style={form.birthdate ? styles.selectInputValue : styles.selectInputPlaceholder}>
-                  {form.birthdate || 'YYYY-MM-DD'}
+                <Text
+                  style={
+                    form.birthdate
+                      ? styles.selectInputValue
+                      : styles.selectInputPlaceholder
+                  }
+                >
+                  {form.birthdate || "YYYY-MM-DD"}
                 </Text>
-                <Ionicons name="calendar-outline" size={18} color={T.slate600} />
+                <Ionicons
+                  name="calendar-outline"
+                  size={18}
+                  color={T.slate600}
+                />
               </Pressable>
-              {form.birthdate ? <Text style={styles.helperText}>{formatDateToWords(form.birthdate)}</Text> : null}
+              {form.birthdate ? (
+                <Text style={styles.helperText}>
+                  {formatDateToWords(form.birthdate)}
+                </Text>
+              ) : null}
 
               <Text style={[styles.label, { marginTop: 12 }]}>Sex</Text>
               <View style={styles.dropdownWrap}>
@@ -624,18 +813,32 @@ export default function FillupInfoScreen() {
                     pressed && { opacity: 0.9 },
                   ]}
                 >
-                  <Text style={form.sex ? styles.selectInputValue : styles.selectInputPlaceholder}>
-                    {form.sex || 'Select sex'}
+                  <Text
+                    style={
+                      form.sex
+                        ? styles.selectInputValue
+                        : styles.selectInputPlaceholder
+                    }
+                  >
+                    {form.sex || "Select sex"}
                   </Text>
-                  <Ionicons name={sexMenuOpen ? 'chevron-up-outline' : 'chevron-down-outline'} size={18} color={T.slate600} />
+                  <Ionicons
+                    name={
+                      sexMenuOpen
+                        ? "chevron-up-outline"
+                        : "chevron-down-outline"
+                    }
+                    size={18}
+                    color={T.slate600}
+                  />
                 </Pressable>
                 {sexMenuOpen ? (
                   <View style={styles.dropdownMenu}>
-                    {(['Male', 'Female'] as const).map((option) => (
+                    {(["Male", "Female"] as const).map((option) => (
                       <Pressable
                         key={option}
                         onPress={() => {
-                          update('sex', option);
+                          update("sex", option);
                           setSexMenuOpen(false);
                         }}
                         style={({ pressed }) => [
@@ -644,8 +847,22 @@ export default function FillupInfoScreen() {
                           pressed && { opacity: 0.9 },
                         ]}
                       >
-                        <Text style={[styles.dropdownItemText, form.sex === option && styles.dropdownItemTextActive]}>{option}</Text>
-                        {form.sex === option ? <Ionicons name="checkmark-outline" size={18} color={T.green700} /> : null}
+                        <Text
+                          style={[
+                            styles.dropdownItemText,
+                            form.sex === option &&
+                              styles.dropdownItemTextActive,
+                          ]}
+                        >
+                          {option}
+                        </Text>
+                        {form.sex === option ? (
+                          <Ionicons
+                            name="checkmark-outline"
+                            size={18}
+                            color={T.green700}
+                          />
+                        ) : null}
                       </Pressable>
                     ))}
                   </View>
@@ -655,35 +872,47 @@ export default function FillupInfoScreen() {
               <Text style={[styles.label, { marginTop: 12 }]}>Address</Text>
               <TextInput
                 value={form.address}
-                onChangeText={(v) => update('address', v)}
+                onChangeText={(v) => update("address", v)}
                 onFocus={() => setSexMenuOpen(false)}
                 placeholder="Full address"
                 placeholderTextColor="#9ca3af"
-                style={[styles.input, { height: 92, textAlignVertical: 'top' }]}
+                style={[styles.input, { height: 92, textAlignVertical: "top" }]}
                 multiline
               />
 
-              <Text style={[styles.label, { marginTop: 12 }]}>Contact number</Text>
+              <Text style={[styles.label, { marginTop: 12 }]}>
+                Contact number
+              </Text>
               <TextInput
                 value={form.contact_number}
-                onChangeText={(v) => update('contact_number', v)}
+                onChangeText={(v) =>
+                  update("contact_number", formatPhoneInput(v))
+                }
                 onFocus={() => setSexMenuOpen(false)}
                 onBlur={() => {
                   const normalized = normalizePHContact(form.contact_number);
                   if (normalized) {
-                    update('contact_number', normalized);
+                    update("contact_number", normalized);
+                  } else if (form.contact_number) {
+                    update("contact_number", "");
                   }
                 }}
-                placeholder="+639 1234 56789"
+                placeholder="+63 912 345 6789"
                 placeholderTextColor="#9ca3af"
                 keyboardType="phone-pad"
                 maxLength={16}
                 style={styles.input}
               />
-        
+
               <View style={styles.noticeBadge}>
-                <Ionicons name="information-circle-outline" size={16} color="#d97706" />
-                <Text style={styles.noticeText}>Make sure the details you input will match your id/document.</Text>
+                <Ionicons
+                  name="information-circle-outline"
+                  size={16}
+                  color="#d97706"
+                />
+                <Text style={styles.noticeText}>
+                  Make sure the details you input will match your id/document.
+                </Text>
               </View>
 
               <Pressable
@@ -695,9 +924,15 @@ export default function FillupInfoScreen() {
                   pressed && canContinue && { opacity: 0.85 },
                 ]}
               >
-                {saving ? <ActivityIndicator color={T.white} size="small" /> : null}
-                <Text style={styles.primaryButtonText}>{saving ? 'Saving...' : 'Next'}</Text>
-                {!saving ? <Ionicons name="arrow-forward" size={18} color={T.white} /> : null}
+                {saving ? (
+                  <ActivityIndicator color={T.white} size="small" />
+                ) : null}
+                <Text style={styles.primaryButtonText}>
+                  {saving ? "Saving..." : "Next"}
+                </Text>
+                {!saving ? (
+                  <Ionicons name="arrow-forward" size={18} color={T.white} />
+                ) : null}
               </Pressable>
             </View>
           </View>
@@ -708,7 +943,7 @@ export default function FillupInfoScreen() {
           value={birthdateDate}
           onSelect={(date) => {
             setBirthdateDate(date);
-            update('birthdate', formatDateInput(date));
+            update("birthdate", formatDateInput(date));
           }}
           onClose={() => setShowBirthdatePicker(false)}
         />
@@ -724,36 +959,56 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 50,
     paddingBottom: 30,
-    position: 'relative',
-    overflow: 'hidden',
+    position: "relative",
+    overflow: "hidden",
   },
   headerInner: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
     gap: 12,
   },
   headerTitle: {
-    fontFamily: 'serif',
+    fontFamily: "serif",
     fontSize: 30,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.white,
     marginBottom: 2,
     letterSpacing: 0.3,
   },
-  headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.75)', fontWeight: '400' },
+  headerSub: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.75)",
+    fontWeight: "400",
+  },
   headerBtn: {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.16)',
+    backgroundColor: "rgba(255,255,255,0.16)",
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: "rgba(255,255,255,0.25)",
   },
-  headerBtnText: { color: T.white, fontSize: 12, fontWeight: '600' },
-  eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
-  eyebrowDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.green600 },
-  eyebrowText: { fontSize: 9, fontWeight: '700', letterSpacing: 0.9, textTransform: 'uppercase', color: T.green600 },
+  headerBtnText: { color: T.white, fontSize: 12, fontWeight: "600" },
+  eyebrowRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginBottom: 4,
+  },
+  eyebrowDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: T.green600,
+  },
+  eyebrowText: {
+    fontSize: 9,
+    fontWeight: "700",
+    letterSpacing: 0.9,
+    textTransform: "uppercase",
+    color: T.green600,
+  },
   scroll: {
     flex: 1,
     backgroundColor: T.slate100,
@@ -764,7 +1019,7 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 16, gap: 12, paddingBottom: 28 },
   inlineError: {
     backgroundColor: T.red100,
-    borderColor: 'rgba(239,68,68,0.25)',
+    borderColor: "rgba(239,68,68,0.25)",
     borderWidth: 1,
     color: T.red700,
     padding: 10,
@@ -773,7 +1028,7 @@ const styles = StyleSheet.create({
   },
   inlineSuccess: {
     backgroundColor: T.green100,
-    borderColor: 'rgba(34,197,94,0.25)',
+    borderColor: "rgba(34,197,94,0.25)",
     borderWidth: 1,
     color: T.green700,
     padding: 10,
@@ -785,17 +1040,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: T.slate200,
     borderRadius: 18,
-    overflow: 'hidden',
-    shadowColor: '#0f172a',
+    overflow: "hidden",
+    shadowColor: "#0f172a",
     shadowOpacity: 0.04,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 10,
     elevation: 2,
   },
   cardHeader: { paddingHorizontal: 14, paddingTop: 14, paddingBottom: 10 },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: T.slate900, marginBottom: 3 },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: T.slate900,
+    marginBottom: 3,
+  },
   cardBody: { paddingHorizontal: 14, paddingBottom: 14, gap: 10 },
-  label: { fontSize: 11, fontWeight: '600', color: T.slate700 },
+  label: { fontSize: 11, fontWeight: "600", color: T.slate700 },
   input: {
     borderRadius: 12,
     borderWidth: 1,
@@ -808,12 +1068,12 @@ const styles = StyleSheet.create({
   },
   helperText: { fontSize: 11, color: T.slate500, marginTop: -4 },
   noticeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
-    backgroundColor: 'rgba(217,119,6,0.10)',
+    backgroundColor: "rgba(217,119,6,0.10)",
     borderWidth: 1,
-    borderColor: 'rgba(217,119,6,0.25)',
+    borderColor: "rgba(217,119,6,0.25)",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -822,11 +1082,11 @@ const styles = StyleSheet.create({
   noticeText: {
     flex: 1,
     fontSize: 11,
-    color: '#92400e',
+    color: "#92400e",
     lineHeight: 16,
   },
   dropdownWrap: {
-    position: 'relative',
+    position: "relative",
     zIndex: 10,
   },
   selectInput: {
@@ -836,13 +1096,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     backgroundColor: T.white,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: 10,
   },
   selectInputActive: {
-    borderColor: 'rgba(8,145,178,0.35)',
+    borderColor: "rgba(8,145,178,0.35)",
   },
   selectInputPlaceholder: { fontSize: 13, color: T.slate400 },
   selectInputValue: { fontSize: 13, color: T.slate800 },
@@ -852,8 +1112,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: T.slate200,
     backgroundColor: T.white,
-    overflow: 'hidden',
-    shadowColor: '#0f172a',
+    overflow: "hidden",
+    shadowColor: "#0f172a",
     shadowOpacity: 0.06,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 10,
@@ -863,15 +1123,15 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: 10,
     borderBottomWidth: 1,
     borderBottomColor: T.slate100,
   },
   dropdownItemActive: {
-    backgroundColor: '#ecfeff',
+    backgroundColor: "#ecfeff",
   },
   dropdownItemText: {
     fontSize: 13,
@@ -880,7 +1140,7 @@ const styles = StyleSheet.create({
   },
   dropdownItemTextActive: {
     color: T.green700,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   primaryButton: {
     marginTop: 8,
@@ -888,64 +1148,64 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 12,
     paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
     gap: 10,
   },
-  primaryButtonText: { color: T.white, fontSize: 13, fontWeight: '700' },
+  primaryButtonText: { color: T.white, fontSize: 13, fontWeight: "700" },
   circleTopRight: {
-    position: 'absolute',
+    position: "absolute",
     top: -80,
     right: -80,
     width: 280,
     height: 280,
     borderRadius: 140,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: "rgba(255,255,255,0.08)",
   },
   circleBottomLeft: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -80,
     left: -60,
     width: 190,
     height: 190,
     borderRadius: 95,
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: "rgba(255,255,255,0.07)",
   },
   circleMidLeft: {
-    position: 'absolute',
+    position: "absolute",
     top: 30,
     left: -90,
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: "rgba(255,255,255,0.05)",
   },
 
   /* Calendar Modal */
   calOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",
+    alignItems: "center",
     padding: 24,
   },
   calContainer: {
-    width: '100%',
+    width: "100%",
     maxWidth: 340,
     backgroundColor: T.white,
     borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
+    overflow: "hidden",
+    shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowOffset: { width: 0, height: 8 },
     shadowRadius: 24,
     elevation: 10,
   },
   calHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
@@ -955,48 +1215,48 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   calHeaderText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate800,
   },
   calHeaderBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
   },
   calWeekdayRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: 8,
     paddingTop: 10,
     paddingBottom: 4,
   },
   calWeekdayText: {
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate400,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   calGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     paddingHorizontal: 8,
     paddingBottom: 8,
   },
   calDayCell: {
-    width: '14.28%',
+    width: "14.28%",
     aspectRatio: 1.2,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   calDaySelected: {
     backgroundColor: T.green700,
@@ -1009,44 +1269,44 @@ const styles = StyleSheet.create({
   },
   calDayText: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
     color: T.slate800,
   },
   calDayTextSelected: {
     color: T.white,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   calDayTextFuture: {
     color: T.slate300,
   },
   calMonthCell: {
-    width: '25%',
+    width: "25%",
     aspectRatio: 1.6,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginVertical: 4,
   },
   calMonthText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
     color: T.slate700,
   },
   calYearCell: {
-    width: '25%',
+    width: "25%",
     aspectRatio: 1.6,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginVertical: 4,
   },
   calYearText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: T.slate700,
   },
   calFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
     gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -1060,7 +1320,7 @@ const styles = StyleSheet.create({
   },
   calCloseBtnText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
     color: T.slate500,
   },
   calDoneBtn: {
@@ -1071,7 +1331,7 @@ const styles = StyleSheet.create({
   },
   calDoneBtnText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.white,
   },
 });

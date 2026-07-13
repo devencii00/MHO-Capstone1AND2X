@@ -1064,11 +1064,11 @@ class QueueController extends Controller
 
                 $positionMessage = null;
                 if ($position === 2) {
-                    $positionMessage = 'You are at position 2. You are next in line — please be ready.';
+                    $positionMessage = 'You are at position 2. You are next in line ->please be ready.';
                 } elseif ($position === 3) {
                     $positionMessage = 'You are at position 3. You are nearing your turn, get ready.';
                 } elseif ($position === 4 || $position === 5) {
-                    $positionMessage = 'You are now in position '.$ordinalSuffix($position).' — near your turn.';
+                    $positionMessage = 'You are now in position '.$ordinalSuffix($position).' ->near your turn.';
                 } elseif (in_array($position, [6, 7, 8, 9, 10], true)) {
                     $positionMessage = 'You are at position '.$ordinalSuffix($position).' in the queue.';
                 } else {
@@ -1118,11 +1118,11 @@ class QueueController extends Controller
                     $posMsg = null;
 
                     if ($pos === 2) {
-                        $posMsg = 'Your queue position has been updated. You are at position 2 — next in line, please be ready.';
+                        $posMsg = 'Your queue position has been updated. You are at position 2 -> next in line, please be ready.';
                     } elseif ($pos === 3) {
-                        $posMsg = 'Your queue position has been updated. You are at position 3 — nearing your turn, get ready.';
+                        $posMsg = 'Your queue position has been updated. You are at position 3 -> nearing your turn, get ready.';
                     } elseif ($pos === 4 || $pos === 5) {
-                        $posMsg = 'Your queue position has been updated. You are now in position '.$ordinalSuffix($pos).' — near your turn.';
+                        $posMsg = 'Your queue position has been updated. You are now in position '.$ordinalSuffix($pos).' -> near your turn.';  
                     } elseif (in_array($pos, [6, 7, 8, 9, 10], true)) {
                         $posMsg = 'Your queue position has been updated. You are at position '.$ordinalSuffix($pos).' in the queue.';
                     } else {
@@ -1186,15 +1186,15 @@ class QueueController extends Controller
 
                 $posMsg = null;
                 if ($effectivePos === 1) {
-                    $posMsg = 'The queue has advanced — you are next in line, please be ready.';
+                    $posMsg = 'The queue has advanced ->you are next in line, please be ready.';
                 } elseif ($effectivePos === 2) {
-                    $posMsg = 'The queue has advanced — you are now at position 2. Next in line, please be ready.';
+                    $posMsg = 'The queue has advanced ->you are now at position 2. Next in line, please be ready.';
                 } elseif ($effectivePos === 3) {
-                    $posMsg = 'The queue has advanced — you are now at position 3. Nearing your turn, get ready.';
+                    $posMsg = 'The queue has advanced ->you are now at position 3. Nearing your turn, get ready.';
                 } elseif ($effectivePos === 4 || $effectivePos === 5) {
-                    $posMsg = 'The queue has advanced — you are now in position '.$ordinalSuffix($effectivePos).' — near your turn.';
+                    $posMsg = 'The queue has advanced ->you are now in position '.$ordinalSuffix($effectivePos).' ->near your turn.';
                 } elseif (in_array($effectivePos, [6, 7, 8, 9, 10], true)) {
-                    $posMsg = 'The queue has advanced — you are now at position '.$ordinalSuffix($effectivePos).' in the queue.';
+                    $posMsg = 'The queue has advanced ->you are now at position '.$ordinalSuffix($effectivePos).' in the queue.';
                 }
 
                 if ($posMsg && $remainingQ->appointment?->patient_id) {
