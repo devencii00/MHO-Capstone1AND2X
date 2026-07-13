@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -115,7 +116,12 @@ class UserController extends Controller
             $request->merge(['emergency_contact_number' => preg_replace('/[^\d+]/', '', $request->input('emergency_contact_number'))]);
         }
 
-        $emailRules = ['sometimes', 'email', "unique:users,email,{$user->user_id},user_id"];
+        $emailRules = ['sometimes'];
+        if ($user->role === 'patient') {
+            $emailRules[] = 'nullable';
+        }
+        $emailRules[] = 'email';
+        $emailRules[] = "unique:users,email,{$user->user_id},user_id";
         if ($user->role === 'admin' && $user->is_first_login) {
             $emailRules[] = 'regex:/@(example\.com|gmail\.com|test\.com)$/i';
         }
@@ -212,6 +218,18 @@ class UserController extends Controller
                 $normalized = preg_replace('/\s+/u', ' ', trim((string) $data[$key]));
                 $normalized = preg_replace("/\\s*([\\.'\\-\\x{00B7}])\\s*/u", '$1', $normalized);
                 $data[$key] = $normalized === '' ? null : $normalized;
+            }
+        }
+
+        if ($user->role === 'patient' && array_key_exists('email', $data)) {
+            // Convert empty string to null for non-activated patients
+            if ($data['email'] === '' || $data['email'] === null) {
+                if ((bool) $user->account_activated) {
+                    throw ValidationException::withMessages([
+                        'email' => 'Activated patient portal accounts must keep a valid email.',
+                    ]);
+                }
+                $data['email'] = null; // allow clearing email for non-activated
             }
         }
 

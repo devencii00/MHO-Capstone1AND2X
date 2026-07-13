@@ -185,9 +185,18 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                     </div>
                                 </div>
-                                <div class="mt-4 text-left">
+                                <div class="mt-4 text-left space-y-3">
                                     <label class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>
                                     <div id="prDetailContact" class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">-</div>
+                                    <div>
+                                        <label class="block text-[0.7rem] text-slate-600 mb-1">Email</label>
+                                        <div id="prDetailEmail" class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg break-all">-</div>
+                                    </div>
+                                    <div id="prDetailPortalCard" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                                        <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Patient Portal</div>
+                                        <div id="prDetailPortalStatus" class="mt-1 text-[0.8rem] font-semibold">-</div>
+                                        <div id="prDetailPortalHint" class="mt-1 text-[0.72rem]">-</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -292,9 +301,23 @@
                                     </label>
                                     <input id="adminPrViewEditProfileUpload" type="file" accept="image/*" class="hidden">
                                 </div>
-                                <div class="mt-4 text-left">
+                                <div class="mt-4 text-left space-y-3">
                                     <label for="adminPrViewEditContact" class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>
                                     <input id="adminPrViewEditContact" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
+                                    <div>
+                                        <label for="adminPrViewEditEmail" class="block text-[0.7rem] text-slate-600 mb-1">Email</label>
+                                        <input id="adminPrViewEditEmail" type="email" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Email address">
+                                        <div class="mt-1 text-[0.68rem] text-slate-400">Optional until the patient portal is activated.</div>
+                                    </div>
+                                    <div id="adminPrViewPortalCard" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                                        <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Patient Portal</div>
+                                        <div id="adminPrViewPortalStatus" class="mt-1 text-[0.8rem] font-semibold">-</div>
+                                        <div id="adminPrViewPortalHint" class="mt-1 text-[0.72rem]">-</div>
+                                        <button type="button" id="adminPrViewActivatePortalBtn" class="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-[0.75rem] font-semibold text-green-700 hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-60">
+                                            <span id="adminPrViewActivatePortalSpinner" class="hidden w-3.5 h-3.5 border-2 border-green-300 border-t-green-700 rounded-full animate-spin"></span>
+                                            <span id="adminPrViewActivatePortalLabel">Activate Patient Portal</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -537,6 +560,7 @@
             <div class="flex-1">
                 <div class="text-sm font-semibold text-slate-900">Confirm</div>
                 <div id="adminPrEditConfirmMessage" class="text-[0.78rem] text-slate-600 mt-0.5">Are you sure?</div>
+                <div id="adminPrEditConfirmDetails" class="mt-2"></div>
             </div>
         </div>
         <div class="mt-4 flex items-center justify-end gap-2">
@@ -680,6 +704,10 @@
         var prDetailOccupation = document.getElementById('prDetailOccupation')
         var prDetailEmergContact = document.getElementById('prDetailEmergContact')
         var prDetailEmergNumber = document.getElementById('prDetailEmergNumber')
+        var prDetailEmail = document.getElementById('prDetailEmail')
+        var prDetailPortalCard = document.getElementById('prDetailPortalCard')
+        var prDetailPortalStatus = document.getElementById('prDetailPortalStatus')
+        var prDetailPortalHint = document.getElementById('prDetailPortalHint')
         var viewVerificationStatus = document.getElementById('adminPrViewVerificationStatus')
         var viewPatientType = document.getElementById('adminPrViewPatientType')
         var viewVerificationId = document.getElementById('adminPrViewVerificationId')
@@ -714,6 +742,12 @@
         var patientEditSave = document.getElementById('adminPrEditSave')
         var patientEditSpinner = document.getElementById('adminPrEditSpinner')
         var patientEditSaveLabel = document.getElementById('adminPrEditSaveLabel')
+        var adminViewPortalCard = document.getElementById('adminPrViewPortalCard')
+        var adminViewPortalStatus = document.getElementById('adminPrViewPortalStatus')
+        var adminViewPortalHint = document.getElementById('adminPrViewPortalHint')
+        var adminViewActivatePortalBtn = document.getElementById('adminPrViewActivatePortalBtn')
+        var adminViewActivatePortalSpinner = document.getElementById('adminPrViewActivatePortalSpinner')
+        var adminViewActivatePortalLabel = document.getElementById('adminPrViewActivatePortalLabel')
 
         var patientEditConfirmOverlay = document.getElementById('adminPrEditConfirmOverlay')
         var patientEditConfirmMessage = document.getElementById('adminPrEditConfirmMessage')
@@ -1883,6 +1917,52 @@
             return null
         }
 
+        function adminPortalIsActivated(patient) { return !!(patient && patient.account_activated) }
+        function adminPortalStatusText(patient) { return adminPortalIsActivated(patient) ? 'Activated' : 'Not activated' }
+        function adminPortalHintText(patient) {
+            if (adminPortalIsActivated(patient)) {
+                return patient && patient.must_change_credentials
+                    ? 'Temporary credentials were sent. Patient must change them on first login.'
+                    : 'Patient portal access is active.'
+            }
+            return 'Patient is fully registered. Add an email and activate the portal whenever they are ready.'
+        }
+        function adminSyncPortalDisplay(patient) {
+            setText(prDetailEmail, patient && patient.email ? patient.email : '-')
+            setText(prDetailPortalStatus, adminPortalStatusText(patient))
+            setText(prDetailPortalHint, adminPortalHintText(patient))
+            if (prDetailPortalCard) {
+                var activated = adminPortalIsActivated(patient)
+                prDetailPortalCard.classList.toggle('bg-orange-50', !activated)
+                prDetailPortalCard.classList.toggle('border-orange-200', !activated)
+                prDetailPortalCard.classList.toggle('bg-green-50', activated)
+                prDetailPortalCard.classList.toggle('border-green-200', activated)
+                prDetailPortalStatus.classList.toggle('text-orange-700', !activated)
+                prDetailPortalStatus.classList.toggle('text-green-700', activated)
+                prDetailPortalHint.classList.toggle('text-orange-600', !activated)
+                prDetailPortalHint.classList.toggle('text-green-600', activated)
+            }
+        }
+        function adminSyncPortalEditState(patient) {
+            setText(adminViewPortalStatus, adminPortalStatusText(patient))
+            setText(adminViewPortalHint, adminPortalHintText(patient))
+            if (adminViewPortalCard) {
+                var activated = adminPortalIsActivated(patient)
+                adminViewPortalCard.classList.toggle('bg-orange-50', !activated)
+                adminViewPortalCard.classList.toggle('border-orange-200', !activated)
+                adminViewPortalCard.classList.toggle('bg-green-50', activated)
+                adminViewPortalCard.classList.toggle('border-green-200', activated)
+                adminViewPortalStatus.classList.toggle('text-orange-700', !activated)
+                adminViewPortalStatus.classList.toggle('text-green-700', activated)
+                adminViewPortalHint.classList.toggle('text-orange-600', !activated)
+                adminViewPortalHint.classList.toggle('text-green-600', activated)
+            }
+            if (!adminViewActivatePortalBtn) return
+            var activated = adminPortalIsActivated(patient)
+            adminViewActivatePortalBtn.disabled = activated
+            adminViewActivatePortalBtn.classList.toggle('hidden', activated)
+        }
+
         function resetPanelMetaFields() {
             if (viewVerificationStatus) viewVerificationStatus.textContent = '-'
             if (viewPatientType) viewPatientType.textContent = '-'
@@ -2040,6 +2120,7 @@
             if (prDetailOccupation) prDetailOccupation.textContent = value(patient && patient.occupation)
             if (prDetailEmergContact) prDetailEmergContact.textContent = value(patient && patient.emergency_contact)
             if (prDetailEmergNumber) prDetailEmergNumber.textContent = value(patient && patient.emergency_contact_number)
+            adminSyncPortalDisplay(patient)
         }
 
         function searchAndRender() {
@@ -2158,6 +2239,7 @@
             var editEmergencyContact = document.getElementById('adminPrViewEditEmergencyContact')
             var editEmergencyContactNumber = document.getElementById('adminPrViewEditEmergencyContactNumber')
             var editContact = document.getElementById('adminPrViewEditContact')
+            var editEmail = document.getElementById('adminPrViewEditEmail')
             var editProfilePreview = document.getElementById('adminPrViewEditProfilePreview')
             var editProfileUpload = document.getElementById('adminPrViewEditProfileUpload')
 
@@ -2193,6 +2275,8 @@
             if (editEmergencyContact) editEmergencyContact.value = ev(patient && patient.emergency_contact)
             if (editEmergencyContactNumber) editEmergencyContactNumber.value = ev(patient && patient.emergency_contact_number)
             if (editContact) editContact.value = patient && patient.contact_number ? String(patient.contact_number) : ''
+            if (editEmail) editEmail.value = patient && patient.email ? String(patient.email) : ''
+            adminSyncPortalEditState(patient)
 
             // Profile photo preview
             var profileImg = patient && patient.prof_path_url ? String(patient.prof_path_url) : ''
@@ -2298,6 +2382,7 @@
                 var emergencyContact = document.getElementById('adminPrViewEditEmergencyContact')
                 var emergencyContactNumber = document.getElementById('adminPrViewEditEmergencyContactNumber')
                 var contact = document.getElementById('adminPrViewEditContact')
+                var email = document.getElementById('adminPrViewEditEmail')
 
                 var sexVal = ''
                 document.querySelectorAll('input[name="adminPrViewEditSex"]').forEach(function (r) {
@@ -2324,6 +2409,7 @@
                     philhealth_number: philhealth ? philhealth.value.trim() : '',
                     emergency_contact: emergencyContact ? emergencyContact.value.trim() : '',
                     emergency_contact_number: emergencyContactNumber ? emergencyContactNumber.value.trim() : '',
+                    email: email ? email.value.trim() : '',
                     contact_number: contact ? contact.value.trim() : '',
                 }
 
@@ -2381,6 +2467,106 @@
                         }
                         if (typeof showToast === 'function') showToast('Network error.', 'error')
                     })
+            })
+        }
+
+        // ── Activate Patient Portal button ──
+        if (adminViewActivatePortalBtn) {
+            adminViewActivatePortalBtn.addEventListener('click', function () {
+                if (!currentPatientId) return
+                var patient = findPatientById(currentPatientId)
+                if (patient && patient.account_activated) {
+                    if (typeof showToast === 'function') showToast('Patient portal is already activated.', 'success')
+                    adminSyncPortalEditState(patient)
+                    return
+                }
+
+                var emailInput = document.getElementById('adminPrViewEditEmail')
+                var emailValue = emailInput ? String(emailInput.value || '').trim() : ''
+                if (!emailValue) {
+                    if (adminPrViewEditError) {
+                        adminPrViewEditError.textContent = 'Enter an email first before activating the patient portal.'
+                        adminPrViewEditError.classList.remove('hidden')
+                    }
+                    return
+                }
+
+                if (!patientEditConfirmOverlay || !patientEditConfirmMessage || !patientEditConfirmOk || !patientEditConfirmCancel) {
+                    if (typeof showToast === 'function') showToast('Confirmation dialog not available.', 'error')
+                    return
+                }
+                patientEditConfirmMessage.textContent = 'Activate patient portal for this patient?'
+                var confirmHtml = '<div class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-left">' +
+                    '<div class="text-[0.7rem] text-slate-500">Email</div>' +
+                    '<div class="text-[0.8rem] font-semibold text-slate-800 break-all">' + escapeHtml(emailValue) + '</div>' +
+                '</div>'
+                var confirmDetails = document.getElementById('adminPrEditConfirmDetails')
+                if (confirmDetails) confirmDetails.innerHTML = confirmHtml
+                patientEditConfirmResolver = function (confirmed) {
+                    patientEditConfirmResolver = null
+                    if (!confirmed) return
+                    if (adminPrViewEditError) {
+                        adminPrViewEditError.classList.add('hidden')
+                        adminPrViewEditError.textContent = ''
+                    }
+                    adminViewActivatePortalBtn.disabled = true
+                    if (adminViewActivatePortalSpinner) adminViewActivatePortalSpinner.classList.remove('hidden')
+                    if (adminViewActivatePortalLabel) adminViewActivatePortalLabel.textContent = 'Activating...'
+
+                    apiFetch(apiBaseUrl + '/patients/' + encodeURIComponent(currentPatientId) + '/activate-portal', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: emailValue })
+                    })
+                        .then(function (response) {
+                            return response.json().then(function (data) {
+                                return { ok: response.ok, data: data }
+                            }).catch(function () {
+                                return { ok: false, data: null }
+                            })
+                        })
+                        .then(function (result) {
+                            if (!result.ok) {
+                                var message = result.data && result.data.message ? String(result.data.message) : 'Failed to activate patient portal.'
+                                if (adminPrViewEditError) {
+                                    adminPrViewEditError.textContent = message
+                                    adminPrViewEditError.classList.remove('hidden')
+                                }
+                                if (typeof showToast === 'function') showToast(message, 'error')
+                                return
+                            }
+
+                            var merged = result.data && result.data.patient ? result.data.patient : (result.data || {})
+                            if (merged && merged.user_id != null) {
+                                mergePatientRecord(merged)
+                            }
+
+                            if (typeof showToast === 'function') {
+                                showToast('Patient portal activated. Temporary credentials were emailed.', 'success')
+                            }
+                            viewEditModeToggle(false)
+                            if (currentPatientId) loadPatientPanelData(currentPatientId)
+                        })
+                        .catch(function () {
+                            if (adminPrViewEditError) {
+                                adminPrViewEditError.textContent = 'Network error while activating patient portal.'
+                                adminPrViewEditError.classList.remove('hidden')
+                            }
+                            if (typeof showToast === 'function') showToast('Network error.', 'error')
+                        })
+                        .finally(function () {
+                            if (adminViewActivatePortalSpinner) adminViewActivatePortalSpinner.classList.add('hidden')
+                            if (adminViewActivatePortalLabel) adminViewActivatePortalLabel.textContent = 'Activate Patient Portal'
+                            var latestPatient = findPatientById(currentPatientId)
+                            if (latestPatient && latestPatient.account_activated) {
+                                adminSyncPortalEditState(latestPatient)
+                            } else {
+                                adminViewActivatePortalBtn.disabled = false
+                            }
+                        })
+                }
+                patientEditConfirmOverlay.classList.remove('hidden')
+                patientEditConfirmOverlay.classList.add('flex')
             })
         }
 

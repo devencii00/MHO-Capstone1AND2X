@@ -57,6 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dependents', [PatientController::class, 'dependents']);
     Route::post('/dependents', [PatientController::class, 'storeDependent']);
     Route::post('/dependents/{dependent}/activate', [PatientController::class, 'activateDependent']);
+    Route::post('/patients/{patient}/activate-portal', [PatientController::class, 'activatePortal']);
 
     Route::apiResource('users', UserController::class);
     Route::apiResource('patients', PatientController::class);

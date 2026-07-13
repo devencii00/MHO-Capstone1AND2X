@@ -94,7 +94,7 @@
                 </select>
             </div>
             <div>
-                <label id="reception_patient_contact_label" for="reception_patient_contact" class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>
+                <label id="reception_patient_contact_label" for="reception_patient_contact" class="block text-[0.7rem] text-slate-600 mb-1">Contact number (optional)</label>
                 <input id="reception_patient_contact" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
             </div>
             <div class="md:col-span-3">
@@ -102,7 +102,7 @@
                 <input id="reception_patient_address" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Complete address">
             </div>
             <div class="md:col-span-2">
-                <label id="reception_patient_email_label" for="reception_patient_email" class="block text-[0.7rem] text-slate-600 mb-1">Email</label>
+                <label id="reception_patient_email_label" for="reception_patient_email" class="block text-[0.7rem] text-slate-600 mb-1">Email (optional)</label>
                 <input id="reception_patient_email" type="email" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Email address">
             </div>
             <div>
@@ -113,7 +113,7 @@
         </form>
 
         <p id="receptionRegisterPatientHint" class="text-[0.7rem] text-slate-400">
-            Email is required for patient accounts. Dependent accounts may be registered without an email.
+            Email and contact number are optional. If email is omitted, the patient can still be registered and the portal can be activated later from Patient Details.
         </p>
     </div>
 
@@ -305,9 +305,18 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                     </div>
                                 </div>
-                                <div class="mt-4 text-left">
+                                <div class="mt-4 space-y-3 text-left">
                                     <label class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>
                                     <div id="receptionPrDetailContact" class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg">-</div>
+                                    <div>
+                                        <label class="block text-[0.7rem] text-slate-600 mb-1">Email</label>
+                                        <div id="receptionPrDetailEmail" class="text-xs text-slate-800 px-3 py-2 bg-slate-50/60 border border-slate-100 rounded-lg break-all">-</div>
+                                    </div>
+                                    <div id="receptionPrDetailPortalCard" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                                        <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Patient Portal</div>
+                                        <div id="receptionPrDetailPortalStatus" class="mt-1 text-[0.8rem] font-semibold">-</div>
+                                        <div id="receptionPrDetailPortalHint" class="mt-1 text-[0.72rem]">-</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -412,9 +421,25 @@
                                     </label>
                                     <input id="receptionPrViewEditProfileUpload" type="file" accept="image/*" class="hidden">
                                 </div>
-                                <div class="mt-4 text-left">
-                                    <label for="receptionPrViewEditContact" class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>
-                                    <input id="receptionPrViewEditContact" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
+                                <div class="mt-4 space-y-3 text-left">
+                                    <div>
+                                        <label for="receptionPrViewEditEmail" class="block text-[0.7rem] text-slate-600 mb-1">Email</label>
+                                        <input id="receptionPrViewEditEmail" type="email" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Email address">
+                                        <div class="mt-1 text-[0.68rem] text-slate-400">Optional until the patient portal is activated.</div>
+                                    </div>
+                                    <div id="receptionPrViewPortalCard" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                                        <div class="text-[0.65rem] uppercase tracking-widest text-slate-400">Patient Portal</div>
+                                        <div id="receptionPrViewPortalStatus" class="mt-1 text-[0.8rem] font-semibold">-</div>
+                                        <div id="receptionPrViewPortalHint" class="mt-1 text-[0.72rem]">-</div>
+                                        <button type="button" id="receptionPrViewActivatePortalBtn" class="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-[0.75rem] font-semibold text-green-700 hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-60">
+                                            <span id="receptionPrViewActivatePortalSpinner" class="hidden w-3.5 h-3.5 border-2 border-green-300 border-t-green-700 rounded-full animate-spin"></span>
+                                            <span id="receptionPrViewActivatePortalLabel">Activate Patient Portal</span>
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <label for="receptionPrViewEditContact" class="block text-[0.7rem] text-slate-600 mb-1">Contact number</label>
+                                        <input id="receptionPrViewEditContact" type="tel" inputmode="tel" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="+63 917 555 0123" maxlength="18">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -682,7 +707,7 @@
         </div>
     </div>
 </div>
-<div id="receptionRegisterPatientConfirmOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm items-center justify-center p-4 transition-all duration-200">
+<div id="receptionRegisterPatientConfirmOverlay" class="hidden fixed inset-0 z-[90] bg-slate-900/50 backdrop-blur-sm items-center justify-center p-4 transition-all duration-200">
     <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-slate-100 overflow-hidden">
         <!-- Header area with refined spacing and visual hierarchy -->
         <div class="px-5 pt-5 pb-3 border-b border-slate-100 bg-gradient-to-r from-white to-slate-50/50">
@@ -967,16 +992,16 @@
         function setDependentMode(on) {
             var enabled = !!on
             if (parentSection) parentSection.classList.toggle('hidden', !enabled)
-            if (emailLabel) emailLabel.textContent = enabled ? 'Email (optional)' : 'Email'
-            if (contactLabel) contactLabel.textContent = enabled ? 'Contact number (optional)' : 'Contact number'
+            if (emailLabel) emailLabel.textContent = 'Email (optional)'
+            if (contactLabel) contactLabel.textContent = 'Contact number (optional)'
             var emailInput = document.getElementById('reception_patient_email')
-            if (emailInput) emailInput.required = !enabled
+            if (emailInput) emailInput.required = false
             var addressLabel = document.querySelector('label[for="reception_patient_address"]')
             if (addressLabel) addressLabel.textContent = enabled ? 'Address (optional)' : 'Address'
             if (hint) {
                 hint.textContent = enabled
-                    ? 'Email is optional for dependent accounts. If omitted, activation may require adding an email later.'
-                    : 'Email is required for patient accounts.'
+                    ? 'Email and contact number are optional for dependent accounts. If email is omitted, activation can be completed later.'
+                    : 'Email and contact number are optional. If email is omitted, the patient can still be registered and the portal can be activated later from Patient Details.'
             }
             if (submitButton) submitButton.textContent = enabled ? 'Register dependent' : 'Register patient'
             if (!enabled) {
@@ -1313,37 +1338,22 @@
                 }
 
                 var email = emailInput ? emailInput.value.trim() : ''
-                if (!isDependent) {
-                    if (!email) {
-                        showRegisterPatientError('Email is required for patient accounts.')
-                        return
-                    }
-                    body.email = email
-                } else if (email) {
+                if (email) {
                     body.email = email
                 }
 
                 var rawContact = contactInput2 ? contactInput2.value : ''
                 var normalizedContact = normalizePHContact(rawContact)
-                if (isDependent) {
-                    if (normalizedContact) {
-                        if (!isValidPHContact(normalizedContact)) {
-                            showRegisterPatientError('Please enter a valid PH contact number (e.g. +639750443410).')
-                            return
-                        }
-                        body.contact_number = normalizedContact
-                        if (contactInput2) contactInput2.value = normalizedContact
-                    } else {
-                        delete body.contact_number
-                        if (contactInput2) contactInput2.value = '+63'
-                    }
-                } else {
-                    if (!normalizedContact || !isValidPHContact(normalizedContact)) {
+                if (normalizedContact) {
+                    if (!isValidPHContact(normalizedContact)) {
                         showRegisterPatientError('Please enter a valid PH contact number (e.g. +639750443410).')
                         return
                     }
                     body.contact_number = normalizedContact
                     if (contactInput2) contactInput2.value = normalizedContact
+                } else {
+                    delete body.contact_number
+                    if (contactInput2) contactInput2.value = '+63'
                 }
 
                 var url = isDependent ? "{{ url('/api/dependents') }}" : "{{ url('/api/patients') }}"
@@ -1516,7 +1526,11 @@
                                     }
                                     showCredentials(null)
                                 } else {
-                                    showRegisterPatientSuccess('Patient has been registered successfully. Credentials were sent to the email address.')
+                                    if (activation && activation.requires_email) {
+                                        showRegisterPatientSuccess('Patient has been registered successfully. ' + (activation.prompt || 'Add an email later to activate the patient portal.'))
+                                    } else {
+                                        showRegisterPatientSuccess('Patient has been registered successfully. Credentials were sent to the email address.')
+                                    }
                                     showCredentials(null)
                                 }
 
@@ -1606,13 +1620,23 @@
         var recPrDetailCivilStatus = document.getElementById('receptionPrDetailCivilStatus')
         var recPrDetailNationality = document.getElementById('receptionPrDetailNationality')
         var recPrDetailContact = document.getElementById('receptionPrDetailContact')
+        var recPrDetailEmail = document.getElementById('receptionPrDetailEmail')
         var recPrDetailPhic = document.getElementById('receptionPrDetailPhic')
         var recPrDetailOccupation = document.getElementById('receptionPrDetailOccupation')
         var recPrDetailEmergContact = document.getElementById('receptionPrDetailEmergContact')
         var recPrDetailEmergNumber = document.getElementById('receptionPrDetailEmergNumber')
+        var recPrDetailPortalCard = document.getElementById('receptionPrDetailPortalCard')
+        var recPrDetailPortalStatus = document.getElementById('receptionPrDetailPortalStatus')
+        var recPrDetailPortalHint = document.getElementById('receptionPrDetailPortalHint')
         var recViewVerificationStatus = document.getElementById('receptionPrViewVerificationStatus')
         var recViewPatientType = document.getElementById('receptionPrViewPatientType')
         var recViewVerificationId = document.getElementById('receptionPrViewVerificationId')
+        var recViewPortalCard = document.getElementById('receptionPrViewPortalCard')
+        var recViewPortalStatus = document.getElementById('receptionPrViewPortalStatus')
+        var recViewPortalHint = document.getElementById('receptionPrViewPortalHint')
+        var recViewActivatePortalBtn = document.getElementById('receptionPrViewActivatePortalBtn')
+        var recViewActivatePortalSpinner = document.getElementById('receptionPrViewActivatePortalSpinner')
+        var recViewActivatePortalLabel = document.getElementById('receptionPrViewActivatePortalLabel')
 
         var recMedBgEditingId = null
 
@@ -1795,8 +1819,52 @@
 
         function recIsValidPhilippinesNumber(value) { return /^\+63\d{10}$/.test(recNormalizePhilippinesNumber(value)) }
         function recIsValidName(value) { var v = String(value || '').trim(); if (v === '') return true; return /^[A-Za-z][A-Za-z\s.'-]*$/.test(v) }
+        function recPortalIsActivated(patient) { return !!(patient && patient.account_activated) }
+        function recPortalStatusText(patient) { return recPortalIsActivated(patient) ? 'Activated' : 'Not activated' }
+        function recPortalHintText(patient) {
+            if (recPortalIsActivated(patient)) {
+                return patient && patient.must_change_credentials
+                    ? 'Temporary credentials were sent. Patient must change them on first login.'
+                    : 'Patient portal access is active.'
+            }
+            return 'Patient is fully registered. Add an email and activate the portal whenever they are ready.'
+        }
+        function recSyncPortalDisplay(patient) {
+            recSetText(recPrDetailEmail, patient && patient.email ? patient.email : '-')
+            recSetText(recPrDetailPortalStatus, recPortalStatusText(patient))
+            recSetText(recPrDetailPortalHint, recPortalHintText(patient))
+            if (recPrDetailPortalCard) {
+                var activated = recPortalIsActivated(patient)
+                recPrDetailPortalCard.classList.toggle('bg-orange-50', !activated)
+                recPrDetailPortalCard.classList.toggle('border-orange-200', !activated)
+                recPrDetailPortalCard.classList.toggle('bg-green-50', activated)
+                recPrDetailPortalCard.classList.toggle('border-green-200', activated)
+                recPrDetailPortalStatus.classList.toggle('text-orange-700', !activated)
+                recPrDetailPortalStatus.classList.toggle('text-green-700', activated)
+                recPrDetailPortalHint.classList.toggle('text-orange-600', !activated)
+                recPrDetailPortalHint.classList.toggle('text-green-600', activated)
+            }
+        }
+        function recSyncPortalEditState(patient) {
+            recSetText(recViewPortalStatus, recPortalStatusText(patient))
+            recSetText(recViewPortalHint, recPortalHintText(patient))
+            if (recViewPortalCard) {
+                var activated = recPortalIsActivated(patient)
+                recViewPortalCard.classList.toggle('bg-orange-50', !activated)
+                recViewPortalCard.classList.toggle('border-orange-200', !activated)
+                recViewPortalCard.classList.toggle('bg-green-50', activated)
+                recViewPortalCard.classList.toggle('border-green-200', activated)
+                recViewPortalStatus.classList.toggle('text-orange-700', !activated)
+                recViewPortalStatus.classList.toggle('text-green-700', activated)
+                recViewPortalHint.classList.toggle('text-orange-600', !activated)
+                recViewPortalHint.classList.toggle('text-green-600', activated)
+            }
+            if (!recViewActivatePortalBtn) return
+            var activated = recPortalIsActivated(patient)
+            recViewActivatePortalBtn.disabled = activated
+            recViewActivatePortalBtn.classList.toggle('hidden', activated)
+        }
 
-   
         function recLoadPatients(page) {
             if (!recPatientsTableBody) return
             page = page || recCurrentPage
@@ -1809,7 +1877,7 @@
                     if (!r.ok || !r.data) { recPatientsRows = []; recPatientsAgeCounts = null; recCurrentPage = 1; recLastPage = 1; recTotal = 0; recUpdateAgeCounts(); recRenderPatientTable(); return }
                     var raw = Array.isArray(r.data.data) ? r.data.data.slice() : (Array.isArray(r.data) ? r.data.slice() : [])
                     recPatientsRows = raw.map(function (p) {
-                        return { user_id: p.user_id, firstname: p.firstname || '', middlename: p.middlename || '', lastname: p.lastname || '', birthdate: p.birthdate || '', sex: p.sex || '', address: p.address || '', contact_number: p.contact_number || '', email: p.email || '', account_type: p.account_type || '', verification_status: p.verification_status || '', verification_type: p.verification_type || '', verification_id: p.verification_id || '', philhealth_number: p.philhealth_number || '', nationality: p.nationality || '', civil_status: p.civil_status || '', occupation: p.occupation || '', emergency_contact: p.emergency_contact || '', emergency_contact_number: p.emergency_contact_number || '', profile_photo_url: p.profile_photo_url || '', is_dependent: p.is_dependent || false, parent_user_id: p.parent_user_id || null }
+                        return { user_id: p.user_id, firstname: p.firstname || '', middlename: p.middlename || '', lastname: p.lastname || '', birthdate: p.birthdate || '', sex: p.sex || '', address: p.address || '', contact_number: p.contact_number || '', email: p.email || '', account_type: p.account_type || '', verification_status: p.verification_status || '', verification_type: p.verification_type || '', verification_id: p.verification_id || '', philhealth_number: p.philhealth_number || '', nationality: p.nationality || '', civil_status: p.civil_status || '', occupation: p.occupation || '', emergency_contact: p.emergency_contact || '', emergency_contact_number: p.emergency_contact_number || '', profile_photo_url: p.profile_photo_url || '', is_dependent: p.is_dependent || false, parent_user_id: p.parent_user_id || null, account_activated: !!p.account_activated, is_first_login: !!p.is_first_login, must_change_credentials: !!p.must_change_credentials }
                     })
                     recCurrentPage = r.data.current_page || page
                     recLastPage = r.data.last_page || 1
@@ -1856,7 +1924,7 @@
                     if (!r.ok || !r.data) { recPatientsRows = []; recPatientsAgeCounts = null; recCurrentPage = 1; recLastPage = 1; recTotal = 0; recUpdateAgeCounts(); recRenderPatientTable(); return }
                     var raw = Array.isArray(r.data.data) ? r.data.data.slice() : (Array.isArray(r.data) ? r.data.slice() : [])
                     recPatientsRows = raw.map(function (p) {
-                        return { user_id: p.user_id, firstname: p.firstname || '', middlename: p.middlename || '', lastname: p.lastname || '', birthdate: p.birthdate || '', sex: p.sex || '', address: p.address || '', contact_number: p.contact_number || '', email: p.email || '', account_type: p.account_type || '', verification_status: p.verification_status || '', verification_type: p.verification_type || '', verification_id: p.verification_id || '', philhealth_number: p.philhealth_number || '', nationality: p.nationality || '', civil_status: p.civil_status || '', occupation: p.occupation || '', emergency_contact: p.emergency_contact || '', emergency_contact_number: p.emergency_contact_number || '', profile_photo_url: p.profile_photo_url || '', is_dependent: p.is_dependent || false, parent_user_id: p.parent_user_id || null }
+                        return { user_id: p.user_id, firstname: p.firstname || '', middlename: p.middlename || '', lastname: p.lastname || '', birthdate: p.birthdate || '', sex: p.sex || '', address: p.address || '', contact_number: p.contact_number || '', email: p.email || '', account_type: p.account_type || '', verification_status: p.verification_status || '', verification_type: p.verification_type || '', verification_id: p.verification_id || '', philhealth_number: p.philhealth_number || '', nationality: p.nationality || '', civil_status: p.civil_status || '', occupation: p.occupation || '', emergency_contact: p.emergency_contact || '', emergency_contact_number: p.emergency_contact_number || '', profile_photo_url: p.profile_photo_url || '', is_dependent: p.is_dependent || false, parent_user_id: p.parent_user_id || null, account_activated: !!p.account_activated, is_first_login: !!p.is_first_login, must_change_credentials: !!p.must_change_credentials }
                     })
                     recCurrentPage = r.data.current_page || page
                     recLastPage = r.data.last_page || 1
@@ -1993,6 +2061,7 @@
             recSetText(recPrDetailOccupation, patientData.occupation || '-')
             recSetText(recPrDetailEmergContact, patientData.emergency_contact || '-')
             recSetText(recPrDetailEmergNumber, recFormatPhone(patientData.emergency_contact_number))
+            recSyncPortalDisplay(patientData)
             recOpenViewModal()
             recLoadPatientPanelData(patientId)
         }
@@ -2525,6 +2594,7 @@
             var editEmergencyContact = document.getElementById('receptionPrViewEditEmergencyContact')
             var editEmergencyContactNumber = document.getElementById('receptionPrViewEditEmergencyContactNumber')
             var editContact = document.getElementById('receptionPrViewEditContact')
+            var editEmail = document.getElementById('receptionPrViewEditEmail')
             var editProfilePreview = document.getElementById('receptionPrViewEditProfilePreview')
             var editProfileUpload = document.getElementById('receptionPrViewEditProfileUpload')
 
@@ -2560,6 +2630,8 @@
             if (editEmergencyContact) editEmergencyContact.value = ev(patient && patient.emergency_contact)
             if (editEmergencyContactNumber) editEmergencyContactNumber.value = ev(patient && patient.emergency_contact_number)
             if (editContact) editContact.value = patient && patient.contact_number ? String(patient.contact_number) : ''
+            if (editEmail) editEmail.value = ev(patient && patient.email)
+            recSyncPortalEditState(patient)
 
             var profileImg = patient && patient.prof_path_url ? String(patient.prof_path_url) : ''
             if (editProfilePreview) {
@@ -2890,6 +2962,7 @@
                 var emergencyContact = document.getElementById('receptionPrViewEditEmergencyContact')
                 var emergencyContactNumber = document.getElementById('receptionPrViewEditEmergencyContactNumber')
                 var contact = document.getElementById('receptionPrViewEditContact')
+                var email = document.getElementById('receptionPrViewEditEmail')
 
                 var sexVal = ''
                 document.querySelectorAll('input[name="receptionPrViewEditSex"]').forEach(function (r) {
@@ -2913,6 +2986,7 @@
                     nationality: natlVal,
                     occupation: occupation ? occupation.value.trim() : '',
                     address: address ? address.value.trim() : '',
+                    email: email ? email.value.trim() : '',
                     philhealth_number: philhealth ? philhealth.value.trim() : '',
                     emergency_contact: emergencyContact ? emergencyContact.value.trim() : '',
                     emergency_contact_number: emergencyContactNumber ? emergencyContactNumber.value.trim() : '',
@@ -2978,6 +3052,98 @@
                         }
                         if (typeof showToast === 'function') showToast('Network error.', 'error')
                     })
+            })
+        }
+
+        if (recViewActivatePortalBtn) {
+            recViewActivatePortalBtn.addEventListener('click', function () {
+                if (!recCurrentPatientId) return
+                var patient = recFindPatientById(recCurrentPatientId)
+                if (patient && patient.account_activated) {
+                    if (typeof showToast === 'function') showToast('Patient portal is already activated.', 'success')
+                    recSyncPortalEditState(patient)
+                    return
+                }
+
+                var emailInput = document.getElementById('receptionPrViewEditEmail')
+                var emailValue = emailInput ? String(emailInput.value || '').trim() : ''
+                if (!emailValue) {
+                    if (recViewEditError) {
+                        recViewEditError.textContent = 'Enter an email first before activating the patient portal.'
+                        recViewEditError.classList.remove('hidden')
+                    }
+                    return
+                }
+
+                confirmAction(
+                    'Activate patient portal for this patient?',
+                    '<div class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-left">' +
+                        '<div class="text-[0.7rem] text-slate-500">Email</div>' +
+                        '<div class="text-[0.8rem] font-semibold text-slate-800 break-all">' + recEscHtml(emailValue) + '</div>' +
+                    '</div>'
+                ).then(function (confirmed) {
+                    if (!confirmed) return
+                    if (recViewEditError) {
+                        recViewEditError.classList.add('hidden')
+                        recViewEditError.textContent = ''
+                    }
+                    recViewActivatePortalBtn.disabled = true
+                    if (recViewActivatePortalSpinner) recViewActivatePortalSpinner.classList.remove('hidden')
+                    if (recViewActivatePortalLabel) recViewActivatePortalLabel.textContent = 'Activating...'
+
+                    apiFetch("{{ url('/api/patients') }}/" + encodeURIComponent(recCurrentPatientId) + '/activate-portal', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: emailValue })
+                    })
+                        .then(function (response) {
+                            return response.json().then(function (data) {
+                                return { ok: response.ok, data: data }
+                            }).catch(function () {
+                                return { ok: false, data: null }
+                            })
+                        })
+                        .then(function (result) {
+                            if (!result.ok) {
+                                var message = result.data && result.data.message ? String(result.data.message) : 'Failed to activate patient portal.'
+                                if (recViewEditError) {
+                                    recViewEditError.textContent = message
+                                    recViewEditError.classList.remove('hidden')
+                                }
+                                if (typeof showToast === 'function') showToast(message, 'error')
+                                return
+                            }
+
+                            var merged = result.data && result.data.patient ? result.data.patient : (result.data || {})
+                            if (merged && merged.user_id != null) {
+                                var found = recPatientsRows.find(function (p) { return String(p.user_id) === String(recCurrentPatientId) })
+                                if (found) Object.assign(found, merged)
+                            }
+
+                            if (typeof showToast === 'function') {
+                                showToast('Patient portal activated. Temporary credentials were emailed.', 'success')
+                            }
+                            recViewEditModeToggle(false)
+                            if (recCurrentPatientId) recOpenPatientPanel(recCurrentPatientId)
+                        })
+                        .catch(function () {
+                            if (recViewEditError) {
+                                recViewEditError.textContent = 'Network error while activating patient portal.'
+                                recViewEditError.classList.remove('hidden')
+                            }
+                            if (typeof showToast === 'function') showToast('Network error.', 'error')
+                        })
+                        .finally(function () {
+                            if (recViewActivatePortalSpinner) recViewActivatePortalSpinner.classList.add('hidden')
+                            if (recViewActivatePortalLabel) recViewActivatePortalLabel.textContent = 'Activate Patient Portal'
+                            var latestPatient = recFindPatientById(recCurrentPatientId)
+                            if (latestPatient && latestPatient.account_activated) {
+                                recSyncPortalEditState(latestPatient)
+                            } else {
+                                recViewActivatePortalBtn.disabled = false
+                            }
+                        })
+                })
             })
         }
 

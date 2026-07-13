@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class PatientController extends Controller
 {
@@ -204,7 +205,7 @@ class PatientController extends Controller
         }
 
         $data = $request->validate([
-            'email' => ['required', 'email', 'unique:users,email'],
+            'email' => ['nullable', 'email', 'unique:users,email'],
             'password' => ['nullable', 'string', 'min:8'],
             'firstname' => ['nullable', 'string', 'regex:/^[\p{L}\p{M}][\p{L}\p{M}\s\.\'\-\x{00B7}]*$/u'],
             'lastname' => ['nullable', 'string', 'regex:/^[\p{L}\p{M}][\p{L}\p{M}\s\.\'\-\x{00B7}]*$/u'],
@@ -229,16 +230,23 @@ class PatientController extends Controller
             }
         }
 
+        $requestedEmail = isset($data['email']) ? trim((string) $data['email']) : '';
+        if ($requestedEmail === '') {
+            $requestedEmail = null;
+        }
+
         $plainPassword = isset($data['password']) ? (string) $data['password'] : '';
         $passwordWasProvided = $plainPassword !== '';
-        if (! $passwordWasProvided) {
+        $requiresEmailActivation = $requestedEmail === null;
+
+        if (! $requiresEmailActivation && ! $passwordWasProvided) {
             $plainPassword = Str::random(12);
         }
 
-        $user = DB::transaction(function () use ($data, $plainPassword) {
+        $user = DB::transaction(function () use ($data, $plainPassword, $requestedEmail, $requiresEmailActivation) {
             $user = User::create([
-                'email' => $data['email'],
-                'password_hash' => Hash::make($plainPassword),
+                'email' => $requestedEmail,
+                'password_hash' => $requiresEmailActivation ? null : Hash::make($plainPassword),
                 'role' => 'patient',
                 'status' => 'active',
                 'firstname' => $data['firstname'] ?? null,
@@ -249,11 +257,13 @@ class PatientController extends Controller
                 'address' => $data['address'] ?? null,
                 'contact_number' => $data['contact_number'] ?? null,
                 'is_first_login' => true,
-                'must_change_credentials' => true,
-                'account_activated' => true,
+                'must_change_credentials' => ! $requiresEmailActivation,
+                'account_activated' => ! $requiresEmailActivation,
             ]);
 
-            Mail::to($user->email)->queue(new StaffInviteMail($user, $plainPassword));
+            if (! $requiresEmailActivation && $user->email) {
+                Mail::to($user->email)->queue(new StaffInviteMail($user, $plainPassword));
+            }
 
             return $user;
         });
@@ -261,7 +271,9 @@ class PatientController extends Controller
         // Notify receptionists and admins about new patient registration
         try {
             $patientName = trim(($user->firstname ?? '') . ' ' . ($user->lastname ?? ''));
-            if (!$patientName) $patientName = $user->email;
+            if (! $patientName) {
+                $patientName = $user->email ?: 'Patient #'.$user->user_id;
+            }
             Notification::notifyReceptionists(
                 'A new patient has been registered: ' . $patientName,
                 'system',
@@ -282,8 +294,14 @@ class PatientController extends Controller
 
         return response()->json([
             'user' => $user->refresh(),
-            'credentials_emailed' => true,
-            'generated_password' => ! $passwordWasProvided,
+            'credentials_emailed' => ! $requiresEmailActivation,
+            'generated_password' => ! $requiresEmailActivation && ! $passwordWasProvided,
+            'activation' => [
+                'requires_email' => $requiresEmailActivation,
+                'prompt' => $requiresEmailActivation
+                    ? 'Add an email in Patient Details to activate the patient portal later.'
+                    : null,
+            ],
         ], 201);
     }
 
@@ -313,6 +331,51 @@ class PatientController extends Controller
         }
 
         return app(UserController::class)->update($request, $patient);
+    }
+
+    public function activatePortal(Request $request, User $patient)
+    {
+        $currentUser = $request->user();
+        if ($currentUser && $currentUser->role === 'patient') {
+            abort(403);
+        }
+
+        if ($patient->role !== 'patient') {
+            abort(404);
+        }
+
+        if ((bool) $patient->account_activated && filled($patient->password_hash)) {
+            throw ValidationException::withMessages([
+                'email' => 'Patient portal is already activated for this patient.',
+            ]);
+        }
+
+        $data = $request->validate([
+            'email' => ['required', 'email', "unique:users,email,{$patient->user_id},user_id"],
+        ]);
+
+        $plainPassword = Str::random(12);
+        $wasActivated = (bool) $patient->account_activated;
+
+        $patient->update([
+            'email' => trim((string) $data['email']),
+            'password_hash' => Hash::make($plainPassword),
+            'account_activated' => true,
+            'status' => 'active',
+            'is_first_login' => true,
+            'must_change_credentials' => true,
+        ]);
+
+        Mail::to($patient->email)->queue(new StaffInviteMail($patient, $plainPassword));
+
+        if (! $wasActivated && (bool) $patient->account_activated) {
+            Notification::notifyAdmins('[Account Activated] A user activated their account.');
+        }
+
+        return response()->json([
+            'patient' => $patient->refresh(),
+            'credentials_emailed' => true,
+        ]);
     }
 
     public function destroy(Request $request, User $patient)
@@ -393,7 +456,6 @@ class PatientController extends Controller
         }
 
         $birthdate = Carbon::parse($data['birthdate']);
-        $age = $birthdate->diffInYears(now());
 
         $requestedEmail = isset($data['email']) ? trim((string) $data['email']) : '';
         if ($requestedEmail === '') {
@@ -401,18 +463,10 @@ class PatientController extends Controller
         }
 
         $plainPassword = isset($data['password']) ? (string) $data['password'] : '';
-        $passwordProvided = $plainPassword !== '';
+        $passwordWasProvided = $plainPassword !== '';
+        $requiresEmailActivation = $requestedEmail === null;
 
-        if ($requestedEmail !== null) {
-            $request->validate([
-                'email' => ['email', 'unique:users,email'],
-            ]);
-        }
-
-        $shouldAutoCredentials = $age < 5;
-        $requiresEmailActivation = $age >= 5 && $requestedEmail === null;
-
-        if (! $requiresEmailActivation && ! $passwordProvided) {
+        if (! $requiresEmailActivation && ! $passwordWasProvided) {
             $plainPassword = Str::random(12);
         }
 
@@ -422,10 +476,10 @@ class PatientController extends Controller
 
         $user = User::create([
             'parent_user_id' => $parent->user_id,
-            'email' => $requiresEmailActivation ? null : $requestedEmail,
+            'email' => $requestedEmail,
             'password_hash' => $requiresEmailActivation ? null : Hash::make($plainPassword),
             'role' => 'patient',
-            'status' => $requiresEmailActivation ? 'inactive' : 'active',
+            'status' => 'active',
             'firstname' => $data['firstname'] ?? null,
             'lastname' => $data['lastname'] ?? null,
             'middlename' => $data['middlename'] ?? null,
@@ -440,39 +494,20 @@ class PatientController extends Controller
             'must_change_credentials' => ! $requiresEmailActivation,
         ]);
 
-        if ($requiresEmailActivation) {
-            return response()->json([
-                'dependent' => $user->refresh(),
-                'activation' => [
-                    'requires_email' => true,
-                    'prompt' => 'Add email to activate account',
-                ],
-            ], 201);
+        if (! $requiresEmailActivation && $user->email) {
+            Mail::to($user->email)->queue(new StaffInviteMail($user, $plainPassword));
         }
 
-        if ($user->email === null) {
-            $generatedEmail = 'dependent'.$user->user_id.'@temp.com';
-            if (User::where('email', $generatedEmail)->exists()) {
-                $generatedEmail = 'dependent'.$user->user_id.'-'.Str::lower(Str::random(4)).'@temp.com';
-            }
-            $user->update(['email' => $generatedEmail]);
-        }
-
-        $payload = [
+        return response()->json([
             'dependent' => $user->refresh(),
             'activation' => [
-                'requires_email' => false,
-                'prompt' => null,
+                'requires_email' => $requiresEmailActivation,
+                'prompt' => $requiresEmailActivation
+                    ? 'Add an email in Patient Details to activate the patient portal later.'
+                    : null,
             ],
-        ];
-
-        $payload['credentials'] = [
-            'email' => $user->email,
-            'password' => $plainPassword,
-            'generated' => ! $passwordProvided || $requestedEmail === null,
-        ];
-
-        return response()->json($payload, 201);
+            'credentials_emailed' => ! $requiresEmailActivation,
+        ], 201);
     }
 
     public function activateDependent(Request $request, User $dependent)
@@ -491,25 +526,30 @@ class PatientController extends Controller
 
         $data = $request->validate([
             'email' => ['required', 'email', "unique:users,email,{$dependent->user_id},user_id"],
-            'password' => ['required', 'string', 'min:8'],
         ]);
 
+        $plainPassword = Str::random(12);
         $wasActivated = (bool) $dependent->account_activated;
 
         $dependent->update([
-            'email' => $data['email'],
-            'password_hash' => Hash::make($data['password']),
+            'email' => trim((string) $data['email']),
+            'password_hash' => Hash::make($plainPassword),
             'account_activated' => true,
             'status' => 'active',
             'is_first_login' => true,
             'must_change_credentials' => true,
         ]);
 
+        Mail::to($dependent->email)->queue(new StaffInviteMail($dependent, $plainPassword));
+
         if (! $wasActivated && (bool) $dependent->account_activated) {
             Notification::notifyAdmins('[Account Activated] A user activated their account.');
         }
 
-        return $dependent->refresh();
+        return response()->json([
+            'dependent' => $dependent->refresh(),
+            'credentials_emailed' => true,
+        ]);
     }
 
     public function vitals(Request $request)

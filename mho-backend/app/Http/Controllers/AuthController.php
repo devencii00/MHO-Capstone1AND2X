@@ -145,6 +145,28 @@ class AuthController extends Controller
             ], 403);
         }
 
+        if ($user->role === 'patient') {
+            RateLimiter::hit($rateKey, 300);
+
+            LogEntry::write(
+                (int) $user->user_id,
+                'auth_login_attempt',
+                'users',
+                (int) $user->user_id,
+                [
+                    'success' => false,
+                    'reason' => 'PATIENT_ROLE_BLOCKED',
+                    'email' => $email,
+                    'ip' => $ip,
+                ]
+            );
+
+            return response()->json([
+                'message' => 'Please log in to your account through the mobile portal.',
+                'code' => 'PATIENT_PORTAL_REQUIRED',
+            ], 403);
+        }
+
         RateLimiter::clear($rateKey);
         RateLimiter::clear($slowKey);
 

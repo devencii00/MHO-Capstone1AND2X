@@ -100,6 +100,20 @@
 
     </div>
 
+    {{-- ── Patient portal blocking overlay ── --}}
+    <div id="patientPortalOverlay" class="hidden fixed inset-0 z-[100] backdrop-blur-sm bg-white/60 flex items-center justify-center p-4">
+        <div class="w-full max-w-sm rounded-2xl bg-white border border-slate-200 shadow-[0_20px_80px_rgba(15,23,42,0.35)] p-8 text-center">
+            <div class="w-14 h-14 mx-auto rounded-full bg-orange-50 flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <h2 class="text-lg font-bold text-slate-900 mb-2">Access Restricted</h2>
+            <p class="text-sm text-slate-500 mb-6">Please log in to your account through the mobile portal.</p>
+            <button type="button" onclick="document.getElementById('patientPortalOverlay').classList.add('hidden')" class="inline-flex items-center justify-center w-full h-11 rounded-xl bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 transition-colors">
+                Got it
+            </button>
+        </div>
+    </div>
+
     <script>
         // ── Auto-redirect if already logged in ──
         (function () {
@@ -145,6 +159,7 @@
             const label = document.getElementById('btnLabel');
             const spinner = document.getElementById('btnSpinner');
             const errorBox = document.getElementById('errorBox');
+            const patientOverlay = document.getElementById('patientPortalOverlay');
 
             errorBox.classList.add('hidden');
             errorBox.textContent = '';
@@ -162,6 +177,12 @@
                     });
                     var fetchData = await fetchResp.json();
                     if (!fetchResp.ok) {
+                        if (fetchData && fetchData.code === 'PATIENT_PORTAL_REQUIRED') {
+                            if (patientOverlay) patientOverlay.classList.remove('hidden');
+                            btn.disabled = false;
+                            spinner.classList.add('hidden');
+                            return;
+                        }
                         var msg = fetchData.message || 'Unable to sign in.';
                         if (fetchResp.status === 422 && fetchData.errors) {
                             var all = [];
@@ -249,6 +270,12 @@
                 var message = 'Network error. Please try again.';
                 if (err && err.response) {
                     var respData = err.response.data;
+                    if (respData && respData.code === 'PATIENT_PORTAL_REQUIRED') {
+                        if (patientOverlay) patientOverlay.classList.remove('hidden');
+                        btn.disabled = false;
+                        spinner.classList.add('hidden');
+                        return;
+                    }
                     if (respData && respData.message) {
                         message = respData.message;
                     }
