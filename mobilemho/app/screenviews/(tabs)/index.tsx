@@ -1,76 +1,82 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useIsFocused } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
-import type { ReactNode } from 'react';
-import React, { useEffect, useRef, useState } from 'react';
-import type { StyleProp, ViewStyle } from 'react-native';
+import { Ionicons } from "@expo/vector-icons";
+import { useIsFocused } from "@react-navigation/native";
+import { useRouter } from "expo-router";
+import type { ReactNode } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import type { StyleProp, ViewStyle } from "react-native";
 import {
   Animated,
   Modal,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   View,
-} from 'react-native';
+} from "react-native";
+
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   fetchPatientNotifications,
   formatNotificationTimestamp,
   markPatientNotificationsAsRead,
   type PatientNotification as DashboardNotification,
-} from '../../../lib/notifications';
+} from "../../../lib/notifications";
 
 // ─── Design Tokens ───────────────────────────────────────────────────────────
 const T = {
-  green500: '#06b6d4',
-  green600: '#16A34A',
-  green700: '#15803D',
-  green400: '#22d3ee',
+  green500: "#06b6d4",
+  green600: "#16A34A",
+  green700: "#15803D",
+  green400: "#22d3ee",
 
-  slate50:  '#f8fafc',
-  slate100: '#f1f5f9',
-  slate200: '#e2e8f0',
-  slate300: '#cbd5e1',
-  slate400: '#94a3b8',
-  slate500: '#64748b',
-  slate600: '#475569',
-  slate700: '#334155',
-  slate800: '#1e293b',
-  slate900: '#0f172a',
-  white:    '#ffffff',
-  green100: 'rgba(34,197,94,0.12)',
+  slate50: "#f8fafc",
+  slate100: "#f1f5f9",
+  slate200: "#e2e8f0",
+  slate300: "#cbd5e1",
+  slate400: "#94a3b8",
+  slate500: "#64748b",
+  slate600: "#475569",
+  slate700: "#334155",
+  slate800: "#1e293b",
+  slate900: "#0f172a",
+  white: "#ffffff",
+  green100: "rgba(34,197,94,0.12)",
 
-  red100:   'rgba(239,68,68,0.12)',
-  red700:   '#b91c1c',
-  amber100: 'rgba(245,158,11,0.12)',
-  amber700: '#b45309',
+  red100: "rgba(239,68,68,0.12)",
+  red700: "#b91c1c",
+  amber100: "rgba(245,158,11,0.12)",
+  amber700: "#b45309",
 };
 
-const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api').replace(/\/+$/, '');
+const API_BASE_URL = (
+  process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api"
+).replace(/\/+$/, "");
 
 function formatDashboardDate(value: any): string {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Date unavailable';
+  if (Number.isNaN(date.getTime())) return "Date unavailable";
   return date.toLocaleDateString([], {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
 function formatDashboardTime(value: any): string {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Time unavailable';
-  return date.toLocaleTimeString([], {
-    hour: 'numeric',
-    minute: '2-digit',
-  }).replace(':00 ', '').replace(' ', '');
+  if (Number.isNaN(date.getTime())) return "Time unavailable";
+  return date
+    .toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+    })
+    .replace(":00 ", "")
+    .replace(" ", "");
 }
 
 function formatCurrency(value: number): string {
-  if (Number.isNaN(value)) return 'P 0.00';
+  if (Number.isNaN(value)) return "P 0.00";
   return `P ${value.toFixed(2)}`;
 }
 
@@ -120,7 +126,7 @@ type AnimatedCardProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-type IconName = React.ComponentProps<typeof Ionicons>['name'];
+type IconName = React.ComponentProps<typeof Ionicons>["name"];
 
 // ─── Animated Card ────────────────────────────────────────────────────────────
 function AnimatedCard({ children, delay = 0, style }: AnimatedCardProps) {
@@ -138,7 +144,14 @@ function AnimatedCard({ children, delay = 0, style }: AnimatedCardProps) {
       style={[
         {
           opacity: anim,
-          transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [18, 0] }) }],
+          transform: [
+            {
+              translateY: anim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [18, 0],
+              }),
+            },
+          ],
         },
         style,
       ]}
@@ -158,10 +171,23 @@ type InfoCardProps = {
   onPress?: () => void;
 };
 
-function InfoCard({ icon, label, value, sub, delay = 0, onPress }: InfoCardProps) {
+function InfoCard({
+  icon,
+  label,
+  value,
+  sub,
+  delay = 0,
+  onPress,
+}: InfoCardProps) {
   return (
     <AnimatedCard delay={delay} style={styles.infoCard}>
-      <Pressable style={({ pressed }) => [styles.infoCardInner, pressed && { opacity: 0.85 }]} onPress={onPress}>
+      <Pressable
+        style={({ pressed }) => [
+          styles.infoCardInner,
+          pressed && { opacity: 0.85 },
+        ]}
+        onPress={onPress}
+      >
         <View style={styles.infoCardTop}>
           <View style={styles.infoIconCircle}>
             <Ionicons name={icon} size={18} color={T.green700} />
@@ -170,7 +196,7 @@ function InfoCard({ icon, label, value, sub, delay = 0, onPress }: InfoCardProps
         </View>
         <View style={styles.infoCardBottom}>
           <Text style={styles.infoValue}>{value}</Text>
-          <Text style={styles.infoSub}>{sub || '-'}</Text>
+          <Text style={styles.infoSub}>{sub || "-"}</Text>
         </View>
       </Pressable>
     </AnimatedCard>
@@ -186,10 +212,22 @@ type ActionTileProps = {
   onPress?: () => void;
 };
 
-function ActionTile({ icon, title, subtitle, delay = 0, onPress }: ActionTileProps) {
+function ActionTile({
+  icon,
+  title,
+  subtitle,
+  delay = 0,
+  onPress,
+}: ActionTileProps) {
   return (
     <AnimatedCard delay={delay} style={styles.actionTile}>
-      <Pressable style={({ pressed }) => [styles.actionTileInner, pressed && { opacity: 0.85 }]} onPress={onPress}>
+      <Pressable
+        style={({ pressed }) => [
+          styles.actionTileInner,
+          pressed && { opacity: 0.85 },
+        ]}
+        onPress={onPress}
+      >
         <View style={styles.actionTileTop}>
           <View style={styles.actionIconCircle}>
             <Ionicons name={icon} size={28} color={T.green700} />
@@ -214,7 +252,13 @@ type SectionCardProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-function SectionCard({ title, badge, children, delay, style }: SectionCardProps) {
+function SectionCard({
+  title,
+  badge,
+  children,
+  delay,
+  style,
+}: SectionCardProps) {
   return (
     <AnimatedCard delay={delay} style={[styles.sectionCard, style]}>
       <View style={styles.sectionHeader}>
@@ -242,11 +286,18 @@ type RowItemProps = {
 function RowItem({ icon, title, subtitle, pill, onPress }: RowItemProps) {
   return (
     <Pressable
-      style={({ pressed }) => [styles.rowItem, pressed && { backgroundColor: T.slate50 }]}
+      style={({ pressed }) => [
+        styles.rowItem,
+        pressed && { backgroundColor: T.slate50 },
+      ]}
       onPress={onPress}
     >
       <View style={styles.rowIconWrap}>
-        <Ionicons name={icon ?? 'document-text-outline'} size={18} color={T.green700} />
+        <Ionicons
+          name={icon ?? "document-text-outline"}
+          size={18}
+          color={T.green700}
+        />
       </View>
       <View style={styles.rowMain}>
         <Text style={styles.rowTitle}>{title}</Text>
@@ -263,7 +314,15 @@ function RowItem({ icon, title, subtitle, pill, onPress }: RowItemProps) {
 }
 
 // ─── Notification Row ─────────────────────────────────────────────────────────
-function NotifRow({ title, body, meta }: { title: string; body: string; meta?: string }) {
+function NotifRow({
+  title,
+  body,
+  meta,
+}: {
+  title: string;
+  body: string;
+  meta?: string;
+}) {
   return (
     <View style={styles.notifRow}>
       <View style={styles.notifDot} />
@@ -280,16 +339,24 @@ function NotifRow({ title, body, meta }: { title: string; body: string; meta?: s
 export default function PatientDashboardScreen() {
   const router = useRouter();
   const isFocused = useIsFocused();
-  const [upcomingAppointments, setUpcomingAppointments] = useState<DashboardAppointment[]>([]);
-  const [recentPrescriptions, setRecentPrescriptions] = useState<DashboardPrescription[]>([]);
+  const [upcomingAppointments, setUpcomingAppointments] = useState<
+    DashboardAppointment[]
+  >([]);
+  const [recentPrescriptions, setRecentPrescriptions] = useState<
+    DashboardPrescription[]
+  >([]);
   const [recentVisits, setRecentVisits] = useState<DashboardVisit[]>([]);
-  const [notifications, setNotifications] = useState<DashboardNotification[]>([]);
-  const [queueStatus, setQueueStatus] = useState<DashboardQueueStatus | null>(null);
+  const [notifications, setNotifications] = useState<DashboardNotification[]>(
+    [],
+  );
+  const [queueStatus, setQueueStatus] = useState<DashboardQueueStatus | null>(
+    null,
+  );
   const [pendingBilling, setPendingBilling] = useState<PendingBillingCard>({
-    value: '_ _',
-    sub: 'All consulted bills are already paid',
+    value: "_ _",
+    sub: "All consulted bills are already paid",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const loadingQueueRef = useRef(false);
 
@@ -305,9 +372,11 @@ export default function PatientDashboardScreen() {
       return;
     }
 
-    setNotifications((current) => current.map((item) => (
-      unreadIds.includes(item.id) ? { ...item, isRead: true } : item
-    )));
+    setNotifications((current) =>
+      current.map((item) =>
+        unreadIds.includes(item.id) ? { ...item, isRead: true } : item,
+      ),
+    );
 
     const token = (globalThis as any)?.apiToken as string | undefined;
     if (!token) {
@@ -317,9 +386,11 @@ export default function PatientDashboardScreen() {
     try {
       await markPatientNotificationsAsRead(token, unreadIds);
     } catch {
-      setNotifications((current) => current.map((item) => (
-        unreadIds.includes(item.id) ? { ...item, isRead: false } : item
-      )));
+      setNotifications((current) =>
+        current.map((item) =>
+          unreadIds.includes(item.id) ? { ...item, isRead: false } : item,
+        ),
+      );
     }
   }
 
@@ -334,66 +405,142 @@ export default function PatientDashboardScreen() {
       loadingQueueRef.current = true;
       try {
         const queuesRes = await fetch(`${API_BASE_URL}/queues?per_page=10`, {
-          headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         });
         const queuesData = await queuesRes.json().catch(() => ({}));
-        if (!queuesRes.ok) { if (!cancelled) setQueueStatus(null); return; }
+        if (!queuesRes.ok) {
+          if (!cancelled) setQueueStatus(null);
+          return;
+        }
         const queueRaw = Array.isArray(queuesData?.data) ? queuesData.data : [];
-        const activeQueue = queueRaw.find((q: any) => q?.status === 'waiting' || q?.status === 'serving') ?? null;
+        const activeQueue =
+          queueRaw.find(
+            (q: any) => q?.status === "waiting" || q?.status === "serving",
+          ) ?? null;
         const mappedQueue: DashboardQueueStatus | null = activeQueue
           ? {
-              queueId: String(activeQueue.queue_id ?? ''),
-              status: String(activeQueue.status ?? ''),
-              queueNumber: activeQueue.queue_number != null ? String(activeQueue.queue_number) : '',
-              position: typeof activeQueue.position === 'number' ? activeQueue.position : null,
+              queueId: String(activeQueue.queue_id ?? ""),
+              status: String(activeQueue.status ?? ""),
+              queueNumber:
+                activeQueue.queue_number != null
+                  ? String(activeQueue.queue_number)
+                  : "",
+              position:
+                typeof activeQueue.position === "number"
+                  ? activeQueue.position
+                  : null,
               estimatedWaitMinutes:
-                typeof activeQueue.estimated_wait_minutes === 'number' ? activeQueue.estimated_wait_minutes : null,
+                typeof activeQueue.estimated_wait_minutes === "number"
+                  ? activeQueue.estimated_wait_minutes
+                  : null,
               doctor: (() => {
-                const f = activeQueue?.appointment?.doctor?.firstname ? String(activeQueue.appointment.doctor.firstname) : '';
-                const l = activeQueue?.appointment?.doctor?.lastname ? String(activeQueue.appointment.doctor.lastname) : '';
-                const n = `Dr. ${[f, l].filter(Boolean).join(' ')}`.trim();
-                return n === 'Dr.' ? 'Doctor' : n;
+                const f = activeQueue?.appointment?.doctor?.firstname
+                  ? String(activeQueue.appointment.doctor.firstname)
+                  : "";
+                const l = activeQueue?.appointment?.doctor?.lastname
+                  ? String(activeQueue.appointment.doctor.lastname)
+                  : "";
+                const n = `Dr. ${[f, l].filter(Boolean).join(" ")}`.trim();
+                return n === "Dr." ? "Doctor" : n;
               })(),
             }
           : null;
         if (!cancelled) setQueueStatus(mappedQueue);
-      } catch { if (!cancelled) setQueueStatus(null); }
-      finally { loadingQueueRef.current = false; }
+      } catch {
+        if (!cancelled) setQueueStatus(null);
+      } finally {
+        loadingQueueRef.current = false;
+      }
     }
 
     async function loadDashboard(token: string) {
       try {
-        const [appointmentsRes, prescriptionsRes, visitsRes, transactionsRes, notificationsList] = await Promise.all([
-          fetch(`${API_BASE_URL}/appointments?per_page=100&order=latest`, { headers: { Accept: 'application/json', Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/prescriptions?per_page=5`, { headers: { Accept: 'application/json', Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/visits?per_page=5`, { headers: { Accept: 'application/json', Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/transactions?per_page=100&order=latest`, { headers: { Accept: 'application/json', Authorization: `Bearer ${token}` } }),
+        const [
+          appointmentsRes,
+          prescriptionsRes,
+          visitsRes,
+          transactionsRes,
+          notificationsList,
+        ] = await Promise.all([
+          fetch(`${API_BASE_URL}/appointments?per_page=100&order=latest`, {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+          fetch(`${API_BASE_URL}/prescriptions?per_page=5`, {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+          fetch(`${API_BASE_URL}/visits?per_page=5`, {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+          fetch(`${API_BASE_URL}/transactions?per_page=100&order=latest`, {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }),
           fetchPatientNotifications(token, 10),
         ]);
-        const [appointmentsData, prescriptionsData, visitsData, transactionsData] = await Promise.all([
+        const [
+          appointmentsData,
+          prescriptionsData,
+          visitsData,
+          transactionsData,
+        ] = await Promise.all([
           appointmentsRes.json().catch(() => ({})),
           prescriptionsRes.json().catch(() => ({})),
           visitsRes.json().catch(() => ({})),
           transactionsRes.json().catch(() => ({})),
         ]);
-        if (!appointmentsRes.ok || !prescriptionsRes.ok || !visitsRes.ok || !transactionsRes.ok) {
-          const msg = appointmentsData?.message || prescriptionsData?.message || visitsData?.message || transactionsData?.message;
-          setError(typeof msg === 'string' && msg.length > 0 ? msg : 'Unable to load dashboard.');
+        if (
+          !appointmentsRes.ok ||
+          !prescriptionsRes.ok ||
+          !visitsRes.ok ||
+          !transactionsRes.ok
+        ) {
+          const msg =
+            appointmentsData?.message ||
+            prescriptionsData?.message ||
+            visitsData?.message ||
+            transactionsData?.message;
+          setError(
+            typeof msg === "string" && msg.length > 0
+              ? msg
+              : "Unable to load dashboard.",
+          );
           return;
         }
 
-        const apptsRaw = Array.isArray(appointmentsData?.data) ? appointmentsData.data : [];
+        const apptsRaw = Array.isArray(appointmentsData?.data)
+          ? appointmentsData.data
+          : [];
         const apptsMapped: DashboardAppointment[] = apptsRaw
           .filter((a: any) => a?.appointment_datetime)
           .map((a: any) => {
             const dt = new Date(a.appointment_datetime);
-            const f = a?.doctor?.firstname ? String(a.doctor.firstname) : '';
-            const l = a?.doctor?.lastname ? String(a.doctor.lastname) : '';
-            const n = `Dr. ${[f, l].filter(Boolean).join(' ')}`.trim();
-            const statusRaw = typeof a?.status === 'string' ? a.status.toLowerCase() : '';
+            const f = a?.doctor?.firstname ? String(a.doctor.firstname) : "";
+            const l = a?.doctor?.lastname ? String(a.doctor.lastname) : "";
+            const n = `Dr. ${[f, l].filter(Boolean).join(" ")}`.trim();
+            const statusRaw =
+              typeof a?.status === "string" ? a.status.toLowerCase() : "";
             const serviceTotal = Array.isArray(a?.services)
               ? a.services.reduce((sum: number, service: any) => {
-                  const price = typeof service?.price === 'number' ? service.price : service?.price != null ? Number(service.price) : 0;
+                  const price =
+                    typeof service?.price === "number"
+                      ? service.price
+                      : service?.price != null
+                        ? Number(service.price)
+                        : 0;
                   return sum + (Number.isNaN(price) ? 0 : price);
                 }, 0)
               : 0;
@@ -402,9 +549,10 @@ export default function PatientDashboardScreen() {
               id: String(a.appointment_id),
               date: formatDashboardDate(a.appointment_datetime),
               time: formatDashboardTime(a.appointment_datetime),
-              doctor: n === 'Dr.' ? 'Doctor' : n,
-              type: a?.appointment_type === 'scheduled' ? 'Scheduled' : 'Walk-in',
-              status: typeof a?.status === 'string' ? a.status : '',
+              doctor: n === "Dr." ? "Doctor" : n,
+              type:
+                a?.appointment_type === "scheduled" ? "Scheduled" : "Walk-in",
+              status: typeof a?.status === "string" ? a.status : "",
               statusRaw,
               serviceTotal,
               sortAt: Number.isNaN(dt.getTime()) ? 0 : dt.getTime(),
@@ -413,40 +561,72 @@ export default function PatientDashboardScreen() {
 
         const nowTime = Date.now();
         const upcomingMapped = [...apptsMapped]
-          .filter((appointment) => (
-            appointment.sortAt >= nowTime &&
-            (appointment.statusRaw === 'pending' || appointment.statusRaw === 'confirmed')
-          ))
+          .filter(
+            (appointment) =>
+              appointment.sortAt >= nowTime &&
+              (appointment.statusRaw === "pending" ||
+                appointment.statusRaw === "confirmed"),
+          )
           .sort((a, b) => a.sortAt - b.sortAt);
 
-        const presRaw = Array.isArray(prescriptionsData?.data) ? prescriptionsData.data : [];
+        const presRaw = Array.isArray(prescriptionsData?.data)
+          ? prescriptionsData.data
+          : [];
         const presMapped: DashboardPrescription[] = presRaw.map((p: any) => {
-          const dt = p?.prescribed_datetime ? new Date(p.prescribed_datetime) : null;
-          const f = p?.doctor?.firstname ? String(p.doctor.firstname) : '';
-          const l = p?.doctor?.lastname ? String(p.doctor.lastname) : '';
-          const n = `Dr. ${[f, l].filter(Boolean).join(' ')}`.trim();
-          const first = Array.isArray(p?.items) && p.items.length > 0 ? p.items[0] : null;
-          return { id: String(p.prescription_id), date: dt ? dt.toLocaleDateString() : '', doctor: n === 'Dr.' ? 'Doctor' : n, summary: first?.medicine_name ? String(first.medicine_name) : 'Prescription' };
+          const dt = p?.prescribed_datetime
+            ? new Date(p.prescribed_datetime)
+            : null;
+          const f = p?.doctor?.firstname ? String(p.doctor.firstname) : "";
+          const l = p?.doctor?.lastname ? String(p.doctor.lastname) : "";
+          const n = `Dr. ${[f, l].filter(Boolean).join(" ")}`.trim();
+          const first =
+            Array.isArray(p?.items) && p.items.length > 0 ? p.items[0] : null;
+          return {
+            id: String(p.prescription_id),
+            date: dt ? dt.toLocaleDateString() : "",
+            doctor: n === "Dr." ? "Doctor" : n,
+            summary: first?.medicine_name
+              ? String(first.medicine_name)
+              : "Prescription",
+          };
         });
 
-        const visitsRaw = Array.isArray(visitsData?.data) ? visitsData.data : [];
+        const visitsRaw = Array.isArray(visitsData?.data)
+          ? visitsData.data
+          : [];
         const visitsMapped: DashboardVisit[] = visitsRaw.map((v: any) => {
           const dt = v?.visit_datetime ? new Date(v.visit_datetime) : null;
-          const f = v?.prescriptions?.[0]?.doctor?.firstname ? String(v.prescriptions[0].doctor.firstname) : '';
-          const l = v?.prescriptions?.[0]?.doctor?.lastname ? String(v.prescriptions[0].doctor.lastname) : '';
-          const n = `Dr. ${[f, l].filter(Boolean).join(' ')}`.trim();
-          const reason = typeof v?.appointment?.reason_for_visit === 'string' && v.appointment.reason_for_visit.length > 0 ? v.appointment.reason_for_visit : 'Clinic visit';
-          return { id: String(v.transaction_id), date: dt ? dt.toLocaleDateString() : '', doctor: n === 'Dr.' ? 'Doctor' : n, reason };
+          const f = v?.prescriptions?.[0]?.doctor?.firstname
+            ? String(v.prescriptions[0].doctor.firstname)
+            : "";
+          const l = v?.prescriptions?.[0]?.doctor?.lastname
+            ? String(v.prescriptions[0].doctor.lastname)
+            : "";
+          const n = `Dr. ${[f, l].filter(Boolean).join(" ")}`.trim();
+          const reason =
+            typeof v?.appointment?.reason_for_visit === "string" &&
+            v.appointment.reason_for_visit.length > 0
+              ? v.appointment.reason_for_visit
+              : "Clinic visit";
+          return {
+            id: String(v.transaction_id),
+            date: dt ? dt.toLocaleDateString() : "",
+            doctor: n === "Dr." ? "Doctor" : n,
+            reason,
+          };
         });
 
-        const transactionsRaw = Array.isArray(transactionsData?.data) ? transactionsData.data : [];
+        const transactionsRaw = Array.isArray(transactionsData?.data)
+          ? transactionsData.data
+          : [];
         const transactionByAppointmentId = new Map<string, any>();
         transactionsRaw.forEach((transaction: any) => {
-          const appointmentId = transaction?.appointment_id != null
-            ? String(transaction.appointment_id)
-            : transaction?.appointment?.appointment_id != null
-              ? String(transaction.appointment.appointment_id)
-              : '';
+          const appointmentId =
+            transaction?.appointment_id != null
+              ? String(transaction.appointment_id)
+              : transaction?.appointment?.appointment_id != null
+                ? String(transaction.appointment.appointment_id)
+                : "";
           if (!appointmentId || transactionByAppointmentId.has(appointmentId)) {
             return;
           }
@@ -454,11 +634,14 @@ export default function PatientDashboardScreen() {
         });
 
         const pendingBillingAppointment = [...apptsMapped]
-          .filter((appointment) => appointment.statusRaw === 'consulted')
+          .filter((appointment) => appointment.statusRaw === "consulted")
           .find((appointment) => {
             const transaction = transactionByAppointmentId.get(appointment.id);
-            const paymentStatus = typeof transaction?.payment_status === 'string' ? transaction.payment_status.toLowerCase() : '';
-            return paymentStatus !== 'paid';
+            const paymentStatus =
+              typeof transaction?.payment_status === "string"
+                ? transaction.payment_status.toLowerCase()
+                : "";
+            return paymentStatus !== "paid";
           });
 
         const pendingBillingCard: PendingBillingCard = pendingBillingAppointment
@@ -467,8 +650,8 @@ export default function PatientDashboardScreen() {
               sub: `${pendingBillingAppointment.doctor} · ${pendingBillingAppointment.date} · ${pendingBillingAppointment.time}`,
             }
           : {
-              value: '_ _',
-              sub: 'All consulted bills are already paid',
+              value: "_ _",
+              sub: "All consulted bills are already paid",
             };
 
         if (!cancelled) {
@@ -477,39 +660,52 @@ export default function PatientDashboardScreen() {
           setRecentVisits(visitsMapped);
           setNotifications(notificationsList);
           setPendingBilling(pendingBillingCard);
-          setError('');
+          setError("");
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error && err.message ? err.message : 'Network error. Please try again.');
+          setError(
+            err instanceof Error && err.message
+              ? err.message
+              : "Network error. Please try again.",
+          );
         }
       }
     }
 
     const token = (globalThis as any)?.apiToken as string | undefined;
-    if (!token) { setError('Please log in again.'); return () => { cancelled = true; }; }
+    if (!token) {
+      setError("Please log in again.");
+      return () => {
+        cancelled = true;
+      };
+    }
 
     loadDashboard(token);
     loadQueue(token);
-    const intervalId = setInterval(() => { loadQueue(token); }, 15000);
-    return () => { cancelled = true; clearInterval(intervalId); };
+    const intervalId = setInterval(() => {
+      loadQueue(token);
+    }, 15000);
+    return () => {
+      cancelled = true;
+      clearInterval(intervalId);
+    };
   }, [isFocused]);
 
   const nextAppt = upcomingAppointments[0];
   const notificationPreview = notifications.slice(0, 10);
 
-
   const getGreeting = () => {
-  const currentHour = new Date().getHours();
-  
-  if (currentHour < 12) {
-    return 'Good morning';
-  } else if (currentHour < 18) {
-    return 'Good afternoon';
-  } else {
-    return 'Good evening';
-  }
-};
+    const currentHour = new Date().getHours();
+
+    if (currentHour < 12) {
+      return "Good morning";
+    } else if (currentHour < 18) {
+      return "Good afternoon";
+    } else {
+      return "Good evening";
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -519,31 +715,68 @@ export default function PatientDashboardScreen() {
         contentContainerStyle={styles.pageScrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={{ backgroundColor: T.green700, position: 'absolute', top: -1000, left: 0, right: 0, height: 1000 }} />
+        <View
+          style={{
+            backgroundColor: T.green700,
+            position: "absolute",
+            top: -1000,
+            left: 0,
+            right: 0,
+            height: 1000,
+          }}
+        />
         <View style={styles.header}>
           <View style={styles.circleTopRight} />
           <View style={styles.circleBottomLeft} />
           <View style={styles.circleMidLeft} />
           <View style={styles.headerRow}>
-          <View>
- 
- <View style={styles.eyebrowRow}>
-              <View style={[styles.eyebrowDot, { backgroundColor: 'rgba(255,255,255,0.7)' }]} />
-              <Text style={[styles.eyebrowText, { color: 'rgba(255,255,255,0.8)' }]}>Patient Portal</Text>
+            <View>
+              <View style={styles.eyebrowRow}>
+                <View
+                  style={[
+                    styles.eyebrowDot,
+                    { backgroundColor: "rgba(255,255,255,0.7)" },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.eyebrowText,
+                    { color: "rgba(255,255,255,0.8)" },
+                  ]}
+                >
+                  Patient Portal
+                </Text>
+              </View>
+              <Text style={styles.headerTitle}>Dashboard</Text>
+              <View style={styles.greetingContainer}>
+                <Text style={styles.headerGreeting}>
+                  {getGreeting()}, Patient
+                </Text>
+                <Ionicons
+                  name="hand-right-outline"
+                  size={14}
+                  color="rgba(255,255,255,0.75)"
+                  style={styles.waveIcon}
+                />
+              </View>
             </View>
-  <Text style={styles.headerTitle}>Dashboard</Text>
-  <View style={styles.greetingContainer}>
-    <Text style={styles.headerGreeting}>{getGreeting()}, Patient</Text>
-    <Ionicons name="hand-right-outline" size={14} color="rgba(255,255,255,0.75)" style={styles.waveIcon} />
-  </View>
-</View>
             <View style={styles.notifBtnWrap}>
-              <Pressable style={styles.notifBtn} onPress={openNotificationsModal}>
-                <Ionicons name="notifications-outline" size={19} color={T.white} />
+              <Pressable
+                style={styles.notifBtn}
+                onPress={openNotificationsModal}
+              >
+                <Ionicons
+                  name="notifications-outline"
+                  size={19}
+                  color={T.white}
+                />
                 {notifications.some((item) => !item.isRead) && (
                   <View style={styles.notifBadge}>
                     <Text style={styles.notifBadgeText}>
-                      {Math.min(notifications.filter((item) => !item.isRead).length, 99)}
+                      {Math.min(
+                        notifications.filter((item) => !item.isRead).length,
+                        99,
+                      )}
                     </Text>
                   </View>
                 )}
@@ -560,20 +793,30 @@ export default function PatientDashboardScreen() {
             <InfoCard
               icon="people-outline"
               label="Your current Queue"
-              value={queueStatus ? queueStatus.queueNumber || '-' : 'Join Queue'}
-              sub={queueStatus
-                ? (queueStatus.position != null ? `Patient in front: ${queueStatus.position}` : 'Queue entry active')
-                : 'Tap here to join the walk-in queue'}
+              value={
+                queueStatus ? queueStatus.queueNumber || "-" : "Join Queue"
+              }
+              sub={
+                queueStatus
+                  ? queueStatus.position != null
+                    ? `Patient in front: ${queueStatus.position}`
+                    : "Queue entry active"
+                  : "Tap here to join the walk-in queue"
+              }
               delay={30}
-              onPress={() => router.push('/screenviews/queue' as any)}
+              onPress={() => router.push("/screenviews/queue" as any)}
             />
             <InfoCard
               icon="calendar-clear-outline"
               label="Appointments"
-              value={nextAppt ? nextAppt.doctor : '_ _'}
-              sub={nextAppt ? `${nextAppt.date} - ${nextAppt.time}` : 'No active pending or confirmed schedule'}
+              value={nextAppt ? nextAppt.doctor : "_ _"}
+              sub={
+                nextAppt
+                  ? `${nextAppt.date} - ${nextAppt.time}`
+                  : "No active pending or confirmed schedule"
+              }
               delay={60}
-              onPress={() => router.push('/screenviews/appointments' as any)}
+              onPress={() => router.push("/screenviews/appointments" as any)}
             />
             <InfoCard
               icon="card-outline"
@@ -586,35 +829,37 @@ export default function PatientDashboardScreen() {
 
           {/* ── Quick Actions ── */}
           <AnimatedCard delay={120} style={styles.actionSection}>
-            <Text style={styles.actionSectionTitle}>What would you like to do?</Text>
+            <Text style={styles.actionSectionTitle}>
+              What would you like to do?
+            </Text>
             <View style={styles.actionGrid}>
               <ActionTile
                 icon="calendar-outline"
                 title="Book Appointment"
                 subtitle="Schedule a new appointment with your doctor."
                 delay={140}
-                onPress={() => router.push('/screenviews/booking' as any)}
+                onPress={() => router.push("/screenviews/booking" as any)}
               />
               <ActionTile
                 icon="calendar-number-outline"
                 title="Appointments"
                 subtitle="Manage your appointments & history."
                 delay={160}
-                onPress={() => router.push('/screenviews/appointments' as any)}
+                onPress={() => router.push("/screenviews/appointments" as any)}
               />
               <ActionTile
                 icon="chatbubble-ellipses-outline"
                 title="Chat"
                 subtitle="Message your care team securely."
                 delay={180}
-                onPress={() => router.push('/screenviews/chat' as any)}
+                onPress={() => router.push("/screenviews/chat" as any)}
               />
               <ActionTile
                 icon="folder-open-outline"
                 title="Records"
                 subtitle="View your medical records and history."
                 delay={200}
-                onPress={() => router.push('/screenviews/records' as any)}
+                onPress={() => router.push("/screenviews/records" as any)}
               />
             </View>
           </AnimatedCard>
@@ -623,33 +868,61 @@ export default function PatientDashboardScreen() {
           {recentPrescriptions.length > 0 && (
             <SectionCard title="Recent Prescriptions" badge="Rx" delay={220}>
               {recentPrescriptions.map((item) => (
-                <RowItem key={item.id} icon="medkit-outline" title={item.summary} subtitle={`${item.date} · ${item.doctor}`} />
+                <RowItem
+                  key={item.id}
+                  icon="medkit-outline"
+                  title={item.summary}
+                  subtitle={`${item.date} · ${item.doctor}`}
+                />
               ))}
             </SectionCard>
           )}
 
           {/* ── Recent Visits ── */}
           {recentVisits.length > 0 && (
-            <SectionCard title="Recent Visits" badge="History" delay={260} style={{ marginBottom: 8 }}>
+            <SectionCard
+              title="Recent Visits"
+              badge="History"
+              delay={260}
+              style={{ marginBottom: 8 }}
+            >
               {recentVisits.map((item) => (
-                <RowItem key={item.id} icon="business-outline" title={item.reason} subtitle={`${item.date} · ${item.doctor}`} />
+                <RowItem
+                  key={item.id}
+                  icon="business-outline"
+                  title={item.reason}
+                  subtitle={`${item.date} · ${item.doctor}`}
+                />
               ))}
             </SectionCard>
           )}
         </View>
       </ScrollView>
-      <Modal visible={notificationsOpen} transparent animationType="fade" onRequestClose={() => setNotificationsOpen(false)}>
-        <Pressable style={styles.notifDropdownBackdrop} onPress={() => setNotificationsOpen(false)} />
+      <Modal
+        visible={notificationsOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setNotificationsOpen(false)}
+      >
+        <Pressable
+          style={styles.notifDropdownBackdrop}
+          onPress={() => setNotificationsOpen(false)}
+        />
         <View style={styles.notifDropdownWrap}>
           <View style={styles.notifDropdownCard}>
             <View style={styles.notifDropdownHeader}>
               <View>
                 <Text style={styles.notifDropdownTitle}>Notifications</Text>
-                <Text style={styles.notifDropdownSubtitle}>Latest 10 updates</Text>
+                <Text style={styles.notifDropdownSubtitle}>
+                  Latest 10 updates
+                </Text>
               </View>
               <Pressable
                 onPress={() => setNotificationsOpen(false)}
-                style={({ pressed }) => [styles.notifDropdownClose, pressed && { opacity: 0.75 }]}
+                style={({ pressed }) => [
+                  styles.notifDropdownClose,
+                  pressed && { opacity: 0.75 },
+                ]}
               >
                 <Ionicons name="close" size={16} color={T.slate600} />
               </Pressable>
@@ -671,19 +944,31 @@ export default function PatientDashboardScreen() {
                 ))
               ) : (
                 <View style={styles.notifEmptyState}>
-                  <Ionicons name="notifications-off-outline" size={22} color={T.slate400} />
-                  <Text style={styles.notifEmptyTitle}>No notifications yet</Text>
-                  <Text style={styles.notifEmptyText}>Your latest appointment, queue, and account updates will appear here.</Text>
+                  <Ionicons
+                    name="notifications-off-outline"
+                    size={22}
+                    color={T.slate400}
+                  />
+                  <Text style={styles.notifEmptyTitle}>
+                    No notifications yet
+                  </Text>
+                  <Text style={styles.notifEmptyText}>
+                    Your latest appointment, queue, and account updates will
+                    appear here.
+                  </Text>
                 </View>
               )}
             </ScrollView>
 
             <View style={styles.notifDropdownFooter}>
               <Pressable
-                style={({ pressed }) => [styles.notifSeeMoreBtn, pressed && { opacity: 0.9 }]}
+                style={({ pressed }) => [
+                  styles.notifSeeMoreBtn,
+                  pressed && { opacity: 0.9 },
+                ]}
                 onPress={() => {
                   setNotificationsOpen(false);
-                  router.push('/screenviews/notifications' as any);
+                  router.push("/screenviews/notifications" as any);
                 }}
               >
                 <Text style={styles.notifSeeMoreText}>See more</Text>
@@ -710,79 +995,93 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 50,
     paddingBottom: 20,
-    position: 'relative',
-    overflow: 'hidden',
+    position: "relative",
+    overflow: "hidden",
   },
   circleTopRight: {
-    position: 'absolute',
+    position: "absolute",
     top: -80,
     right: -80,
     width: 280,
     height: 280,
     borderRadius: 140,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: "rgba(255,255,255,0.08)",
   },
   circleBottomLeft: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -80,
     left: -60,
     width: 190,
     height: 190,
     borderRadius: 95,
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: "rgba(255,255,255,0.07)",
   },
   circleMidLeft: {
-    position: 'absolute',
+    position: "absolute",
     top: 30,
     left: -90,
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: "rgba(255,255,255,0.07)",
   },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    position: 'relative',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    position: "relative",
     zIndex: 1,
   },
   headerEyebrow: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 1.2,
-    color: 'rgba(255,255,255,0.65)',
+    color: "rgba(255,255,255,0.65)",
     marginBottom: 2,
   },
-     eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
-  eyebrowDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.green600 },
-  eyebrowText: { fontSize: 9, fontWeight: '700', letterSpacing: 0.9, textTransform: 'uppercase', color: T.green600 },
-  
+  eyebrowRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginBottom: 4,
+  },
+  eyebrowDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: T.green600,
+  },
+  eyebrowText: {
+    fontSize: 9,
+    fontWeight: "700",
+    letterSpacing: 0.9,
+    textTransform: "uppercase",
+    color: T.green600,
+  },
 
-    headerTitle: {
+  headerTitle: {
     fontSize: 30,
-    fontWeight: '800',
-    fontFamily: 'serif',
+    fontWeight: "800",
+    fontFamily: "serif",
     color: T.white,
     letterSpacing: 0.2,
     lineHeight: 34,
   },
 
-  
   headerGreeting: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.75)',
+    color: "rgba(255,255,255,0.75)",
     marginTop: 2,
-    fontWeight: '400',
+    fontWeight: "400",
   },
   greetingContainer: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginTop: 2,
-},
-waveIcon: {
-  marginLeft: 6,
-},
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2,
+  },
+  waveIcon: {
+    marginLeft: 6,
+  },
   notifBtnWrap: {
     marginTop: 4,
   },
@@ -790,45 +1089,44 @@ waveIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: "rgba(255,255,255,0.15)",
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "rgba(255,255,255,0.25)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   notifBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: -2,
     right: -2,
-    backgroundColor: '#ef4444',
+    backgroundColor: "#ef4444",
     borderRadius: 8,
     minWidth: 16,
     height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 3,
   },
   notifBadgeText: {
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: "800",
     color: T.white,
   },
 
   // ── Page Scroll ──
   pageScroll: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.07)', 
+    backgroundColor: "rgba(255,255,255,0.07)",
   },
 
-
- scroll: {
+  scroll: {
     flex: 1,
     backgroundColor: T.slate100,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     marginTop: -10,
   },
-  
+
   pageScrollContent: {
     flexGrow: 1,
   },
@@ -849,10 +1147,10 @@ waveIcon: {
 
   // ── Info Cards ──
   infoRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
     marginBottom: 18,
-    alignItems: 'stretch',
+    alignItems: "stretch",
   },
   infoCard: {
     flex: 1,
@@ -869,28 +1167,28 @@ waveIcon: {
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    alignItems: "flex-start",
+    justifyContent: "space-between",
     minHeight: 142,
   },
   infoCardTop: {
-    width: '100%',
+    width: "100%",
   },
   infoCardBottom: {
-    width: '100%',
+    width: "100%",
   },
   infoIconCircle: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: 'rgba(6,182,212,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(6,182,212,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 8,
   },
   infoLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: "600",
     color: T.slate400,
     letterSpacing: 0.2,
     marginBottom: 4,
@@ -898,7 +1196,7 @@ waveIcon: {
   },
   infoValue: {
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: "800",
     color: T.green700,
     lineHeight: 15,
     marginBottom: 2,
@@ -915,18 +1213,18 @@ waveIcon: {
   },
   actionSectionTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate800,
     marginBottom: 12,
     letterSpacing: 0.1,
   },
   actionGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 10,
   },
   actionTile: {
-    width: '48%',
+    width: "48%",
   },
   actionTileInner: {
     backgroundColor: T.white,
@@ -942,30 +1240,30 @@ waveIcon: {
     minHeight: 140,
   },
   actionTileTop: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
     marginBottom: 10,
   },
   actionIconCircle: {
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: 'rgba(6,182,212,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(6,182,212,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   actionArrow: {
     width: 26,
     height: 26,
     borderRadius: 13,
     backgroundColor: T.green600,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   actionTitle: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate800,
     marginBottom: 4,
     lineHeight: 17,
@@ -988,34 +1286,34 @@ waveIcon: {
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   sectionHeader: {
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     borderBottomWidth: 1,
     borderBottomColor: T.slate100,
   },
   sectionBadge: {
-    backgroundColor: 'rgba(6,182,212,0.1)',
+    backgroundColor: "rgba(6,182,212,0.1)",
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
   sectionBadgeText: {
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: "800",
     color: T.green700,
     letterSpacing: 0.5,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate800,
   },
   sectionBody: {
@@ -1024,8 +1322,8 @@ waveIcon: {
 
   // ── Row Item ──
   rowItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -1037,8 +1335,8 @@ waveIcon: {
     height: 34,
     borderRadius: 10,
     backgroundColor: T.slate100,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     flexShrink: 0,
   },
   rowMain: {
@@ -1046,7 +1344,7 @@ waveIcon: {
   },
   rowTitle: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     color: T.slate800,
     marginBottom: 2,
   },
@@ -1057,23 +1355,23 @@ waveIcon: {
   },
   pill: {
     marginTop: 5,
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(6,182,212,0.1)',
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(6,182,212,0.1)",
     borderRadius: 999,
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
   pillText: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.green700,
     letterSpacing: 0.4,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   // ── Notification Row ──
   notifRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -1093,7 +1391,7 @@ waveIcon: {
   },
   notifTitle: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate800,
     marginBottom: 2,
   },
@@ -1109,17 +1407,17 @@ waveIcon: {
   },
   notifDropdownBackdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15,23,42,0.18)',
+    backgroundColor: "rgba(15,23,42,0.18)",
   },
   notifDropdownWrap: {
-    position: 'absolute',
+    position: "absolute",
     top: 86,
     left: 14,
     right: 14,
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   notifDropdownCard: {
-    width: '100%',
+    width: "100%",
     maxWidth: 360,
     backgroundColor: T.white,
     borderRadius: 20,
@@ -1130,21 +1428,21 @@ waveIcon: {
     shadowOpacity: 0.14,
     shadowRadius: 18,
     elevation: 8,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   notifDropdownHeader: {
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: T.slate100,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: 12,
   },
   notifDropdownTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate800,
   },
   notifDropdownSubtitle: {
@@ -1157,8 +1455,8 @@ waveIcon: {
     height: 30,
     borderRadius: 15,
     backgroundColor: T.slate50,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   notifDropdownScroll: {
     maxHeight: 360,
@@ -1175,29 +1473,29 @@ waveIcon: {
   notifSeeMoreBtn: {
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(8,145,178,0.18)',
-    backgroundColor: 'rgba(6,182,212,0.08)',
+    borderColor: "rgba(8,145,178,0.18)",
+    backgroundColor: "rgba(6,182,212,0.08)",
     paddingHorizontal: 14,
     paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
   },
   notifSeeMoreText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.green700,
   },
   notifEmptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 24,
     paddingVertical: 28,
   },
   notifEmptyTitle: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate700,
     marginTop: 10,
     marginBottom: 4,
@@ -1206,7 +1504,6 @@ waveIcon: {
     fontSize: 11,
     color: T.slate500,
     lineHeight: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
-
 });

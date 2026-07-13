@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
-  SafeAreaView,
+  Pressable
   ScrollView,
   StatusBar,
   StyleSheet,

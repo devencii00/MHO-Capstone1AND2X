@@ -9,14 +9,14 @@ import {
   ActivityIndicator,
   Modal,
   Pressable,
-  SafeAreaView,
-  ScrollView,
   StatusBar,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const T = {
   green500: "#06b6d4",

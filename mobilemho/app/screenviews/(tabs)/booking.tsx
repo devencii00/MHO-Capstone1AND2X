@@ -1,13 +1,12 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import type { ReactNode } from 'react';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import type { ReactNode } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
   Modal,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleProp,
@@ -16,38 +15,58 @@ import {
   TextInput,
   View,
   ViewStyle,
-} from 'react-native';
+} from "react-native";
+
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const T = {
-  green500: '#06b6d4',
-  green600: '#16A34A',
-  green700: '#15803D',
-  green400: '#22d3ee',
-  slate50: '#f8fafc',
-  slate100: '#f1f5f9',
-  slate200: '#e2e8f0',
-  slate300: '#cbd5e1',
-  slate400: '#94a3b8',
-  slate500: '#64748b',
-  slate600: '#475569',
-  slate700: '#334155',
-  slate800: '#1e293b',
-  slate900: '#0f172a',
-  white: '#ffffff',
-  green100: 'rgba(34,197,94,0.12)',
-  red100: 'rgba(239,68,68,0.12)',
-  red700: '#b91c1c',
-  amber100: 'rgba(245,158,11,0.12)',
-  amber700: '#b45309',
+  green500: "#06b6d4",
+  green600: "#16A34A",
+  green700: "#15803D",
+  green400: "#22d3ee",
+  slate50: "#f8fafc",
+  slate100: "#f1f5f9",
+  slate200: "#e2e8f0",
+  slate300: "#cbd5e1",
+  slate400: "#94a3b8",
+  slate500: "#64748b",
+  slate600: "#475569",
+  slate700: "#334155",
+  slate800: "#1e293b",
+  slate900: "#0f172a",
+  white: "#ffffff",
+  green100: "rgba(34,197,94,0.12)",
+  red100: "rgba(239,68,68,0.12)",
+  red700: "#b91c1c",
+  amber100: "rgba(245,158,11,0.12)",
+  amber700: "#b45309",
 };
 
-const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api').replace(/\/+$/, '');
-const ALLOWED_SERVICE_CATEGORIES = ['obstetrician - gynecologist', 'general surgeon'] as const;
-const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
-const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const MONTH_LABELS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const API_BASE_URL = (
+  process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api"
+).replace(/\/+$/, "");
+const ALLOWED_SERVICE_CATEGORIES = [
+  "obstetrician - gynecologist",
+  "general surgeon",
+] as const;
+const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTH_LABELS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
-type DayKey = typeof DAY_KEYS[number];
+type DayKey = (typeof DAY_KEYS)[number];
 
 type ServiceOption = {
   id: string;
@@ -173,16 +192,27 @@ function SectionCard({
           ) : null}
           <View style={{ flex: 1 }}>
             <Text style={styles.sectionTitle}>{title}</Text>
-            {subtitle ? <Text style={styles.sectionSubtitle}>{subtitle}</Text> : null}
-            {summary ? <View style={styles.sectionSummaryWrap}>{summary}</View> : null}
+            {subtitle ? (
+              <Text style={styles.sectionSubtitle}>{subtitle}</Text>
+            ) : null}
+            {summary ? (
+              <View style={styles.sectionSummaryWrap}>{summary}</View>
+            ) : null}
           </View>
         </View>
         {onToggleCollapse ? (
           <Pressable
             onPress={onToggleCollapse}
-            style={({ pressed }) => [styles.sectionToggleButton, pressed && { opacity: 0.8 }]}
+            style={({ pressed }) => [
+              styles.sectionToggleButton,
+              pressed && { opacity: 0.8 },
+            ]}
           >
-            <Ionicons name={collapsed ? 'chevron-down' : 'chevron-up'} size={18} color={T.slate600} />
+            <Ionicons
+              name={collapsed ? "chevron-down" : "chevron-up"}
+              size={18}
+              color={T.slate600}
+            />
           </Pressable>
         ) : null}
       </View>
@@ -202,7 +232,12 @@ function SelectionSheet({
   onSelect,
 }: SelectionSheetProps) {
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <Pressable style={styles.modalBackdrop} onPress={onClose}>
         <View />
       </Pressable>
@@ -212,12 +247,21 @@ function SelectionSheet({
             <Text style={styles.sheetTitle}>{title}</Text>
             <Text style={styles.sheetSubtitle}>{subtitle}</Text>
           </View>
-          <Pressable style={({ pressed }) => [styles.sheetClose, pressed && { opacity: 0.75 }]} onPress={onClose}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.sheetClose,
+              pressed && { opacity: 0.75 },
+            ]}
+            onPress={onClose}
+          >
             <Ionicons name="close" size={18} color={T.slate700} />
           </Pressable>
         </View>
 
-        <ScrollView style={styles.sheetScroll} contentContainerStyle={styles.sheetScrollContent}>
+        <ScrollView
+          style={styles.sheetScroll}
+          contentContainerStyle={styles.sheetScrollContent}
+        >
           {options.map((option) => {
             const selected = selectedIds.includes(option.id);
             return (
@@ -242,11 +286,25 @@ function SelectionSheet({
                   >
                     {option.label}
                   </Text>
-                  {option.description ? <Text style={styles.sheetOptionDescription}>{option.description}</Text> : null}
-                  {option.meta ? <Text style={styles.sheetOptionMeta}>{option.meta}</Text> : null}
+                  {option.description ? (
+                    <Text style={styles.sheetOptionDescription}>
+                      {option.description}
+                    </Text>
+                  ) : null}
+                  {option.meta ? (
+                    <Text style={styles.sheetOptionMeta}>{option.meta}</Text>
+                  ) : null}
                 </View>
                 <Ionicons
-                  name={selected ? (multiSelect ? 'checkbox' : 'radio-button-on') : multiSelect ? 'square-outline' : 'radio-button-off'}
+                  name={
+                    selected
+                      ? multiSelect
+                        ? "checkbox"
+                        : "radio-button-on"
+                      : multiSelect
+                        ? "square-outline"
+                        : "radio-button-off"
+                  }
                   size={20}
                   color={selected ? T.green700 : T.slate400}
                 />
@@ -260,30 +318,31 @@ function SelectionSheet({
 }
 
 function normalizeCategory(value: string): string {
-  const normalized = value.trim().toLowerCase().replace(/\s+/g, ' ');
-  if (normalized === 'obsterician - gynecologist') return 'obstetrician - gynecologist';
+  const normalized = value.trim().toLowerCase().replace(/\s+/g, " ");
+  if (normalized === "obsterician - gynecologist")
+    return "obstetrician - gynecologist";
   return normalized;
 }
 
 function extractServiceCategory(serviceName: string): string {
-  const [rawCategory] = serviceName.split(':', 1);
+  const [rawCategory] = serviceName.split(":", 1);
   return normalizeCategory(rawCategory ?? serviceName);
 }
 
 function formatDoctorName(raw: any): string {
-  const first = raw?.firstname ? String(raw.firstname) : '';
-  const last = raw?.lastname ? String(raw.lastname) : '';
-  const full = `Dr. ${[first, last].filter(Boolean).join(' ')}`.trim();
-  return full === 'Dr.' ? 'Doctor' : full;
+  const first = raw?.firstname ? String(raw.firstname) : "";
+  const last = raw?.lastname ? String(raw.lastname) : "";
+  const full = `Dr. ${[first, last].filter(Boolean).join(" ")}`.trim();
+  return full === "Dr." ? "Doctor" : full;
 }
 
 function formatTimeLabel(timeValue: string): string {
-  const parts = String(timeValue).split(':');
+  const parts = String(timeValue).split(":");
   const hours = Number(parts[0] ?? 0);
   const minutes = Number(parts[1] ?? 0);
-  const suffix = hours >= 12 ? 'PM' : 'AM';
+  const suffix = hours >= 12 ? "PM" : "AM";
   const normalizedHour = hours % 12 === 0 ? 12 : hours % 12;
-  return `${normalizedHour}:${String(minutes).padStart(2, '0')} ${suffix}`;
+  return `${normalizedHour}:${String(minutes).padStart(2, "0")} ${suffix}`;
 }
 
 function formatTimeRange(startTime: string, endTime: string): string {
@@ -291,35 +350,41 @@ function formatTimeRange(startTime: string, endTime: string): string {
 }
 
 function formatPriceLabel(value: number | null): string {
-  if (typeof value !== 'number' || Number.isNaN(value)) return 'Price unavailable';
+  if (typeof value !== "number" || Number.isNaN(value))
+    return "Price unavailable";
   return `P ${value.toFixed(2)}`;
 }
 
 function formatDurationLabel(value: number | null): string {
-  if (typeof value !== 'number' || Number.isNaN(value) || value <= 0) return 'Duration unavailable';
+  if (typeof value !== "number" || Number.isNaN(value) || value <= 0)
+    return "Duration unavailable";
   return `${value} mins`;
 }
 
 function normalizeCompareValue(value: string): string {
-  return value.trim().toLowerCase().replace(/\s+/g, ' ');
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 function getServiceDescription(service: ServiceOption): string {
-  const description = typeof service.description === 'string' ? service.description.trim() : '';
-  if (!description) return 'No description provided.';
-  if (normalizeCompareValue(description) === normalizeCompareValue(service.name)) return 'No description provided.';
+  const description =
+    typeof service.description === "string" ? service.description.trim() : "";
+  if (!description) return "No description provided.";
+  if (
+    normalizeCompareValue(description) === normalizeCompareValue(service.name)
+  )
+    return "No description provided.";
   return description;
 }
 
 function toDateKey(date: Date): string {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
 function fromDateKey(dateKey: string): Date {
-  const [year, month, day] = dateKey.split('-').map((value) => Number(value));
+  const [year, month, day] = dateKey.split("-").map((value) => Number(value));
   return new Date(year, (month || 1) - 1, day || 1);
 }
 
@@ -349,33 +414,41 @@ function buildCalendarCells(monthDate: Date): CalendarCell[] {
 }
 
 function minutesFromTime(value: string): number {
-  const parts = String(value).split(':');
-  return (Number(parts[0] ?? 0) * 60) + Number(parts[1] ?? 0);
+  const parts = String(value).split(":");
+  return Number(parts[0] ?? 0) * 60 + Number(parts[1] ?? 0);
 }
 
 function readRouteParam(value: string | string[] | undefined): string {
-  if (Array.isArray(value)) return typeof value[0] === 'string' ? value[0].trim() : '';
-  return typeof value === 'string' ? value.trim() : '';
+  if (Array.isArray(value))
+    return typeof value[0] === "string" ? value[0].trim() : "";
+  return typeof value === "string" ? value.trim() : "";
 }
 
 export default function BookingScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ patient_id?: string | string[]; patient_name?: string | string[] }>();
+  const params = useLocalSearchParams<{
+    patient_id?: string | string[];
+    patient_name?: string | string[];
+  }>();
   const currentUserId = Number((globalThis as any)?.currentUser?.user_id ?? 0);
   const requestedPatientId = Number(readRouteParam(params.patient_id));
-  const targetPatientId = requestedPatientId > 0 ? requestedPatientId : currentUserId;
+  const targetPatientId =
+    requestedPatientId > 0 ? requestedPatientId : currentUserId;
   const targetPatientName = readRouteParam(params.patient_name);
-  const isDependentBooking = targetPatientId > 0 && currentUserId > 0 && targetPatientId !== currentUserId;
+  const isDependentBooking =
+    targetPatientId > 0 &&
+    currentUserId > 0 &&
+    targetPatientId !== currentUserId;
   const [services, setServices] = useState<ServiceOption[]>([]);
   const [doctors, setDoctors] = useState<DoctorOption[]>([]);
   const [doctorSchedules, setDoctorSchedules] = useState<ScheduleSlot[]>([]);
   const [bookedTimeKeys, setBookedTimeKeys] = useState<string[]>([]);
 
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
-  const [selectedDoctorId, setSelectedDoctorId] = useState('');
-  const [selectedDateKey, setSelectedDateKey] = useState('');
-  const [selectedTimeKey, setSelectedTimeKey] = useState('');
-  const [reason, setReason] = useState('');
+  const [selectedDoctorId, setSelectedDoctorId] = useState("");
+  const [selectedDateKey, setSelectedDateKey] = useState("");
+  const [selectedTimeKey, setSelectedTimeKey] = useState("");
+  const [reason, setReason] = useState("");
 
   const [displayMonth, setDisplayMonth] = useState(() => {
     const now = new Date();
@@ -391,31 +464,46 @@ export default function BookingScreen() {
   const [booking, setBooking] = useState(false);
   const [pageScrollEnabled, setPageScrollEnabled] = useState(true);
   const [hasActiveAppointment, setHasActiveAppointment] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const selectedServices = useMemo(
     () => services.filter((service) => selectedServiceIds.includes(service.id)),
-    [selectedServiceIds, services]
+    [selectedServiceIds, services],
   );
-  const selectedCategory = selectedServices[0]?.category ?? '';
+  const selectedCategory = selectedServices[0]?.category ?? "";
   const availableDayKeys = useMemo(
-    () => new Set(doctorSchedules.filter((slot) => slot.isAvailable).map((slot) => slot.dayKey)),
-    [doctorSchedules]
+    () =>
+      new Set(
+        doctorSchedules
+          .filter((slot) => slot.isAvailable)
+          .map((slot) => slot.dayKey),
+      ),
+    [doctorSchedules],
   );
-  const calendarCells = useMemo(() => buildCalendarCells(displayMonth), [displayMonth]);
+  const calendarCells = useMemo(
+    () => buildCalendarCells(displayMonth),
+    [displayMonth],
+  );
   const todayKey = useMemo(() => toDateKey(new Date()), []);
-  const selectedDayKey = useMemo(() => (selectedDateKey ? getDayKey(fromDateKey(selectedDateKey)) : null), [selectedDateKey]);
+  const selectedDayKey = useMemo(
+    () => (selectedDateKey ? getDayKey(fromDateKey(selectedDateKey)) : null),
+    [selectedDateKey],
+  );
 
   const filteredDoctors = useMemo(() => {
     if (!selectedCategory) return [];
     return doctors.filter((doctor) => {
       const specialization = normalizeCategory(doctor.specialization);
-      return specialization.includes(selectedCategory) || selectedCategory.includes(specialization);
+      return (
+        specialization.includes(selectedCategory) ||
+        selectedCategory.includes(specialization)
+      );
     });
   }, [doctors, selectedCategory]);
 
-  const selectedDoctor = filteredDoctors.find((doctor) => doctor.id === selectedDoctorId) ?? null;
+  const selectedDoctor =
+    filteredDoctors.find((doctor) => doctor.id === selectedDoctorId) ?? null;
   const stepOneSummary = useMemo(() => {
     if (!selectedDoctor || selectedServices.length === 0) return null;
 
@@ -428,7 +516,9 @@ export default function BookingScreen() {
           </Text>
         ))}
         {selectedServices.length > 2 ? (
-          <Text style={styles.summaryText}>{`+${selectedServices.length - 2} more service${selectedServices.length - 2 > 1 ? 's' : ''}`}</Text>
+          <Text
+            style={styles.summaryText}
+          >{`+${selectedServices.length - 2} more service${selectedServices.length - 2 > 1 ? "s" : ""}`}</Text>
         ) : null}
       </View>
     );
@@ -443,7 +533,9 @@ export default function BookingScreen() {
 
     return doctorSchedules
       .filter((slot) => slot.dayKey === dayKey && slot.isAvailable)
-      .sort((a, b) => minutesFromTime(a.startTime) - minutesFromTime(b.startTime))
+      .sort(
+        (a, b) => minutesFromTime(a.startTime) - minutesFromTime(b.startTime),
+      )
       .map((slot) => {
         const timeKey = `${selectedDateKey} ${slot.startTime.slice(0, 5)}`;
         const slotMinutes = minutesFromTime(slot.startTime);
@@ -459,20 +551,25 @@ export default function BookingScreen() {
       });
   }, [bookedTimeKeys, doctorSchedules, selectedDateKey, todayKey]);
 
-  const selectedTimeSlot = dateSlots.find((slot) => slot.timeKey === selectedTimeKey) ?? null;
+  const selectedTimeSlot =
+    dateSlots.find((slot) => slot.timeKey === selectedTimeKey) ?? null;
   const stepTwoSummary = useMemo(() => {
     if (!selectedDateKey || !selectedTimeSlot) return null;
 
     return (
       <View style={styles.summaryStack}>
-        <Text style={styles.summaryText}>{formatDateLabel(selectedDateKey)}</Text>
+        <Text style={styles.summaryText}>
+          {formatDateLabel(selectedDateKey)}
+        </Text>
         <Text style={styles.summaryText}>{selectedTimeSlot.label}</Text>
       </View>
     );
   }, [selectedDateKey, selectedTimeSlot]);
 
   const doctorOptions: DropdownOption[] = filteredDoctors.map((doctor) => {
-    const hasScheduleForSelectedDay = selectedDayKey ? doctor.scheduleDayKeys.includes(selectedDayKey) : doctor.hasAnySchedule;
+    const hasScheduleForSelectedDay = selectedDayKey
+      ? doctor.scheduleDayKeys.includes(selectedDayKey)
+      : doctor.hasAnySchedule;
     const noSchedule = !doctor.hasAnySchedule || !hasScheduleForSelectedDay;
     return {
       id: doctor.id,
@@ -485,7 +582,8 @@ export default function BookingScreen() {
   });
 
   const serviceOptions: DropdownOption[] = services.map((service) => {
-    const categoryMismatch = selectedCategory.length > 0 && service.category !== selectedCategory;
+    const categoryMismatch =
+      selectedCategory.length > 0 && service.category !== selectedCategory;
     return {
       id: service.id,
       label: service.name,
@@ -500,28 +598,37 @@ export default function BookingScreen() {
 
     async function loadInitialData() {
       setLoading(true);
-      setError('');
-      setSuccess('');
+      setError("");
+      setSuccess("");
 
       try {
         const token = (globalThis as any)?.apiToken as string | undefined;
         if (!token) {
-          router.replace('/screenviews/aut-landing/login-screen' as any);
+          router.replace("/screenviews/aut-landing/login-screen" as any);
           return;
         }
 
         const [servicesRes, doctorsRes, activeRes] = await Promise.all([
           fetch(`${API_BASE_URL}/services?per_page=100`, {
-            headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
           }),
           fetch(`${API_BASE_URL}/doctors?per_page=100&available_only=1`, {
-            headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
           }),
           fetch(
-            `${API_BASE_URL}/appointments/active-exists${requestedPatientId > 0 ? `?patient_id=${encodeURIComponent(String(targetPatientId))}` : ''}`,
+            `${API_BASE_URL}/appointments/active-exists${requestedPatientId > 0 ? `?patient_id=${encodeURIComponent(String(targetPatientId))}` : ""}`,
             {
-              headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
-            }
+              headers: {
+                Accept: "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            },
           ),
         ]);
 
@@ -532,34 +639,63 @@ export default function BookingScreen() {
         ]);
 
         if (!servicesRes.ok || !doctorsRes.ok || !activeRes.ok) {
-          const anyMessage = servicesData?.message || doctorsData?.message || activeData?.message;
+          const anyMessage =
+            servicesData?.message ||
+            doctorsData?.message ||
+            activeData?.message;
           if (!cancelled) {
-            setError(typeof anyMessage === 'string' && anyMessage.length > 0 ? anyMessage : 'Unable to load booking options.');
+            setError(
+              typeof anyMessage === "string" && anyMessage.length > 0
+                ? anyMessage
+                : "Unable to load booking options.",
+            );
           }
           return;
         }
 
-        const rawServices = Array.isArray(servicesData?.data) ? servicesData.data : [];
-        const rawDoctors = Array.isArray(doctorsData?.data) ? doctorsData.data : [];
+        const rawServices = Array.isArray(servicesData?.data)
+          ? servicesData.data
+          : [];
+        const rawDoctors = Array.isArray(doctorsData?.data)
+          ? doctorsData.data
+          : [];
 
         const mappedServices: ServiceOption[] = rawServices
           .map((service: any) => {
-            const serviceName = typeof service?.service_name === 'string' ? service.service_name : '';
+            const serviceName =
+              typeof service?.service_name === "string"
+                ? service.service_name
+                : "";
             const category = extractServiceCategory(serviceName);
             return {
-              id: String(service?.service_id ?? ''),
+              id: String(service?.service_id ?? ""),
               name: serviceName,
               category,
-              description: typeof service?.description === 'string' ? service.description : '',
-              price: typeof service?.price === 'number' ? service.price : service?.price != null ? Number(service.price) : null,
-              durationMinutes: typeof service?.duration_minutes === 'number'
-                ? service.duration_minutes
-                : service?.duration_minutes != null
-                  ? Number(service.duration_minutes)
-                  : null,
+              description:
+                typeof service?.description === "string"
+                  ? service.description
+                  : "",
+              price:
+                typeof service?.price === "number"
+                  ? service.price
+                  : service?.price != null
+                    ? Number(service.price)
+                    : null,
+              durationMinutes:
+                typeof service?.duration_minutes === "number"
+                  ? service.duration_minutes
+                  : service?.duration_minutes != null
+                    ? Number(service.duration_minutes)
+                    : null,
             };
           })
-          .filter((service: ServiceOption) => service.id.length > 0 && ALLOWED_SERVICE_CATEGORIES.includes(service.category as (typeof ALLOWED_SERVICE_CATEGORIES)[number]));
+          .filter(
+            (service: ServiceOption) =>
+              service.id.length > 0 &&
+              ALLOWED_SERVICE_CATEGORIES.includes(
+                service.category as (typeof ALLOWED_SERVICE_CATEGORIES)[number],
+              ),
+          );
 
         const mappedDoctors: DoctorOption[] = rawDoctors
           .map((doctor: any) => {
@@ -568,19 +704,28 @@ export default function BookingScreen() {
               : Array.isArray(doctor?.doctorSchedules)
                 ? doctor.doctorSchedules
                 : [];
-            const availableSchedules = rawSchedules.filter((slot: any) => Boolean(slot?.is_available));
+            const availableSchedules = rawSchedules.filter((slot: any) =>
+              Boolean(slot?.is_available),
+            );
             const scheduleDayKeys = Array.from(
               new Set(
                 availableSchedules
-                  .map((slot: any) => (typeof slot?.day_of_week === 'string' ? slot.day_of_week : ''))
-                  .filter((day: string) => DAY_KEYS.includes(day as DayKey))
-              )
+                  .map((slot: any) =>
+                    typeof slot?.day_of_week === "string"
+                      ? slot.day_of_week
+                      : "",
+                  )
+                  .filter((day: string) => DAY_KEYS.includes(day as DayKey)),
+              ),
             ) as DayKey[];
 
             return {
-              id: String(doctor?.user_id ?? ''),
+              id: String(doctor?.user_id ?? ""),
               name: formatDoctorName(doctor),
-              specialization: typeof doctor?.specialization === 'string' ? doctor.specialization : 'Doctor',
+              specialization:
+                typeof doctor?.specialization === "string"
+                  ? doctor.specialization
+                  : "Doctor",
               scheduleDayKeys,
               hasAnySchedule: scheduleDayKeys.length > 0,
             };
@@ -592,11 +737,11 @@ export default function BookingScreen() {
           setDoctors(mappedDoctors);
           setHasActiveAppointment(Boolean(activeData?.exists));
           if (activeData?.exists) {
-            setError('You already have an active appointment.');
+            setError("You already have an active appointment.");
           }
         }
       } catch {
-        if (!cancelled) setError('Network error. Please try again.');
+        if (!cancelled) setError("Network error. Please try again.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -619,31 +764,52 @@ export default function BookingScreen() {
       }
 
       setLoadingSchedules(true);
-      setError((current) => (current === 'Selected doctor schedule could not be loaded.' ? '' : current));
+      setError((current) =>
+        current === "Selected doctor schedule could not be loaded."
+          ? ""
+          : current,
+      );
 
       try {
         const token = (globalThis as any)?.apiToken as string | undefined;
         if (!token) {
-          router.replace('/screenviews/aut-landing/login-screen' as any);
+          router.replace("/screenviews/aut-landing/login-screen" as any);
           return;
         }
 
-        const response = await fetch(`${API_BASE_URL}/doctor-schedules?doctor_id=${selectedDoctorId}&available_only=1&per_page=100`, {
-          headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(
+          `${API_BASE_URL}/doctor-schedules?doctor_id=${selectedDoctorId}&available_only=1&per_page=100`,
+          {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          if (!cancelled) setError(typeof data?.message === 'string' && data.message.length > 0 ? data.message : 'Selected doctor schedule could not be loaded.');
+          if (!cancelled)
+            setError(
+              typeof data?.message === "string" && data.message.length > 0
+                ? data.message
+                : "Selected doctor schedule could not be loaded.",
+            );
           return;
         }
 
         const raw = Array.isArray(data?.data) ? data.data : [];
         const mapped: ScheduleSlot[] = raw
           .map((slot: any) => ({
-            id: String(slot?.schedule_id ?? ''),
-            dayKey: (typeof slot?.day_of_week === 'string' ? slot.day_of_week : 'mon') as DayKey,
-            startTime: typeof slot?.start_time === 'string' ? slot.start_time : '00:00:00',
-            endTime: typeof slot?.end_time === 'string' ? slot.end_time : '00:00:00',
+            id: String(slot?.schedule_id ?? ""),
+            dayKey: (typeof slot?.day_of_week === "string"
+              ? slot.day_of_week
+              : "mon") as DayKey,
+            startTime:
+              typeof slot?.start_time === "string"
+                ? slot.start_time
+                : "00:00:00",
+            endTime:
+              typeof slot?.end_time === "string" ? slot.end_time : "00:00:00",
             isAvailable: Boolean(slot?.is_available),
           }))
           .filter((slot: ScheduleSlot) => slot.id.length > 0);
@@ -652,7 +818,7 @@ export default function BookingScreen() {
           setDoctorSchedules(mapped);
         }
       } catch {
-        if (!cancelled) setError('Network error. Please try again.');
+        if (!cancelled) setError("Network error. Please try again.");
       } finally {
         if (!cancelled) setLoadingSchedules(false);
       }
@@ -677,33 +843,48 @@ export default function BookingScreen() {
       try {
         const token = (globalThis as any)?.apiToken as string | undefined;
         if (!token) {
-          router.replace('/screenviews/aut-landing/login-screen' as any);
+          router.replace("/screenviews/aut-landing/login-screen" as any);
           return;
         }
 
         const params = new URLSearchParams({
           doctor_id: selectedDoctorId,
-          appointment_type: 'scheduled',
+          appointment_type: "scheduled",
           start_date: selectedDateKey,
           end_date: selectedDateKey,
-          per_page: '100',
+          per_page: "100",
         });
 
-        const response = await fetch(`${API_BASE_URL}/appointments?${params.toString()}`, {
-          headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(
+          `${API_BASE_URL}/appointments?${params.toString()}`,
+          {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          if (!cancelled) setError(typeof data?.message === 'string' && data.message.length > 0 ? data.message : 'Unable to load booked slots.');
+          if (!cancelled)
+            setError(
+              typeof data?.message === "string" && data.message.length > 0
+                ? data.message
+                : "Unable to load booked slots.",
+            );
           return;
         }
 
         const booked = (Array.isArray(data?.data) ? data.data : [])
-          .filter((appointment: any) => appointment?.appointment_datetime && appointment?.status !== 'cancelled')
+          .filter(
+            (appointment: any) =>
+              appointment?.appointment_datetime &&
+              appointment?.status !== "cancelled",
+          )
           .map((appointment: any) => {
             const date = new Date(appointment.appointment_datetime);
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, "0");
+            const minutes = String(date.getMinutes()).padStart(2, "0");
             return `${selectedDateKey} ${hours}:${minutes}`;
           });
 
@@ -711,7 +892,7 @@ export default function BookingScreen() {
           setBookedTimeKeys(Array.from(new Set(booked)));
         }
       } catch {
-        if (!cancelled) setError('Network error. Please try again.');
+        if (!cancelled) setError("Network error. Please try again.");
       } finally {
         if (!cancelled) setLoadingSlots(false);
       }
@@ -733,19 +914,19 @@ export default function BookingScreen() {
     const service = services.find((item) => item.id === serviceId);
     if (!service) return;
 
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     const alreadySelected = selectedServiceIds.includes(serviceId);
     if (alreadySelected) {
       const nextIds = selectedServiceIds.filter((id) => id !== serviceId);
       const nextServices = services.filter((item) => nextIds.includes(item.id));
-      const nextCategory = nextServices[0]?.category ?? '';
+      const nextCategory = nextServices[0]?.category ?? "";
       setSelectedServiceIds(nextIds);
       if (nextCategory !== selectedCategory) {
-        setSelectedDoctorId('');
-        setSelectedDateKey('');
-        setSelectedTimeKey('');
+        setSelectedDoctorId("");
+        setSelectedDateKey("");
+        setSelectedTimeKey("");
         setDoctorSchedules([]);
         setBookedTimeKeys([]);
         setStepOneCollapsed(false);
@@ -755,7 +936,9 @@ export default function BookingScreen() {
     }
 
     if (selectedCategory && selectedCategory !== service.category) {
-      setError('All selected services must stay under the same specialization.');
+      setError(
+        "All selected services must stay under the same specialization.",
+      );
       return;
     }
 
@@ -766,11 +949,11 @@ export default function BookingScreen() {
   function chooseDoctor(doctorId: string) {
     setSelectedDoctorId(doctorId);
     setDoctorSheetOpen(false);
-    setSelectedDateKey('');
-    setSelectedTimeKey('');
+    setSelectedDateKey("");
+    setSelectedTimeKey("");
     setBookedTimeKeys([]);
-    setSuccess('');
-    setError('');
+    setSuccess("");
+    setError("");
     setStepOneCollapsed(true);
     setStepTwoCollapsed(false);
   }
@@ -778,19 +961,26 @@ export default function BookingScreen() {
   async function refreshActiveAppointmentStatus(): Promise<boolean> {
     const token = (globalThis as any)?.apiToken as string | undefined;
     if (!token) {
-      router.replace('/screenviews/aut-landing/login-screen' as any);
+      router.replace("/screenviews/aut-landing/login-screen" as any);
       return true;
     }
 
     const response = await fetch(
-      `${API_BASE_URL}/appointments/active-exists${requestedPatientId > 0 ? `?patient_id=${encodeURIComponent(String(targetPatientId))}` : ''}`,
+      `${API_BASE_URL}/appointments/active-exists${requestedPatientId > 0 ? `?patient_id=${encodeURIComponent(String(targetPatientId))}` : ""}`,
       {
-      headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
-      }
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
     );
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw new Error(typeof data?.message === 'string' && data.message.length > 0 ? data.message : 'Unable to verify active appointments.');
+      throw new Error(
+        typeof data?.message === "string" && data.message.length > 0
+          ? data.message
+          : "Unable to verify active appointments.",
+      );
     }
 
     const exists = Boolean(data?.exists);
@@ -799,28 +989,28 @@ export default function BookingScreen() {
   }
 
   async function handleBookAppointment() {
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     if (hasActiveAppointment) {
-      setError('You already have an active appointment.');
+      setError("You already have an active appointment.");
       return;
     }
 
     if (selectedServiceIds.length === 0) {
-      setError('Please choose at least one service.');
+      setError("Please choose at least one service.");
       return;
     }
     if (!selectedDoctorId) {
-      setError('Please choose a doctor.');
+      setError("Please choose a doctor.");
       return;
     }
     if (!selectedDateKey) {
-      setError('Please choose a date.');
+      setError("Please choose a date.");
       return;
     }
     if (!selectedTimeSlot) {
-      setError('Please choose an available time slot.');
+      setError("Please choose an available time slot.");
       return;
     }
 
@@ -828,28 +1018,28 @@ export default function BookingScreen() {
     try {
       const token = (globalThis as any)?.apiToken as string | undefined;
       if (!token) {
-        router.replace('/screenviews/aut-landing/login-screen' as any);
+        router.replace("/screenviews/aut-landing/login-screen" as any);
         return;
       }
 
       const exists = await refreshActiveAppointmentStatus();
       if (exists) {
-        setError('You already have an active appointment.');
+        setError("You already have an active appointment.");
         return;
       }
 
       const appointmentDateTime = `${selectedDateKey} ${selectedTimeSlot.startTime.slice(0, 8)}`;
       const response = await fetch(`${API_BASE_URL}/appointments`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
+          "Content-Type": "application/json",
+          Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...(requestedPatientId > 0 ? { patient_id: targetPatientId } : {}),
           doctor_id: Number(selectedDoctorId),
-          appointment_type: 'scheduled',
+          appointment_type: "scheduled",
           appointment_datetime: appointmentDateTime,
           reason_for_visit: reason.trim().length > 0 ? reason.trim() : null,
           service_ids: selectedServiceIds.map((id) => Number(id)),
@@ -858,27 +1048,33 @@ export default function BookingScreen() {
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const message = typeof data?.message === 'string' && data.message.length > 0 ? data.message : 'Unable to book appointment.';
+        const message =
+          typeof data?.message === "string" && data.message.length > 0
+            ? data.message
+            : "Unable to book appointment.";
         setError(message);
-        if (data?.code === 'ACTIVE_APPOINTMENT_EXISTS') {
+        if (data?.code === "ACTIVE_APPOINTMENT_EXISTS") {
           setHasActiveAppointment(true);
         }
         return;
       }
 
       setHasActiveAppointment(true);
-      setSuccess('Appointment booked successfully.');
+      setSuccess("Appointment booked successfully.");
       setSelectedServiceIds([]);
-      setSelectedDoctorId('');
-      setSelectedDateKey('');
-      setSelectedTimeKey('');
-      setReason('');
+      setSelectedDoctorId("");
+      setSelectedDateKey("");
+      setSelectedTimeKey("");
+      setReason("");
       setDoctorSchedules([]);
       setBookedTimeKeys([]);
       setStepOneCollapsed(false);
       setStepTwoCollapsed(false);
     } catch (requestError) {
-      const message = requestError instanceof Error ? requestError.message : 'Network error. Please try again.';
+      const message =
+        requestError instanceof Error
+          ? requestError.message
+          : "Network error. Please try again.";
       setError(message);
     } finally {
       setBooking(false);
@@ -902,16 +1098,33 @@ export default function BookingScreen() {
           <View style={styles.circleMidLeft} />
           <View style={styles.headerRow}>
             <View style={{ flex: 1 }}>
-             <View style={styles.eyebrowRow}>
-                <View style={[styles.eyebrowDot, { backgroundColor: 'rgba(255,255,255,0.7)' }]} />
-                <Text style={[styles.eyebrowText, { color: 'rgba(255,255,255,0.8)' }]}>Patient Portal</Text>
+              <View style={styles.eyebrowRow}>
+                <View
+                  style={[
+                    styles.eyebrowDot,
+                    { backgroundColor: "rgba(255,255,255,0.7)" },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.eyebrowText,
+                    { color: "rgba(255,255,255,0.8)" },
+                  ]}
+                >
+                  Patient Portal
+                </Text>
               </View>
               <Text style={styles.headerTitle}>Book Appointment</Text>
-              <Text style={styles.headerGreeting}>Schedule a visit with the right specialist.</Text>
+              <Text style={styles.headerGreeting}>
+                Schedule a visit with the right specialist.
+              </Text>
             </View>
             <Pressable
-              style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.85 }]}
-              onPress={() => router.replace('/screenviews/(tabs)' as any)}
+              style={({ pressed }) => [
+                styles.headerBtn,
+                pressed && { opacity: 0.85 },
+              ]}
+              onPress={() => router.replace("/screenviews/(tabs)" as any)}
             >
               <Text style={styles.headerBtnText}>Back</Text>
             </Pressable>
@@ -923,11 +1136,14 @@ export default function BookingScreen() {
           {success ? <Text style={styles.inlineSuccess}>{success}</Text> : null}
           {isDependentBooking ? (
             <View style={styles.contextBanner}>
-              <Text style={styles.contextBannerTitle}>Booking for dependent</Text>
-              <Text style={styles.contextBannerText}>{targetPatientName || `Dependent #${targetPatientId}`}</Text>
+              <Text style={styles.contextBannerTitle}>
+                Booking for dependent
+              </Text>
+              <Text style={styles.contextBannerText}>
+                {targetPatientName || `Dependent #${targetPatientId}`}
+              </Text>
             </View>
           ) : null}
-
 
           <SectionCard
             title="Appointment Details"
@@ -948,11 +1164,16 @@ export default function BookingScreen() {
             <Text style={[styles.label, { marginTop: 14 }]}>Service</Text>
             <Pressable
               onPress={() => setServiceSheetOpen(true)}
-              style={({ pressed }) => [styles.dropdownButton, pressed && { opacity: 0.85 }]}
+              style={({ pressed }) => [
+                styles.dropdownButton,
+                pressed && { opacity: 0.85 },
+              ]}
             >
               <View style={{ flex: 1 }}>
                 <Text style={styles.dropdownValue}>
-                  {selectedServices.length > 0 ? selectedServices.map((service) => service.name).join(', ') : 'Select one or more services'}
+                  {selectedServices.length > 0
+                    ? selectedServices.map((service) => service.name).join(", ")
+                    : "Select one or more services"}
                 </Text>
                 <Text style={styles.dropdownHint}></Text>
               </View>
@@ -961,7 +1182,9 @@ export default function BookingScreen() {
 
             {selectedServices.length > 0 ? (
               <View style={styles.selectedServicesSection}>
-                {selectedServices.length > 1 ? <Text style={styles.slideHint}>Slide to see more</Text> : null}
+                {selectedServices.length > 1 ? (
+                  <Text style={styles.slideHint}>Slide to see more</Text>
+                ) : null}
                 <ScrollView
                   horizontal
                   nestedScrollEnabled
@@ -977,12 +1200,15 @@ export default function BookingScreen() {
                 >
                   {selectedServices.map((service) => (
                     <View key={service.id} style={styles.selectedServiceCard}>
-                      <Text style={styles.selectedServiceTitle}>{service.name}</Text>
+                      <Text style={styles.selectedServiceTitle}>
+                        {service.name}
+                      </Text>
                       <Text style={styles.selectedServiceDescription}>
                         {getServiceDescription(service)}
                       </Text>
                       <Text style={styles.selectedServiceMeta}>
-                        {formatPriceLabel(service.price)} · {formatDurationLabel(service.durationMinutes)}
+                        {formatPriceLabel(service.price)} ·{" "}
+                        {formatDurationLabel(service.durationMinutes)}
                       </Text>
                     </View>
                   ))}
@@ -1001,14 +1227,25 @@ export default function BookingScreen() {
               ]}
             >
               <View style={{ flex: 1 }}>
-                <Text style={[styles.dropdownValue, !selectedCategory && styles.dropdownValueMuted]}>
-                  {selectedDoctor?.name ?? 'Choose service first'}
+                <Text
+                  style={[
+                    styles.dropdownValue,
+                    !selectedCategory && styles.dropdownValueMuted,
+                  ]}
+                >
+                  {selectedDoctor?.name ?? "Choose service first"}
                 </Text>
                 <Text style={styles.dropdownHint}>
-                  {selectedCategory ? 'Doctors are filtered by specialization match.' : 'Select at least one service to unlock doctors.'}
+                  {selectedCategory
+                    ? "Doctors are filtered by specialization match."
+                    : "Select at least one service to unlock doctors."}
                 </Text>
               </View>
-              <Ionicons name="chevron-down" size={18} color={selectedCategory ? T.slate500 : T.slate300} />
+              <Ionicons
+                name="chevron-down"
+                size={18}
+                color={selectedCategory ? T.slate500 : T.slate300}
+              />
             </Pressable>
           </SectionCard>
 
@@ -1023,15 +1260,41 @@ export default function BookingScreen() {
           >
             <View style={styles.monthHeader}>
               <Pressable
-                onPress={() => setDisplayMonth((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1))}
-                style={({ pressed }) => [styles.monthNavBtn, pressed && { opacity: 0.85 }]}
+                onPress={() =>
+                  setDisplayMonth(
+                    (current) =>
+                      new Date(
+                        current.getFullYear(),
+                        current.getMonth() - 1,
+                        1,
+                      ),
+                  )
+                }
+                style={({ pressed }) => [
+                  styles.monthNavBtn,
+                  pressed && { opacity: 0.85 },
+                ]}
               >
                 <Ionicons name="chevron-back" size={16} color={T.slate700} />
               </Pressable>
-              <Text style={styles.monthTitle}>{`${MONTH_LABELS[displayMonth.getMonth()]} ${displayMonth.getFullYear()}`}</Text>
+              <Text
+                style={styles.monthTitle}
+              >{`${MONTH_LABELS[displayMonth.getMonth()]} ${displayMonth.getFullYear()}`}</Text>
               <Pressable
-                onPress={() => setDisplayMonth((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1))}
-                style={({ pressed }) => [styles.monthNavBtn, pressed && { opacity: 0.85 }]}
+                onPress={() =>
+                  setDisplayMonth(
+                    (current) =>
+                      new Date(
+                        current.getFullYear(),
+                        current.getMonth() + 1,
+                        1,
+                      ),
+                  )
+                }
+                style={({ pressed }) => [
+                  styles.monthNavBtn,
+                  pressed && { opacity: 0.85 },
+                ]}
               >
                 <Ionicons name="chevron-forward" size={16} color={T.slate700} />
               </Pressable>
@@ -1048,7 +1311,7 @@ export default function BookingScreen() {
             <View style={styles.calendarGrid}>
               {calendarCells.map((cell) => {
                 const selectable = isDateSelectable(cell.date, cell.inMonth);
-                const dateKey = cell.date ? toDateKey(cell.date) : '';
+                const dateKey = cell.date ? toDateKey(cell.date) : "";
                 const selected = dateKey === selectedDateKey;
 
                 return (
@@ -1058,9 +1321,9 @@ export default function BookingScreen() {
                       onPress={() => {
                         if (!cell.date) return;
                         setSelectedDateKey(dateKey);
-                        setSelectedTimeKey('');
-                        setSuccess('');
-                        setError('');
+                        setSelectedTimeKey("");
+                        setSuccess("");
+                        setError("");
                         setStepTwoCollapsed(false);
                       }}
                       style={({ pressed }) => [
@@ -1079,7 +1342,7 @@ export default function BookingScreen() {
                           selected && styles.calendarCellTextSelected,
                         ]}
                       >
-                        {cell.date ? String(cell.date.getDate()) : ''}
+                        {cell.date ? String(cell.date.getDate()) : ""}
                       </Text>
                     </Pressable>
                   </View>
@@ -1089,15 +1352,23 @@ export default function BookingScreen() {
 
             <View style={styles.slotHeader}>
               <Text style={styles.label}>Time slot</Text>
-              {(loadingSchedules || loadingSlots) ? <ActivityIndicator size="small" color={T.green700} /> : null}
+              {loadingSchedules || loadingSlots ? (
+                <ActivityIndicator size="small" color={T.green700} />
+              ) : null}
             </View>
 
             {!selectedDoctorId ? (
-              <Text style={styles.helperText}>Choose a doctor first to unlock the calendar and time slots.</Text>
+              <Text style={styles.helperText}>
+                Choose a doctor first to unlock the calendar and time slots.
+              </Text>
             ) : !selectedDateKey ? (
-              <Text style={styles.helperText}>Select an enabled date to see available appointment slots.</Text>
+              <Text style={styles.helperText}>
+                Select an enabled date to see available appointment slots.
+              </Text>
             ) : dateSlots.length === 0 ? (
-              <Text style={styles.helperText}>No time slots are available on this date.</Text>
+              <Text style={styles.helperText}>
+                No time slots are available on this date.
+              </Text>
             ) : (
               <View style={styles.slotWrap}>
                 {dateSlots.map((slot) => (
@@ -1106,8 +1377,8 @@ export default function BookingScreen() {
                     disabled={slot.disabled}
                     onPress={() => {
                       setSelectedTimeKey(slot.timeKey);
-                      setSuccess('');
-                      setError('');
+                      setSuccess("");
+                      setError("");
                       setStepTwoCollapsed(true);
                     }}
                     style={({ pressed }) => [
@@ -1121,12 +1392,15 @@ export default function BookingScreen() {
                       style={[
                         styles.slotChipText,
                         slot.disabled && styles.slotChipTextDisabled,
-                        selectedTimeKey === slot.timeKey && styles.slotChipTextActive,
+                        selectedTimeKey === slot.timeKey &&
+                          styles.slotChipTextActive,
                       ]}
                     >
                       {slot.label}
                     </Text>
-                    {slot.booked ? <Text style={styles.bookedFlag}>Booked</Text> : null}
+                    {slot.booked ? (
+                      <Text style={styles.bookedFlag}>Booked</Text>
+                    ) : null}
                   </Pressable>
                 ))}
               </View>
@@ -1160,22 +1434,31 @@ export default function BookingScreen() {
                 pressed && !(loading || booking) && { opacity: 0.85 },
               ]}
             >
-              <Text style={styles.primaryButtonText}>{booking ? 'Booking appointment...' : 'Book Appointment'}</Text>
+              <Text style={styles.primaryButtonText}>
+                {booking ? "Booking appointment..." : "Book Appointment"}
+              </Text>
             </Pressable>
 
             <Pressable
-              onPress={() => router.push(
-                requestedPatientId > 0
-                  ? {
-                      pathname: '/screenviews/queue',
-                      params: {
-                        patient_id: String(targetPatientId),
-                        patient_name: targetPatientName || `Dependent #${targetPatientId}`,
-                      },
-                    } as any
-                  : ('/screenviews/queue' as any)
-              )}
-              style={({ pressed }) => [styles.secondaryButton, pressed && { opacity: 0.85 }]}
+              onPress={() =>
+                router.push(
+                  requestedPatientId > 0
+                    ? ({
+                        pathname: "/screenviews/queue",
+                        params: {
+                          patient_id: String(targetPatientId),
+                          patient_name:
+                            targetPatientName ||
+                            `Dependent #${targetPatientId}`,
+                        },
+                      } as any)
+                    : ("/screenviews/queue" as any),
+                )
+              }
+              style={({ pressed }) => [
+                styles.secondaryButton,
+                pressed && { opacity: 0.85 },
+              ]}
             >
               <Text style={styles.secondaryButtonText}>Join queue instead</Text>
             </Pressable>
@@ -1214,7 +1497,7 @@ const styles = StyleSheet.create({
   },
   pageScroll: {
     flex: 1,
-    backgroundColor:'rgba(255,255,255,0.07)',
+    backgroundColor: "rgba(255,255,255,0.07)",
   },
   pageScrollContent: {
     flexGrow: 1,
@@ -1224,81 +1507,97 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 50,
     paddingBottom: 20,
-    position: 'relative',
-    overflow: 'hidden',
+    position: "relative",
+    overflow: "hidden",
   },
   circleTopRight: {
-    position: 'absolute',
+    position: "absolute",
     top: -80,
     right: -80,
     width: 280,
     height: 280,
     borderRadius: 140,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: "rgba(255,255,255,0.08)",
   },
   circleBottomLeft: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -80,
     left: -60,
     width: 190,
     height: 190,
     borderRadius: 95,
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: "rgba(255,255,255,0.07)",
   },
   circleMidLeft: {
-    position: 'absolute',
+    position: "absolute",
     top: 30,
     left: -90,
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: "rgba(255,255,255,0.05)",
   },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
     gap: 12,
-    position: 'relative',
+    position: "relative",
     zIndex: 1,
   },
   headerEyebrow: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 1.2,
-    color: 'rgba(255,255,255,0.65)',
+    color: "rgba(255,255,255,0.65)",
     marginBottom: 2,
   },
 
-   eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
-  eyebrowDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.green600 },
-  eyebrowText: { fontSize: 9, fontWeight: '700', letterSpacing: 0.9, textTransform: 'uppercase', color: T.green600 },
+  eyebrowRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginBottom: 4,
+  },
+  eyebrowDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: T.green600,
+  },
+  eyebrowText: {
+    fontSize: 9,
+    fontWeight: "700",
+    letterSpacing: 0.9,
+    textTransform: "uppercase",
+    color: T.green600,
+  },
   headerTitle: {
     fontSize: 30,
-    fontWeight: '800',
-    fontFamily: 'serif',
+    fontWeight: "800",
+    fontFamily: "serif",
     color: T.white,
     letterSpacing: 0.2,
     lineHeight: 34,
   },
   headerGreeting: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.75)',
+    color: "rgba(255,255,255,0.75)",
     marginTop: 2,
-    fontWeight: '400',
+    fontWeight: "400",
   },
   headerBtn: {
     marginTop: 4,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: "rgba(255,255,255,0.15)",
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: "rgba(255,255,255,0.25)",
   },
   headerBtnText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.white,
   },
   contentSurface: {
@@ -1323,44 +1622,44 @@ const styles = StyleSheet.create({
   contextBanner: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(6,182,212,0.18)',
-    backgroundColor: 'rgba(6,182,212,0.08)',
+    borderColor: "rgba(6,182,212,0.18)",
+    backgroundColor: "rgba(6,182,212,0.08)",
     paddingHorizontal: 14,
     paddingVertical: 12,
     marginBottom: 14,
   },
   contextBannerTitle: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.green700,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     marginBottom: 4,
   },
   contextBannerText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate800,
   },
   warningButton: {
     borderRadius: 999,
     backgroundColor: T.amber100,
     borderWidth: 1,
-    borderColor: 'rgba(245,158,11,0.25)',
+    borderColor: "rgba(245,158,11,0.25)",
     paddingVertical: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 14,
   },
   warningButtonText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.amber700,
   },
   infoRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
     marginBottom: 18,
-    alignItems: 'stretch',
+    alignItems: "stretch",
   },
   infoCard: {
     flex: 1,
@@ -1380,7 +1679,6 @@ const styles = StyleSheet.create({
     minHeight: 136,
   },
 
-  
   secondaryButton: {
     marginTop: 10,
     borderRadius: 999,
@@ -1388,12 +1686,12 @@ const styles = StyleSheet.create({
     borderColor: T.slate200,
     backgroundColor: T.white,
     paddingVertical: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   secondaryButtonText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate700,
   },
 
@@ -1401,14 +1699,14 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: 'rgba(6,182,212,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(6,182,212,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 8,
   },
   infoLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: "600",
     color: T.slate400,
     letterSpacing: 0.2,
     marginBottom: 4,
@@ -1416,7 +1714,7 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: "800",
     color: T.green700,
     lineHeight: 16,
     marginBottom: 3,
@@ -1437,41 +1735,41 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   sectionHeader: {
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 10,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
     gap: 8,
     borderBottomWidth: 1,
     borderBottomColor: T.slate100,
   },
   sectionHeaderMain: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: 8,
   },
   sectionBadge: {
-    backgroundColor: 'rgba(6,182,212,0.1)',
+    backgroundColor: "rgba(6,182,212,0.1)",
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
   sectionBadgeText: {
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: "800",
     color: T.green700,
     letterSpacing: 0.5,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate800,
   },
   sectionSubtitle: {
@@ -1490,8 +1788,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: T.slate200,
     backgroundColor: T.slate50,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginLeft: 10,
   },
   sectionBody: {
@@ -1504,31 +1802,31 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: T.slate600,
     lineHeight: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   label: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate600,
     marginBottom: 6,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.4,
   },
   staticValueRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   staticPill: {
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: 'rgba(6,182,212,0.1)',
+    backgroundColor: "rgba(6,182,212,0.1)",
     borderWidth: 1,
-    borderColor: 'rgba(6,182,212,0.18)',
+    borderColor: "rgba(6,182,212,0.18)",
   },
   staticPillText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.green700,
   },
   dropdownButton: {
@@ -1538,8 +1836,8 @@ const styles = StyleSheet.create({
     backgroundColor: T.white,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
   },
   dropdownButtonDisabled: {
@@ -1547,7 +1845,7 @@ const styles = StyleSheet.create({
   },
   dropdownValue: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
     color: T.slate800,
     marginBottom: 3,
   },
@@ -1563,9 +1861,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   slideHint: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.green700,
     marginBottom: 6,
   },
@@ -1581,13 +1879,13 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: T.green100,
     borderWidth: 1,
-    borderColor: 'rgba(8,145,178,0.16)',
+    borderColor: "rgba(8,145,178,0.16)",
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   selectedServiceTitle: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.green700,
     marginBottom: 4,
   },
@@ -1599,62 +1897,62 @@ const styles = StyleSheet.create({
   },
   selectedServiceMeta: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate700,
   },
   monthHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 12,
   },
   monthNavBtn: {
     width: 34,
     height: 34,
     borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: T.slate200,
     backgroundColor: T.slate50,
   },
   monthTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate800,
   },
   calendarWeekRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 8,
   },
   calendarWeekLabel: {
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate400,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   calendarGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     marginHorizontal: -2,
     marginTop: 2,
   },
   calendarCellWrap: {
-    width: '14.2857%',
+    width: "14.2857%",
     paddingHorizontal: 2,
     paddingVertical: 2,
   },
   calendarCell: {
-    width: '100%',
+    width: "100%",
     aspectRatio: 1,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: T.slate200,
     backgroundColor: T.slate50,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   calendarCellOutside: {
     backgroundColor: T.slate50,
@@ -1669,7 +1967,7 @@ const styles = StyleSheet.create({
   },
   calendarCellText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: "600",
     color: T.slate300,
   },
   calendarCellTextOutside: {
@@ -1684,9 +1982,9 @@ const styles = StyleSheet.create({
   slotHeader: {
     marginTop: 16,
     marginBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   helperText: {
     fontSize: 11,
@@ -1694,12 +1992,12 @@ const styles = StyleSheet.create({
     color: T.slate500,
   },
   slotWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 10,
   },
   slotChip: {
-    minWidth: '48%',
+    minWidth: "48%",
     borderRadius: 14,
     borderWidth: 1,
     borderColor: T.slate200,
@@ -1717,7 +2015,7 @@ const styles = StyleSheet.create({
   },
   slotChipText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     color: T.slate700,
   },
   slotChipTextDisabled: {
@@ -1729,9 +2027,9 @@ const styles = StyleSheet.create({
   bookedFlag: {
     marginTop: 4,
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.red700,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.4,
   },
   reasonInput: {
@@ -1752,34 +2050,34 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: T.green700,
     paddingVertical: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   primaryButtonText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.white,
   },
   modalBackdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15,23,42,0.45)',
+    backgroundColor: "rgba(15,23,42,0.45)",
   },
   sheet: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    maxHeight: '76%',
+    maxHeight: "76%",
     backgroundColor: T.white,
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
     borderWidth: 1,
     borderColor: T.slate200,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   sheetHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -1788,7 +2086,7 @@ const styles = StyleSheet.create({
   },
   sheetTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate900,
     marginBottom: 2,
   },
@@ -1801,8 +2099,8 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: T.slate50,
     borderWidth: 1,
     borderColor: T.slate200,
@@ -1815,8 +2113,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   sheetOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     borderRadius: 14,
     borderWidth: 1,
@@ -1835,7 +2133,7 @@ const styles = StyleSheet.create({
   },
   sheetOptionLabel: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
     color: T.slate800,
     marginBottom: 2,
   },
@@ -1853,7 +2151,7 @@ const styles = StyleSheet.create({
   sheetOptionMeta: {
     marginTop: 4,
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.green700,
     lineHeight: 14,
   },

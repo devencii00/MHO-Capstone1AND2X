@@ -1,47 +1,50 @@
-import { persistAuthSession } from '@/lib/auth-storage';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import { persistAuthSession } from "@/lib/auth-storage";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
   Image,
   Platform,
   Pressable,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
   TextInput,
   View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const { height } = Dimensions.get('window');
+const { height } = Dimensions.get("window");
 
-const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api').replace(/\/+$/, '');
+const API_BASE_URL = (
+  process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api"
+).replace(/\/+$/, "");
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
-  const [mode, setMode] = useState<'login' | 'forgot-password'>('login');
+  const [mode, setMode] = useState<"login" | "forgot-password">("login");
   const [resetStep, setResetStep] = useState<1 | 2 | 3>(1);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [resetEmail, setResetEmail] = useState('');
-  const [resetCode, setResetCode] = useState('');
-  const [resetPassword, setResetPassword] = useState('');
-  const [resetPasswordConfirm, setResetPasswordConfirm] = useState('');
+  const [error, setError] = useState("");
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetCode, setResetCode] = useState("");
+  const [resetPassword, setResetPassword] = useState("");
+  const [resetPasswordConfirm, setResetPasswordConfirm] = useState("");
   const [showResetPassword, setShowResetPassword] = useState(false);
-  const [showResetPasswordConfirm, setShowResetPasswordConfirm] = useState(false);
+  const [showResetPasswordConfirm, setShowResetPasswordConfirm] =
+    useState(false);
   const [resetSubmitting, setResetSubmitting] = useState(false);
-  const [resetError, setResetError] = useState('');
-  const [resetNotice, setResetNotice] = useState('');
+  const [resetError, setResetError] = useState("");
+  const [resetNotice, setResetNotice] = useState("");
 
   // Animations (same system as landing)
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -74,66 +77,81 @@ export default function LoginScreen() {
           duration: 1500,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   }, []);
 
   async function resolvePatientRoute(token: string, user: any) {
     if (user?.must_change_credentials) {
-      router.replace('/screenviews/aut-landing/first-login' as any);
+      router.replace("/screenviews/aut-landing/first-login" as any);
       return;
     }
 
     if (user?.is_first_login) {
       let hasPendingVerification = false;
       try {
-        const verificationResponse = await fetch(`${API_BASE_URL}/patient-verifications?status=pending&per_page=1`, {
-          headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
-        });
-        const verificationData = await verificationResponse.json().catch(() => ({}));
+        const verificationResponse = await fetch(
+          `${API_BASE_URL}/patient-verifications?status=pending&per_page=1`,
+          {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        const verificationData = await verificationResponse
+          .json()
+          .catch(() => ({}));
         const verificationItems = Array.isArray((verificationData as any)?.data)
           ? (verificationData as any).data
           : Array.isArray(verificationData)
             ? verificationData
             : [];
-        hasPendingVerification = verificationResponse.ok && verificationItems.length > 0;
+        hasPendingVerification =
+          verificationResponse.ok && verificationItems.length > 0;
       } catch {
         hasPendingVerification = false;
       }
 
-      await persistAuthSession(token, { ...user, has_pending_verification: hasPendingVerification });
+      await persistAuthSession(token, {
+        ...user,
+        has_pending_verification: hasPendingVerification,
+      });
       router.replace(
         hasPendingVerification
-          ? '/screenviews/aut-landing/pending-approval'
-          : '/screenviews/aut-landing/fillup-info'
+          ? "/screenviews/aut-landing/pending-approval"
+          : "/screenviews/aut-landing/fillup-info",
       );
       return;
     }
 
-    await persistAuthSession(token, { ...user, has_pending_verification: false });
-    router.replace('/screenviews/(tabs)' as any);
+    await persistAuthSession(token, {
+      ...user,
+      has_pending_verification: false,
+    });
+    router.replace("/screenviews/(tabs)" as any);
   }
 
   async function handleLogin() {
     if (!email || !password) {
-      setError('Please enter your email and password.');
+      setError("Please enter your email and password.");
       return;
     }
 
-    setError('');
+    setError("");
     setSubmitting(true);
 
     try {
       const response = await fetch(`${API_BASE_URL}/login`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify({
           email,
           password,
-          device_name: 'mobiledoc',
+          device_name: "mobiledoc",
         }),
       });
 
@@ -146,83 +164,86 @@ export default function LoginScreen() {
       }
 
       if (!response.ok) {
-        setError(data?.message || 'Unable to sign in.');
+        setError(data?.message || "Unable to sign in.");
         return;
       }
 
-      await persistAuthSession(String(data?.token ?? ''), data?.user ?? null);
+      await persistAuthSession(String(data?.token ?? ""), data?.user ?? null);
 
-      const role = String(data?.user?.role ?? '').toLowerCase().trim();
-      if (role && role !== 'patient') {
-        router.replace('/screenviews/aut-landing/staff-account-only');
+      const role = String(data?.user?.role ?? "")
+        .toLowerCase()
+        .trim();
+      if (role && role !== "patient") {
+        router.replace("/screenviews/aut-landing/staff-account-only");
         return;
       }
 
-
-      await resolvePatientRoute(String(data?.token ?? ''), data?.user ?? null);
+      await resolvePatientRoute(String(data?.token ?? ""), data?.user ?? null);
     } catch {
-      setError('Network error. Please try again.');
+      setError("Network error. Please try again.");
     } finally {
       setSubmitting(false);
     }
   }
 
   function openForgotPassword() {
-    setMode('forgot-password');
+    setMode("forgot-password");
     setResetStep(1);
     setResetEmail(email);
-    setResetCode('');
-    setResetPassword('');
-    setResetPasswordConfirm('');
+    setResetCode("");
+    setResetPassword("");
+    setResetPasswordConfirm("");
     setShowResetPassword(false);
     setShowResetPasswordConfirm(false);
-    setResetError('');
-    setResetNotice('');
+    setResetError("");
+    setResetNotice("");
   }
 
   function closeForgotPassword() {
-    setMode('login');
+    setMode("login");
     setResetStep(1);
-    setResetCode('');
-    setResetPassword('');
-    setResetPasswordConfirm('');
+    setResetCode("");
+    setResetPassword("");
+    setResetPasswordConfirm("");
     setShowResetPassword(false);
     setShowResetPasswordConfirm(false);
     setResetSubmitting(false);
-    setResetError('');
-    setResetNotice('');
+    setResetError("");
+    setResetNotice("");
   }
 
   function handleSendPasscode() {
-    setResetError('');
-    setResetNotice('');
+    setResetError("");
+    setResetNotice("");
     setResetSubmitting(true);
 
     setTimeout(() => {
       setResetSubmitting(false);
       setResetStep(2);
-      setResetNotice(`A 5-digit passcode was sent to ${resetEmail || 'your email'}.`);
+      setResetNotice(
+        `A 5-digit passcode was sent to ${resetEmail || "your email"}.`,
+      );
     }, 500);
   }
 
   function handleVerifyPasscode() {
-    setResetError('');
-    setResetNotice('');
+    setResetError("");
+    setResetNotice("");
     setResetSubmitting(true);
 
     setTimeout(() => {
       setResetSubmitting(false);
       setResetStep(3);
-      setResetNotice('Passcode accepted. You can now set a new password.');
+      setResetNotice("Passcode accepted. You can now set a new password.");
     }, 400);
   }
 
   function handleResetPassword() {
-    setResetError('');
-    setResetNotice('');
+    setResetError("");
+    setResetNotice("");
 
     if (!resetPassword || !resetPasswordConfirm) {
-      setResetError('Please enter and confirm your new password.');
+      setResetError("Please enter and confirm your new password.");
       return;
     }
 
@@ -231,26 +252,30 @@ export default function LoginScreen() {
     setTimeout(() => {
       setResetSubmitting(false);
       setPassword(resetPassword);
-      setMode('login');
+      setMode("login");
       setResetStep(1);
-      setResetCode('');
-      setResetPassword('');
-      setResetPasswordConfirm('');
+      setResetCode("");
+      setResetPassword("");
+      setResetPasswordConfirm("");
       setShowResetPassword(false);
       setShowResetPasswordConfirm(false);
-      setResetError('');
-      setResetNotice('');
-      setError('You can now log in with the new password.');
+      setResetError("");
+      setResetNotice("");
+      setError("You can now log in with the new password.");
     }, 500);
   }
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
 
       {/* Background */}
       <LinearGradient
-        colors={['#16A34A', '#15803D', '#166534']}
+        colors={["#16A34A", "#15803D", "#166534"]}
         style={StyleSheet.absoluteFill}
       />
 
@@ -270,22 +295,24 @@ export default function LoginScreen() {
           style={{
             opacity: fadeAnim,
             transform: [{ translateY: slideAnim }],
-            alignItems: 'center',
+            alignItems: "center",
           }}
         >
           <Text style={styles.tagline}>PATIENT PORTAL</Text>
           <Text style={styles.title}>
-            {mode === 'login' ? `Log in to your${'\n'}account` : `Reset your${'\n'}password`}
+            {mode === "login"
+              ? `Log in to your${"\n"}account`
+              : `Reset your${"\n"}password`}
           </Text>
           <View style={styles.divider} />
           <Text style={styles.subtitle}>
-            {mode === 'login'
-              ? 'Secure access to medical records'
+            {mode === "login"
+              ? "Secure access to medical records"
               : resetStep === 1
-                ? 'Enter your email to receive a 5-digit passcode'
+                ? "Enter your email to receive a 5-digit passcode"
                 : resetStep === 2
-                  ? 'Enter the mock passcode to continue'
-                  : 'Create and confirm your new password'}
+                  ? "Enter the mock passcode to continue"
+                  : "Create and confirm your new password"}
           </Text>
         </Animated.View>
 
@@ -299,7 +326,7 @@ export default function LoginScreen() {
           <View style={styles.logoPulseRing}>
             <View style={styles.logoRing}>
               <Image
-                source={require('../../../assets/images/docfiles/MHOLogoV2.png')}
+                source={require("../../../assets/images/docfiles/MHOLogoV2.png")}
                 style={styles.logoImage}
                 resizeMode="contain"
               />
@@ -309,7 +336,7 @@ export default function LoginScreen() {
 
         {/* INPUTS */}
         <Animated.View style={[styles.form, { opacity: fadeAnim }]}>
-          {mode === 'login' ? (
+          {mode === "login" ? (
             <>
               <TextInput
                 placeholder="Email address"
@@ -335,7 +362,11 @@ export default function LoginScreen() {
                   style={styles.inputToggle}
                   hitSlop={8}
                 >
-                  <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#94a3b8" />
+                  <Ionicons
+                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color="#94a3b8"
+                  />
                 </Pressable>
               </View>
 
@@ -345,7 +376,7 @@ export default function LoginScreen() {
             </>
           ) : null}
 
-          {mode === 'forgot-password' && resetStep === 1 ? (
+          {mode === "forgot-password" && resetStep === 1 ? (
             <>
               <View style={styles.stepBadge}>
                 <Text style={styles.stepBadgeText}>Step 1 of 3</Text>
@@ -362,7 +393,7 @@ export default function LoginScreen() {
             </>
           ) : null}
 
-          {mode === 'forgot-password' && resetStep === 2 ? (
+          {mode === "forgot-password" && resetStep === 2 ? (
             <>
               <View style={styles.stepBadge}>
                 <Text style={styles.stepBadgeText}>Step 2 of 3</Text>
@@ -379,7 +410,7 @@ export default function LoginScreen() {
             </>
           ) : null}
 
-          {mode === 'forgot-password' && resetStep === 3 ? (
+          {mode === "forgot-password" && resetStep === 3 ? (
             <>
               <View style={styles.stepBadge}>
                 <Text style={styles.stepBadgeText}>Step 3 of 3</Text>
@@ -398,7 +429,11 @@ export default function LoginScreen() {
                   style={styles.inputToggle}
                   hitSlop={8}
                 >
-                  <Ionicons name={showResetPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="rgba(255,255,255,0.78)" />
+                  <Ionicons
+                    name={showResetPassword ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color="rgba(255,255,255,0.78)"
+                  />
                 </Pressable>
               </View>
 
@@ -416,20 +451,34 @@ export default function LoginScreen() {
                   style={styles.inputToggle}
                   hitSlop={8}
                 >
-                  <Ionicons name={showResetPasswordConfirm ? 'eye-off-outline' : 'eye-outline'} size={20} color="rgba(255,255,255,0.78)" />
+                  <Ionicons
+                    name={
+                      showResetPasswordConfirm
+                        ? "eye-off-outline"
+                        : "eye-outline"
+                    }
+                    size={20}
+                    color="rgba(255,255,255,0.78)"
+                  />
                 </Pressable>
               </View>
             </>
           ) : null}
 
-          {mode === 'login' && error ? <Text style={styles.error}>{error}</Text> : null}
-          {mode === 'forgot-password' && resetNotice ? <Text style={styles.notice}>{resetNotice}</Text> : null}
-          {mode === 'forgot-password' && resetError ? <Text style={styles.error}>{resetError}</Text> : null}
+          {mode === "login" && error ? (
+            <Text style={styles.error}>{error}</Text>
+          ) : null}
+          {mode === "forgot-password" && resetNotice ? (
+            <Text style={styles.notice}>{resetNotice}</Text>
+          ) : null}
+          {mode === "forgot-password" && resetError ? (
+            <Text style={styles.error}>{resetError}</Text>
+          ) : null}
         </Animated.View>
 
         {/* BUTTONS */}
         <View style={styles.buttons}>
-          {mode === 'login' ? (
+          {mode === "login" ? (
             <Pressable
               onPress={handleLogin}
               disabled={submitting}
@@ -439,17 +488,17 @@ export default function LoginScreen() {
               ]}
             >
               <LinearGradient
-                colors={['rgba(255,255,255,0.22)', 'rgba(255,255,255,0.10)']}
+                colors={["rgba(255,255,255,0.22)", "rgba(255,255,255,0.10)"]}
                 style={styles.loginGradient}
               >
                 <Text style={styles.loginText}>
-                  {submitting ? 'Logging in...' : 'Log In'}
+                  {submitting ? "Logging in..." : "Log In"}
                 </Text>
               </LinearGradient>
             </Pressable>
           ) : null}
 
-          {mode === 'forgot-password' && resetStep === 1 ? (
+          {mode === "forgot-password" && resetStep === 1 ? (
             <Pressable
               onPress={handleSendPasscode}
               disabled={resetSubmitting}
@@ -459,17 +508,17 @@ export default function LoginScreen() {
               ]}
             >
               <LinearGradient
-                colors={['rgba(255,255,255,0.22)', 'rgba(255,255,255,0.10)']}
+                colors={["rgba(255,255,255,0.22)", "rgba(255,255,255,0.10)"]}
                 style={styles.loginGradient}
               >
                 <Text style={styles.loginText}>
-                  {resetSubmitting ? 'Sending passcode...' : 'Send Passcode'}
+                  {resetSubmitting ? "Sending passcode..." : "Send Passcode"}
                 </Text>
               </LinearGradient>
             </Pressable>
           ) : null}
 
-          {mode === 'forgot-password' && resetStep === 2 ? (
+          {mode === "forgot-password" && resetStep === 2 ? (
             <Pressable
               onPress={handleVerifyPasscode}
               disabled={resetSubmitting}
@@ -479,17 +528,17 @@ export default function LoginScreen() {
               ]}
             >
               <LinearGradient
-                colors={['rgba(255,255,255,0.22)', 'rgba(255,255,255,0.10)']}
+                colors={["rgba(255,255,255,0.22)", "rgba(255,255,255,0.10)"]}
                 style={styles.loginGradient}
               >
                 <Text style={styles.loginText}>
-                  {resetSubmitting ? 'Verifying...' : 'Verify Passcode'}
+                  {resetSubmitting ? "Verifying..." : "Verify Passcode"}
                 </Text>
               </LinearGradient>
             </Pressable>
           ) : null}
 
-          {mode === 'forgot-password' && resetStep === 3 ? (
+          {mode === "forgot-password" && resetStep === 3 ? (
             <Pressable
               onPress={handleResetPassword}
               disabled={resetSubmitting}
@@ -499,23 +548,29 @@ export default function LoginScreen() {
               ]}
             >
               <LinearGradient
-                colors={['rgba(255,255,255,0.22)', 'rgba(255,255,255,0.10)']}
+                colors={["rgba(255,255,255,0.22)", "rgba(255,255,255,0.10)"]}
                 style={styles.loginGradient}
               >
                 <Text style={styles.loginText}>
-                  {resetSubmitting ? 'Updating password...' : 'Update Password'}
+                  {resetSubmitting ? "Updating password..." : "Update Password"}
                 </Text>
               </LinearGradient>
             </Pressable>
           ) : null}
 
-          {mode === 'login' ? (
-            <Pressable onPress={() => router.push('/screenviews/aut-landing/create-account')}>
-              <Text style={styles.createText}>Don't have an account? Create account</Text>
+          {mode === "login" ? (
+            <Pressable
+              onPress={() =>
+                router.push("/screenviews/aut-landing/create-account")
+              }
+            >
+              <Text style={styles.createText}>
+                Don't have an account? Create account
+              </Text>
             </Pressable>
           ) : null}
 
-          {mode === 'forgot-password' ? (
+          {mode === "forgot-password" ? (
             <Pressable onPress={closeForgotPassword}>
               <Text style={styles.createText}>Back to Login</Text>
             </Pressable>
@@ -532,65 +587,62 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 28,
-    alignItems: 'center',
+    alignItems: "center",
   },
 
-
   circleTopRight: {
-    position: 'absolute',
+    position: "absolute",
     top: -80,
     right: -80,
     width: 280,
     height: 280,
     borderRadius: 140,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: "rgba(255,255,255,0.08)",
   },
   circleBottomLeft: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -60,
     left: -60,
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: "rgba(255,255,255,0.07)",
   },
   circleMidLeft: {
-    position: 'absolute',
+    position: "absolute",
     top: height * 0.4,
     left: -100,
     width: 220,
     height: 220,
     borderRadius: 110,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: "rgba(255,255,255,0.05)",
   },
 
-
   tagline: {
-    color: 'rgba(255,255,255,0.6)',
+    color: "rgba(255,255,255,0.6)",
     fontSize: 10,
     letterSpacing: 2,
   },
   title: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 28,
-    fontWeight: '700',
-    textAlign: 'center',
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontWeight: "700",
+    textAlign: "center",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
     marginTop: 8,
   },
   divider: {
     width: 40,
     height: 2,
-    backgroundColor: 'rgba(255,255,255,0.4)',
+    backgroundColor: "rgba(255,255,255,0.4)",
     marginVertical: 12,
   },
   subtitle: {
-    color: 'rgba(255,255,255,0.6)',
+    color: "rgba(255,255,255,0.6)",
     fontSize: 13,
-    fontStyle: 'italic',
-    textAlign: 'center',
+    fontStyle: "italic",
+    textAlign: "center",
   },
-
 
   logoWrapper: {
     marginVertical: 28,
@@ -599,19 +651,19 @@ const styles = StyleSheet.create({
     width: 168,
     height: 168,
     borderRadius: 84,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(255,255,255,0.08)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   logoRing: {
     width: 140,
     height: 140,
     borderRadius: 70,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: "rgba(255,255,255,0.12)",
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.25)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "rgba(255,255,255,0.25)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   logoImage: {
     width: 140,
@@ -619,95 +671,94 @@ const styles = StyleSheet.create({
     borderRadius: 70,
   },
 
-
   form: {
-    width: '100%',
+    width: "100%",
     gap: 14,
   },
   input: {
     borderRadius: 14,
     padding: 14,
-    color: '#1e293b',
-    backgroundColor: '#ffffff',
+    color: "#1e293b",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: '#cbd5e1',
+    borderColor: "#cbd5e1",
   },
   inputWrap: {
-    position: 'relative',
-    justifyContent: 'center',
+    position: "relative",
+    justifyContent: "center",
   },
   inputField: {
     borderRadius: 14,
     padding: 14,
     paddingRight: 48,
-    color: '#1e293b',
-    backgroundColor: '#ffffff',
+    color: "#1e293b",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: '#cbd5e1',
+    borderColor: "#cbd5e1",
   },
   inputToggle: {
-    position: 'absolute',
+    position: "absolute",
     right: 14,
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
   },
   error: {
-    color: '#fecaca',
+    color: "#fecaca",
     fontSize: 12,
-    textAlign: 'center',
+    textAlign: "center",
   },
   notice: {
-    color: 'rgba(255,255,255,0.82)',
+    color: "rgba(255,255,255,0.82)",
     fontSize: 12,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 18,
   },
   forgotText: {
-    color: 'rgba(255,255,255,0.85)',
-    textAlign: 'right',
+    color: "rgba(255,255,255,0.85)",
+    textAlign: "right",
     fontSize: 12,
     marginTop: -2,
   },
   stepBadge: {
-    alignSelf: 'center',
+    alignSelf: "center",
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.22)',
-    backgroundColor: 'rgba(255,255,255,0.10)',
+    borderColor: "rgba(255,255,255,0.22)",
+    backgroundColor: "rgba(255,255,255,0.10)",
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   stepBadgeText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 
   // buttons
   buttons: {
-    width: '100%',
+    width: "100%",
     marginTop: 24,
     gap: 12,
   },
   loginBtn: {
     borderRadius: 16,
-    overflow: 'hidden',
+    overflow: "hidden",
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.4)',
+    borderColor: "rgba(255,255,255,0.4)",
   },
   loginGradient: {
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   loginText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
     fontSize: 15,
   },
   createText: {
-    color: 'rgba(255,255,255,0.8)',
-    textAlign: 'center',
+    color: "rgba(255,255,255,0.8)",
+    textAlign: "center",
     marginTop: 10,
   },
 });

@@ -4,7 +4,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Modal,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -12,6 +11,8 @@ import {
   TextInput,
   View,
 } from 'react-native';
+
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const T = {
   green500: '#06b6d4',

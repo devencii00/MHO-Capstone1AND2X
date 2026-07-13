@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -6,48 +6,50 @@ import {
   Pressable,
   ScrollView,
   StatusBar,
-  SafeAreaView,
   ActivityIndicator,
   Animated,
   Image,
   Platform,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 // @ts-ignore
-import * as DocumentPicker from 'expo-document-picker';
-import { persistCurrentUser } from '@/lib/auth-storage';
+import * as DocumentPicker from "expo-document-picker";
+import { persistCurrentUser } from "@/lib/auth-storage";
 
 // ─── Design Tokens ───────────────────────────────────────────────────────────
 const T = {
-  green400: '#4ade80',
-  green500: '#22c55e',
-  green600: '#16A34A',
-  green700: '#15803D',
-  slate50:  '#f8fafc',
-  slate100: '#f1f5f9',
-  slate200: '#e2e8f0',
-  slate300: '#cbd5e1',
-  slate400: '#94a3b8',
-  slate500: '#64748b',
-  slate600: '#475569',
-  slate700: '#334155',
-  slate800: '#1e293b',
-  slate900: '#0f172a',
-  white:    '#ffffff',
-  green100: 'rgba(34,197,94,0.12)',
-  red100:   'rgba(239,68,68,0.12)',
-  red700:   '#b91c1c',
-  amber100: 'rgba(245,158,11,0.12)',
-  amber700: '#b45309',
+  green400: "#4ade80",
+  green500: "#22c55e",
+  green600: "#16A34A",
+  green700: "#15803D",
+  slate50: "#f8fafc",
+  slate100: "#f1f5f9",
+  slate200: "#e2e8f0",
+  slate300: "#cbd5e1",
+  slate400: "#94a3b8",
+  slate500: "#64748b",
+  slate600: "#475569",
+  slate700: "#334155",
+  slate800: "#1e293b",
+  slate900: "#0f172a",
+  white: "#ffffff",
+  green100: "rgba(34,197,94,0.12)",
+  red100: "rgba(239,68,68,0.12)",
+  red700: "#b91c1c",
+  amber100: "rgba(245,158,11,0.12)",
+  amber700: "#b45309",
 };
 
-const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api').replace(/\/+$/, '');
+const API_BASE_URL = (
+  process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api"
+).replace(/\/+$/, "");
 
 type VerificationRequest = {
   verification_id: number;
-  type: 'none' | 'senior' | 'pwd' | 'pregnant';
-  status: 'pending' | 'approved' | 'rejected';
+  type: "none" | "senior" | "pwd" | "pregnant";
+  status: "pending" | "approved" | "rejected";
   document_path: string | null;
   document_url?: string | null;
   remarks: string | null;
@@ -62,7 +64,15 @@ type PickedDoc = {
 };
 
 // ─── Animated Card ────────────────────────────────────────────────────────────
-function AnimatedCard({ children, delay = 0, style }: { children: React.ReactNode; delay?: number; style?: any }) {
+function AnimatedCard({
+  children,
+  delay = 0,
+  style,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  style?: any;
+}) {
   const anim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.timing(anim, {
@@ -77,7 +87,14 @@ function AnimatedCard({ children, delay = 0, style }: { children: React.ReactNod
       style={[
         {
           opacity: anim,
-          transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [18, 0] }) }],
+          transform: [
+            {
+              translateY: anim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [18, 0],
+              }),
+            },
+          ],
         },
         style,
       ]}
@@ -88,51 +105,68 @@ function AnimatedCard({ children, delay = 0, style }: { children: React.ReactNod
 }
 
 function fileNameFromPath(value: string | null | undefined): string {
-  const raw = typeof value === 'string' ? value.trim() : '';
-  if (!raw) return 'Uploaded document';
-  const normalized = raw.split('?')[0];
-  const parts = normalized.split('/');
-  return parts[parts.length - 1] || 'Uploaded document';
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return "Uploaded document";
+  const normalized = raw.split("?")[0];
+  const parts = normalized.split("/");
+  return parts[parts.length - 1] || "Uploaded document";
 }
 
 function isImageLike(value: string | null | undefined): boolean {
-  const raw = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  const raw = typeof value === "string" ? value.trim().toLowerCase() : "";
   if (!raw) return false;
-  return raw.startsWith('image/') || /\.(png|jpe?g|gif|webp|bmp|svg|avif)$/i.test(raw);
+  return (
+    raw.startsWith("image/") ||
+    /\.(png|jpe?g|gif|webp|bmp|svg|avif)$/i.test(raw)
+  );
 }
 
-async function ensureWebFile(uri: string, name: string, mimeType: string, existingFile?: File | null): Promise<File> {
+async function ensureWebFile(
+  uri: string,
+  name: string,
+  mimeType: string,
+  existingFile?: File | null,
+): Promise<File> {
   if (existingFile instanceof File) return existingFile;
   const response = await fetch(uri);
   const blob = await response.blob();
-  return new File([blob], name || 'verification-document', {
-    type: mimeType || blob.type || 'application/octet-stream',
+  return new File([blob], name || "verification-document", {
+    type: mimeType || blob.type || "application/octet-stream",
   });
 }
 
 export default function PatientVerificationScreen() {
   const router = useRouter();
-  const isOnboarding = Boolean((globalThis as any)?.currentUser?.is_first_login);
+  const isOnboarding = Boolean(
+    (globalThis as any)?.currentUser?.is_first_login,
+  );
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [verificationType, setVerificationType] = useState<'none' | 'senior' | 'pwd' | 'pregnant'>('none');
-  const [verificationDoc, setVerificationDoc] = useState<PickedDoc | null>(null);
-  const [verificationItems, setVerificationItems] = useState<VerificationRequest[]>([]);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [verificationType, setVerificationType] = useState<
+    "none" | "senior" | "pwd" | "pregnant"
+  >("none");
+  const [verificationDoc, setVerificationDoc] = useState<PickedDoc | null>(
+    null,
+  );
+  const [verificationItems, setVerificationItems] = useState<
+    VerificationRequest[]
+  >([]);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
-  const [submittedDocPreview, setSubmittedDocPreview] = useState<PickedDoc | null>(null);
+  const [submittedDocPreview, setSubmittedDocPreview] =
+    useState<PickedDoc | null>(null);
   const [existingDocUrl, setExistingDocUrl] = useState<string | null>(null);
   const [existingDocIsImage, setExistingDocIsImage] = useState(false);
 
   const latestRejected = useMemo(() => {
-    return verificationItems.find(v => v.status === 'rejected');
+    return verificationItems.find((v) => v.status === "rejected");
   }, [verificationItems]);
   const hasPendingVerification = useMemo(() => {
-    return verificationItems.some(v => v.status === 'pending');
+    return verificationItems.some((v) => v.status === "pending");
   }, [verificationItems]);
   const latestDocumentItem = useMemo(() => {
-    return verificationItems.find(v => !!v.document_path);
+    return verificationItems.find((v) => !!v.document_path);
   }, [verificationItems]);
 
   useEffect(() => {
@@ -144,9 +178,15 @@ export default function PatientVerificationScreen() {
         const token = (globalThis as any)?.apiToken as string | undefined;
         if (!token) return;
 
-        const response = await fetch(`${API_BASE_URL}/patient-verifications?per_page=10`, {
-          headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(
+          `${API_BASE_URL}/patient-verifications?per_page=10`,
+          {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
 
         const data = await response.json().catch(() => ({}));
         if (!response.ok) return;
@@ -171,11 +211,17 @@ export default function PatientVerificationScreen() {
 
   useEffect(() => {
     if (latestDocumentItem?.document_path) {
-      const ext = (latestDocumentItem.document_path ?? '').split('.').pop()?.toLowerCase() ?? '';
-      const isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext);
+      const ext =
+        (latestDocumentItem.document_path ?? "")
+          .split(".")
+          .pop()
+          ?.toLowerCase() ?? "";
+      const isImg = ["jpg", "jpeg", "png", "gif", "webp", "bmp"].includes(ext);
       const token = (globalThis as any)?.apiToken as string | undefined;
       if (isImg && token) {
-        setExistingDocUrl(`${API_BASE_URL}/patient-verifications/${latestDocumentItem.verification_id}/document`);
+        setExistingDocUrl(
+          `${API_BASE_URL}/patient-verifications/${latestDocumentItem.verification_id}/document`,
+        );
         setExistingDocIsImage(true);
       } else {
         setExistingDocUrl(null);
@@ -188,73 +234,79 @@ export default function PatientVerificationScreen() {
   }, [latestDocumentItem]);
 
   async function handlePickDoc() {
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: [
-          'image/*',
-          'application/pdf',
-          'application/msword',
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          "image/*",
+          "application/pdf",
+          "application/msword",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         ],
         copyToCacheDirectory: true,
         multiple: false,
       });
 
       if (result.canceled) return;
-      const asset = result.assets && result.assets.length ? result.assets[0] : null;
+      const asset =
+        result.assets && result.assets.length ? result.assets[0] : null;
       if (!asset) {
-        setError('Unable to read selected document.');
+        setError("Unable to read selected document.");
         return;
       }
 
       setVerificationDoc({
         uri: asset.uri,
         name: asset.name,
-        mimeType: asset.mimeType ?? 'application/octet-stream',
+        mimeType: asset.mimeType ?? "application/octet-stream",
         file: (asset as any).file instanceof File ? (asset as any).file : null,
       });
       setSubmittedDocPreview(null);
     } catch {
-      setError('Unable to pick a document.');
+      setError("Unable to pick a document.");
     }
   }
 
   async function handleSubmit() {
     if (hasPendingVerification) {
-      setError('You already have a pending verification request.');
+      setError("You already have a pending verification request.");
       return;
     }
     if (!verificationDoc) {
-      setError('Please upload a document first.');
+      setError("Please upload a document first.");
       return;
     }
 
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     setSubmitting(true);
 
     try {
       const token = (globalThis as any)?.apiToken as string | undefined;
       if (!token) {
-        setError('Please log in again.');
+        setError("Please log in again.");
         return;
       }
 
       const pickedDoc = verificationDoc;
       if (!pickedDoc) {
-        setError('Please upload a document first.');
+        setError("Please upload a document first.");
         return;
       }
 
       const formData = new FormData();
-      formData.append('type', verificationType);
-      if (Platform.OS === 'web') {
-        const webFile = await ensureWebFile(pickedDoc.uri, pickedDoc.name, pickedDoc.mimeType, pickedDoc.file);
-        formData.append('document', webFile, webFile.name);
+      formData.append("type", verificationType);
+      if (Platform.OS === "web") {
+        const webFile = await ensureWebFile(
+          pickedDoc.uri,
+          pickedDoc.name,
+          pickedDoc.mimeType,
+          pickedDoc.file,
+        );
+        formData.append("document", webFile, webFile.name);
       } else {
-        formData.append('document', {
+        formData.append("document", {
           uri: pickedDoc.uri,
           name: pickedDoc.name,
           type: pickedDoc.mimeType,
@@ -262,33 +314,48 @@ export default function PatientVerificationScreen() {
       }
 
       const response = await fetch(`${API_BASE_URL}/patient-verifications`, {
-        method: 'POST',
-        headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       });
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         const validationMessage =
-          data?.errors && typeof data.errors === 'object'
-            ? Object.values(data.errors).flat().filter(Boolean).join(' ')
-            : '';
-        setError(validationMessage || data?.message || 'Unable to submit verification request.');
+          data?.errors && typeof data.errors === "object"
+            ? Object.values(data.errors).flat().filter(Boolean).join(" ")
+            : "";
+        setError(
+          validationMessage ||
+            data?.message ||
+            "Unable to submit verification request.",
+        );
         return;
       }
 
-      setSuccess('Verification request submitted.');
+      setSuccess("Verification request submitted.");
       setSubmittedDocPreview(pickedDoc);
       setVerificationDoc(null);
-      setVerificationType('none');
+      setVerificationType("none");
       setTypeMenuOpen(false);
 
       // Refresh list
-      const refreshed = await fetch(`${API_BASE_URL}/patient-verifications?per_page=10`, {
-        headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
-      });
+      const refreshed = await fetch(
+        `${API_BASE_URL}/patient-verifications?per_page=10`,
+        {
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
       const refreshedData = await refreshed.json().catch(() => ({}));
-      setVerificationItems(Array.isArray(refreshedData?.data) ? refreshedData.data : []);
+      setVerificationItems(
+        Array.isArray(refreshedData?.data) ? refreshedData.data : [],
+      );
 
       const nextUser = {
         ...(globalThis as any)?.currentUser,
@@ -297,10 +364,10 @@ export default function PatientVerificationScreen() {
       await persistCurrentUser(nextUser);
 
       if (isOnboarding) {
-        router.replace('/screenviews/aut-landing/pending-approval' as any);
+        router.replace("/screenviews/aut-landing/pending-approval" as any);
       }
     } catch {
-      setError('Network error. Please try again.');
+      setError("Network error. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -309,37 +376,61 @@ export default function PatientVerificationScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" backgroundColor={T.green700} />
-      
-      <ScrollView style={styles.pageScroll} contentContainerStyle={styles.pageScrollContent} showsVerticalScrollIndicator={false}>
+
+      <ScrollView
+        style={styles.pageScroll}
+        contentContainerStyle={styles.pageScrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <View style={styles.circleTopRight} />
           <View style={styles.circleBottomLeft} />
           <View style={styles.circleMidLeft} />
-          
+
           <View style={styles.headerRow}>
-            
             <View>
               <View style={styles.eyebrowRow}>
-                <View style={[styles.eyebrowDot, { backgroundColor: 'rgba(255,255,255,0.7)' }]} />
-                <Text style={[styles.eyebrowText, { color: 'rgba(255,255,255,0.8)' }]}>Patient Portal</Text>
+                <View
+                  style={[
+                    styles.eyebrowDot,
+                    { backgroundColor: "rgba(255,255,255,0.7)" },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.eyebrowText,
+                    { color: "rgba(255,255,255,0.8)" },
+                  ]}
+                >
+                  Patient Portal
+                </Text>
               </View>
               <Text style={styles.headerTitle}>Verification</Text>
-                    <Text style={styles.headerGreeting}>
-                      {isOnboarding ? 'Step 3 of 3 · Verify your identity and optionally request a patient type.' : 'Verify your identity or request a patient type.'}
-                    </Text>
+              <Text style={styles.headerGreeting}>
+                {isOnboarding
+                  ? "Step 3 of 3 · Verify your identity and optionally request a patient type."
+                  : "Verify your identity or request a patient type."}
+              </Text>
             </View>
-             <Pressable
-                          style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.85 }]}
-                           onPress={() => router.navigate(isOnboarding ? '/screenviews/medical-bg' : '/screenviews/profile' as any)}
-                        >
-                          <Text style={styles.headerBtnText}>Back</Text>
-                        </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.headerBtn,
+                pressed && { opacity: 0.85 },
+              ]}
+              onPress={() =>
+                router.navigate(
+                  isOnboarding
+                    ? "/screenviews/medical-bg"
+                    : ("/screenviews/profile" as any),
+                )
+              }
+            >
+              <Text style={styles.headerBtnText}>Back</Text>
+            </Pressable>
           </View>
-          
         </View>
 
         <View style={styles.contentSurface}>
-          
           {latestRejected && (
             <AnimatedCard delay={50} style={styles.remarksCard}>
               <View style={styles.remarksHeader}>
@@ -347,7 +438,8 @@ export default function PatientVerificationScreen() {
                 <Text style={styles.remarksTitle}>Verification Remarks</Text>
               </View>
               <Text style={styles.remarksText}>
-                {latestRejected.remarks || "Your previous request was rejected. Please review your documents and try again."}
+                {latestRejected.remarks ||
+                  "Your previous request was rejected. Please review your documents and try again."}
               </Text>
             </AnimatedCard>
           )}
@@ -363,7 +455,10 @@ export default function PatientVerificationScreen() {
               <Text style={styles.sectionTitle}>Select Patient Type</Text>
             </View>
             <View style={styles.sectionBody}>
-              <Text style={styles.fieldHint}>`None` means identity verification only. A document is still required.</Text>
+              <Text style={styles.fieldHint}>
+                `None` means identity verification only. A document is still
+                required.
+              </Text>
               <Pressable
                 onPress={() => setTypeMenuOpen((current) => !current)}
                 style={({ pressed }) => [
@@ -373,19 +468,25 @@ export default function PatientVerificationScreen() {
                 ]}
               >
                 <Text style={styles.dropdownTriggerText}>
-                  {verificationType === 'none'
-                    ? 'None'
-                    : verificationType === 'pwd'
-                      ? 'PWD'
-                      : verificationType === 'senior'
-                        ? 'Senior'
-                        : 'Pregnant'}
+                  {verificationType === "none"
+                    ? "None"
+                    : verificationType === "pwd"
+                      ? "PWD"
+                      : verificationType === "senior"
+                        ? "Senior"
+                        : "Pregnant"}
                 </Text>
-                <Ionicons name={typeMenuOpen ? 'chevron-up-outline' : 'chevron-down-outline'} size={18} color={T.slate600} />
+                <Ionicons
+                  name={
+                    typeMenuOpen ? "chevron-up-outline" : "chevron-down-outline"
+                  }
+                  size={18}
+                  color={T.slate600}
+                />
               </Pressable>
               {typeMenuOpen ? (
                 <View style={styles.dropdownMenu}>
-                  {(['none', 'pwd', 'pregnant', 'senior'] as const).map((t) => (
+                  {(["none", "pwd", "pregnant", "senior"] as const).map((t) => (
                     <Pressable
                       key={t}
                       onPress={() => {
@@ -398,10 +499,28 @@ export default function PatientVerificationScreen() {
                         pressed && { opacity: 0.9 },
                       ]}
                     >
-                      <Text style={[styles.dropdownItemText, verificationType === t && styles.dropdownItemTextActive]}>
-                        {t === 'none' ? 'None' : t === 'pwd' ? 'PWD' : t === 'senior' ? 'Senior' : 'Pregnant'}
+                      <Text
+                        style={[
+                          styles.dropdownItemText,
+                          verificationType === t &&
+                            styles.dropdownItemTextActive,
+                        ]}
+                      >
+                        {t === "none"
+                          ? "None"
+                          : t === "pwd"
+                            ? "PWD"
+                            : t === "senior"
+                              ? "Senior"
+                              : "Pregnant"}
                       </Text>
-                      {verificationType === t ? <Ionicons name="checkmark-outline" size={18} color={T.green700} /> : null}
+                      {verificationType === t ? (
+                        <Ionicons
+                          name="checkmark-outline"
+                          size={18}
+                          color={T.green700}
+                        />
+                      ) : null}
                     </Pressable>
                   ))}
                 </View>
@@ -414,75 +533,140 @@ export default function PatientVerificationScreen() {
               <View style={styles.sectionBadge}>
                 <Text style={styles.sectionBadgeText}>Step 2</Text>
               </View>
-              <Text style={styles.sectionTitle}>Upload Verification Document</Text>
+              <Text style={styles.sectionTitle}>
+                Upload Verification Document
+              </Text>
             </View>
             <View style={styles.sectionBody}>
               <Text style={styles.uploadHint}>
-                Upload a clear ID or supporting document. This is required even when patient type is set to `None`.
+                Upload a clear ID or supporting document. This is required even
+                when patient type is set to `None`.
               </Text>
               <Pressable
                 onPress={handlePickDoc}
                 style={({ pressed }) => [
                   styles.uploadBox,
                   verificationDoc && styles.uploadBoxActive,
-                  pressed && { opacity: 0.85 }
+                  pressed && { opacity: 0.85 },
                 ]}
               >
                 <Ionicons
-                  name={verificationDoc ? 'document-attach' : 'cloud-upload-outline'}
+                  name={
+                    verificationDoc ? "document-attach" : "cloud-upload-outline"
+                  }
                   size={32}
                   color={verificationDoc ? T.green700 : T.slate400}
                 />
-                <Text style={[styles.uploadBoxText, verificationDoc && styles.uploadBoxTextActive]} numberOfLines={1} ellipsizeMode="tail">
-                  {verificationDoc ? verificationDoc.name : 'Tap to select document'}
+                <Text
+                  style={[
+                    styles.uploadBoxText,
+                    verificationDoc && styles.uploadBoxTextActive,
+                  ]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {verificationDoc
+                    ? verificationDoc.name
+                    : "Tap to select document"}
                 </Text>
-                <Text style={styles.uploadBoxSub}>Supports JPG, JPEG, PNG, PDF, DOC, DOCX</Text>
+                <Text style={styles.uploadBoxSub}>
+                  Supports JPG, JPEG, PNG, PDF, DOC, DOCX
+                </Text>
               </Pressable>
               {verificationDoc ? (
                 <View style={styles.documentPreviewCard}>
-                  <Text style={styles.documentPreviewTitle}>Selected document</Text>
+                  <Text style={styles.documentPreviewTitle}>
+                    Selected document
+                  </Text>
                   {isImageLike(verificationDoc.mimeType) ? (
-                    <Image source={{ uri: verificationDoc.uri }} style={styles.documentPreviewImage} resizeMode="cover" />
-                  ) : (
-                    <View style={styles.documentPreviewFile}>
-                      <Ionicons name="document-text-outline" size={22} color={T.green700} />
-                      <Text style={styles.documentPreviewName}>{verificationDoc.name}</Text>
-                    </View>
-                  )}
-                  <Text style={styles.documentPreviewMeta}>Ready to upload</Text>
-                </View>
-              ) : submittedDocPreview ? (
-                <View style={styles.documentPreviewCard}>
-                  <Text style={styles.documentPreviewTitle}>Latest uploaded document</Text>
-                  {isImageLike(submittedDocPreview.mimeType) ? (
-                    <Image source={{ uri: submittedDocPreview.uri }} style={styles.documentPreviewImage} resizeMode="cover" />
-                  ) : (
-                    <View style={styles.documentPreviewFile}>
-                      <Ionicons name="document-outline" size={22} color={T.green700} />
-                      <Text style={styles.documentPreviewName} numberOfLines={1} ellipsizeMode="tail">{submittedDocPreview.name}</Text>
-                    </View>
-                  )}
-                  <Text style={styles.documentPreviewMeta}>Uploaded in this session</Text>
-                </View>
-              ) : latestDocumentItem?.document_path ? (
-                <View style={styles.documentPreviewCard}>
-                  <Text style={styles.documentPreviewTitle}>Current uploaded document</Text>
-                  {existingDocIsImage && existingDocUrl ? (
                     <Image
-                      source={{ uri: existingDocUrl, headers: { Authorization: `Bearer ${(globalThis as any)?.apiToken}` } }}
+                      source={{ uri: verificationDoc.uri }}
                       style={styles.documentPreviewImage}
                       resizeMode="cover"
                     />
                   ) : (
                     <View style={styles.documentPreviewFile}>
-                      <Ionicons name="document-attach-outline" size={22} color={T.green700} />
-                      <Text style={styles.documentPreviewName} numberOfLines={1} ellipsizeMode="tail">
+                      <Ionicons
+                        name="document-text-outline"
+                        size={22}
+                        color={T.green700}
+                      />
+                      <Text style={styles.documentPreviewName}>
+                        {verificationDoc.name}
+                      </Text>
+                    </View>
+                  )}
+                  <Text style={styles.documentPreviewMeta}>
+                    Ready to upload
+                  </Text>
+                </View>
+              ) : submittedDocPreview ? (
+                <View style={styles.documentPreviewCard}>
+                  <Text style={styles.documentPreviewTitle}>
+                    Latest uploaded document
+                  </Text>
+                  {isImageLike(submittedDocPreview.mimeType) ? (
+                    <Image
+                      source={{ uri: submittedDocPreview.uri }}
+                      style={styles.documentPreviewImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.documentPreviewFile}>
+                      <Ionicons
+                        name="document-outline"
+                        size={22}
+                        color={T.green700}
+                      />
+                      <Text
+                        style={styles.documentPreviewName}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {submittedDocPreview.name}
+                      </Text>
+                    </View>
+                  )}
+                  <Text style={styles.documentPreviewMeta}>
+                    Uploaded in this session
+                  </Text>
+                </View>
+              ) : latestDocumentItem?.document_path ? (
+                <View style={styles.documentPreviewCard}>
+                  <Text style={styles.documentPreviewTitle}>
+                    Current uploaded document
+                  </Text>
+                  {existingDocIsImage && existingDocUrl ? (
+                    <Image
+                      source={{
+                        uri: existingDocUrl,
+                        headers: {
+                          Authorization: `Bearer ${(globalThis as any)?.apiToken}`,
+                        },
+                      }}
+                      style={styles.documentPreviewImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.documentPreviewFile}>
+                      <Ionicons
+                        name="document-attach-outline"
+                        size={22}
+                        color={T.green700}
+                      />
+                      <Text
+                        style={styles.documentPreviewName}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
                         {fileNameFromPath(latestDocumentItem.document_path)}
                       </Text>
                     </View>
                   )}
                   <Text style={styles.documentPreviewMeta}>
-                    {latestDocumentItem.status === 'pending' ? 'Pending review' : `Status: ${latestDocumentItem.status}`}
+                    {latestDocumentItem.status === "pending"
+                      ? "Pending review"
+                      : `Status: ${latestDocumentItem.status}`}
                   </Text>
                 </View>
               ) : null}
@@ -495,7 +679,8 @@ export default function PatientVerificationScreen() {
               disabled={submitting || loading || hasPendingVerification}
               style={({ pressed }) => [
                 styles.submitBtn,
-                (submitting || loading || hasPendingVerification) && styles.submitBtnDisabled,
+                (submitting || loading || hasPendingVerification) &&
+                  styles.submitBtnDisabled,
                 pressed && { opacity: 0.85 },
               ]}
             >
@@ -504,10 +689,14 @@ export default function PatientVerificationScreen() {
               ) : (
                 <>
                   <Text style={styles.submitBtnText}>
-                    {hasPendingVerification ? 'Pending verification' : isOnboarding ? 'Submit' : 'Submit verification'}
+                    {hasPendingVerification
+                      ? "Pending verification"
+                      : isOnboarding
+                        ? "Submit"
+                        : "Submit verification"}
                   </Text>
                   <Ionicons
-                    name={hasPendingVerification ? 'hourglass-outline' : 'send'}
+                    name={hasPendingVerification ? "hourglass-outline" : "send"}
                     size={18}
                     color={T.white}
                   />
@@ -515,7 +704,9 @@ export default function PatientVerificationScreen() {
               )}
             </Pressable>
             {hasPendingVerification ? (
-              <Text style={styles.pendingNotice}>Please wait for admin/Staff review.</Text>
+              <Text style={styles.pendingNotice}>
+                Please wait for admin/Staff review.
+              </Text>
             ) : null}
           </AnimatedCard>
 
@@ -530,28 +721,68 @@ export default function PatientVerificationScreen() {
               {loading ? (
                 <ActivityIndicator style={{ margin: 20 }} color={T.green700} />
               ) : verificationItems.length === 0 ? (
-                <Text style={styles.emptyText}>No verification requests found.</Text>
+                <Text style={styles.emptyText}>
+                  No verification requests found.
+                </Text>
               ) : (
                 verificationItems.map((v, i) => (
-                  <View key={v.verification_id} style={[styles.historyRow, i === verificationItems.length - 1 && { borderBottomWidth: 0 }]}>
+                  <View
+                    key={v.verification_id}
+                    style={[
+                      styles.historyRow,
+                      i === verificationItems.length - 1 && {
+                        borderBottomWidth: 0,
+                      },
+                    ]}
+                  >
                     <View style={styles.historyIcon}>
-                      <Ionicons 
-                        name={v.status === 'approved' ? 'checkmark-circle' : v.status === 'rejected' ? 'close-circle' : 'time'} 
-                        size={20} 
-                        color={v.status === 'approved' ? T.green700 : v.status === 'rejected' ? T.red700 : T.amber700} 
+                      <Ionicons
+                        name={
+                          v.status === "approved"
+                            ? "checkmark-circle"
+                            : v.status === "rejected"
+                              ? "close-circle"
+                              : "time"
+                        }
+                        size={20}
+                        color={
+                          v.status === "approved"
+                            ? T.green700
+                            : v.status === "rejected"
+                              ? T.red700
+                              : T.amber700
+                        }
                       />
                     </View>
                     <View style={styles.historyMain}>
                       <Text style={styles.historyTitle}>
-                        {v.type === 'none' ? 'None' : v.type === 'pwd' ? 'PWD' : v.type === 'senior' ? 'Senior Citizen' : v.type === 'pregnant' ? 'Pregnant' : 'None'}
+                        {v.type === "none"
+                          ? "None"
+                          : v.type === "pwd"
+                            ? "PWD"
+                            : v.type === "senior"
+                              ? "Senior Citizen"
+                              : v.type === "pregnant"
+                                ? "Pregnant"
+                                : "None"}
                       </Text>
-                      <Text style={styles.historyStatus}>{v.status.toUpperCase()}</Text>
+                      <Text style={styles.historyStatus}>
+                        {v.status.toUpperCase()}
+                      </Text>
                       {v.document_path ? (
-                        <Text style={styles.historyDocName} numberOfLines={1} ellipsizeMode="tail">{fileNameFromPath(v.document_path)}</Text>
+                        <Text
+                          style={styles.historyDocName}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {fileNameFromPath(v.document_path)}
+                        </Text>
                       ) : null}
                     </View>
                     <Text style={styles.historyDate}>
-                      {v.verified_at ? new Date(v.verified_at).toLocaleDateString() : 'Pending'}
+                      {v.verified_at
+                        ? new Date(v.verified_at).toLocaleDateString()
+                        : "Pending"}
                     </Text>
                   </View>
                 ))
@@ -571,86 +802,102 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 50,
     paddingBottom: 21.5,
-    position: 'relative',
-    overflow: 'hidden',
+    position: "relative",
+    overflow: "hidden",
   },
   circleTopRight: {
-    position: 'absolute',
+    position: "absolute",
     top: -80,
     right: -80,
     width: 280,
     height: 280,
     borderRadius: 140,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: "rgba(255,255,255,0.08)",
   },
   circleBottomLeft: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -80,
     left: -60,
     width: 190,
     height: 190,
     borderRadius: 95,
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: "rgba(255,255,255,0.07)",
   },
   circleMidLeft: {
-    position: 'absolute',
+    position: "absolute",
     top: 30,
     left: -90,
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: "rgba(255,255,255,0.07)",
   },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 15,
     zIndex: 1,
   },
   headerBtn: {
-  position: 'absolute', // Pulls it out of the layout flow
-  top: 0.1,              // Distance from the top
-  right: 3,            // Distance from the right
-  
-  marginTop: 4,
-  paddingHorizontal: 12,
-  paddingVertical: 8,
-  borderRadius: 999,
-  backgroundColor: 'rgba(255,255,255,0.15)',
-  borderWidth: 1,
-  borderColor: 'rgba(255,255,255,0.25)',
-},
+    position: "absolute", // Pulls it out of the layout flow
+    top: 0.1, // Distance from the top
+    right: 3, // Distance from the right
+
+    marginTop: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.25)",
+  },
   headerBtnText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.white,
   },
   backBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(255,255,255,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
-  eyebrowDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.green500 },
-  eyebrowText: { fontSize: 9, fontWeight: '700', letterSpacing: 0.9, textTransform: 'uppercase', color: T.green600 },
-  
+  eyebrowRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginBottom: 4,
+  },
+  eyebrowDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: T.green500,
+  },
+  eyebrowText: {
+    fontSize: 9,
+    fontWeight: "700",
+    letterSpacing: 0.9,
+    textTransform: "uppercase",
+    color: T.green600,
+  },
+
   headerTitle: {
     fontSize: 30,
-    fontWeight: '800',
-    fontFamily: 'serif',
+    fontWeight: "800",
+    fontFamily: "serif",
     color: T.white,
     letterSpacing: 0.2,
   },
   headerGreeting: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.75)',
+    color: "rgba(255,255,255,0.75)",
     marginTop: 2,
-    fontWeight: '400',
+    fontWeight: "400",
   },
-  pageScroll: { flex: 1, backgroundColor: 'rgba(255,255,255,0.07)' },
+  pageScroll: { flex: 1, backgroundColor: "rgba(255,255,255,0.07)" },
   pageScrollContent: { flexGrow: 1 },
   contentSurface: {
     flex: 1,
@@ -667,13 +914,18 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(239,68,68,0.2)',
+    borderColor: "rgba(239,68,68,0.2)",
   },
-  remarksHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
-  remarksTitle: { fontSize: 14, fontWeight: '700', color: T.red700 },
+  remarksHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 6,
+  },
+  remarksTitle: { fontSize: 14, fontWeight: "700", color: T.red700 },
   remarksText: { fontSize: 12, color: T.red700, lineHeight: 18, opacity: 0.8 },
-  inlineError: { color: T.red700, fontSize: 12, textAlign: 'center' },
-  inlineSuccess: { color: T.green700, fontSize: 12, textAlign: 'center' },
+  inlineError: { color: T.red700, fontSize: 12, textAlign: "center" },
+  inlineSuccess: { color: T.green700, fontSize: 12, textAlign: "center" },
   sectionCard: {
     backgroundColor: T.white,
     borderRadius: 18,
@@ -684,33 +936,38 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   sectionHeader: {
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     borderBottomWidth: 1,
     borderBottomColor: T.slate100,
   },
   sectionBadge: {
-    backgroundColor: 'rgba(34,197,94,0.1)',
+    backgroundColor: "rgba(34,197,94,0.1)",
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
   sectionBadgeText: {
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: "800",
     color: T.green700,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
-  sectionTitle: { fontSize: 14, fontWeight: '700', color: T.slate800 },
+  sectionTitle: { fontSize: 14, fontWeight: "700", color: T.slate800 },
   sectionBody: { padding: 16 },
-  fieldHint: { fontSize: 12, color: T.slate500, marginBottom: 12, lineHeight: 18 },
+  fieldHint: {
+    fontSize: 12,
+    color: T.slate500,
+    marginBottom: 12,
+    lineHeight: 18,
+  },
   dropdownTrigger: {
     minHeight: 48,
     borderRadius: 14,
@@ -719,58 +976,75 @@ const styles = StyleSheet.create({
     backgroundColor: T.slate50,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: 10,
   },
   dropdownTriggerActive: {
-    borderColor: 'rgba(34,197,94,0.35)',
-    backgroundColor: 'rgba(34,197,94,0.08)',
+    borderColor: "rgba(34,197,94,0.35)",
+    backgroundColor: "rgba(34,197,94,0.08)",
   },
-  dropdownTriggerText: { fontSize: 13, fontWeight: '600', color: T.slate700, flex: 1 },
+  dropdownTriggerText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: T.slate700,
+    flex: 1,
+  },
   dropdownMenu: {
     marginTop: 8,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: T.slate200,
     backgroundColor: T.white,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   dropdownItem: {
     minHeight: 44,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: 10,
     borderBottomWidth: 1,
     borderBottomColor: T.slate100,
   },
   dropdownItemActive: {
-    backgroundColor: 'rgba(34,197,94,0.08)',
+    backgroundColor: "rgba(34,197,94,0.08)",
   },
   dropdownItemText: { fontSize: 13, color: T.slate700, flex: 1 },
-  dropdownItemTextActive: { color: T.green700, fontWeight: '700' },
-  uploadHint: { fontSize: 12, color: T.slate500, marginBottom: 12, lineHeight: 18 },
+  dropdownItemTextActive: { color: T.green700, fontWeight: "700" },
+  uploadHint: {
+    fontSize: 12,
+    color: T.slate500,
+    marginBottom: 12,
+    lineHeight: 18,
+  },
   uploadBox: {
     height: 140,
     borderRadius: 18,
     borderWidth: 2,
-    borderStyle: 'dashed',
+    borderStyle: "dashed",
     borderColor: T.slate200,
     backgroundColor: T.slate50,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
   },
   uploadBoxActive: {
     borderColor: T.green500,
-    backgroundColor: 'rgba(34,197,94,0.06)',
-    borderStyle: 'solid',
+    backgroundColor: "rgba(34,197,94,0.06)",
+    borderStyle: "solid",
   },
-  uploadBoxText: { fontSize: 13, fontWeight: '600', color: T.slate600, textAlign: 'center', paddingHorizontal: 20, overflow: 'hidden' },
+  uploadBoxText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: T.slate600,
+    textAlign: "center",
+    paddingHorizontal: 20,
+    overflow: "hidden",
+  },
   uploadBoxTextActive: { color: T.green700 },
   uploadBoxSub: { fontSize: 10, color: T.slate400 },
   documentPreviewCard: {
@@ -782,9 +1056,9 @@ const styles = StyleSheet.create({
     padding: 12,
     gap: 10,
   },
-  documentPreviewTitle: { fontSize: 12, fontWeight: '700', color: T.slate700 },
+  documentPreviewTitle: { fontSize: 12, fontWeight: "700", color: T.slate700 },
   documentPreviewImage: {
-    width: '100%',
+    width: "100%",
     height: 180,
     borderRadius: 12,
     backgroundColor: T.white,
@@ -797,20 +1071,26 @@ const styles = StyleSheet.create({
     backgroundColor: T.white,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
   },
-  documentPreviewName: { flex: 1, fontSize: 12, fontWeight: '600', color: T.slate700, overflow: 'hidden' },
+  documentPreviewName: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: "600",
+    color: T.slate700,
+    overflow: "hidden",
+  },
   documentPreviewMeta: { fontSize: 11, color: T.slate500 },
   actionSection: { marginTop: 4 },
   submitBtn: {
     backgroundColor: T.green700,
     borderRadius: 18,
     paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 10,
     shadowColor: T.green700,
     shadowOffset: { width: 0, height: 4 },
@@ -823,17 +1103,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     elevation: 0,
   },
-  submitBtnText: { color: T.white, fontSize: 15, fontWeight: '700' },
+  submitBtnText: { color: T.white, fontSize: 15, fontWeight: "700" },
   pendingNotice: {
     marginTop: 10,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 12,
     color: T.slate500,
   },
-  emptyText: { textAlign: 'center', color: T.slate400, fontSize: 12, paddingVertical: 20 },
+  emptyText: {
+    textAlign: "center",
+    color: T.slate400,
+    fontSize: 12,
+    paddingVertical: 20,
+  },
   historyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: T.slate100,
@@ -844,12 +1129,17 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 10,
     backgroundColor: T.slate50,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   historyMain: { flex: 1 },
-  historyTitle: { fontSize: 13, fontWeight: '700', color: T.slate800 },
-  historyStatus: { fontSize: 10, fontWeight: '600', color: T.slate500, marginTop: 1 },
+  historyTitle: { fontSize: 13, fontWeight: "700", color: T.slate800 },
+  historyStatus: {
+    fontSize: 10,
+    fontWeight: "600",
+    color: T.slate500,
+    marginTop: 1,
+  },
   historyDocName: { fontSize: 10, color: T.slate500, marginTop: 4 },
   historyDate: { fontSize: 11, color: T.slate400 },
 });

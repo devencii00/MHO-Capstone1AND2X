@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
+import React, { useRef, useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import {
   View,
   Text,
@@ -8,29 +8,31 @@ import {
   ScrollView,
   StatusBar,
   Animated,
-  SafeAreaView,
-} from 'react-native';
-import type { StyleProp, ViewStyle } from 'react-native';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import type { StyleProp, ViewStyle } from "react-native";
 
 const T = {
-  green500: '#06b6d4',
-  green600: '#16A34A',
-  green700: '#15803D',
-  green400: '#22d3ee',
-  slate50: '#f8fafc',
-  slate100: '#f1f5f9',
-  slate200: '#e2e8f0',
-  slate300: '#cbd5e1',
-  slate400: '#94a3b8',
-  slate500: '#64748b',
-  slate600: '#475569',
-  slate700: '#334155',
-  slate800: '#1e293b',
-  slate900: '#0f172a',
-  white: '#ffffff',
+  green500: "#06b6d4",
+  green600: "#16A34A",
+  green700: "#15803D",
+  green400: "#22d3ee",
+  slate50: "#f8fafc",
+  slate100: "#f1f5f9",
+  slate200: "#e2e8f0",
+  slate300: "#cbd5e1",
+  slate400: "#94a3b8",
+  slate500: "#64748b",
+  slate600: "#475569",
+  slate700: "#334155",
+  slate800: "#1e293b",
+  slate900: "#0f172a",
+  white: "#ffffff",
 };
 
-const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api').replace(/\/+$/, '');
+const API_BASE_URL = (
+  process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api"
+).replace(/\/+$/, "");
 
 type PrescriptionListItem = {
   id: string;
@@ -90,7 +92,14 @@ type SectionCardProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-function SectionCard({ title, subtitle, badge, children, delay, style }: SectionCardProps) {
+function SectionCard({
+  title,
+  subtitle,
+  badge,
+  children,
+  delay,
+  style,
+}: SectionCardProps) {
   return (
     <AnimatedCard delay={delay} style={[styles.card, style]}>
       <View style={styles.cardHeader}>
@@ -102,7 +111,9 @@ function SectionCard({ title, subtitle, badge, children, delay, style }: Section
             </View>
           ) : null}
           <Text style={styles.cardTitle}>{title}</Text>
-          {subtitle ? <Text style={styles.cardSubtitle}>{subtitle}</Text> : null}
+          {subtitle ? (
+            <Text style={styles.cardSubtitle}>{subtitle}</Text>
+          ) : null}
         </View>
       </View>
       <View style={styles.cardBody}>{children}</View>
@@ -112,7 +123,7 @@ function SectionCard({ title, subtitle, badge, children, delay, style }: Section
 
 export default function PatientPrescriptionsScreen() {
   const [items, setItems] = useState<PrescriptionListItem[]>([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -121,43 +132,58 @@ export default function PatientPrescriptionsScreen() {
       try {
         const token = (globalThis as any)?.apiToken as string | undefined;
         if (!token) {
-          setError('Please log in again.');
+          setError("Please log in again.");
           return;
         }
 
-        const response = await fetch(`${API_BASE_URL}/prescriptions?per_page=50`, {
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${token}`,
+        const response = await fetch(
+          `${API_BASE_URL}/prescriptions?per_page=50`,
+          {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
           },
-        });
+        );
 
         const data = await response.json();
         if (!response.ok) {
           const message =
-            typeof data?.message === 'string' && data.message.length > 0
+            typeof data?.message === "string" && data.message.length > 0
               ? data.message
-              : 'Unable to load prescriptions.';
+              : "Unable to load prescriptions.";
           setError(message);
           return;
         }
 
         const raw = Array.isArray(data?.data) ? data.data : [];
         const mapped: PrescriptionListItem[] = raw.map((p: any) => {
-          const dt = p?.prescribed_datetime ? new Date(p.prescribed_datetime) : null;
-          const doctorFirst = p?.doctor?.firstname ? String(p.doctor.firstname) : '';
-          const doctorLast = p?.doctor?.lastname ? String(p.doctor.lastname) : '';
-          const doctorName = `Dr. ${[doctorFirst, doctorLast].filter(Boolean).join(' ')}`.trim();
+          const dt = p?.prescribed_datetime
+            ? new Date(p.prescribed_datetime)
+            : null;
+          const doctorFirst = p?.doctor?.firstname
+            ? String(p.doctor.firstname)
+            : "";
+          const doctorLast = p?.doctor?.lastname
+            ? String(p.doctor.lastname)
+            : "";
+          const doctorName =
+            `Dr. ${[doctorFirst, doctorLast].filter(Boolean).join(" ")}`.trim();
 
-          const firstItem = Array.isArray(p?.items) && p.items.length > 0 ? p.items[0] : null;
-          const medicineName = firstItem?.medicine_name ? String(firstItem.medicine_name) : 'Prescription';
-          const dosage = firstItem?.dosage ? String(firstItem.dosage) : '';
-          const duration = firstItem?.duration ? String(firstItem.duration) : '';
+          const firstItem =
+            Array.isArray(p?.items) && p.items.length > 0 ? p.items[0] : null;
+          const medicineName = firstItem?.medicine_name
+            ? String(firstItem.medicine_name)
+            : "Prescription";
+          const dosage = firstItem?.dosage ? String(firstItem.dosage) : "";
+          const duration = firstItem?.duration
+            ? String(firstItem.duration)
+            : "";
 
           return {
             id: String(p.prescription_id),
-            date: dt ? dt.toLocaleDateString() : '',
-            doctor: doctorName === 'Dr.' ? 'Doctor' : doctorName,
+            date: dt ? dt.toLocaleDateString() : "",
+            doctor: doctorName === "Dr." ? "Doctor" : doctorName,
             medicine: medicineName,
             dosage,
             duration,
@@ -166,10 +192,10 @@ export default function PatientPrescriptionsScreen() {
 
         if (!cancelled) {
           setItems(mapped);
-          setError('');
+          setError("");
         }
       } catch {
-        if (!cancelled) setError('Network error. Please try again.');
+        if (!cancelled) setError("Network error. Please try again.");
       }
     }
 
@@ -187,13 +213,22 @@ export default function PatientPrescriptionsScreen() {
         <View style={styles.headerInner}>
           <View>
             <View style={styles.eyebrowRow}>
-              <View style={[styles.eyebrowDot, { backgroundColor: 'rgba(255,255,255,0.7)' }]} />
-              <Text style={[styles.eyebrowText, { color: 'rgba(255,255,255,0.8)' }]}>
+              <View
+                style={[
+                  styles.eyebrowDot,
+                  { backgroundColor: "rgba(255,255,255,0.7)" },
+                ]}
+              />
+              <Text
+                style={[styles.eyebrowText, { color: "rgba(255,255,255,0.8)" }]}
+              >
                 Patient Portal
               </Text>
             </View>
             <Text style={styles.headerTitle}>Prescriptions</Text>
-            <Text style={styles.headerSub}>Prescriptions issued by your doctors.</Text>
+            <Text style={styles.headerSub}>
+              Prescriptions issued by your doctors.
+            </Text>
           </View>
           <View style={styles.avatarCircle}>
             <Text style={styles.avatarText}>P</Text>
@@ -221,15 +256,23 @@ export default function PatientPrescriptionsScreen() {
                   {item.date} · {item.doctor}
                 </Text>
                 <Text style={styles.rowMeta}>
-                  {[item.dosage, item.duration].filter(Boolean).join(' · ')}
+                  {[item.dosage, item.duration].filter(Boolean).join(" · ")}
                 </Text>
               </View>
               <View style={styles.actionsColumn}>
-                <Pressable style={({ pressed }) => [styles.primaryAction, pressed && { opacity: 0.7 }]}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.primaryAction,
+                    pressed && { opacity: 0.7 },
+                  ]}
+                >
                   <Text style={styles.primaryActionText}>View</Text>
                 </Pressable>
                 <Pressable
-                  style={({ pressed }) => [styles.secondaryAction, pressed && { opacity: 0.7 }]}
+                  style={({ pressed }) => [
+                    styles.secondaryAction,
+                    pressed && { opacity: 0.7 },
+                  ]}
                 >
                   <Text style={styles.secondaryActionText}>Download</Text>
                 </Pressable>
@@ -255,38 +298,38 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   headerInner: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
     marginBottom: 20,
   },
   headerTitle: {
-    fontFamily: 'serif',
+    fontFamily: "serif",
     fontSize: 26,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.white,
     marginBottom: 2,
     letterSpacing: 0.3,
   },
   headerSub: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.75)',
-    fontWeight: '400',
+    color: "rgba(255,255,255,0.75)",
+    fontWeight: "400",
   },
   avatarCircle: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: "rgba(255,255,255,0.2)",
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.35)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "rgba(255,255,255,0.35)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   avatarText: {
     color: T.white,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 
   scroll: {
@@ -313,7 +356,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   cardHeader: {
     paddingHorizontal: 16,
@@ -324,7 +367,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate900,
     letterSpacing: 0.1,
   },
@@ -339,8 +382,8 @@ const styles = StyleSheet.create({
   },
 
   eyebrowRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 5,
     marginBottom: 4,
   },
@@ -352,16 +395,16 @@ const styles = StyleSheet.create({
   },
   eyebrowText: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 0.9,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     color: T.green600,
   },
 
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: 11,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: T.slate100,
@@ -372,7 +415,7 @@ const styles = StyleSheet.create({
   },
   rowTitle: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
     color: T.slate800,
     marginBottom: 2,
   },
@@ -387,11 +430,11 @@ const styles = StyleSheet.create({
   },
   inlineError: {
     fontSize: 12,
-    color: '#b91c1c',
+    color: "#b91c1c",
     marginBottom: 10,
   },
   actionsColumn: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
     gap: 6,
     marginLeft: 8,
   },
@@ -399,13 +442,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(6,182,212,0.08)',
+    backgroundColor: "rgba(6,182,212,0.08)",
     borderWidth: 1,
     borderColor: T.green600,
   },
   primaryActionText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: "600",
     color: T.green700,
   },
   secondaryAction: {
@@ -418,7 +461,7 @@ const styles = StyleSheet.create({
   },
   secondaryActionText: {
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: "500",
     color: T.slate500,
   },
 });

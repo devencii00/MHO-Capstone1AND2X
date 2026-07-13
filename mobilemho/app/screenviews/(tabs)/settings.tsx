@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -6,36 +6,41 @@ import {
   Pressable,
   ScrollView,
   StatusBar,
-  SafeAreaView,
   TextInput,
   Modal,
-} from 'react-native';
-import { useRouter } from 'expo-router';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 // @ts-ignore
-import * as DocumentPicker from 'expo-document-picker';
-import { clearPersistedAuthSession, persistCurrentUser } from '@/lib/auth-storage';
+import * as DocumentPicker from "expo-document-picker";
+import {
+  clearPersistedAuthSession,
+  persistCurrentUser,
+} from "@/lib/auth-storage";
 
 const T = {
-  green500: '#06b6d4',
-  green600: '#16A34A',
-  green700: '#15803D',
-  slate50: '#f8fafc',
-  slate100: '#f1f5f9',
-  slate200: '#e2e8f0',
-  slate400: '#94a3b8',
-  slate500: '#64748b',
-  slate600: '#475569',
-  slate700: '#334155',
-  slate800: '#1e293b',
-  slate900: '#0f172a',
-  white: '#ffffff',
-  green100: 'rgba(34,197,94,0.12)',
-  green700: '#15803d',
-  red100: 'rgba(239,68,68,0.12)',
-  red700: '#b91c1c',
+  green500: "#06b6d4",
+  green600: "#16A34A",
+  green700: "#15803D",
+  slate50: "#f8fafc",
+  slate100: "#f1f5f9",
+  slate200: "#e2e8f0",
+  slate400: "#94a3b8",
+  slate500: "#64748b",
+  slate600: "#475569",
+  slate700: "#334155",
+  slate800: "#1e293b",
+  slate900: "#0f172a",
+  white: "#ffffff",
+  green100: "rgba(34,197,94,0.12)",
+  green700: "#15803d",
+  red100: "rgba(239,68,68,0.12)",
+  red700: "#b91c1c",
 };
 
-const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api').replace(/\/+$/, '');
+const API_BASE_URL = (
+  process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api"
+).replace(/\/+$/, "");
 
 type CurrentUser = {
   user_id: number;
@@ -46,8 +51,8 @@ type CurrentUser = {
 
 type VerificationRequest = {
   verification_id: number;
-  type: 'senior' | 'pwd' | 'pregnant';
-  status: 'pending' | 'approved' | 'rejected';
+  type: "senior" | "pwd" | "pregnant";
+  status: "pending" | "approved" | "rejected";
   document_path: string | null;
   remarks: string | null;
   verified_at: string | null;
@@ -61,22 +66,41 @@ type PickedDoc = {
 
 export default function PatientSettingsScreen() {
   const router = useRouter();
-  const [user, setUser] = useState<CurrentUser | null>((globalThis as any)?.currentUser ?? null);
+  const [user, setUser] = useState<CurrentUser | null>(
+    (globalThis as any)?.currentUser ?? null,
+  );
   const [loading, setLoading] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
-  const [email, setEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [email, setEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
   const accountStatus = useMemo(() => {
-    if (!user) return { label: '-', color: T.slate700, bg: T.slate50, border: T.slate200 };
-    if (user.account_activated) return { label: 'Activated', color: T.green700, bg: T.green100, border: 'rgba(34,197,94,0.25)' };
-    return { label: 'Not activated', color: T.red700, bg: T.red100, border: 'rgba(239,68,68,0.25)' };
+    if (!user)
+      return {
+        label: "-",
+        color: T.slate700,
+        bg: T.slate50,
+        border: T.slate200,
+      };
+    if (user.account_activated)
+      return {
+        label: "Activated",
+        color: T.green700,
+        bg: T.green100,
+        border: "rgba(34,197,94,0.25)",
+      };
+    return {
+      label: "Not activated",
+      color: T.red700,
+      bg: T.red100,
+      border: "rgba(239,68,68,0.25)",
+    };
   }, [user]);
 
   useEffect(() => {
@@ -84,24 +108,29 @@ export default function PatientSettingsScreen() {
 
     async function load() {
       setLoading(true);
-      setError('');
-      setSuccess('');
+      setError("");
+      setSuccess("");
 
       try {
         const token = (globalThis as any)?.apiToken as string | undefined;
         if (!token) {
-          setError('Please log in again.');
+          setError("Please log in again.");
           return;
         }
 
         const response = await fetch(`${API_BASE_URL}/user`, {
-          headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
           const message =
-            typeof data?.message === 'string' && data.message.length > 0 ? data.message : 'Unable to load account.';
+            typeof data?.message === "string" && data.message.length > 0
+              ? data.message
+              : "Unable to load account.";
           setError(message);
           return;
         }
@@ -116,10 +145,10 @@ export default function PatientSettingsScreen() {
         if (!cancelled) {
           setUser(nextUser);
           await persistCurrentUser(nextUser);
-          setEmail(nextUser.email ?? '');
+          setEmail(nextUser.email ?? "");
         }
       } catch {
-        if (!cancelled) setError('Network error. Please try again.');
+        if (!cancelled) setError("Network error. Please try again.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -134,30 +163,30 @@ export default function PatientSettingsScreen() {
   async function handleSaveEmail() {
     const trimmed = email.trim();
     if (!trimmed) {
-      setError('Please enter an email.');
+      setError("Please enter an email.");
       return;
     }
     if (!user?.user_id) {
-      setError('Please log in again.');
+      setError("Please log in again.");
       return;
     }
 
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     setSavingEmail(true);
 
     try {
       const token = (globalThis as any)?.apiToken as string | undefined;
       if (!token) {
-        setError('Please log in again.');
+        setError("Please log in again.");
         return;
       }
 
       const response = await fetch(`${API_BASE_URL}/users/${user.user_id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
+          "Content-Type": "application/json",
+          Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ email: trimmed }),
@@ -166,7 +195,9 @@ export default function PatientSettingsScreen() {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         const message =
-          typeof data?.message === 'string' && data.message.length > 0 ? data.message : 'Unable to update email.';
+          typeof data?.message === "string" && data.message.length > 0
+            ? data.message
+            : "Unable to update email.";
         setError(message);
         return;
       }
@@ -180,9 +211,9 @@ export default function PatientSettingsScreen() {
 
       setUser(nextUser);
       await persistCurrentUser(nextUser);
-      setSuccess('Email updated.');
+      setSuccess("Email updated.");
     } catch {
-      setError('Network error. Please try again.');
+      setError("Network error. Please try again.");
     } finally {
       setSavingEmail(false);
     }
@@ -190,38 +221,38 @@ export default function PatientSettingsScreen() {
 
   async function handleChangePassword() {
     if (!newPassword || !confirmPassword) {
-      setError('Please fill in all password fields.');
+      setError("Please fill in all password fields.");
       return;
     }
     if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters.');
+      setError("Password must be at least 8 characters.");
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError("Passwords do not match.");
       return;
     }
     if (!user?.user_id) {
-      setError('Please log in again.');
+      setError("Please log in again.");
       return;
     }
 
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     setSavingPassword(true);
 
     try {
       const token = (globalThis as any)?.apiToken as string | undefined;
       if (!token) {
-        setError('Please log in again.');
+        setError("Please log in again.");
         return;
       }
 
       const response = await fetch(`${API_BASE_URL}/users/${user.user_id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
+          "Content-Type": "application/json",
+          Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ password: newPassword }),
@@ -230,16 +261,18 @@ export default function PatientSettingsScreen() {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         const message =
-          typeof data?.message === 'string' && data.message.length > 0 ? data.message : 'Unable to update password.';
+          typeof data?.message === "string" && data.message.length > 0
+            ? data.message
+            : "Unable to update password.";
         setError(message);
         return;
       }
 
-      setNewPassword('');
-      setConfirmPassword('');
-      setSuccess('Password updated.');
+      setNewPassword("");
+      setConfirmPassword("");
+      setSuccess("Password updated.");
     } catch {
-      setError('Network error. Please try again.');
+      setError("Network error. Please try again.");
     } finally {
       setSavingPassword(false);
     }
@@ -247,14 +280,17 @@ export default function PatientSettingsScreen() {
 
   async function performLogout() {
     setLoggingOut(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     try {
       const token = (globalThis as any)?.apiToken as string | undefined;
       if (token) {
         await fetch(`${API_BASE_URL}/logout`, {
-          method: 'POST',
-          headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         }).catch(() => null);
       }
     } finally {
@@ -262,7 +298,7 @@ export default function PatientSettingsScreen() {
       setUser(null);
       setLogoutOpen(false);
       setLoggingOut(false);
-      router.replace('/screenviews/aut-landing/login-screen' as any);
+      router.replace("/screenviews/aut-landing/login-screen" as any);
     }
   }
 
@@ -274,16 +310,31 @@ export default function PatientSettingsScreen() {
         <View style={styles.headerInner}>
           <View>
             <View style={styles.eyebrowRow}>
-              <View style={[styles.eyebrowDot, { backgroundColor: 'rgba(255,255,255,0.7)' }]} />
-              <Text style={[styles.eyebrowText, { color: 'rgba(255,255,255,0.8)' }]}>Patient Portal</Text>
+              <View
+                style={[
+                  styles.eyebrowDot,
+                  { backgroundColor: "rgba(255,255,255,0.7)" },
+                ]}
+              />
+              <Text
+                style={[styles.eyebrowText, { color: "rgba(255,255,255,0.8)" }]}
+              >
+                Patient Portal
+              </Text>
             </View>
             <Text style={styles.headerTitle}>Settings</Text>
-            <Text style={styles.headerSub}>Manage your account and security.</Text>
+            <Text style={styles.headerSub}>
+              Manage your account and security.
+            </Text>
           </View>
         </View>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {error ? <Text style={styles.inlineError}>{error}</Text> : null}
         {success ? <Text style={styles.inlineSuccess}>{success}</Text> : null}
 
@@ -294,14 +345,21 @@ export default function PatientSettingsScreen() {
               <Text style={styles.eyebrowText}>Health</Text>
             </View>
             <Text style={styles.cardTitle}>Medical background</Text>
-            <Text style={styles.cardSubtitle}>Allergies and conditions used to keep consultations safe.</Text>
+            <Text style={styles.cardSubtitle}>
+              Allergies and conditions used to keep consultations safe.
+            </Text>
           </View>
           <View style={styles.cardBody}>
             <Pressable
-              onPress={() => router.push('/screenviews/medical-bg' as any)}
-              style={({ pressed }) => [styles.primaryButton, pressed && { opacity: 0.85 }]}
+              onPress={() => router.push("/screenviews/medical-bg" as any)}
+              style={({ pressed }) => [
+                styles.primaryButton,
+                pressed && { opacity: 0.85 },
+              ]}
             >
-              <Text style={styles.primaryButtonText}>Manage medical background</Text>
+              <Text style={styles.primaryButtonText}>
+                Manage medical background
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -313,19 +371,36 @@ export default function PatientSettingsScreen() {
               <Text style={styles.eyebrowText}>Account</Text>
             </View>
             <Text style={styles.cardTitle}>Account details</Text>
-            <Text style={styles.cardSubtitle}>Your email and activation status.</Text>
+            <Text style={styles.cardSubtitle}>
+              Your email and activation status.
+            </Text>
           </View>
 
           <View style={styles.cardBody}>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Email</Text>
-              <Text style={styles.infoValue}>{user?.email ?? '-'}</Text>
+              <Text style={styles.infoValue}>{user?.email ?? "-"}</Text>
             </View>
 
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Status</Text>
-              <View style={[styles.statusPill, { backgroundColor: accountStatus.bg, borderColor: accountStatus.border }]}>
-                <Text style={[styles.statusPillText, { color: accountStatus.color }]}>{accountStatus.label}</Text>
+              <View
+                style={[
+                  styles.statusPill,
+                  {
+                    backgroundColor: accountStatus.bg,
+                    borderColor: accountStatus.border,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.statusPillText,
+                    { color: accountStatus.color },
+                  ]}
+                >
+                  {accountStatus.label}
+                </Text>
               </View>
             </View>
 
@@ -350,7 +425,9 @@ export default function PatientSettingsScreen() {
                     pressed && { opacity: 0.85 },
                   ]}
                 >
-                  <Text style={styles.primaryButtonText}>{savingEmail ? 'Saving...' : 'Save Email'}</Text>
+                  <Text style={styles.primaryButtonText}>
+                    {savingEmail ? "Saving..." : "Save Email"}
+                  </Text>
                 </Pressable>
               </View>
             ) : null}
@@ -364,12 +441,17 @@ export default function PatientSettingsScreen() {
               <Text style={styles.eyebrowText}>Verification</Text>
             </View>
             <Text style={styles.cardTitle}>Patient verification</Text>
-            <Text style={styles.cardSubtitle}>Submit PWD, Pregnant, or Senior proof for clinic records.</Text>
+            <Text style={styles.cardSubtitle}>
+              Submit PWD, Pregnant, or Senior proof for clinic records.
+            </Text>
           </View>
           <View style={styles.cardBody}>
             <Pressable
-              onPress={() => router.push('/screenviews/verify' as any)}
-              style={({ pressed }) => [styles.primaryButton, pressed && { opacity: 0.85 }]}
+              onPress={() => router.push("/screenviews/verify" as any)}
+              style={({ pressed }) => [
+                styles.primaryButton,
+                pressed && { opacity: 0.85 },
+              ]}
             >
               <Text style={styles.primaryButtonText}>Manage Verification</Text>
             </Pressable>
@@ -383,7 +465,9 @@ export default function PatientSettingsScreen() {
               <Text style={styles.eyebrowText}>Security</Text>
             </View>
             <Text style={styles.cardTitle}>Change password</Text>
-            <Text style={styles.cardSubtitle}>Use a strong password (min 8 characters).</Text>
+            <Text style={styles.cardSubtitle}>
+              Use a strong password (min 8 characters).
+            </Text>
           </View>
 
           <View style={styles.cardBody}>
@@ -397,7 +481,9 @@ export default function PatientSettingsScreen() {
               style={styles.input}
             />
 
-            <Text style={[styles.label, { marginTop: 12 }]}>Confirm new password</Text>
+            <Text style={[styles.label, { marginTop: 12 }]}>
+              Confirm new password
+            </Text>
             <TextInput
               value={confirmPassword}
               onChangeText={setConfirmPassword}
@@ -416,7 +502,9 @@ export default function PatientSettingsScreen() {
                 pressed && { opacity: 0.85 },
               ]}
             >
-              <Text style={styles.primaryButtonText}>{savingPassword ? 'Saving...' : 'Save Password'}</Text>
+              <Text style={styles.primaryButtonText}>
+                {savingPassword ? "Saving..." : "Save Password"}
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -431,36 +519,61 @@ export default function PatientSettingsScreen() {
             <Text style={styles.cardSubtitle}>Sign out from this device.</Text>
           </View>
           <View style={styles.cardBody}>
-            <Pressable onPress={() => setLogoutOpen(true)} style={({ pressed }) => [styles.dangerButton, pressed && { opacity: 0.85 }]}>
+            <Pressable
+              onPress={() => setLogoutOpen(true)}
+              style={({ pressed }) => [
+                styles.dangerButton,
+                pressed && { opacity: 0.85 },
+              ]}
+            >
               <Text style={styles.dangerButtonText}>Log out</Text>
             </Pressable>
           </View>
         </View>
 
         <Text style={styles.footerNote}>
-          {loading ? 'Loading account…' : 'Need help? Contact the clinic front desk.'}
+          {loading
+            ? "Loading account…"
+            : "Need help? Contact the clinic front desk."}
         </Text>
       </ScrollView>
 
-      <Modal visible={logoutOpen} transparent animationType="fade" onRequestClose={() => setLogoutOpen(false)}>
+      <Modal
+        visible={logoutOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setLogoutOpen(false)}
+      >
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Log out</Text>
-            <Text style={styles.modalText}>Are you sure you want to log out?</Text>
+            <Text style={styles.modalText}>
+              Are you sure you want to log out?
+            </Text>
             <View style={styles.modalActions}>
               <Pressable
                 onPress={() => setLogoutOpen(false)}
                 disabled={loggingOut}
-                style={({ pressed }) => [styles.modalBtn, pressed && { opacity: 0.85 }, loggingOut && { opacity: 0.6 }]}
+                style={({ pressed }) => [
+                  styles.modalBtn,
+                  pressed && { opacity: 0.85 },
+                  loggingOut && { opacity: 0.6 },
+                ]}
               >
                 <Text style={styles.modalBtnText}>Cancel</Text>
               </Pressable>
               <Pressable
                 onPress={performLogout}
                 disabled={loggingOut}
-                style={({ pressed }) => [styles.modalBtnDanger, pressed && { opacity: 0.85 }, loggingOut && { opacity: 0.6 }]}
+                style={({ pressed }) => [
+                  styles.modalBtnDanger,
+                  pressed && { opacity: 0.85 },
+                  loggingOut && { opacity: 0.6 },
+                ]}
               >
-                <Text style={styles.modalBtnDangerText}>{loggingOut ? 'Logging out…' : 'Log out'}</Text>
+                <Text style={styles.modalBtnDangerText}>
+                  {loggingOut ? "Logging out…" : "Log out"}
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -482,26 +595,26 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   headerInner: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
   },
   headerTitle: {
-    fontFamily: 'serif',
+    fontFamily: "serif",
     fontSize: 26,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.white,
     marginBottom: 2,
     letterSpacing: 0.3,
   },
   headerSub: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.75)',
-    fontWeight: '400',
+    color: "rgba(255,255,255,0.75)",
+    fontWeight: "400",
   },
   eyebrowRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 5,
     marginBottom: 4,
   },
@@ -513,9 +626,9 @@ const styles = StyleSheet.create({
   },
   eyebrowText: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 0.9,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     color: T.green600,
   },
   scroll: {
@@ -532,12 +645,12 @@ const styles = StyleSheet.create({
   },
   inlineError: {
     fontSize: 12,
-    color: '#b91c1c',
+    color: "#b91c1c",
     marginBottom: 10,
   },
   inlineSuccess: {
     fontSize: 12,
-    color: '#15803d',
+    color: "#15803d",
     marginBottom: 10,
   },
   card: {
@@ -551,7 +664,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   cardHeader: {
     paddingHorizontal: 16,
@@ -562,7 +675,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate900,
     letterSpacing: 0.1,
   },
@@ -577,9 +690,9 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
   },
   infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: T.slate100,
@@ -587,12 +700,12 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 12,
     color: T.slate500,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   infoValue: {
     fontSize: 12,
     color: T.slate800,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   statusPill: {
     paddingHorizontal: 10,
@@ -602,14 +715,14 @@ const styles = StyleSheet.create({
   },
   statusPillText: {
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   formBlock: {
     marginTop: 12,
   },
   label: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: "600",
     color: T.slate600,
     marginBottom: 6,
   },
@@ -626,19 +739,19 @@ const styles = StyleSheet.create({
   primaryButton: {
     marginTop: 14,
     borderRadius: 999,
-    backgroundColor: '#0f766e',
+    backgroundColor: "#0f766e",
     paddingVertical: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   primaryButtonText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.white,
   },
   chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
     marginBottom: 12,
   },
@@ -651,12 +764,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   chipActive: {
-    borderColor: 'rgba(34,197,94,0.25)',
+    borderColor: "rgba(34,197,94,0.25)",
     backgroundColor: T.green100,
   },
   chipText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate700,
   },
   chipTextActive: {
@@ -672,7 +785,7 @@ const styles = StyleSheet.create({
   },
   outlineButtonText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate700,
   },
   divider: {
@@ -693,7 +806,7 @@ const styles = StyleSheet.create({
   },
   verifTitle: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: "800",
     color: T.slate800,
   },
   verifSub: {
@@ -707,29 +820,29 @@ const styles = StyleSheet.create({
     color: T.slate400,
   },
   dangerButton: {
-    backgroundColor: '#fee2e2',
+    backgroundColor: "#fee2e2",
     borderWidth: 1,
-    borderColor: 'rgba(185,28,28,0.25)',
+    borderColor: "rgba(185,28,28,0.25)",
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   dangerButtonText: {
     color: T.red700,
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(15,23,42,0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(15,23,42,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 18,
   },
   modalCard: {
-    width: '100%',
+    width: "100%",
     maxWidth: 360,
     backgroundColor: T.white,
     borderRadius: 18,
@@ -739,7 +852,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: "800",
     color: T.slate900,
     marginBottom: 6,
   },
@@ -750,9 +863,9 @@ const styles = StyleSheet.create({
   },
   modalActions: {
     marginTop: 14,
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 10,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   modalBtn: {
     paddingHorizontal: 14,
@@ -764,7 +877,7 @@ const styles = StyleSheet.create({
   },
   modalBtnText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.slate700,
   },
   modalBtnDanger: {
@@ -777,7 +890,7 @@ const styles = StyleSheet.create({
   },
   modalBtnDangerText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: T.white,
   },
 });
