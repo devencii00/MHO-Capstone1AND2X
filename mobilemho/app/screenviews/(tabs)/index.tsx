@@ -18,6 +18,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   fetchPatientNotifications,
+  fetchNotificationUnreadCount,
   formatNotificationTimestamp,
   markPatientNotificationsAsRead,
   type PatientNotification as DashboardNotification,
@@ -79,6 +80,39 @@ function formatCurrency(value: number): string {
   if (Number.isNaN(value)) return "P 0.00";
   return `P ${value.toFixed(2)}`;
 }
+
+function formatDoctorInitials(rawName: string): {
+  initials: string;
+  fullName: string;
+} {
+  const name = String(rawName ?? "")
+    .replace(/^Dr\.\s*/i, "")
+    .trim();
+  if (!name) return { initials: "Dr.", fullName: "Doctor" };
+
+  const parts = name.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { initials: "Dr.", fullName: "Doctor" };
+
+  const last = parts[parts.length - 1];
+  const initials = parts
+    .slice(0, -1)
+    .map((p) => p.charAt(0).toUpperCase() + ".")
+    .join(" ");
+
+  const initialsStr = initials ? `${initials} ${last}` : last;
+  return { initials: initialsStr, fullName: name };
+}
+
+type StatusCardState =
+  | {
+      type: "queue";
+      queueNumber: string;
+      doctorName: string;
+      position: number | null;
+    }
+  | { type: "appointment"; date: string; time: string; doctorName: string }
+  | { type: "payment"; totalFee: string; doctorInfo: string }
+  | { type: "empty" };
 
 type DashboardAppointment = {
   id: string;
@@ -158,6 +192,97 @@ function AnimatedCard({ children, delay = 0, style }: AnimatedCardProps) {
     >
       {children}
     </Animated.View>
+  );
+}
+
+// ─── Status Card (replaces info row) ─────────────────────────────────────────
+type StatusCardProps = {
+  state: StatusCardState;
+  delay?: number;
+  onPress?: () => void;
+};
+
+function StatusCard({ state, delay = 0, onPress }: StatusCardProps) {
+  const iconName: React.ComponentProps<typeof Ionicons>["name"] =
+    state.type === "queue"
+      ? "people-outline"
+      : state.type === "appointment"
+        ? "calendar-clear-outline"
+        : state.type === "payment"
+          ? "card-outline"
+          : "calendar-outline";
+
+  const doctorFormatted =
+    state.type === "queue" || state.type === "appointment"
+      ? (() => {
+          const { initials, fullName } = formatDoctorInitials(state.doctorName);
+          return `${initials} (${fullName})`;
+        })()
+      : null;
+
+  return (
+    <AnimatedCard delay={delay} style={styles.statusCardWrap}>
+      <Pressable
+        onPress={onPress}
+        disabled={!onPress}
+        style={({ pressed }) => [
+          styles.statusCardInner,
+          pressed && onPress && { opacity: 0.85 },
+        ]}
+      >
+        <View style={styles.statusCardContent}>
+          <View style={styles.statusIconCircle}>
+            <Ionicons name={iconName} size={22} color={T.green700} />
+          </View>
+
+          <View style={styles.statusTextWrap}>
+            {state.type === "queue" ? (
+              <>
+                <Text style={styles.statusTitle}>
+                  {`#${String(state.queueNumber ?? "").padStart(3, "0")}`}
+                </Text>
+                <Text style={styles.statusSubtitle}>{doctorFormatted}</Text>
+                {state.position != null ? (
+                  <Text style={styles.statusMeta}>
+                    {`Queue position: ${state.position}`}
+                  </Text>
+                ) : null}
+              </>
+            ) : state.type === "appointment" ? (
+              <>
+                <Text style={styles.statusTitle}>Upcoming Appointment</Text>
+                <Text style={styles.statusSubtitle}>{doctorFormatted}</Text>
+                <Text style={styles.statusMeta}>
+                  {`${state.date} · ${state.time}`}
+                </Text>
+              </>
+            ) : state.type === "payment" ? (
+              <>
+                <Text style={styles.statusTitle}>Pending Payment</Text>
+                <Text style={styles.statusValue}>{state.totalFee}</Text>
+                <Text style={styles.statusMeta}>{state.doctorInfo}</Text>
+                <Text style={styles.statusAction}>
+                  Please proceed to billing
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.statusTitle}>No Current Appointments</Text>
+                <Text style={styles.statusSubtitle}>
+                  You have no active appointments or queue entries.
+                </Text>
+              </>
+            )}
+          </View>
+
+          {onPress ? (
+            <View style={styles.statusArrow}>
+              <Ionicons name="chevron-forward" size={18} color={T.white} />
+            </View>
+          ) : null}
+        </View>
+      </Pressable>
+    </AnimatedCard>
   );
 }
 
@@ -314,18 +439,39 @@ function RowItem({ icon, title, subtitle, pill, onPress }: RowItemProps) {
 }
 
 // ─── Notification Row ─────────────────────────────────────────────────────────
+function iconForType(
+  type: string,
+): React.ComponentProps<typeof Ionicons>["name"] {
+  const normalized = type.trim().toLowerCase();
+  if (normalized === "appointment") return "calendar-clear-outline";
+  if (normalized === "payment") return "card-outline";
+  return "shield-checkmark-outline";
+}
+
+function iconTint(type: string): string {
+  const normalized = type.trim().toLowerCase();
+  if (normalized === "appointment") return T.green700;
+  if (normalized === "payment") return T.green700;
+  return T.amber700;
+}
+
 function NotifRow({
+  type,
   title,
   body,
   meta,
 }: {
+  type: string;
   title: string;
   body: string;
   meta?: string;
 }) {
+  const tint = iconTint(type);
   return (
     <View style={styles.notifRow}>
-      <View style={styles.notifDot} />
+      <View style={[styles.notifIconWrap, { backgroundColor: `${tint}14` }]}>
+        <Ionicons name={iconForType(type)} size={16} color={tint} />
+      </View>
       <View style={styles.notifBody}>
         <Text style={styles.notifTitle}>{title}</Text>
         <Text style={styles.notifText}>{body}</Text>
@@ -358,6 +504,7 @@ export default function PatientDashboardScreen() {
   });
   const [error, setError] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const loadingQueueRef = useRef(false);
 
   async function openNotificationsModal() {
@@ -464,6 +611,7 @@ export default function PatientDashboardScreen() {
           visitsRes,
           transactionsRes,
           notificationsList,
+          unreadCountData,
         ] = await Promise.all([
           fetch(`${API_BASE_URL}/appointments?per_page=100&order=latest`, {
             headers: {
@@ -483,13 +631,14 @@ export default function PatientDashboardScreen() {
               Authorization: `Bearer ${token}`,
             },
           }),
-          fetch(`${API_BASE_URL}/transactions?per_page=100&order=latest`, {
+          fetch(`${API_BASE_URL}/transactions?per_page=15&order=latest`, {
             headers: {
               Accept: "application/json",
               Authorization: `Bearer ${token}`,
             },
           }),
           fetchPatientNotifications(token, 10),
+          fetchNotificationUnreadCount(token),
         ]);
         const [
           appointmentsData,
@@ -660,6 +809,7 @@ export default function PatientDashboardScreen() {
           setRecentVisits(visitsMapped);
           setNotifications(notificationsList);
           setPendingBilling(pendingBillingCard);
+          setUnreadCount(unreadCountData.notifications);
           setError("");
         }
       } catch (err) {
@@ -694,6 +844,52 @@ export default function PatientDashboardScreen() {
 
   const nextAppt = upcomingAppointments[0];
   const notificationPreview = notifications.slice(0, 10);
+
+  const cardState = React.useMemo((): StatusCardState => {
+    // Priority 1: Active queue
+    if (queueStatus) {
+      return {
+        type: "queue",
+        queueNumber: queueStatus.queueNumber,
+        doctorName: queueStatus.doctor,
+        position: queueStatus.position,
+      };
+    }
+
+    // Priority 2: Future confirmed scheduled appointment
+    if (nextAppt && nextAppt.statusRaw === "confirmed") {
+      return {
+        type: "appointment",
+        date: nextAppt.date,
+        time: nextAppt.time,
+        doctorName: nextAppt.doctor,
+      };
+    }
+
+    // Priority 3: Consulted with pending payment
+    if (pendingBilling.value !== "_ _") {
+      return {
+        type: "payment",
+        totalFee: pendingBilling.value,
+        doctorInfo: pendingBilling.sub,
+      };
+    }
+
+    return { type: "empty" };
+  }, [queueStatus, nextAppt, pendingBilling]);
+
+  const cardAction = React.useMemo(() => {
+    if (cardState.type === "queue") {
+      return () => router.push("/screenviews/(tabs)/queue" as any);
+    }
+    if (cardState.type === "appointment") {
+      return () => router.push("/screenviews/(tabs)/appointments" as any);
+    }
+    if (cardState.type === "payment") {
+      return () => router.push("/screenviews/(tabs)/records" as any);
+    }
+    return undefined;
+  }, [cardState, router]);
 
   const getGreeting = () => {
     const currentHour = new Date().getHours();
@@ -732,12 +928,6 @@ export default function PatientDashboardScreen() {
           <View style={styles.headerRow}>
             <View>
               <View style={styles.eyebrowRow}>
-                <View
-                  style={[
-                    styles.eyebrowDot,
-                    { backgroundColor: "rgba(255,255,255,0.7)" },
-                  ]}
-                />
                 <Text
                   style={[
                     styles.eyebrowText,
@@ -770,13 +960,10 @@ export default function PatientDashboardScreen() {
                   size={19}
                   color={T.white}
                 />
-                {notifications.some((item) => !item.isRead) && (
+                {unreadCount > 0 && (
                   <View style={styles.notifBadge}>
                     <Text style={styles.notifBadgeText}>
-                      {Math.min(
-                        notifications.filter((item) => !item.isRead).length,
-                        99,
-                      )}
+                      {unreadCount > 99 ? "99+" : unreadCount}
                     </Text>
                   </View>
                 )}
@@ -788,44 +975,8 @@ export default function PatientDashboardScreen() {
         <View style={styles.contentSurface}>
           {error ? <Text style={styles.inlineError}>{error}</Text> : null}
 
-          {/* ── Info Cards Row ── */}
-          <View style={styles.infoRow}>
-            <InfoCard
-              icon="people-outline"
-              label="Your current Queue"
-              value={
-                queueStatus ? queueStatus.queueNumber || "-" : "Join Queue"
-              }
-              sub={
-                queueStatus
-                  ? queueStatus.position != null
-                    ? `Patient in front: ${queueStatus.position}`
-                    : "Queue entry active"
-                  : "Tap here to join the walk-in queue"
-              }
-              delay={30}
-              onPress={() => router.push("/screenviews/queue" as any)}
-            />
-            <InfoCard
-              icon="calendar-clear-outline"
-              label="Appointments"
-              value={nextAppt ? nextAppt.doctor : "_ _"}
-              sub={
-                nextAppt
-                  ? `${nextAppt.date} - ${nextAppt.time}`
-                  : "No active pending or confirmed schedule"
-              }
-              delay={60}
-              onPress={() => router.push("/screenviews/appointments" as any)}
-            />
-            <InfoCard
-              icon="card-outline"
-              label="Pending payment"
-              value={pendingBilling.value}
-              sub={pendingBilling.sub}
-              delay={90}
-            />
-          </View>
+          {/* ── Status Card ── */}
+          <StatusCard state={cardState} delay={30} onPress={cardAction} />
 
           {/* ── Quick Actions ── */}
           <AnimatedCard delay={120} style={styles.actionSection}>
@@ -937,6 +1088,7 @@ export default function PatientDashboardScreen() {
                 notificationPreview.map((item) => (
                   <NotifRow
                     key={item.id}
+                    type={item.type}
                     title={item.title}
                     body={item.body}
                     meta={formatNotificationTimestamp(item.createdAt)}
@@ -1045,12 +1197,6 @@ const styles = StyleSheet.create({
     gap: 5,
     marginBottom: 4,
   },
-  eyebrowDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: T.green600,
-  },
   eyebrowText: {
     fontSize: 9,
     fontWeight: "700",
@@ -1143,6 +1289,85 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: T.red700,
     marginBottom: 10,
+  },
+
+  // ── Status Card ──
+  statusCardWrap: {
+    marginBottom: 50,
+    marginTop: 20,
+  },
+  statusCardInner: {
+    backgroundColor: T.white,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: T.slate200,
+    shadowColor: T.slate900,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  statusCardContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 18,
+    paddingVertical: 40,
+    gap: 16,
+  },
+  statusIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: "rgba(6,182,212,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  statusTextWrap: {
+    flex: 1,
+    gap: 2,
+  },
+  statusTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: T.green700,
+    lineHeight: 19,
+  },
+  statusSubtitle: {
+    fontSize: 12,
+    color: T.slate700,
+    lineHeight: 16,
+    fontWeight: "500",
+  },
+  statusMeta: {
+    fontSize: 11,
+    color: T.slate500,
+    lineHeight: 15,
+    marginTop: 1,
+  },
+  statusValue: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: T.green700,
+    lineHeight: 21,
+    marginTop: 2,
+  },
+  statusAction: {
+    fontSize: 10,
+    fontWeight: "600",
+    color: T.amber700,
+    lineHeight: 14,
+    marginTop: 2,
+    letterSpacing: 0.2,
+  },
+  statusArrow: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: T.green600,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
   },
 
   // ── Info Cards ──
@@ -1378,13 +1603,14 @@ const styles = StyleSheet.create({
     borderBottomColor: T.slate100,
     gap: 10,
   },
-  notifDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: T.green500,
-    marginTop: 4,
+  notifIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
     flexShrink: 0,
+    marginTop: 1,
   },
   notifBody: {
     flex: 1,

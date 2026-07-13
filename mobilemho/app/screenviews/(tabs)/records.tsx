@@ -42,7 +42,7 @@ const API_BASE_URL = (
   process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api"
 ).replace(/\/+$/, "");
 
-type RecordsTabKey = "visits" | "prescriptions" | "vitals";
+type RecordsTabKey = "visits" | "prescriptions";
 
 type AnimatedCardProps = {
   children: ReactNode;
@@ -54,13 +54,15 @@ type VisitHistoryItem = {
   id: string;
   dateKey: string;
   date: string;
+  patientName: string;
   doctor: string;
+  doctorInitials: string;
   reason: string;
   diagnosis: string;
   treatment: string;
   paymentStatus: string;
   appointmentType: string;
-  prescriptionSummaries: string[];
+  prescriptionMedicines: PrescriptionMedicineItem[];
 };
 
 type PrescriptionMedicineItem = {
@@ -77,27 +79,14 @@ type PrescriptionHistoryItem = {
   dateKey: string;
   date: string;
   doctor: string;
+  doctorInitials: string;
+  patientName: string;
   summary: string;
   reason: string;
   prescriptionNotes: string;
   diagnosis: string;
   treatment: string;
   medicines: PrescriptionMedicineItem[];
-};
-
-type VitalHistoryItem = {
-  id: string;
-  dateKey: string;
-  recordedAt: string;
-  appointmentDate: string;
-  doctor: string;
-  heightCm: string;
-  weightKg: string;
-  bloodPressure: string;
-  temperature: string;
-  pulseRate: string;
-  bmi: string;
-  bmiCategory: string;
 };
 
 function AnimatedCard({ children, delay = 0, style }: AnimatedCardProps) {
@@ -170,6 +159,26 @@ function formatDoctorName(raw: any): string {
   return full === "Dr." ? "Doctor" : full;
 }
 
+function formatDoctorInitials(raw: any): string {
+  if (!raw) return "Doctor";
+  const first = raw?.firstname ? String(raw.firstname) : "";
+  const middle = raw?.middlename ? String(raw.middlename) : "";
+  const last = raw?.lastname ? String(raw.lastname) : "";
+  const firstInit = first ? first.charAt(0).toUpperCase() + "." : "";
+  const middleInit = middle ? middle.charAt(0).toUpperCase() + "." : "";
+  const parts = [firstInit, middleInit, last].filter(Boolean);
+  return parts.length > 0 ? `Dr. ${parts.join(" ")}` : "Doctor";
+}
+
+function formatPatientName(raw: any): string {
+  if (!raw) return "Patient";
+  const first = raw?.firstname ? String(raw.firstname) : "";
+  const middle = raw?.middlename ? String(raw.middlename) : "";
+  const last = raw?.lastname ? String(raw.lastname) : "";
+  const parts = [first, middle, last].filter(Boolean);
+  return parts.length > 0 ? parts.join(" ") : "Patient";
+}
+
 function formatAppointmentType(value: any): string {
   const raw = typeof value === "string" ? value.trim().toLowerCase() : "";
   if (raw === "walk_in" || raw === "walk-in" || raw === "walk in")
@@ -180,38 +189,6 @@ function formatAppointmentType(value: any): string {
 
 function normalizeText(value: any): string {
   return typeof value === "string" ? value.trim() : "";
-}
-
-function formatNumberLabel(value: any, suffix = ""): string {
-  if (value == null || value === "") return "-";
-  const numeric = Number(value);
-  if (Number.isNaN(numeric)) return "-";
-  return `${numeric.toFixed(1)}${suffix}`;
-}
-
-function computeBmi(
-  heightCmRaw: any,
-  weightKgRaw: any,
-): { bmi: string; category: string } {
-  const heightCm = Number(heightCmRaw);
-  const weightKg = Number(weightKgRaw);
-  if (
-    Number.isNaN(heightCm) ||
-    Number.isNaN(weightKg) ||
-    heightCm <= 0 ||
-    weightKg <= 0
-  ) {
-    return { bmi: "-", category: "Unavailable" };
-  }
-
-  const heightM = heightCm / 100;
-  const bmi = weightKg / (heightM * heightM);
-  let category = "Obese (30 and above)";
-  if (bmi < 18.5) category = "Underweight (Below 18.5)";
-  else if (bmi < 25) category = "Normal (18.5 - 24.9)";
-  else if (bmi < 30) category = "Overweight (25.0 - 29.9)";
-
-  return { bmi: bmi.toFixed(1), category };
 }
 
 function TabCard({
@@ -280,7 +257,6 @@ export default function PatientRecordsScreen() {
   const [prescriptions, setPrescriptions] = useState<PrescriptionHistoryItem[]>(
     [],
   );
-  const [vitals, setVitals] = useState<VitalHistoryItem[]>([]);
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [selectedDateKey, setSelectedDateKey] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -301,7 +277,7 @@ export default function PatientRecordsScreen() {
           return;
         }
 
-        const [visitsRes, prescriptionsRes, vitalsRes] = await Promise.all([
+        const [visitsRes, prescriptionsRes] = await Promise.all([
           fetch(`${API_BASE_URL}/visits?per_page=100`, {
             headers: {
               Accept: "application/json",
@@ -314,25 +290,15 @@ export default function PatientRecordsScreen() {
               Authorization: `Bearer ${token}`,
             },
           }),
-          fetch(`${API_BASE_URL}/vitals?per_page=100`, {
-            headers: {
-              Accept: "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }),
         ]);
 
-        const [visitsData, prescriptionsData, vitalsData] = await Promise.all([
+        const [visitsData, prescriptionsData] = await Promise.all([
           visitsRes.json().catch(() => ({})),
           prescriptionsRes.json().catch(() => ({})),
-          vitalsRes.json().catch(() => ({})),
         ]);
 
-        if (!visitsRes.ok || !prescriptionsRes.ok || !vitalsRes.ok) {
-          const anyMessage =
-            visitsData?.message ||
-            prescriptionsData?.message ||
-            vitalsData?.message;
+        if (!visitsRes.ok || !prescriptionsRes.ok) {
+          const anyMessage = visitsData?.message || prescriptionsData?.message;
           if (!cancelled) {
             setError(
               typeof anyMessage === "string" && anyMessage.length > 0
@@ -349,29 +315,43 @@ export default function PatientRecordsScreen() {
         const prescriptionRows = Array.isArray(prescriptionsData?.data)
           ? prescriptionsData.data
           : [];
-        const vitalRows = Array.isArray(vitalsData?.data)
-          ? vitalsData.data
-          : [];
 
         const mappedVisits: VisitHistoryItem[] = visitRows
           .map((row: any) => {
-            const doctor = row?.appointment?.doctor
-              ? formatDoctorName(row.appointment.doctor)
-              : row?.prescriptions?.[0]?.doctor
-                ? formatDoctorName(row.prescriptions[0].doctor)
-                : "Doctor";
-            const prescriptionSummaries = (
+            const doctorRaw =
+              row?.appointment?.doctor ||
+              row?.prescriptions?.[0]?.doctor ||
+              null;
+            const doctor = doctorRaw ? formatDoctorName(doctorRaw) : "Doctor";
+            const doctorInitials = doctorRaw
+              ? formatDoctorInitials(doctorRaw)
+              : "Doctor";
+            const patientRaw = row?.appointment?.patient || null;
+            const patientName = patientRaw
+              ? formatPatientName(patientRaw)
+              : "Patient";
+            const prescriptionMedicines: PrescriptionMedicineItem[] = (
               Array.isArray(row?.prescriptions) ? row.prescriptions : []
             )
               .flatMap((prescription: any) =>
                 Array.isArray(prescription?.items) ? prescription.items : [],
               )
-              .map((item: any) =>
-                normalizeText(
-                  item?.medicine_name || item?.medicine?.medicine_name,
+              .map((item: any, idx: number) => ({
+                id: String(
+                  item?.item_id ??
+                    `${row?.transaction_id ?? "v"}-${item?.medicine_id ?? idx}`,
                 ),
-              )
-              .filter(Boolean);
+                name:
+                  normalizeText(
+                    item?.medicine_name ||
+                      item?.medicine?.generic_name ||
+                      item?.medicine?.brand_name,
+                  ) || "Medicine",
+                dosage: normalizeText(item?.dosage),
+                frequency: normalizeText(item?.frequency),
+                duration: normalizeText(item?.duration),
+                instructions: normalizeText(item?.instructions),
+              }));
 
             return {
               id: String(row?.transaction_id ?? ""),
@@ -385,7 +365,9 @@ export default function PatientRecordsScreen() {
                   row?.transaction_datetime ??
                   row?.appointment?.appointment_datetime,
               ),
+              patientName,
               doctor,
+              doctorInitials,
               reason:
                 normalizeText(row?.appointment?.reason_for_visit) ||
                 "Clinic visit",
@@ -398,13 +380,22 @@ export default function PatientRecordsScreen() {
               appointmentType: formatAppointmentType(
                 row?.appointment?.appointment_type,
               ),
-              prescriptionSummaries: Array.from(new Set(prescriptionSummaries)),
+              prescriptionMedicines,
             };
           })
           .filter((item: VisitHistoryItem) => item.id.length > 0);
 
         const mappedPrescriptions: PrescriptionHistoryItem[] = prescriptionRows
           .map((row: any) => {
+            const doctorRaw = row?.doctor || null;
+            const doctor = doctorRaw ? formatDoctorName(doctorRaw) : "Doctor";
+            const doctorInitials = doctorRaw
+              ? formatDoctorInitials(doctorRaw)
+              : "Doctor";
+            const patientRaw = row?.transaction?.appointment?.patient || null;
+            const patientName = patientRaw
+              ? formatPatientName(patientRaw)
+              : "Patient";
             const medicines: PrescriptionMedicineItem[] = (
               Array.isArray(row?.items) ? row.items : []
             ).map((item: any) => ({
@@ -414,7 +405,9 @@ export default function PatientRecordsScreen() {
               ),
               name:
                 normalizeText(
-                  item?.medicine_name || item?.medicine?.medicine_name,
+                  item?.medicine_name ||
+                    item?.medicine?.generic_name ||
+                    item?.medicine?.brand_name,
                 ) || "Medicine",
               dosage: normalizeText(item?.dosage),
               frequency: normalizeText(item?.frequency),
@@ -434,7 +427,9 @@ export default function PatientRecordsScreen() {
                   row?.transaction?.visit_datetime ??
                   row?.transaction?.transaction_datetime,
               ),
-              doctor: row?.doctor ? formatDoctorName(row.doctor) : "Doctor",
+              doctor,
+              doctorInitials,
+              patientName,
               summary: medicines[0]?.name ?? "Prescription",
               reason:
                 normalizeText(
@@ -453,42 +448,9 @@ export default function PatientRecordsScreen() {
           })
           .filter((item: PrescriptionHistoryItem) => item.id.length > 0);
 
-        const mappedVitals: VitalHistoryItem[] = vitalRows
-          .map((row: any) => {
-            const bmi = computeBmi(row?.height_cm, row?.weight_kg);
-            const doctorFull = `Dr. ${[
-              row?.doctor_firstname ? String(row.doctor_firstname) : "",
-              row?.doctor_lastname ? String(row.doctor_lastname) : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}`.trim();
-
-            return {
-              id: String(row?.vital_id ?? ""),
-              dateKey: toDateKey(row?.recorded_at ?? row?.appointment_datetime),
-              recordedAt: formatDateTime(row?.recorded_at),
-              appointmentDate: row?.appointment_datetime
-                ? formatDateTime(row.appointment_datetime)
-                : "No linked appointment",
-              doctor: doctorFull === "Dr." ? "Doctor" : doctorFull,
-              heightCm: formatNumberLabel(row?.height_cm, " cm"),
-              weightKg: formatNumberLabel(row?.weight_kg, " kg"),
-              bloodPressure: normalizeText(row?.blood_pressure) || "-",
-              temperature: formatNumberLabel(row?.temperature, " C"),
-              pulseRate:
-                row?.pulse_rate != null && row?.pulse_rate !== ""
-                  ? `${row.pulse_rate} bpm`
-                  : "-",
-              bmi: bmi.bmi,
-              bmiCategory: bmi.category,
-            };
-          })
-          .filter((item: VitalHistoryItem) => item.id.length > 0);
-
         if (!cancelled) {
           setVisits(mappedVisits);
           setPrescriptions(mappedPrescriptions);
-          setVitals(mappedVitals);
           setExpandedKey(null);
           setError("");
         }
@@ -519,39 +481,20 @@ export default function PatientRecordsScreen() {
         : prescriptions,
     [prescriptions, selectedDateKey],
   );
-  const filteredVitals = useMemo(
-    () =>
-      selectedDateKey
-        ? vitals.filter((item) => item.dateKey === selectedDateKey)
-        : vitals,
-    [selectedDateKey, vitals],
-  );
-
   const activeItemsCount = useMemo(() => {
     if (activeTab === "visits") return filteredVisits.length;
-    if (activeTab === "prescriptions") return filteredPrescriptions.length;
-    return filteredVitals.length;
-  }, [
-    activeTab,
-    filteredPrescriptions.length,
-    filteredVisits.length,
-    filteredVitals.length,
-  ]);
+    return filteredPrescriptions.length;
+  }, [activeTab, filteredPrescriptions.length, filteredVisits.length]);
 
   const availableDateKeys = useMemo(() => {
-    const source =
-      activeTab === "visits"
-        ? visits
-        : activeTab === "prescriptions"
-          ? prescriptions
-          : vitals;
+    const source = activeTab === "visits" ? visits : prescriptions;
 
     return Array.from(
       new Set(
         source.map((item) => item.dateKey).filter((value) => value.length > 0),
       ),
     ).sort((a, b) => b.localeCompare(a));
-  }, [activeTab, prescriptions, visits, vitals]);
+  }, [activeTab, prescriptions, visits]);
 
   function toggleDetails(key: string) {
     setExpandedKey((current) => (current === key ? null : key));
@@ -572,10 +515,10 @@ export default function PatientRecordsScreen() {
         <View key={item.id} style={styles.listCard}>
           <View style={styles.listCardTop}>
             <View style={styles.listMain}>
-              <Text style={styles.listTitle}>{item.reason}</Text>
+              <Text style={styles.listTitle}>{item.patientName}</Text>
               <Text
                 style={styles.listSubtitle}
-              >{`${item.date} · ${item.doctor}`}</Text>
+              >{`${item.doctorInitials} · ${item.date}`}</Text>
               <Text
                 style={styles.listMeta}
               >{`${item.appointmentType} · Payment ${item.paymentStatus}`}</Text>
@@ -594,16 +537,45 @@ export default function PatientRecordsScreen() {
           </View>
           {expanded ? (
             <View style={styles.detailPanel}>
-              <Text style={styles.detailLabel}>Diagnosis</Text>
-              <Text style={styles.detailValue}>{item.diagnosis}</Text>
-              <Text style={styles.detailLabel}>Treatment</Text>
-              <Text style={styles.detailValue}>{item.treatment}</Text>
-              <Text style={styles.detailLabel}>Prescription history</Text>
-              <Text style={styles.detailValue}>
-                {item.prescriptionSummaries.length > 0
-                  ? item.prescriptionSummaries.join(", ")
-                  : "No medicines recorded for this visit."}
-              </Text>
+              <View style={styles.consultGrid}>
+                <View style={styles.consultGridCol}>
+                  <Text style={styles.detailLabel}>Diagnosis</Text>
+                  <Text style={styles.detailValue}>{item.diagnosis}</Text>
+                </View>
+                <View style={styles.consultGridCol}>
+                  <Text style={styles.detailLabel}>Treatment Notes</Text>
+                  <Text style={styles.detailValue}>{item.treatment}</Text>
+                </View>
+              </View>
+              <Text style={styles.detailLabel}>Prescription Items</Text>
+              {item.prescriptionMedicines.length > 0 ? (
+                item.prescriptionMedicines.map((medicine) => (
+                  <View key={medicine.id} style={styles.medicineRow}>
+                    <Text style={styles.medicineName}>{medicine.name}</Text>
+                    <Text style={styles.medicineMeta}>
+                      {[
+                        "Dosage: " + medicine.dosage,
+                        "Freq: " + medicine.frequency,
+                        "Duration: " + medicine.duration,
+                      ]
+                        .filter(
+                          (part) =>
+                            !part.endsWith(": ") && !part.endsWith(": -"),
+                        )
+                        .join(" · ") || "No dosage details"}
+                    </Text>
+                    {medicine.instructions ? (
+                      <Text style={styles.medicineInstructions}>
+                        {medicine.instructions}
+                      </Text>
+                    ) : null}
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.detailValue}>
+                  No prescription items recorded for this visit.
+                </Text>
+              )}
             </View>
           ) : null}
         </View>
@@ -626,10 +598,10 @@ export default function PatientRecordsScreen() {
         <View key={item.id} style={styles.listCard}>
           <View style={styles.listCardTop}>
             <View style={styles.listMain}>
-              <Text style={styles.listTitle}>{item.summary}</Text>
+              <Text style={styles.listTitle}>{item.doctorInitials}</Text>
               <Text
                 style={styles.listSubtitle}
-              >{`${item.date} · ${item.doctor}`}</Text>
+              >{`${item.patientName} · ${item.date}`}</Text>
               <Text style={styles.listMeta}>{item.reason}</Text>
             </View>
             <Pressable
@@ -646,27 +618,50 @@ export default function PatientRecordsScreen() {
           </View>
           {expanded ? (
             <View style={styles.detailPanel}>
-              <Text style={styles.detailLabel}>Consultation diagnosis</Text>
-              <Text style={styles.detailValue}>{item.diagnosis}</Text>
-              <Text style={styles.detailLabel}>Consultation treatment</Text>
-              <Text style={styles.detailValue}>{item.treatment}</Text>
-              <Text style={styles.detailLabel}>Prescription notes</Text>
-              <Text style={styles.detailValue}>{item.prescriptionNotes}</Text>
               <Text style={styles.detailLabel}>Medicines</Text>
               {item.medicines.length > 0 ? (
+                <View style={styles.rxTableHeader}>
+                  <Text style={[styles.rxTableHeaderText, { flex: 2.5 }]}>
+                    Medicine
+                  </Text>
+                  <Text style={[styles.rxTableHeaderText, { flex: 1.5 }]}>
+                    Dosage
+                  </Text>
+                  <Text style={[styles.rxTableHeaderText, { flex: 1.5 }]}>
+                    Frequency
+                  </Text>
+                  <Text style={[styles.rxTableHeaderText, { flex: 1 }]}>
+                    Duration
+                  </Text>
+                  <Text style={[styles.rxTableHeaderText, { flex: 2 }]}>
+                    Instructions
+                  </Text>
+                </View>
+              ) : null}
+              {item.medicines.length > 0 ? (
                 item.medicines.map((medicine) => (
-                  <View key={medicine.id} style={styles.medicineRow}>
-                    <Text style={styles.medicineName}>{medicine.name}</Text>
-                    <Text style={styles.medicineMeta}>
-                      {[medicine.dosage, medicine.frequency, medicine.duration]
-                        .filter(Boolean)
-                        .join(" · ") || "No dosage details"}
+                  <View key={medicine.id} style={styles.rxTableRow}>
+                    <Text
+                      style={[styles.medicineName, { flex: 2.5 }]}
+                      numberOfLines={2}
+                    >
+                      {medicine.name}
                     </Text>
-                    {medicine.instructions ? (
-                      <Text style={styles.medicineInstructions}>
-                        {medicine.instructions}
-                      </Text>
-                    ) : null}
+                    <Text style={[styles.medicineMeta, { flex: 1.5 }]}>
+                      {medicine.dosage || "-"}
+                    </Text>
+                    <Text style={[styles.medicineMeta, { flex: 1.5 }]}>
+                      {medicine.frequency || "-"}
+                    </Text>
+                    <Text style={[styles.medicineMeta, { flex: 1 }]}>
+                      {medicine.duration || "-"}
+                    </Text>
+                    <Text
+                      style={[styles.medicineInstructions, { flex: 2 }]}
+                      numberOfLines={2}
+                    >
+                      {medicine.instructions || "-"}
+                    </Text>
                   </View>
                 ))
               ) : (
@@ -674,64 +669,6 @@ export default function PatientRecordsScreen() {
                   No medicine items recorded.
                 </Text>
               )}
-            </View>
-          ) : null}
-        </View>
-      );
-    });
-  }
-
-  function renderVitals() {
-    if (filteredVitals.length === 0) {
-      return (
-        <Text style={styles.emptyText}>
-          No vitals history found for the selected date.
-        </Text>
-      );
-    }
-
-    return filteredVitals.map((item) => {
-      const expanded = expandedKey === `vital-${item.id}`;
-      return (
-        <View key={item.id} style={styles.listCard}>
-          <View style={styles.listCardTop}>
-            <View style={styles.listMain}>
-              <Text style={styles.listTitle}>{item.recordedAt}</Text>
-              <Text
-                style={styles.listSubtitle}
-              >{`${item.doctor} · BMI ${item.bmi}`}</Text>
-              <Text
-                style={styles.listMeta}
-              >{`${item.bloodPressure} · ${item.temperature} · ${item.pulseRate}`}</Text>
-            </View>
-            <Pressable
-              onPress={() => toggleDetails(`vital-${item.id}`)}
-              style={({ pressed }) => [
-                styles.detailButton,
-                pressed && { opacity: 0.85 },
-              ]}
-            >
-              <Text style={styles.detailButtonText}>
-                {expanded ? "Hide details" : "View details"}
-              </Text>
-            </Pressable>
-          </View>
-          {expanded ? (
-            <View style={styles.detailPanel}>
-              <Text style={styles.detailLabel}>Appointment date</Text>
-              <Text style={styles.detailValue}>{item.appointmentDate}</Text>
-              <Text style={styles.detailLabel}>Height / Weight</Text>
-              <Text
-                style={styles.detailValue}
-              >{`${item.heightCm} · ${item.weightKg}`}</Text>
-              <Text style={styles.detailLabel}>
-                Blood pressure / Temperature / Pulse
-              </Text>
-              <Text
-                style={styles.detailValue}
-              >{`${item.bloodPressure} · ${item.temperature} · ${item.pulseRate}`}</Text>
-              <Text style={styles.detailLabel}>BMI category</Text>
-              <Text style={styles.detailValue}>{item.bmiCategory}</Text>
             </View>
           ) : null}
         </View>
@@ -772,7 +709,7 @@ export default function PatientRecordsScreen() {
 
               <Text style={styles.headerTitle}>Records</Text>
               <Text style={styles.headerGreeting}>
-                Review your visit history, prescriptions, and vitals.
+                Review your visit history and prescriptions.
               </Text>
             </View>
             <Pressable
@@ -809,15 +746,6 @@ export default function PatientRecordsScreen() {
               onPress={() => setActiveTab("prescriptions")}
               delay={40}
             />
-            <TabCard
-              title="Vitals"
-              value={String(vitals.length)}
-              subtitle="Recorded measurements"
-              icon="pulse-outline"
-              active={activeTab === "vitals"}
-              onPress={() => setActiveTab("vitals")}
-              delay={60}
-            />
           </View>
 
           <AnimatedCard delay={70} style={styles.filterToolbar}>
@@ -825,8 +753,8 @@ export default function PatientRecordsScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.filterTitle}>Record date filter</Text>
                 <Text style={styles.filterSubtitle}>
-                  Applies to visits, prescriptions, and vitals without setting
-                  up each display separately.
+                  Applies to visits and prescriptions without setting up each
+                  display separately.
                 </Text>
               </View>
             </View>
@@ -939,9 +867,7 @@ export default function PatientRecordsScreen() {
                 <Text style={styles.sectionTitle}>
                   {activeTab === "visits"
                     ? "Visit history"
-                    : activeTab === "prescriptions"
-                      ? "Prescription history"
-                      : "Vitals history"}
+                    : "Prescription history"}
                 </Text>
                 <Text style={styles.sectionSubtitle}>
                   {loading
@@ -956,7 +882,6 @@ export default function PatientRecordsScreen() {
             <View style={styles.sectionBody}>
               {activeTab === "visits" ? renderVisits() : null}
               {activeTab === "prescriptions" ? renderPrescriptions() : null}
-              {activeTab === "vitals" ? renderVitals() : null}
             </View>
           </AnimatedCard>
         </View>
@@ -1408,5 +1333,39 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     color: T.slate500,
     marginTop: 3,
+  },
+  consultGrid: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 4,
+  },
+  consultGridCol: {
+    flex: 1,
+  },
+  rxTableHeader: {
+    flexDirection: "row",
+    gap: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    backgroundColor: T.green100,
+    borderRadius: 8,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  rxTableHeaderText: {
+    fontSize: 9,
+    fontWeight: "700",
+    color: T.green700,
+    textTransform: "uppercase",
+    letterSpacing: 0.2,
+  },
+  rxTableRow: {
+    flexDirection: "row",
+    gap: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: T.slate100,
+    alignItems: "flex-start",
   },
 });

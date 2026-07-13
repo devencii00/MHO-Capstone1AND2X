@@ -108,3 +108,29 @@ export async function markPatientNotificationsAsRead(token: string, notification
     }),
   );
 }
+
+export type UnreadCount = {
+  total: number;
+  messages: number;
+  notifications: number;
+};
+
+export async function fetchNotificationUnreadCount(token: string): Promise<UnreadCount> {
+  const response = await fetch(`${API_BASE_URL}/notifications/unread-count`, {
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    return { total: 0, messages: 0, notifications: 0 };
+  }
+
+  return {
+    total: typeof data?.total === 'number' ? data.total : 0,
+    messages: typeof data?.messages === 'number' ? data.messages : 0,
+    notifications: typeof data?.notifications === 'number' ? data.notifications : 0,
+  };
+}

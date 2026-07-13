@@ -2620,9 +2620,6 @@ function setAppointmentTab(tab) {
                 cells.push('<button type="button" class="' + cls + '" data-date="' + iso + '"' + (enabled ? '' : ' disabled') + '>' + day + badge + '</button>')
             }
 
-            var total = Math.ceil(cells.length / 7) * 7
-            while (cells.length < total) cells.push('')
-
             scheduleDateGrid.innerHTML = cells.map(function (html) {
                 return html ? html : '<div></div>'
             }).join('')
@@ -3354,8 +3351,6 @@ function setAppointmentTab(tab) {
                 var badge = showBadge ? '<span class="absolute -top-1 -right-1 min-w-[14px] h-[14px] ' + badgeCls + ' text-white text-[0.5rem] leading-[14px] font-bold rounded-full px-0.5 text-center">' + count + '</span>' : ''
                 cells.push('<button type="button" class="' + cls + '" data-date="' + iso + '">' + day + badge + '</button>')
             }
-            var total = Math.ceil(cells.length / 7) * 7
-            while (cells.length < total) cells.push('')
             manageCalDateGrid.innerHTML = cells.map(function (html) {
                 return html ? html : '<div></div>'
             }).join('')
@@ -4696,8 +4691,6 @@ function updateManageTodayButton() {
                 var badge = showBadge ? '<span class="absolute -top-1 -right-1 min-w-[12px] h-[12px] bg-red-500 text-white text-[0.45rem] leading-[12px] font-bold rounded-full px-0.5 text-center">' + count + '</span>' : ''
                 cells.push('<button type="button" class="relative ' + cls + '" data-date="' + iso + '"' + (notPast ? '' : ' disabled') + '>' + day + badge + '</button>')
             }
-            var total = Math.ceil(cells.length / 7) * 7
-            while (cells.length < total) cells.push('')
             manageHistChangeCalGrid.innerHTML = cells.map(function (html) {
                 return html ? html : '<div></div>'
             }).join('')

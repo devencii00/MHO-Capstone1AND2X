@@ -39,7 +39,6 @@ const T = {
   red100: "rgba(239,68,68,0.12)",
   red700: "#b91c1c",
   green100: "rgba(34,197,94,0.12)",
-  green700: "#15803d",
 };
 
 const API_BASE_URL = (

@@ -1,16 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import 'react-native-reanimated';
+import React, { useEffect, useState } from "react";
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from "@react-navigation/native";
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import "react-native-reanimated";
 
-import ChatbotOverlay from '@/components/ChatbotOverlay';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { hydrateAuthSession } from '@/lib/auth-storage';
+import ChatbotOverlay from "@/components/ChatbotOverlay";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { hydrateAuthSession } from "@/lib/auth-storage";
 
 export const unstable_settings = {
-  anchor: 'screenviews/(tabs)',
+  anchor: "screenviews/(tabs)",
 };
 
 export default function RootLayout() {
@@ -33,7 +37,7 @@ export default function RootLayout() {
 
   if (!hydrated) {
     return (
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <View style={styles.bootScreen}>
           <ActivityIndicator size="large" color="#16A34A" />
         </View>
@@ -43,10 +47,16 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="screenviews/(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+        <Stack.Screen
+          name="screenviews/(tabs)"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="modal"
+          options={{ presentation: "modal", title: "Modal" }}
+        />
       </Stack>
       <ChatbotOverlay />
       <StatusBar style="auto" />
@@ -57,8 +67,8 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   bootScreen: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
   },
 });

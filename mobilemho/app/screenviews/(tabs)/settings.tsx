@@ -33,7 +33,6 @@ const T = {
   slate900: "#0f172a",
   white: "#ffffff",
   green100: "rgba(34,197,94,0.12)",
-  green700: "#15803d",
   red100: "rgba(239,68,68,0.12)",
   red700: "#b91c1c",
 };

@@ -422,7 +422,7 @@ export default function ChatScreen() {
             title="Receptionist Chat"
             badge="Messages"
             delay={120}
-            style={{ marginBottom: 24 }}
+            style={{ flex: 1, marginBottom: 0 }}
           >
             {selectedConversation ? (
               <>
@@ -652,7 +652,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingTop: 20,
     paddingHorizontal: 14,
-    paddingBottom: 2,
+    paddingBottom: 0,
   },
   inlineError: {
     fontSize: 12,
@@ -721,8 +721,7 @@ const styles = StyleSheet.create({
     color: T.slate500,
   },
   messageScroll: {
-    maxHeight: 420,
-    minHeight: 370,
+    flex: 1,
     backgroundColor: T.white,
   },
   messageContent: {
