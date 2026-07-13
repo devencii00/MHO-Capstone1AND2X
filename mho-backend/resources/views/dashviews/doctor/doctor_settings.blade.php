@@ -542,7 +542,7 @@
             var page = 1, allItems = [];
 
             function fetchPage() {
-                apiFetch("{{ url('/api/doctor-schedules') }}?page=" + page + "&per_page=100", { method: 'GET' })
+                apiFetch("{{ url('/api/doctor-schedules') }}?page=" + page + "&per_page=500", { method: 'GET' })
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
                         var items = [];

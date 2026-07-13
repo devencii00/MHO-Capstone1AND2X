@@ -915,17 +915,22 @@ class QueueController extends Controller
             $payload = $data;
             $queue->loadMissing('appointment');
 
+            $date = $queue->queue_datetime ? $queue->queue_datetime->toDateString() : now()->toDateString();
+            $doctorId = (int) ($queue->appointment?->doctor_id ?? 0);
+
             if ($nextStatus === Queue::STATUS_SKIPPED) {
                 $skipCount = max(0, (int) ($queue->skip_count ?? 0)) + 1;
-                $date = $queue->queue_datetime ? $queue->queue_datetime->toDateString() : now()->toDateString();
 
-                // Re-sequence among WAITING + SKIPPED only (exclude ON_HOLD, SERVING)
-                // so that a skipped entry that reaches the very end of the waiting list
-                // properly resets its skip_count — ON_HOLD entries don't act as buffer positions.
                 $allActive = Queue::query()
                     ->whereDate('queue_datetime', $date)
-                    ->whereIn('status', [Queue::STATUS_WAITING, Queue::STATUS_SKIPPED])
+                    ->whereIn('status', [Queue::STATUS_WAITING, Queue::STATUS_SKIPPED, Queue::STATUS_SERVING, Queue::STATUS_ON_HOLD])
+                    ->when($doctorId > 0, function ($query) use ($doctorId) {
+                        $query->whereHas('appointment', function ($subQuery) use ($doctorId) {
+                            $subQuery->where('doctor_id', $doctorId);
+                        });
+                    })
                     ->orderBy('queue_number')
+                    ->lockForUpdate()
                     ->get();
 
                 $currentIdx = $allActive->search(function ($q) use ($queue) {
@@ -936,21 +941,13 @@ class QueueController extends Controller
                     $currentIdx = $allActive->count() - 1;
                 }
 
-                $totalActive = $allActive->count();
-                $newIdx = min($currentIdx + $skipCount, $totalActive - 1);
-
-                // Reset skip_count if item is already at or pushed to the last position
-                if ($totalActive <= 1 || $newIdx >= $totalActive - 1) {
-                    $skipCount = 0;
-                }
-
+                $newIdx = min($currentIdx + $skipCount, $allActive->count() - 1);
                 $items = collect($allActive);
                 $movingItem = $items->splice($currentIdx, 1)->first();
                 if ($movingItem) {
                     $items->splice($newIdx, 0, [$movingItem]);
                 }
 
-                // Re-assign sequential queue_numbers
                 foreach ($items->values() as $i => $q) {
                     $q->update(['queue_number' => $i + 1]);
                 }
@@ -965,20 +962,20 @@ class QueueController extends Controller
             $queue->update($payload);
 
             if ($nextStatus === 'serving') {
-                $doctorId = $queue->appointment ? $queue->appointment->doctor_id : null;
-                $date = $queue->queue_datetime ? $queue->queue_datetime->toDateString() : null;
+                $servingDoctorId = $queue->appointment ? $queue->appointment->doctor_id : null;
+                $servingDate = $queue->queue_datetime ? $queue->queue_datetime->toDateString() : null;
 
-                if ($doctorId && $date) {
+                if ($servingDoctorId && $servingDate) {
                     Queue::query()
                         ->where('queue_id', '!=', $queue->queue_id)
-                        ->whereHas('appointment', function ($q) use ($doctorId) {
-                            $q->where('doctor_id', $doctorId);
+                        ->whereHas('appointment', function ($q) use ($servingDoctorId) {
+                            $q->where('doctor_id', $servingDoctorId);
                         })
-                        ->whereDate('queue_datetime', $date)
+                        ->whereDate('queue_datetime', $servingDate)
                         ->where('status', 'serving')
                         ->update(['status' => 'waiting']);
 
-                    $this->activateSkippedQueuesAfterCall((int) $doctorId, $date, (int) $queue->queue_id);
+                    $this->activateSkippedQueuesAfterCall((int) $servingDoctorId, $servingDate, (int) $queue->queue_id);
                 }
             }
 
@@ -1014,6 +1011,11 @@ class QueueController extends Controller
         $statusChanged = array_key_exists('status', $data) && (string) $queue->status !== $previousStatus;
         $queueNumberChanged = array_key_exists('queue_number', $data) && (int) $queue->queue_number !== $previousQueueNumber;
 
+        // Also detect implicit queue number changes (e.g., skip re-ordering renumbers all entries)
+        if (! $queueNumberChanged && (int) $queue->queue_number !== $previousQueueNumber) {
+            $queueNumberChanged = true;
+        }
+
         if (($statusChanged || $queueNumberChanged) && $queue->appointment) {
             $appointment = $queue->appointment;
             $conversation = Conversation::ensureForPatient((int) $appointment->patient_id);
@@ -1021,35 +1023,63 @@ class QueueController extends Controller
             $messageText = null;
             $notificationTitle = 'Queue Update';
             $notificationBody = null;
+            $statusText = null;
             if ($statusChanged) {
                 if ($queue->status === 'waiting') {
                     $notificationBody = 'You are now waiting in the queue.';
+                    $statusText = 'Waiting';
                 } elseif ($queue->status === 'serving') {
-                    $notificationBody = 'You are next in queue.';
+                    $notificationBody = 'You are now being called. Please proceed to the consultation area.';
+                    $statusText = 'Being Called';
                 } elseif ($queue->status === 'consulted') {
                     $notificationBody = 'Your consultation is done and payment is pending.';
+                    $statusText = 'Consulted';
                 } elseif ($queue->status === 'done') {
-                    $notificationBody = 'Your queue entry is marked as done.';
+                    $notificationBody = 'Your queue entry is marked as done. Thank you!';
+                    $statusText = 'Done';
                 } elseif ($queue->status === 'cancelled') {
                     $notificationBody = 'Your queue entry was cancelled.';
+                    $statusText = 'Cancelled';
                 } elseif ($queue->status === 'skipped') {
                     $notificationTitle = 'Queue Skipped';
                     $notificationBody = 'Your queue entry was temporarily skipped and will be called again.';
+                    $statusText = 'Skipped';
                 } elseif ($queue->status === 'on_hold') {
                     $notificationTitle = 'Queue On Hold';
                     $notificationBody = 'Your queue entry has been placed on hold.';
+                    $statusText = 'On Hold';
                 }
             }
 
-            if ($queueNumberChanged) {
+            $ordinalSuffix = function ($n) {
+                $suffixes = ['th', 'st', 'nd', 'rd'];
+                $mod100 = $n % 100;
+                return $n . ($mod100 >= 11 && $mod100 <= 13 ? 'th' : ($suffixes[$n % 10] ?? 'th'));
+            };
+
+            // For skip operations, ALWAYS include position (even if queue_number didn't change)
+            // For other operations, only include position when queue_number actually changed
+            if ($queueNumberChanged || ($statusChanged && $queue->status === 'skipped')) {
                 $position = (int) $queue->queue_number;
 
-                if (in_array($position, [2, 3, 4, 5], true)) {
-                    $notificationBody = 'You are now in position '.$position.', you are near, get ready.';
-                } elseif (in_array($position, [7, 9, 10], true)) {
-                    $notificationBody = 'You are now in position '.$position.'.';
-                } elseif (! $notificationBody) {
-                    $notificationBody = 'Your queue number is now '.$queue->queue_number.'.';
+                $positionMessage = null;
+                if ($position === 2) {
+                    $positionMessage = 'You are at position 2. You are next in line — please be ready.';
+                } elseif ($position === 3) {
+                    $positionMessage = 'You are at position 3. You are nearing your turn, get ready.';
+                } elseif ($position === 4 || $position === 5) {
+                    $positionMessage = 'You are now in position '.$ordinalSuffix($position).' — near your turn.';
+                } elseif (in_array($position, [6, 7, 8, 9, 10], true)) {
+                    $positionMessage = 'You are at position '.$ordinalSuffix($position).' in the queue.';
+                } else {
+                    $positionMessage = 'Your queue position is now '.$ordinalSuffix($position).'.';
+                }
+
+                // Combine with existing status message instead of overwriting
+                if ($notificationBody && $positionMessage) {
+                    $notificationBody = $notificationBody.' '.$positionMessage;
+                } elseif ($positionMessage) {
+                    $notificationBody = $positionMessage;
                 }
             }
 
@@ -1068,10 +1098,121 @@ class QueueController extends Controller
                     [(int) $appointment->patient_id],
                     '['.$notificationTitle.'] '.$notificationBody,
                     'appointment',
-                    'Queue Update',
+                    $statusText ?? $notificationTitle,
                     $queue->queue_id,
                     'queues'
                 );
+            }
+
+            // When positions change (e.g. skip re-ordering), notify ALL affected patients
+            if ($queueNumberChanged || ($statusChanged && $queue->status === 'skipped')) {
+                $allAffected = Queue::with(['appointment.patient'])
+                    ->whereDate('queue_datetime', $queue->queue_datetime)
+                    ->whereIn('status', [Queue::STATUS_WAITING, Queue::STATUS_SKIPPED])
+                    ->where('queue_id', '!=', $queue->queue_id)
+                    ->orderBy('queue_number')
+                    ->get();
+
+                foreach ($allAffected as $affectedQ) {
+                    $pos = (int) $affectedQ->queue_number;
+                    $posMsg = null;
+
+                    if ($pos === 2) {
+                        $posMsg = 'Your queue position has been updated. You are at position 2 — next in line, please be ready.';
+                    } elseif ($pos === 3) {
+                        $posMsg = 'Your queue position has been updated. You are at position 3 — nearing your turn, get ready.';
+                    } elseif ($pos === 4 || $pos === 5) {
+                        $posMsg = 'Your queue position has been updated. You are now in position '.$ordinalSuffix($pos).' — near your turn.';
+                    } elseif (in_array($pos, [6, 7, 8, 9, 10], true)) {
+                        $posMsg = 'Your queue position has been updated. You are at position '.$ordinalSuffix($pos).' in the queue.';
+                    } else {
+                        $posMsg = 'Your queue position has been updated. You are now at position '.$ordinalSuffix($pos).'.';
+                    }
+
+                    $affConv = Conversation::ensureForPatient((int) $affectedQ->appointment->patient_id);
+
+                    Message::create([
+                        'conversation_id' => $affConv->conversation_id,
+                        'sender' => 'bot',
+                        'message_text' => 'Queue update: '.$posMsg,
+                    ]);
+
+                    Notification::notifyUsers(
+                        [(int) $affectedQ->appointment->patient_id],
+                        '[Queue Position Update] '.$posMsg,
+                        'appointment',
+                        'Position Updated',
+                        $affectedQ->queue_id,
+                        'queues'
+                    );
+                }
+            }
+        }
+
+        // When a queue advances (called/completed), notify remaining active patients of improved position
+        $advancingStatuses = ['serving', 'consulted', 'done', 'cancelled', 'no_show'];
+        $isAdvancing = $statusChanged && in_array($queue->status, $advancingStatuses, true);
+        if ($isAdvancing && $queue->appointment) {
+            $advancingDoctorId = (int) ($queue->appointment->doctor_id ?? 0);
+            $allRemaining = Queue::with(['appointment.patient'])
+                ->whereDate('queue_datetime', $queue->queue_datetime ? $queue->queue_datetime->toDateString() : now()->toDateString())
+                ->whereIn('status', [Queue::STATUS_WAITING, Queue::STATUS_SKIPPED])
+                ->when($advancingDoctorId > 0, function ($q) use ($advancingDoctorId) {
+                    $q->whereHas('appointment', function ($sub) use ($advancingDoctorId) {
+                        $sub->where('doctor_id', $advancingDoctorId);
+                    });
+                })
+                ->orderBy('queue_number')
+                ->get();
+
+            foreach ($allRemaining as $i => $remainingQ) {
+                $effectivePos = $i + 1; // 1-indexed effective position after sorting by queue_number
+
+                // If a skipped queue reaches position 1, automatically reactivate it to waiting
+                if ($effectivePos === 1 && $remainingQ->status === Queue::STATUS_SKIPPED) {
+                    $remainingQ->update(['status' => Queue::STATUS_WAITING]);
+                    // Also send a notification about reactivation
+                    if ($remainingQ->appointment?->patient_id) {
+                        $reactivateConv = Conversation::ensureForPatient((int) $remainingQ->appointment->patient_id);
+                        Message::create([
+                            'conversation_id' => $reactivateConv->conversation_id,
+                            'sender' => 'bot',
+                            'message_text' => 'Queue update: You are now next in line. Please be ready.',
+                        ]);
+                    }
+                }
+
+                if ($effectivePos > 10) continue; // Only notify top 10 positions
+
+                $posMsg = null;
+                if ($effectivePos === 1) {
+                    $posMsg = 'The queue has advanced — you are next in line, please be ready.';
+                } elseif ($effectivePos === 2) {
+                    $posMsg = 'The queue has advanced — you are now at position 2. Next in line, please be ready.';
+                } elseif ($effectivePos === 3) {
+                    $posMsg = 'The queue has advanced — you are now at position 3. Nearing your turn, get ready.';
+                } elseif ($effectivePos === 4 || $effectivePos === 5) {
+                    $posMsg = 'The queue has advanced — you are now in position '.$ordinalSuffix($effectivePos).' — near your turn.';
+                } elseif (in_array($effectivePos, [6, 7, 8, 9, 10], true)) {
+                    $posMsg = 'The queue has advanced — you are now at position '.$ordinalSuffix($effectivePos).' in the queue.';
+                }
+
+                if ($posMsg && $remainingQ->appointment?->patient_id) {
+                    $affConv = Conversation::ensureForPatient((int) $remainingQ->appointment->patient_id);
+                    Message::create([
+                        'conversation_id' => $affConv->conversation_id,
+                        'sender' => 'bot',
+                        'message_text' => 'Queue update: '.$posMsg,
+                    ]);
+                    Notification::notifyUsers(
+                        [(int) $remainingQ->appointment->patient_id],
+                        '[Queue Position Update] '.$posMsg,
+                        'appointment',
+                        'Position Updated',
+                        $remainingQ->queue_id,
+                        'queues'
+                    );
+                }
             }
         }
 
@@ -1169,7 +1310,20 @@ class QueueController extends Controller
 
     private function compareQueueOrder(Queue $a, Queue $b): int
     {
-        $statusCompare = Queue::statusRank($a->status) <=> Queue::statusRank($b->status);
+        $statusRank = function (?string $status): int {
+            return match (strtolower(trim((string) $status))) {
+                Queue::STATUS_WAITING, Queue::STATUS_SKIPPED => 0,
+                Queue::STATUS_SERVING => 1,
+                Queue::STATUS_ON_HOLD => 2,
+                Queue::STATUS_CONSULTED => 3,
+                Queue::STATUS_DONE => 4,
+                Queue::STATUS_CANCELLED => 5,
+                Queue::STATUS_NO_SHOW => 6,
+                default => 7,
+            };
+        };
+
+        $statusCompare = $statusRank($a->status) <=> $statusRank($b->status);
         if ($statusCompare !== 0) {
             return $statusCompare;
         }
@@ -1210,23 +1364,7 @@ class QueueController extends Controller
             $this->activateSkippedQueuesAfterCall($doctorId, $date, (int) $queue->queue_id);
         }
 
-        $queue = $queue->refresh()->load(['appointment.patient', 'appointment.doctor']);
-
-        // Notify the doctor they are now serving this patient
-        if ($doctorId > 0 && $queue->appointment?->patient) {
-            $patientName = trim(($queue->appointment->patient->firstname ?? '') . ' ' . ($queue->appointment->patient->lastname ?? ''));
-            if (!$patientName) $patientName = 'a patient';
-            Notification::notifyUsers(
-                [$doctorId],
-                '[Serving] You are now serving ' . $patientName . '.',
-                'queue',
-                'Now Serving',
-                $queue->queue_id,
-                'queues'
-            );
-        }
-
-        return $queue;
+        return $queue->refresh()->load(['appointment.patient', 'appointment.doctor']);
     }
 
     private function activateSkippedQueuesAfterCall(int $doctorId, string $date, ?int $exceptQueueId = null): void

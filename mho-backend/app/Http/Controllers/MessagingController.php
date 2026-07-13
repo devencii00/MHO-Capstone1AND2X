@@ -166,7 +166,7 @@ class MessagingController extends Controller
 
         if ($receiverId) {
             try {
-                event(new NewMessage($currentUser->user_id, $receiverId, $message));
+                event(new NewMessage($currentUser->user_id, $receiverId, $message, (int) $conversation->user_id));
             } catch (\Throwable $e) {
                 // Silently fail
             }

@@ -2548,7 +2548,7 @@
                 followUpState.schedulesPromise = Promise.resolve()
                 return followUpState.schedulesPromise
             }
-            followUpState.schedulesPromise = api('{{ url('/api/doctor-schedules') }}?doctor_id=' + encodeURIComponent(String(doctorId)) + '&per_page=100')
+            followUpState.schedulesPromise = api('{{ url('/api/doctor-schedules') }}?doctor_id=' + encodeURIComponent(String(doctorId)) + '&per_page=500')
                 .then(function (resp) {
                     followUpState.doctorSchedules = getPaginatedData(resp)
                     followUpState.availableDays = {}
@@ -3883,7 +3883,7 @@
         var bgContainer = viewTabContents['background']
         if (bgContainer) {
             bgContainer.addEventListener('click', function (e) {
-                // + Add entry button
+             
                 var addBtn = e.target.closest('.medbg-add-btn')
                 if (addBtn) {
                     e.preventDefault()

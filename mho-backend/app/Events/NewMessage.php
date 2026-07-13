@@ -16,7 +16,8 @@ class NewMessage implements ShouldBroadcast
     public function __construct(
         public $senderId,
         public $receiverId,
-        public $message
+        public $message,
+        public $patientId
     ) {}
 
     public function broadcastOn(): array
@@ -44,7 +45,16 @@ class NewMessage implements ShouldBroadcast
             'sender_id' => $this->senderId,
             'receiver_id' => $this->receiverId,
             'conversation_with' => $this->senderId,
+            'patient_id' => $this->patientId,
+            'conversation_id' => $this->message->conversation_id ?? null,
             'message_id' => $this->message->message_id ?? null,
+            'message' => [
+                'message_id' => $this->message->message_id ?? null,
+                'conversation_id' => $this->message->conversation_id ?? null,
+                'sender' => $this->message->sender ?? null,
+                'message_text' => $this->message->message_text ?? null,
+                'created_at' => optional($this->message->created_at)->toISOString(),
+            ],
             'timestamp' => now()->toISOString(),
         ];
     }

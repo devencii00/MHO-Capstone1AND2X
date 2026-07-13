@@ -446,7 +446,20 @@ class QueueDisplayController extends Controller
 
     private function compareQueueOrder(Queue $a, Queue $b): int
     {
-        $statusCompare = Queue::statusRank($a->status) <=> Queue::statusRank($b->status);
+        $statusRank = function (?string $status): int {
+            return match (strtolower(trim((string) $status))) {
+                Queue::STATUS_WAITING, Queue::STATUS_SKIPPED => 0,
+                Queue::STATUS_SERVING => 1,
+                Queue::STATUS_ON_HOLD => 2,
+                Queue::STATUS_CONSULTED => 3,
+                Queue::STATUS_DONE => 4,
+                Queue::STATUS_CANCELLED => 5,
+                Queue::STATUS_NO_SHOW => 6,
+                default => 7,
+            };
+        };
+
+        $statusCompare = $statusRank($a->status) <=> $statusRank($b->status);
         if ($statusCompare !== 0) {
             return $statusCompare;
         }

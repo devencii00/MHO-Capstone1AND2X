@@ -1388,7 +1388,7 @@
                 var sb = String(b.getAttribute('data-status') || '').toLowerCase()
 
                 function statusRank(s) {
-                    // Skipped stays in queue_number order with waiting
+                 
                     if (s === 'serving') return 0
                     if (s === 'waiting' || s === 'skipped') return 1
                     if (s === 'on_hold') return 2
@@ -1691,16 +1691,23 @@
         }
         document.addEventListener('click', window.__receptionQueueDocClick)
 
+        // Guard that survives DOM re-execution (var gets reset on script re-run, but window persists)
+        if (typeof window.__updatingQueueStatus === 'undefined') {
+            window.__updatingQueueStatus = false
+        }
         function updateQueueStatus(queueId, status, successMessage) {
+            if (window.__updatingQueueStatus) return
             if (!queueId) {
                 return
             }
 
+            window.__updatingQueueStatus = true
             showQueueError('')
             showQueueSuccess('')
 
             if (typeof apiFetch !== 'function') {
                 showQueueError('API client is not available.')
+                window.__updatingQueueStatus = false
                 return
             }
 
@@ -1735,6 +1742,12 @@
                 })
                 .catch(function () {
                     showQueueError('Network error while updating queue.')
+                })
+                .finally(function () {
+                    // Keep the guard active briefly to prevent re-clicks during async refreshFullPage()
+                    setTimeout(function () {
+                        window.__updatingQueueStatus = false
+                    }, 2000)
                 })
         }
 
@@ -2108,7 +2121,7 @@
                 doctorName = [d.first_name, d.last_name].filter(Boolean).join(' ')
             }
             var queueCode = qd.queue_code || String(qd.queue_number) || ''
-            var status = (qd.status_name || 'waiting').toLowerCase()
+            var rawStatus = String(qd.status_name || qd.status || 'waiting').toLowerCase()
             var priority = typeof qd.priority === 'number' ? qd.priority : 0
             var dateKey = ''
             if (qd.created_at) {
@@ -2128,8 +2141,8 @@
                 no_show:    'border-red-200 bg-red-50 text-red-700',
                 consulted:  'border-blue-200 bg-blue-50 text-blue-700',
             }
-            if (statusMap[status]) badgeColor = statusMap[status]
-            var statusLabel = status.replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase() })
+            if (statusMap[rawStatus]) badgeColor = statusMap[rawStatus]
+            var statusLabel = rawStatus.replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase() })
 
             var servicesHtml = '<span class="text-[0.7rem] text-slate-400">No service</span>'
             if (qd.appointment && qd.appointment.services && qd.appointment.services.length > 0) {
@@ -2151,7 +2164,7 @@
             tr.setAttribute('data-patient', patientName.toLowerCase())
             tr.setAttribute('data-doctor', doctorName.toLowerCase())
             tr.setAttribute('data-date', dateKey)
-            tr.setAttribute('data-status', status)
+            tr.setAttribute('data-status', rawStatus)
             tr.setAttribute('data-priority', priority)
             if (qd.appointment && qd.appointment.appointment_id) tr.setAttribute('data-appointment-id', qd.appointment.appointment_id)
             if (qd.appointment && qd.appointment.doctor && qd.appointment.doctor.user_id) tr.setAttribute('data-doctor-id', qd.appointment.doctor.user_id)
@@ -2168,49 +2181,28 @@
             return tr
         }
 
-        // ── Handle Echo queue event: surgically update the table ──
+        // ── Handle Echo queue event: full table refresh ──
         function handleQueueEvent(eventData) {
-            if (!eventData || !eventData.queue_data) return
-            var qd = eventData.queue_data
-            if (!qd || !qd.queue_id) return
+            // A skip renumbers every queue entry in the same doctor-date,
+            // so a partial patch misses queue_number changes on ALL rows.
+            // Full refresh guarantees correct queue_number, sort, and pagination.
+            refreshFullPage()
+        }
 
-            var tbody = document.getElementById('receptionQueueTableBody')
-            if (!tbody) return
-
-            var existing = tbody.querySelector('.reception-queue-row[data-queue-id="' + qd.queue_id + '"]')
-
-            if (existing) {
-                // Update existing row status
-                var status = (qd.status_name || '').toLowerCase()
-                if (status) {
-                    existing.setAttribute('data-status', status)
-                    var badge = existing.querySelector('td:nth-child(7) .inline-flex')
-                    if (badge) {
-                        var bc = 'border-slate-200 bg-slate-50 text-slate-600'
-                        var sm = {
-                            waiting: 'border-amber-200 bg-amber-50 text-amber-700',
-                            serving: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-                            done: 'border-sky-200 bg-sky-50 text-sky-700',
-                            skipped: 'border-orange-200 bg-orange-50 text-orange-700',
-                            on_hold: 'border-violet-200 bg-violet-50 text-violet-700',
-                            cancelled: 'border-red-200 bg-red-50 text-red-700',
-                            no_show: 'border-red-200 bg-red-50 text-red-700',
-                            consulted: 'border-blue-200 bg-blue-50 text-blue-700',
-                        }
-                        if (sm[status]) bc = sm[status]
-                        badge.className = 'inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border ' + bc
-                        badge.textContent = status.replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase() })
+        // ── Targeted refresh of doctor monitor container only ──
+        function refreshDoctorMonitor() {
+            fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (r) { return r.text() })
+                .then(function (html) {
+                    var parser = new DOMParser()
+                    var doc = parser.parseFromString(html, 'text/html')
+                    var newMonitor = doc.getElementById('receptionDoctorMonitorContainer')
+                    var curMonitor = document.getElementById('receptionDoctorMonitorContainer')
+                    if (newMonitor && curMonitor) {
+                        curMonitor.outerHTML = newMonitor.outerHTML
                     }
-                }
-            } else {
-                // New entry — insert a row
-                var newRow = buildQueueRowHtml(qd)
-                tbody.insertBefore(newRow, tbody.firstChild)
-            }
-
-            rows = Array.prototype.slice.call(document.querySelectorAll('.reception-queue-row'))
-            applyReceptionQueueFilters()
-            initQueuePagination()
+                })
+                .catch(function () {})
         }
 
         // ── Echo listener ──
@@ -2225,11 +2217,11 @@
             window.__echoAttached_receptionQueue = true
             try {
                 window.Echo.private('queue.all')
-                    .listen('.queue.updated', function (e) {
-                        handleQueueEvent(e)
+                    .listen('.queue.updated', function () {
+                        refreshFullPage()
                     })
-                    .listen('.queue.created', function (e) {
-                        handleQueueEvent(e)
+                    .listen('.queue.created', function () {
+                        refreshFullPage()
                     })
                     .listen('.queue.deleted', function () {
                         refreshFullPage()

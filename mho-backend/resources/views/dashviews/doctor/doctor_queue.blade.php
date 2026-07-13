@@ -382,9 +382,15 @@
             })
         }
 
+        // Guard that survives DOM re-execution (var gets reset on script re-run, but window persists)
+        if (typeof window.__doctorUpdatingQueueStatus === 'undefined') {
+            window.__doctorUpdatingQueueStatus = false
+        }
         function updateQueueStatus(queueId, status, successMessage) {
+            if (window.__doctorUpdatingQueueStatus) return
             if (!queueId || typeof apiFetch !== 'function') return
 
+            window.__doctorUpdatingQueueStatus = true
             showError('')
             showSuccess('')
 
@@ -411,10 +417,18 @@
                 .catch(function () {
                     showError('Network error while updating queue.')
                 })
+                .finally(function () {
+                    setTimeout(function () {
+                        window.__doctorUpdatingQueueStatus = false
+                    }, 2000)
+                })
         }
 
         // Event delegation: status dropdown toggle + status option clicks
-        document.addEventListener('click', function (e) {
+        if (window.__doctorQueueDocClick) {
+            document.removeEventListener('click', window.__doctorQueueDocClick)
+        }
+        window.__doctorQueueDocClick = function (e) {
             var trigger = e.target && e.target.closest ? e.target.closest('.reception-status-dropdown-trigger') : null
             if (trigger) {
                 var container = trigger.closest('.reception-status-dropdown-container')
@@ -448,7 +462,8 @@
                     menu.classList.add('hidden')
                 }
             })
-        })
+        }
+        document.addEventListener('click', window.__doctorQueueDocClick)
 
         if (searchInput) {
             searchInput.addEventListener('input', applyDoctorQueueFilters)

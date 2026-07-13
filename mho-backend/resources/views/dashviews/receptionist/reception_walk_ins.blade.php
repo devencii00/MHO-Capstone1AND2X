@@ -2736,6 +2736,11 @@ function setWalkInTab(tab) {
                     walkInDoctorSearchResults = enriched
                     walkInDoctorSearchHasMore = result.hasMore
                     buildWalkInDoctorList(enriched, rawQuery, result.hasMore)
+                    // Auto-select first doctor if none active
+                    if (!selectorState.activeItem && enriched.length) {
+                        selectorState.activeItem = enriched[0].doctor
+                        renderSelectorDetail()
+                    }
                 })
             } else {
                 walkInDoctorSearchQuery = ''
@@ -2747,6 +2752,11 @@ function setWalkInTab(tab) {
                     walkInDoctorSearchResults = enriched
                     walkInDoctorSearchHasMore = result.hasMore
                     buildWalkInDoctorList(enriched, '', result.hasMore)
+                    // Auto-select first doctor if none active
+                    if (!selectorState.activeItem && enriched.length) {
+                        selectorState.activeItem = enriched[0].doctor
+                        renderSelectorDetail()
+                    }
                 })
             }
         }
@@ -4147,9 +4157,9 @@ function setWalkInTab(tab) {
         function loadDoctorSchedulesAndAvailability(doctorId, dateStr) {
             if (!doctorId || typeof apiFetch !== 'function') return
             clearAvailability()
-            apiFetch("{{ url('/api/doctor-schedules') }}?doctor_id=" + encodeURIComponent(doctorId) + "&per_page=15", { method: 'GET' })
+            apiFetch("{{ url('/api/doctor-schedules') }}?doctor_id=" + encodeURIComponent(doctorId) + "&per_page=500", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
-                .then(function (result) {
+                .then(function (result) {   
                     if (!result.ok) {
                         var msg = (result.data && result.data.message) ? String(result.data.message) : 'Failed to load doctor schedules.'
                         if (result.status === 401) msg = 'Session expired. Please log in again.'
@@ -4224,6 +4234,13 @@ function setWalkInTab(tab) {
 
         function loadServicesAndDoctors() {
             if (typeof apiFetch !== 'function') return
+            // On SPA cache load → force-refresh browse cache so stale data doesn't show
+            if (window.__spaCacheLoad) {
+                var root = getReceptionBrowseCacheRoot()
+                delete root.patients
+                delete root.services
+                delete root.doctors
+            }
             ensureWalkInPatientsLoaded().catch(function () {})
             ensureWalkInServicesLoaded()
                 .then(function () {

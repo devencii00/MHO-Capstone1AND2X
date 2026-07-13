@@ -277,6 +277,7 @@
     // ── Custom page loader for SPA-like navigation ──
     (function () {
         var pageCache = {};
+        var maxCacheSize = 3; // keep at most 3 recent pages to avoid stale data
         var mainContent = document.getElementById('main-content');
         if (!mainContent) return; 
 
@@ -345,6 +346,11 @@
                         return;
                     }
                     var newHtml = newContent.innerHTML;
+                    // LRU eviction — keep cache small to avoid stale data
+                    var keys = Object.keys(pageCache);
+                    if (keys.length >= maxCacheSize) {
+                        delete pageCache[keys[0]];
+                    }
                     pageCache[url] = newHtml;
                     mainContent.innerHTML = newHtml;
                     mainContent.style.opacity = '1';

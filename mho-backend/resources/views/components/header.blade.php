@@ -335,12 +335,6 @@
                             .listen('.message.new', function () {
                                 // Refresh badges (message count)
                                 document.dispatchEvent(new Event('header:refresh-badges'))
-                                // Trigger conversation list refresh if messages modal is open
-                                var msgModal = document.getElementById('headerMessagesModal')
-                                if (msgModal && !msgModal.classList.contains('hidden')) {
-                                    var refreshBtn = document.getElementById('receptionMessagesRefresh')
-                                    if (refreshBtn) refreshBtn.click()
-                                }
                             })
                     } catch (e) {
                         // Echo setup failed silently

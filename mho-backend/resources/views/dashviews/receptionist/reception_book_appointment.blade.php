@@ -1504,6 +1504,11 @@ function setAppointmentTab(tab) {
                     bookDoctorSearchResults = result.data
                     bookDoctorSearchHasMore = result.hasMore
                     buildBookDoctorList(result.data, rawQuery, result.hasMore)
+                    // Auto-select first doctor if none active
+                    if (!selectorState.activeItem && result.data.length) {
+                        selectorState.activeItem = result.data[0]
+                        renderSelectorDetail()
+                    }
                 })
                 return
             }
@@ -1527,6 +1532,11 @@ function setAppointmentTab(tab) {
                 bookDoctorSearchHasMore = result.hasMore
                 if (selectorListLabel) selectorListLabel.textContent = 'Latest doctors'
                 buildBookDoctorList(result.data, category, result.hasMore)
+                // Auto-select first doctor if none active
+                if (!selectorState.activeItem && result.data.length) {
+                    selectorState.activeItem = result.data[0]
+                    renderSelectorDetail()
+                }
             })
         }
 
@@ -2809,7 +2819,7 @@ function setAppointmentTab(tab) {
         function loadDoctorSchedulesAndAvailability(doctorId, dateStr) {
             if (!doctorId || typeof apiFetch !== 'function') return
             clearAvailability()
-            apiFetch("{{ url('/api/doctor-schedules') }}?doctor_id=" + encodeURIComponent(doctorId) + "&per_page=100", { method: 'GET' })
+            apiFetch("{{ url('/api/doctor-schedules') }}?doctor_id=" + encodeURIComponent(doctorId) + "&per_page=500", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) {
@@ -2903,6 +2913,13 @@ function setAppointmentTab(tab) {
 
         function loadServicesAndDoctors() {
             if (typeof apiFetch !== 'function') return
+            // On SPA cache load → force-refresh browse cache so stale data doesn't show
+            if (window.__spaCacheLoad) {
+                var root = getReceptionBrowseCacheRoot()
+                delete root.patients
+                delete root.services
+                delete root.doctors
+            }
             ensureBookPatientsLoaded().catch(function () {})
             ensureBookServicesLoaded()
                 .then(function () {

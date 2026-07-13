@@ -177,12 +177,6 @@
                     });
                     var fetchData = await fetchResp.json();
                     if (!fetchResp.ok) {
-                        if (fetchData && fetchData.code === 'PATIENT_PORTAL_REQUIRED') {
-                            if (patientOverlay) patientOverlay.classList.remove('hidden');
-                            btn.disabled = false;
-                            spinner.classList.add('hidden');
-                            return;
-                        }
                         var msg = fetchData.message || 'Unable to sign in.';
                         if (fetchResp.status === 422 && fetchData.errors) {
                             var all = [];
@@ -219,6 +213,15 @@
                 }
 
                 const user = data.user || {};
+
+                // ── Patient-role guard ──
+                var roleName = String(user.role || user.current_role?.role_name || '').toLowerCase().trim();
+                if (roleName === 'patient') {
+                    if (patientOverlay) patientOverlay.classList.remove('hidden');
+                    btn.disabled = false;
+                    spinner.classList.add('hidden');
+                    return;
+                }
 
                 var rememberCheckbox = document.getElementById('rememberCheckbox');
                 if (rememberCheckbox && rememberCheckbox.checked) {
@@ -270,12 +273,6 @@
                 var message = 'Network error. Please try again.';
                 if (err && err.response) {
                     var respData = err.response.data;
-                    if (respData && respData.code === 'PATIENT_PORTAL_REQUIRED') {
-                        if (patientOverlay) patientOverlay.classList.remove('hidden');
-                        btn.disabled = false;
-                        spinner.classList.add('hidden');
-                        return;
-                    }
                     if (respData && respData.message) {
                         message = respData.message;
                     }
