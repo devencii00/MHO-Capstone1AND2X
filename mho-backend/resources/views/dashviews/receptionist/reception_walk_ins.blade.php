@@ -2014,6 +2014,28 @@ function setWalkInTab(tab) {
             return map[String(key || '').toLowerCase()] || ''
         }
 
+        function normalizeDayKey(raw) {
+            var v = String(raw == null ? '' : raw).trim().toLowerCase()
+            if (!v) return ''
+            if (/^\d+$/.test(v)) {
+                var n = parseInt(v, 10)
+                var keys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+                return keys[n] || ''
+            }
+            var map = {
+                sun: 'sun', sunday: 'sun',
+                mon: 'mon', monday: 'mon',
+                tue: 'tue', tues: 'tue', tuesday: 'tue',
+                wed: 'wed', wednesday: 'wed',
+                thu: 'thu', thur: 'thu', thurs: 'thu', thursday: 'thu',
+                fri: 'fri', friday: 'fri',
+                sat: 'sat', saturday: 'sat'
+            }
+            if (map[v]) return map[v]
+            var s3 = v.slice(0, 3)
+            return map[s3] || ''
+        }
+
         function doctorScheduleSummary(doctor) {
             var schedules = doctor && Array.isArray(doctor.doctor_schedules) ? doctor.doctor_schedules : []
             if (!schedules.length) return 'No schedule posted.'
@@ -2746,18 +2768,36 @@ function setWalkInTab(tab) {
                 walkInDoctorSearchQuery = ''
                 walkInDoctorSearchPage = 1
                 setSelectorLoading('Loading doctors…')
-                fetchWalkInDoctorsPage('', 1).then(function (result) {
-                    if (selectorState.type !== 'doctor') return
-                    var enriched = walkInDoctorEnrichItems(result.data)
-                    walkInDoctorSearchResults = enriched
-                    walkInDoctorSearchHasMore = result.hasMore
-                    buildWalkInDoctorList(enriched, '', result.hasMore)
-                    // Auto-select first doctor if none active
-                    if (!selectorState.activeItem && enriched.length) {
-                        selectorState.activeItem = enriched[0].doctor
+                // Filter by specialization (same pattern as book appointment)
+                var categories = (srcSelectedServices || [])
+                    .map(function (s) { return extractServiceCategory(s && s.service_name ? s.service_name : '') })
+                    .filter(function (c) { return !!c })
+                var todayDate = localDateIso()
+                var todayKey = dayKeyFromDate(todayDate)
+                var nowTime = new Date().toTimeString().slice(0, 5)
+                var filtered = (Array.isArray(doctors) ? doctors : []).filter(function (d) {
+                    var spec = d && d.specialization ? d.specialization : ''
+                    return categories.length === 0 || categories.every(function (c) { return specializationMatches(c, spec) })
+                })
+                var enriched = filtered.map(function (d) {
+                    var hasSchedule = !!todayKey && hasScheduleAtTime(d, todayKey, todayDate, nowTime)
+                    var isAvailable = d && d.is_available !== false
+                    var tag = ''
+                    if (!isAvailable) tag = 'Unavailable'
+                    else if (!hasSchedule) tag = 'No schedule on this time'
+                    return { doctor: d, isSelectable: isAvailable && hasSchedule, tag: tag }
+                })
+                walkInDoctorSearchResults = enriched
+                walkInDoctorSearchHasMore = false
+                buildWalkInDoctorList(enriched, '', false)
+                // Auto-select first selectable doctor if none active
+                if (!selectorState.activeItem && enriched.length) {
+                    var firstSelectable = enriched.find(function (e) { return e.isSelectable })
+                    if (firstSelectable) {
+                        selectorState.activeItem = firstSelectable.doctor
                         renderSelectorDetail()
                     }
-                })
+                }
             }
         }
 
@@ -2775,7 +2815,7 @@ function setWalkInTab(tab) {
                 var doctor = entry.doctor
                 var isActive = selectorState.activeItem && String(selectorState.activeItem.user_id) === String(doctor.user_id)
                 html += '' +
-                    '<button type="button" class="reception-selector-doctor w-full rounded-xl border px-3 py-3 text-left transition-colors ' + (entry.isSelectable ? (isActive ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-white hover:border-green-200 hover:bg-slate-50') : (isActive ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-white hover:border-green-200 hover:bg-slate-50')) + '" data-index="' + idx + '">' +
+                    '<button type="button" class="reception-selector-doctor w-full rounded-xl border px-3 py-3 text-left transition-colors ' + (entry.isSelectable ? (isActive ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-white hover:border-green-200 hover:bg-slate-50') : 'border-slate-100 bg-slate-50 opacity-50 cursor-not-allowed') + '" data-index="' + idx + '"' + (entry.isSelectable ? '' : ' disabled') + '>' +
                         '<div class="flex items-start justify-between gap-3">' +
                             '<div class="min-w-0">' +
                                 '<div class="text-[0.8rem] font-semibold text-slate-900 truncate">' + escapeHtml('Dr. ' + doctorDisplayName(doctor)) + '</div>' +
@@ -2860,11 +2900,14 @@ function setWalkInTab(tab) {
 
         function ensureWalkInDoctorsLoaded(forceRefresh) {
             var cacheKey = 'doctors_latest'
-            // Force-refresh: clear the sessionStorage cache entry so stale schedules don't block selection
+            // Force-refresh: clear both session and in-memory cache so stale data doesn't block selection
             if (forceRefresh) {
                 try {
                     if (window.sessionStorage) window.sessionStorage.removeItem(receptionBrowseCacheKeyPrefix + cacheKey)
                 } catch (e) {}
+                // Also clear the in-memory cache entry
+                var root = getReceptionBrowseCacheRoot()
+                if (root[cacheKey]) root[cacheKey].loaded = false
             }
             var cacheEntry = loadReceptionBrowseCacheEntry(cacheKey)
             if (!forceRefresh && cacheEntry.loaded) {
@@ -2937,8 +2980,8 @@ function setWalkInTab(tab) {
                 if (selectorConfirmBtn) selectorConfirmBtn.textContent = 'Select Doctor'
                 setSelectorOpen(true)
                 setSelectorLoading('Loading doctors…')
-                // Force-refresh doctors to get latest schedules from admin panel
-                Promise.all([ensureWalkInServicesLoaded(), ensureWalkInDoctorsLoaded(true)]).then(function () {
+                // Silently fetch fresh doctors every time the modal opens
+                ensureWalkInDoctorsLoaded(true).then(function () {
                     if (selectorState.type !== 'doctor') return
                     renderSelectorDoctorList()
                 })
@@ -4677,3 +4720,4 @@ function setWalkInTab(tab) {
         window._closeSelectorModal = closeSelectorModal
     })
 </script>
+

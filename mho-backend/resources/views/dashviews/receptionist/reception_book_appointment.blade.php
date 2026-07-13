@@ -1526,18 +1526,20 @@ function setAppointmentTab(tab) {
             bookDoctorSearchQuery = category
             bookDoctorSearchPage = 1
             setSelectorLoading('Loading doctors…')
-            fetchBookDoctorsPage(category, 1).then(function (result) {
-                if (selectorState.type !== 'doctor') return
-                bookDoctorSearchResults = result.data
-                bookDoctorSearchHasMore = result.hasMore
-                if (selectorListLabel) selectorListLabel.textContent = 'Latest doctors'
-                buildBookDoctorList(result.data, category, result.hasMore)
-                // Auto-select first doctor if none active
-                if (!selectorState.activeItem && result.data.length) {
-                    selectorState.activeItem = result.data[0]
-                    renderSelectorDetail()
-                }
+            // Use doctors already loaded by ensureBookDoctorsLoaded(true), filter client-side
+            var q = normalizeText(category)
+            var filtered = (Array.isArray(doctors) ? doctors : []).filter(function (d) {
+                return normalizeText(d.specialization || '') === q
             })
+            bookDoctorSearchResults = filtered
+            bookDoctorSearchHasMore = false
+            if (selectorListLabel) selectorListLabel.textContent = 'Latest doctors'
+            buildBookDoctorList(filtered, category, false)
+            // Auto-select first doctor if none active
+            if (!selectorState.activeItem && filtered.length) {
+                selectorState.activeItem = filtered[0]
+                renderSelectorDetail()
+            }
         }
 
         function buildBookDoctorList(items, query, hasMore) {
@@ -1632,8 +1634,16 @@ function setAppointmentTab(tab) {
             return cacheEntry.promise
         }
 
-        function ensureBookDoctorsLoaded() {
+        function ensureBookDoctorsLoaded(forceRefresh) {
             var cacheKey = 'doctors_latest'
+            if (forceRefresh) {
+                try {
+                    if (window.sessionStorage) window.sessionStorage.removeItem(receptionBrowseCacheKeyPrefix + cacheKey)
+                } catch (e) {}
+                // Also clear the in-memory cache entry
+                var root = getReceptionBrowseCacheRoot()
+                if (root[cacheKey]) root[cacheKey].loaded = false
+            }
             var cacheEntry = loadReceptionBrowseCacheEntry(cacheKey)
             if (cacheEntry.loaded) {
                 doctors = Array.isArray(cacheEntry.items) ? cacheEntry.items.slice() : []
@@ -1704,7 +1714,8 @@ function setAppointmentTab(tab) {
                 if (selectorConfirmBtn) selectorConfirmBtn.textContent = 'Select Doctor'
                 setSelectorOpen(true)
                 setSelectorLoading('Loading doctors…')
-                Promise.all([ensureBookServicesLoaded(), ensureBookDoctorsLoaded()]).then(function () {
+                // Silently fetch fresh doctors every time the modal opens
+                ensureBookDoctorsLoaded(true).then(function () {
                     if (selectorState.type !== 'doctor') return
                     renderSelectorDoctorList()
                 })
