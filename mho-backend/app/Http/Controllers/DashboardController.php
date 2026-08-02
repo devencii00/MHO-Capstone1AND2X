@@ -51,176 +51,9 @@ class DashboardController extends Controller
         ];
 
         if ($role === 'admin') {
-            $today = now()->toDateString();
-            $startOfMonth = now()->startOfMonth()->toDateString();
-            $appointmentsChartStart = now()->subDays(13)->startOfDay();
-            $revenueChartStart = now()->subMonths(11)->startOfMonth();
-
-            $patientCount = User::where('role', 'patient')->count();
-            $doctorCount = User::where('role', 'doctor')->count();
-            $pendingVerificationCount = PatientVerification::where('status', 'pending')->count();
-            $recentLogsCount = LogEntry::count();
-
-            $appointmentsToday = Appointment::whereDate('appointment_datetime', $today)->count();
-
-            $revenueToday = Transaction::whereDate('transaction_datetime', $today)
-                ->where('payment_status', 'paid')
-                ->sum('amount');
-
-            $revenueThisMonth = Transaction::whereBetween('transaction_datetime', [$startOfMonth, now()])
-                ->where('payment_status', 'paid')
-                ->sum('amount');
-
-            $startOfYear = now()->startOfYear()->toDateString();
-            $monthlyBillingRecords = Transaction::whereBetween('transaction_datetime', [$startOfMonth, now()])
-                ->where('payment_status', 'paid')
-                ->count();
-            $yearlyBillingRecords = Transaction::whereBetween('transaction_datetime', [$startOfYear, now()])
-                ->where('payment_status', 'paid')
-                ->count();
-            $monthlyBillingAmount = Transaction::whereBetween('transaction_datetime', [$startOfMonth, now()])
-                ->where('payment_status', 'paid')
-                ->sum('amount');
-            $yearlyBillingAmount = Transaction::whereBetween('transaction_datetime', [$startOfYear, now()])
-                ->where('payment_status', 'paid')
-                ->sum('amount');
-
-            $userRoleCounts = User::selectRaw('role, COUNT(*) as users_count')
-                ->groupBy('role')
-                ->get()
-                ->map(function ($row) {
-                    return (object) [
-                        'role_name' => $row->role,
-                        'users_count' => $row->users_count,
-                    ];
-                });
-
-            $recentUsers = User::withCount('children')->latest('user_id')->limit(100)->get();
-
-            $recentPatients = User::where('role', 'patient')
-                ->latest('user_id')
-                ->limit(10)
-                ->get();
-
-            $recentVerifications = PatientVerification::with('patient')
-                ->latest('verification_id')
-                ->limit(10)
-                ->get();
-
-            $recentTransactions = Transaction::latest('transaction_datetime')
-                ->limit(10)
-                ->get();
-
-            $recentAuditLogs = LogEntry::with('user')
-                ->where('action', 'not like', 'access_%')
-                ->latest('created_at')
-                ->limit(60)
-                ->get();
-
-            $recentAccessLogs = LogEntry::with('user')
-                ->where('action', 'like', 'access_%')
-                ->latest('created_at')
-                ->limit(60)
-                ->get();
-
-            $data['adminMetrics'] = [
-                'patientCount' => $patientCount,
-                'doctorCount' => $doctorCount,
-                'pendingVerificationsCount' => $pendingVerificationCount,
-                'recentLogsCount' => $recentLogsCount,
-                'appointmentsToday' => $appointmentsToday,
-                'revenueToday' => $revenueToday,
-                'revenueThisMonth' => $revenueThisMonth,
-            ];
-
-            $verificationStats = PatientVerification::query()
-                ->selectRaw('status, COUNT(*) as total_count')
-                ->groupBy('status')
-                ->pluck('total_count', 'status');
-
-            $data['adminVerificationStats'] = [
-                'pending' => (int) ($verificationStats['pending'] ?? 0),
-                'approved' => (int) ($verificationStats['approved'] ?? 0),
-                'rejected' => (int) ($verificationStats['rejected'] ?? 0),
-            ];
-
-            $data['adminUserRoleCounts'] = $userRoleCounts;
-            $data['adminRecentUsers'] = $recentUsers;
-            $data['adminRecentPatients'] = $recentPatients;
-            $data['adminRecentVerifications'] = $recentVerifications;
-            $data['adminRecentTransactions'] = $recentTransactions;
-            $data['adminRecentAuditLogs'] = $recentAuditLogs;
-            $data['adminRecentAccessLogs'] = $recentAccessLogs;
-
-            $appointmentsCounts = Appointment::query()
-                ->selectRaw('DATE(appointment_datetime) as day, COUNT(*) as total_count')
-                ->whereNotNull('appointment_datetime')
-                ->where('appointment_datetime', '>=', $appointmentsChartStart)
-                ->groupBy(DB::raw('DATE(appointment_datetime)'))
-                ->orderBy('day')
-                ->get()
-                ->keyBy('day');
-
-            $appointmentLabels = [];
-            $appointmentValues = [];
-            for ($cursor = $appointmentsChartStart->copy(); $cursor->lte(now()); $cursor->addDay()) {
-                $key = $cursor->toDateString();
-                $appointmentLabels[] = $key;
-                $appointmentValues[] = (int) (($appointmentsCounts[$key]->total_count ?? 0));
-            }
-
-            $revenueRows = Transaction::query()
-                ->selectRaw("DATE_FORMAT(transaction_datetime, '%Y-%m') as month_key, SUM(amount) as total_amount")
-                ->whereNotNull('transaction_datetime')
-                ->where('transaction_datetime', '>=', $revenueChartStart)
-                ->where('payment_status', 'paid')
-                ->groupBy(DB::raw("DATE_FORMAT(transaction_datetime, '%Y-%m')"))
-                ->orderBy('month_key')
-                ->get()
-                ->keyBy('month_key');
-
-            $revenueLabels = [];
-            $revenueValues = [];
-            for ($cursor = $revenueChartStart->copy(); $cursor->lte(now()); $cursor->addMonth()) {
-                $key = $cursor->format('Y-m');
-                $revenueLabels[] = $key;
-                $revenueValues[] = (float) (($revenueRows[$key]->total_amount ?? 0));
-            }
-
-            $data['adminCharts'] = [
-                'appointmentsPerDay' => [
-                    'labels' => $appointmentLabels,
-                    'values' => $appointmentValues,
-                ],
-                'revenuePerMonth' => [
-                    'labels' => $revenueLabels,
-                    'values' => $revenueValues,
-                ],
-            ];
-
-            $appointmentsByStatusToday = Appointment::selectRaw('status, appointment_type, COUNT(*) as total_count')
-                ->whereDate('appointment_datetime', $today)
-                ->groupBy('status', 'appointment_type')
-                ->get();
-
-            $noShowApptIds = Appointment::whereDate('appointment_datetime', $today)
-                ->where('status', 'no_show')
-                ->pluck('appointment_id');
-
-            $noShowQueueApptIds = Queue::whereDate('queue_datetime', $today)
-                ->where('status', 'no_show')
-                ->pluck('appointment_id');
-
-            $noShowCount = $noShowApptIds->concat($noShowQueueApptIds)->unique()->count();
-
-            $data['adminReports'] = [
-                'appointmentsByStatusToday' => $appointmentsByStatusToday,
-                'noShowToday' => $noShowCount,
-                'monthlyBillingRecords' => $monthlyBillingRecords,
-                'yearlyBillingRecords' => $yearlyBillingRecords,
-                'monthlyBillingAmount' => $monthlyBillingAmount,
-                'yearlyBillingAmount' => $yearlyBillingAmount,
-            ];
+            // Admin dashboards use shell caching: the page render only ships static
+            // structure + skeleton loaders. Dynamic data is served by GET /dashboard/data
+            // (see data()) and fetched by each section's init function on every shell show.
         } elseif ($role === 'doctor') {
             $today = now()->toDateString();
 
@@ -476,5 +309,153 @@ class DashboardController extends Controller
         }
 
         return view('dashviews.main', $data);
+    }
+
+    /**
+     * JSON endpoint backing the shell-cache architecture.
+     * Returns only the dynamic data a section needs; page shells ship skeletons
+     * and fetch here every time they are shown, so cached shells never go stale.
+     */
+    public function data(Request $request)
+    {
+        $role = strtolower((string) $request->query('role', 'admin'));
+        if (!in_array($role, ['admin', 'doctor', 'receptionist', 'patient'], true)) {
+            return response()->json(['ok' => false, 'message' => 'Invalid role.'], 422);
+        }
+
+        if ($role === 'admin') {
+            return response()->json([
+                'ok' => true,
+                'data' => $this->adminData((string) $request->query('section', 'overview')),
+            ]);
+        }
+
+        // Doctor / receptionist / patient payloads are added when those roles are converted.
+        return response()->json(['ok' => true, 'data' => []]);
+    }
+
+    /**
+     * Section-aware dynamic data for the admin role.
+     */
+    private function adminData(?string $section): array
+    {
+        $today = now()->toDateString();
+        $startOfMonth = now()->startOfMonth()->toDateString();
+
+        $metrics = function () use ($today, $startOfMonth) {
+            return [
+                'patientCount' => User::where('role', 'patient')->count(),
+                'doctorCount' => User::where('role', 'doctor')->count(),
+                'pendingVerificationsCount' => PatientVerification::where('status', 'pending')->count(),
+                'recentLogsCount' => LogEntry::count(),
+                'appointmentsToday' => Appointment::whereDate('appointment_datetime', $today)->count(),
+                'revenueToday' => Transaction::whereDate('transaction_datetime', $today)
+                    ->where('payment_status', 'paid')
+                    ->sum('amount'),
+                'revenueThisMonth' => Transaction::whereBetween('transaction_datetime', [$startOfMonth, now()])
+                    ->where('payment_status', 'paid')
+                    ->sum('amount'),
+            ];
+        };
+
+        $logs = function (string $kind) {
+            $query = LogEntry::with('user');
+            if ($kind === 'access') {
+                $query->where('action', 'like', 'access_%');
+            } else {
+                $query->where('action', 'not like', 'access_%');
+            }
+            return $query->latest('created_at')->limit(60)->get()->map(function ($log) {
+                return [
+                    'created_at' => optional($log->created_at)->format('Y-m-d H:i'),
+                    'user_email' => $log->user ? $log->user->email : null,
+                    'action' => $log->action,
+                    'table_name' => $log->table_name,
+                    'record_id' => $log->record_id,
+                ];
+            })->values();
+        };
+
+        $charts = function () {
+            $appointmentsChartStart = now()->subDays(13)->startOfDay();
+            $revenueChartStart = now()->subMonths(11)->startOfMonth();
+
+            $appointmentsCounts = Appointment::query()
+                ->selectRaw('DATE(appointment_datetime) as day, COUNT(*) as total_count')
+                ->whereNotNull('appointment_datetime')
+                ->where('appointment_datetime', '>=', $appointmentsChartStart)
+                ->groupBy(DB::raw('DATE(appointment_datetime)'))
+                ->orderBy('day')
+                ->get()
+                ->keyBy('day');
+
+            $appointmentLabels = [];
+            $appointmentValues = [];
+            for ($cursor = $appointmentsChartStart->copy(); $cursor->lte(now()); $cursor->addDay()) {
+                $key = $cursor->toDateString();
+                $appointmentLabels[] = $key;
+                $appointmentValues[] = (int) (($appointmentsCounts[$key]->total_count ?? 0));
+            }
+
+            $revenueRows = Transaction::query()
+                ->selectRaw("DATE_FORMAT(transaction_datetime, '%Y-%m') as month_key, SUM(amount) as total_amount")
+                ->whereNotNull('transaction_datetime')
+                ->where('transaction_datetime', '>=', $revenueChartStart)
+                ->where('payment_status', 'paid')
+                ->groupBy(DB::raw("DATE_FORMAT(transaction_datetime, '%Y-%m')"))
+                ->orderBy('month_key')
+                ->get()
+                ->keyBy('month_key');
+
+            $revenueLabels = [];
+            $revenueValues = [];
+            for ($cursor = $revenueChartStart->copy(); $cursor->lte(now()); $cursor->addMonth()) {
+                $key = $cursor->format('Y-m');
+                $revenueLabels[] = $key;
+                $revenueValues[] = (float) (($revenueRows[$key]->total_amount ?? 0));
+            }
+
+            return [
+                'appointmentsPerDay' => ['labels' => $appointmentLabels, 'values' => $appointmentValues],
+                'revenuePerMonth' => ['labels' => $revenueLabels, 'values' => $revenueValues],
+            ];
+        };
+
+        $recentUsers = function () {
+            return User::withCount('children')->latest('user_id')->limit(100)->get()->map(function ($u) {
+                return [
+                    'user_id' => $u->user_id,
+                    'email' => $u->email,
+                    'firstname' => $u->firstname,
+                    'middlename' => $u->middlename,
+                    'lastname' => $u->lastname,
+                    'contact_number' => $u->contact_number,
+                    'role' => $u->role,
+                    'status' => $u->status ?? 'active',
+                    'created_at' => optional($u->created_at)->format('Y-m-d'),
+                    'created_ts' => optional($u->created_at)->timestamp ?? 0,
+                    'children_count' => (int) ($u->children_count ?? 0),
+                ];
+            })->values();
+        };
+
+        switch ($section) {
+            case 'user-management':
+                return ['recentUsers' => $recentUsers()];
+            case 'reports':
+                return ['metrics' => $metrics()];
+            case 'logs':
+                return [
+                    'recentAuditLogs' => $logs('audit'),
+                    'recentAccessLogs' => $logs('access'),
+                ];
+            case 'overview':
+            default:
+                return [
+                    'metrics' => $metrics(),
+                    'charts' => $charts(),
+                    'recentAuditLogs' => $logs('audit'),
+                ];
+        }
     }
 }

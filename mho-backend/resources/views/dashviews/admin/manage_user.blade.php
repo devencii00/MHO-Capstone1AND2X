@@ -213,91 +213,34 @@
                     <th class="py-2 pr-4 font-semibold">Actions</th>
                 </tr>
             </thead>
-            <tbody>
-                @forelse ($adminRecentUsers ?? [] as $user)
-                    @php
-                        $status = strtolower($user->status ?? 'active');
-                        $statusColors = [
-                            'active' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
-                            'inactive' => 'bg-slate-50 text-slate-600 border-slate-100',
-                            'suspended' => 'bg-amber-50 text-amber-700 border-amber-100',
-                        ];
-                        $statusClass = $statusColors[$status] ?? 'bg-slate-50 text-slate-600 border-slate-100';
-                        $fullName = trim(implode(' ', array_filter([
-                            $user->firstname ?? null,
-                            $user->middlename ?? null,
-                            $user->lastname ?? null,
-                        ], function ($v) {
-                            return (string) $v !== '';
-                        })));
-                        $contact = $user->contact_number ?? '';
-                        $childrenCount = (int) ($user->children_count ?? 0);
-                    @endphp
-                    <tr class="border-b border-slate-50 last:border-0 admin-user-row"
-                        data-user-id="{{ $user->user_id }}"
-                        data-email="{{ strtolower($user->email) }}"
-                        data-name="{{ strtolower($fullName) }}"
-                        data-contact="{{ strtolower($contact) }}"
-                        data-role="{{ strtolower($user->role ?? '') }}"
-                        data-created="{{ optional($user->created_at)->format('Y-m-d') ?? '' }}"
-                        data-created-ts="{{ optional($user->created_at)->timestamp ?? 0 }}"
-                        data-status="{{ $status }}"
-                        data-children-count="{{ $childrenCount }}">
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-700">
-                            @if ($fullName)
-                                {{ $fullName }}
-                            @else
-                                <span class="text-slate-400">-</span>
-                            @endif
-                        </td>
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                            @if ($contact)
-                                {{ $contact }}
-                            @else
-                                <span class="text-slate-400">-</span>
-                            @endif
-                        </td>
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-700">{{ $user->email }}</td>
-                        <td class="py-2 pr-4 text-[0.78rem]">
-                            <span class="text-[0.78rem] text-slate-700">
-                                {{ $user->role ? ucfirst($user->role) : 'None' }}
-                            </span>
-                        </td>
-                        <td class="py-2 pr-4 text-[0.78rem]">
-                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border {{ $statusClass }}">
-                                {{ ucfirst($status) }}
-                            </span>
-                        </td>
-                        <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                            {{ optional($user->created_at)->format('Y-m-d') ?? '-' }}
-                        </td>
-                        <td class="py-2 pr-4 text-[0.78rem]">
-                            <div class="flex items-center gap-2">
-                                <button type="button" class="px-2 py-1 rounded-md border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 text-[0.72rem] font-semibold admin-user-edit" data-user-id="{{ $user->user_id }}">
-                                    Edit
-                                </button>
-                                <button type="button" class="px-2 py-1 rounded-md border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-[0.72rem] font-semibold admin-user-dependents" data-user-id="{{ $user->user_id }}">
-                                    View dependents
-                                </button>
-                                @if ($status === 'suspended' || $status === 'inactive')
-                                    <button type="button" class="px-2 py-1 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-[0.72rem] font-semibold admin-user-toggle-status" data-user-id="{{ $user->user_id }}">
-                                        Activate
-                                    </button>
-                                @else
-                                    <button type="button" class="px-2 py-1 rounded-md border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 text-[0.72rem] font-semibold admin-user-toggle-status" data-user-id="{{ $user->user_id }}">
-                                        Suspend
-                                    </button>
-                                @endif
-                            </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">
-                            No users found yet.
-                        </td>
-                    </tr>
-                @endforelse
+            <tbody id="adminUserTableBody">
+                <tr class="admin-user-skeleton border-b border-slate-50">
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-16"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-16"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-16"></span></td>
+                </tr>
+                <tr class="admin-user-skeleton border-b border-slate-50">
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-16"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-16"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-16"></span></td>
+                </tr>
+                <tr class="admin-user-skeleton border-b border-slate-50">
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-16"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-16"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
+                    <td class="py-2 pr-4"><span class="skeleton h-3 w-16"></span></td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -560,27 +503,80 @@
         var editingUserId = null
         var statusUserId = null
 
-        function reloadTable() {
-            var oldTbody = document.querySelector('#adminUserTable tbody')
-            if (oldTbody) oldTbody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading users…</td></tr>'
-            fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                .then(function (r) { return r.text() })
-                .then(function (html) {
-                    var parser = new DOMParser()
-                    var doc = parser.parseFromString(html, 'text/html')
-                    var oldTbody = document.querySelector('#adminUserTable tbody')
-                    var newTbody = doc.querySelector('#adminUserTable tbody')
-                    if (oldTbody && newTbody) {
-                        oldTbody.innerHTML = newTbody.innerHTML
-                        // Re-bind data attributes and re-initialize
-                        rows = Array.prototype.slice.call(document.querySelectorAll('.admin-user-row'))
-                        applyUserFilters()
-                        updateUserTotalCount()
-                    } else {
-                        window.location.reload()
+        function cap(s) {
+            return String(s == null ? '' : s).charAt(0).toUpperCase() + String(s == null ? '' : s).slice(1)
+        }
+
+        function renderUsers(list) {
+            var tbody = document.querySelector('#adminUserTable tbody')
+            if (!tbody) return
+
+            // Remove skeleton rows
+            Array.prototype.forEach.call(tbody.querySelectorAll('.admin-user-skeleton'), function (s) { s.parentNode.removeChild(s) })
+
+            if (!list || !list.length) {
+                tbody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No users found yet.</td></tr>'
+            } else {
+                tbody.innerHTML = list.map(function (u) {
+                    var status = String(u.status || 'active').toLowerCase()
+                    var statusColors = {
+                        active: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                        inactive: 'bg-slate-50 text-slate-600 border-slate-100',
+                        suspended: 'bg-amber-50 text-amber-700 border-amber-100'
                     }
+                    var statusClass = statusColors[status] || 'bg-slate-50 text-slate-600 border-slate-100'
+                    var fullName = [u.firstname, u.middlename, u.lastname].filter(function (v) { return v }).join(' ').trim()
+                    var contact = u.contact_number || ''
+                    var childrenCount = Number(u.children_count) || 0
+                    var statusBtn = (status === 'suspended' || status === 'inactive')
+                        ? '<button type="button" class="px-2 py-1 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-[0.72rem] font-semibold admin-user-toggle-status" data-user-id="' + u.user_id + '">Activate</button>'
+                        : '<button type="button" class="px-2 py-1 rounded-md border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 text-[0.72rem] font-semibold admin-user-toggle-status" data-user-id="' + u.user_id + '">Suspend</button>'
+                    return '<tr class="border-b border-slate-50 last:border-0 admin-user-row" ' +
+                        'data-user-id="' + u.user_id + '" ' +
+                        'data-email="' + escapeHtml(String(u.email || '').toLowerCase()) + '" ' +
+                        'data-name="' + escapeHtml(String(fullName || '').toLowerCase()) + '" ' +
+                        'data-contact="' + escapeHtml(String(contact || '').toLowerCase()) + '" ' +
+                        'data-role="' + escapeHtml(String(u.role || '').toLowerCase()) + '" ' +
+                        'data-created="' + escapeHtml(u.created_at || '') + '" ' +
+                        'data-created-ts="' + (Number(u.created_ts) || 0) + '" ' +
+                        'data-status="' + status + '" ' +
+                        'data-children-count="' + childrenCount + '">' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + (fullName ? escapeHtml(fullName) : '<span class="text-slate-400">-</span>') + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (contact ? escapeHtml(contact) : '<span class="text-slate-400">-</span>') + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(u.email || '') + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem]"><span class="text-[0.78rem] text-slate-700">' + escapeHtml(u.role ? cap(u.role) : 'None') + '</span></td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem]"><span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border ' + statusClass + '">' + escapeHtml(cap(status)) + '</span></td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(u.created_at || '-') + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem]"><div class="flex items-center gap-2">' +
+                            '<button type="button" class="px-2 py-1 rounded-md border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 text-[0.72rem] font-semibold admin-user-edit" data-user-id="' + u.user_id + '">Edit</button>' +
+                            '<button type="button" class="px-2 py-1 rounded-md border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-[0.72rem] font-semibold admin-user-dependents" data-user-id="' + u.user_id + '">View dependents</button>' +
+                            statusBtn +
+                        '</div></td>' +
+                    '</tr>'
+                }).join('')
+            }
+
+            rows = Array.prototype.slice.call(document.querySelectorAll('.admin-user-row'))
+            applyUserFilters()
+            updateUserTotalCount()
+        }
+
+        function loadUsers() {
+            var tbody = document.querySelector('#adminUserTable tbody')
+            if (tbody && !tbody.querySelector('.admin-user-row') && !tbody.querySelector('.admin-user-skeleton')) {
+                tbody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading users…</td></tr>'
+            }
+            if (typeof window.fetchDashboardData !== 'function') return
+            window.fetchDashboardData('user-management')
+                .then(function (body) {
+                    if (!body || !body.ok || !body.data) return
+                    renderUsers(body.data.recentUsers || [])
                 })
-                .catch(function () { window.location.reload() })
+                .catch(function () {})
+        }
+
+        function reloadTable() {
+            loadUsers()
         }
 
         function updateUserTotalCount() {
@@ -1323,8 +1319,8 @@
             refreshBtn.addEventListener('click', function () { reloadTable() })
         }
 
-        applyUserFilters()
-        updateUserTotalCount()
+        // Load fresh user data on every shell show (first load + SPA cache hits)
+        loadUsers()
 
         if (searchInput) {
             searchInput.addEventListener('input', applyUserFilters)

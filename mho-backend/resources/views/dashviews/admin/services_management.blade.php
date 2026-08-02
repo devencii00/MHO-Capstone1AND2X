@@ -168,7 +168,8 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         var errorBox = document.getElementById('adminServiceError')
         var successBox = document.getElementById('adminServiceSuccess')
         var addForm = document.getElementById('adminAddServiceForm')
@@ -835,5 +836,11 @@
         }
 
         loadServices()
-    })
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', onReady)
+        } else {
+            onReady()
+        }
+    })()
 </script>

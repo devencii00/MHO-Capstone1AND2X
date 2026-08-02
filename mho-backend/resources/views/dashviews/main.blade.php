@@ -18,6 +18,7 @@
     </div>
 </div>
 <script>
+    window.__dashboardRole = "{{ strtolower($role ?? 'admin') }}";
 
     (function () {
         var token = null;
@@ -102,7 +103,7 @@
         </div>
         @endif
 
-        <div id="main-content" class="flex-1 p-8 md:p-5" style="display:none">
+        <div id="main-content" class="flex-1 p-8 md:p-5" style="display:none" data-shell-safe="{{ in_array(strtolower($role ?? ''), ['admin']) ? '1' : '0' }}">
             @php
                 $mapping = [
                     'admin' => 'admindb',

@@ -18,6 +18,20 @@
             height: 0;
         }
 
+        /* Skeleton loaders for dynamic regions (shown until fresh data replaces them) */
+        .skeleton {
+            background: linear-gradient(90deg, #eef2f7 25%, #e2e8f0 37%, #eef2f7 63%);
+            background-size: 400% 100%;
+            animation: skeleton-shimmer 1.4s ease infinite;
+            border-radius: 6px;
+            display: inline-block;
+            line-height: 1;
+        }
+        @keyframes skeleton-shimmer {
+            0% { background-position: 100% 50%; }
+            100% { background-position: 0 50%; }
+        }
+
         /* Toast notifications */
         #toast-container {
             position: fixed;
@@ -175,6 +189,25 @@
     </script>
 
     <script>
+        // Fetch fresh data for a dashboard section. Pages call this from their init
+        // function every time the cached shell is shown, then replace skeletons.
+        window.fetchDashboardData = function (section, extraParams) {
+            var role = (window.__dashboardRole || 'admin')
+            var params = 'role=' + encodeURIComponent(role) + '&section=' + encodeURIComponent(section || 'overview')
+            if (extraParams && typeof extraParams === 'object') {
+                Object.keys(extraParams).forEach(function (k) {
+                    params += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(extraParams[k])
+                })
+            }
+            if (typeof window.apiFetch === 'function') {
+                return window.apiFetch("{{ url('/dashboard/data') }}?" + params, { method: 'GET' })
+                    .then(function (r) { return r.json() })
+            }
+            return Promise.resolve({ ok: false, data: null })
+        }
+    </script>
+
+    <script>
         ;(function () {
             if (window.__spaDomReadyShimInstalled) return
             window.__spaDomReadyShimInstalled = true
@@ -275,11 +308,17 @@
     }
 
     // ── Custom page loader for SPA-like navigation ──
+    // Caches only static page SHELLS (marked data-shell-safe="1" on #main-content).
+    // Shell-safe pages cache forever during the session; every time the shell is
+    // shown its inline scripts re-run and fetch FRESH data over /dashboard/data.
+    // Legacy pages (not yet converted) keep the old capped-cache + refresh behavior.
     (function () {
-        var pageCache = {};
-        var maxCacheSize = 3; // keep at most 3 recent pages to avoid stale data
+        var shellCache = {};      // shell-safe pages: static structure + skeletons, cached forever
+        var legacyCache = {};     // legacy pages: capped cache, refreshed via __spaCacheLoad
+        var legacyMaxSize = 3;
+        var navToken = 0;         // race guard: only the latest navigation may apply content
         var mainContent = document.getElementById('main-content');
-        if (!mainContent) return; 
+        if (!mainContent) return;
 
         function normalizeUrl(url) {
             try {
@@ -290,9 +329,9 @@
         }
 
         function afterContentSwap(url) {
-            // Signal to pages that this is an SPA cache load (scripts can refresh only their data)
+            // Signal to pages that this is an SPA shell load (scripts refresh only their data)
             window.__spaCacheLoad = true
-            // Re-run all inline scripts in main-content
+            // Re-run all inline scripts in main-content (init functions fetch fresh data)
             Array.prototype.forEach.call(mainContent.querySelectorAll('script'), function (oldScript) {
                 var newScript = document.createElement('script');
                 Array.prototype.forEach.call(oldScript.attributes, function (attr) {
@@ -314,6 +353,14 @@
             }
         }
 
+        function showContent(html, url) {
+            mainContent.innerHTML = html;
+            mainContent.style.opacity = '1';
+            window.scrollTo(0, 0);
+            history.pushState(null, '', url);
+            afterContentSwap(url);
+        }
+
         // Expose SPA navigation globally for non-sidebar links (notifications, Start actions, etc.)
         window.navigateSpa = function (url) {
             url = normalizeUrl(url);
@@ -323,21 +370,31 @@
                 return;
             }
 
-            if (pageCache[url]) {
-                mainContent.innerHTML = pageCache[url];
-                mainContent.style.opacity = '1';
-                window.scrollTo(0, 0);
-                history.pushState(null, '', url);
-                afterContentSwap(url);
+            // Cache hit — show shell instantly, re-run scripts (fresh data fills skeletons)
+            if (shellCache[url] !== undefined) {
+                var t1 = ++navToken;
+                showContent(shellCache[url], url);
+                return;
+            }
+            if (legacyCache[url] !== undefined) {
+                var t2 = ++navToken;
+                // LRU re-insert so recently used legacy pages survive eviction
+                var legacyHtml = legacyCache[url];
+                delete legacyCache[url];
+                legacyCache[url] = legacyHtml;
+                showContent(legacyHtml, url);
                 return;
             }
 
+            var token = ++navToken;
             mainContent.style.opacity = '0.4';
             mainContent.style.transition = 'opacity 0.15s';
 
             fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                 .then(function (r) { return r.text(); })
                 .then(function (html) {
+                    if (token !== navToken) return; // stale response from an older navigation
+
                     var parser = new DOMParser();
                     var doc = parser.parseFromString(html, 'text/html');
                     var newContent = doc.getElementById('main-content');
@@ -346,17 +403,21 @@
                         return;
                     }
                     var newHtml = newContent.innerHTML;
-                    // LRU eviction — keep cache small to avoid stale data
-                    var keys = Object.keys(pageCache);
-                    if (keys.length >= maxCacheSize) {
-                        delete pageCache[keys[0]];
+                    var isShellSafe = newContent.getAttribute('data-shell-safe') === '1';
+
+                    if (isShellSafe) {
+                        // Server renders skeletons only; cache the shell for the whole session
+                        shellCache[url] = newHtml;
+                    } else {
+                        // Legacy page: keep a small cache to bound staleness
+                        legacyCache[url] = newHtml;
+                        var keys = Object.keys(legacyCache);
+                        if (keys.length > legacyMaxSize) {
+                            delete legacyCache[keys[0]];
+                        }
                     }
-                    pageCache[url] = newHtml;
-                    mainContent.innerHTML = newHtml;
-                    mainContent.style.opacity = '1';
-                    window.scrollTo(0, 0);
-                    history.pushState(null, '', url);
-                    afterContentSwap(url);
+
+                    showContent(newHtml, url);
                 })
                 .catch(function () {
                     window.location.href = url;

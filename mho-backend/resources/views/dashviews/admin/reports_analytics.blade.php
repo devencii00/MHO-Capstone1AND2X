@@ -7,27 +7,13 @@
         
     </p>
 
-    @php
-        $metrics = $adminMetrics ?? [];
-        $reports = $adminReports ?? [];
-        $recentTransactions = $adminRecentTransactions ?? collect();
-    @endphp
-
-    <div class="mb-4 flex items-center justify-end">
-        <div class="text-[0.72rem] text-slate-500">
-       
-        </div>
-    </div>
-
     <div class="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 admin-analytics-card" data-group="patients">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-[0.78rem] text-slate-500">Total patients</span>
                 <x-lucide-users class="w-[17px] h-[17px] text-green-600" />
             </div>
-            <div class="font-serif font-bold text-xl text-slate-900">
-                {{ number_format((int) ($metrics['patientCount'] ?? 0)) }}
-            </div>
+            <div id="adminMetricPatientCount" class="font-serif font-bold text-xl text-slate-900"><span class="skeleton h-5 w-14"></span></div>
         </div>
 
         <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 admin-analytics-card" data-group="staff">
@@ -35,9 +21,7 @@
                 <span class="text-[0.78rem] text-slate-500">Active doctors</span>
                 <x-lucide-stethoscope class="w-[17px] h-[17px] text-green-600" />
             </div>
-            <div class="font-serif font-bold text-xl text-slate-900">
-                {{ number_format((int) ($metrics['doctorCount'] ?? 0)) }}
-            </div>
+            <div id="adminMetricDoctorCount" class="font-serif font-bold text-xl text-slate-900"><span class="skeleton h-5 w-14"></span></div>
         </div>
 
         <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 admin-analytics-card" data-group="compliance">
@@ -45,9 +29,7 @@
                 <span class="text-[0.78rem] text-slate-500">Pending verifications</span>
                 <x-lucide-badge-check class="w-[17px] h-[17px] text-amber-500" />
             </div>
-            <div class="font-serif font-bold text-xl text-slate-900">
-                {{ number_format((int) ($metrics['pendingVerificationsCount'] ?? 0)) }}
-            </div>
+            <div id="adminMetricPendingVerifications" class="font-serif font-bold text-xl text-slate-900"><span class="skeleton h-5 w-14"></span></div>
         </div>
 
         <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 admin-analytics-card" data-group="compliance">
@@ -55,9 +37,7 @@
                 <span class="text-[0.78rem] text-slate-500">Total audit entries</span>
                 <x-lucide-folder class="w-[17px] h-[17px] text-slate-600" />
             </div>
-            <div class="font-serif font-bold text-xl text-slate-900">
-                {{ number_format((int) ($metrics['recentLogsCount'] ?? 0)) }}
-            </div>
+            <div id="adminMetricRecentLogsCount" class="font-serif font-bold text-xl text-slate-900"><span class="skeleton h-5 w-14"></span></div>
         </div>
     </div>
 
@@ -70,18 +50,14 @@
             <div class="flex-1 min-w-[180px] flex items-center justify-between rounded-2xl bg-white border border-slate-100 px-4 py-3">
                 <div>
                     <p class="text-[0.7rem] text-slate-500 mb-0.5">Today</p>
-                    <p class="font-serif font-bold text-lg text-slate-900">
-                        ₱{{ number_format((float) ($metrics['revenueToday'] ?? 0), 2) }}
-                    </p>
+                    <p id="adminMetricRevenueToday" class="font-serif font-bold text-lg text-slate-900"><span class="skeleton h-5 w-20"></span></p>
                 </div>
                 <x-lucide-calendar class="w-[22px] h-[22px] text-green-600 shrink-0 ml-2" />
             </div>
             <div class="flex-1 min-w-[180px] flex items-center justify-between rounded-2xl bg-white border border-slate-100 px-4 py-3">
                 <div>
                     <p class="text-[0.7rem] text-slate-500 mb-0.5">This month</p>
-                    <p class="font-serif font-bold text-lg text-slate-900">
-                        ₱{{ number_format((float) ($metrics['revenueThisMonth'] ?? 0), 2) }}
-                    </p>
+                    <p id="adminMetricRevenueMonth" class="font-serif font-bold text-lg text-slate-900"><span class="skeleton h-5 w-20"></span></p>
                 </div>
                 <x-lucide-chart-column class="w-[22px] h-[22px] text-emerald-600 shrink-0 ml-2" />
             </div>
@@ -204,7 +180,8 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    (function () {
+        function onReady() {
         var txnBody = document.getElementById('adminTxnTodayBody')
         var txnPagination = document.getElementById('adminTxnTodayPagination')
         var txnCount = document.getElementById('adminTxnTodayCount')
@@ -620,14 +597,40 @@
                 if (event.target === reportModal) closeReportModal()
             })
         }
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape' && reportModal && !reportModal.classList.contains('hidden')) {
-                closeReportModal()
-            }
-        })
+        // Guard: this document-level listener must not duplicate when the cached shell is re-shown
+        if (!window.__adminReportKeydownBound) {
+            window.__adminReportKeydownBound = true
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && reportModal && !reportModal.classList.contains('hidden')) {
+                    closeReportModal()
+                }
+            })
+        }
+
+        // ── Report summary (fresh JSON on every shell show; replaces skeletons) ──
+        function loadReportSummary() {
+            if (typeof window.fetchDashboardData !== 'function') return
+            window.fetchDashboardData('reports').then(function (body) {
+                if (!body || !body.ok || !body.data || !body.data.metrics) return
+                var m = body.data.metrics
+                function setVal(id, text) {
+                    var el = document.getElementById(id)
+                    if (el) el.textContent = text
+                }
+                function num(n) { return Number(n || 0).toLocaleString('en-US') }
+                function money(n) { return '₱' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+                setVal('adminMetricPatientCount', num(m.patientCount))
+                setVal('adminMetricDoctorCount', num(m.doctorCount))
+                setVal('adminMetricPendingVerifications', num(m.pendingVerificationsCount))
+                setVal('adminMetricRecentLogsCount', num(m.recentLogsCount))
+                setVal('adminMetricRevenueToday', money(m.revenueToday))
+                setVal('adminMetricRevenueMonth', money(m.revenueThisMonth))
+            }).catch(function () {})
+        }
 
         loadServices()
         loadTodaysTransactions()
+        loadReportSummary()
 
         var txnRefreshBtn = document.getElementById('adminTxnTodayRefreshBtn')
         if (txnRefreshBtn) {
@@ -644,5 +647,11 @@
                 loadTodaysTransactions()
             })
         }
-    })
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', onReady)
+        } else {
+            onReady()
+        }
+    })()
 </script>

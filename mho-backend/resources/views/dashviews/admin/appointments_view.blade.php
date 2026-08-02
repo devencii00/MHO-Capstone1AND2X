@@ -176,7 +176,8 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         var errorBox = document.getElementById('adminAppointmentsError')
         var dateInput = document.getElementById('admin_appt_date')
         var doctorSelect = document.getElementById('admin_appt_doctor')
@@ -579,11 +580,14 @@
             })
         }
 
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && adminConsultReceiptModal && !adminConsultReceiptModal.classList.contains('hidden')) {
-                closeAdminConsultReceipt()
-            }
-        })
+        if (!window.__adminApptKeydownBound) {
+            window.__adminApptKeydownBound = true
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && adminConsultReceiptModal && !adminConsultReceiptModal.classList.contains('hidden')) {
+                    closeAdminConsultReceipt()
+                }
+            })
+        }
 
         // ── Status update handler ──
         if (detailUpdateBtn) {
@@ -846,5 +850,11 @@
 
         loadDoctors()
         loadAppointments(1)
-    })
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', onReady)
+        } else {
+            onReady()
+        }
+    })()
 </script>

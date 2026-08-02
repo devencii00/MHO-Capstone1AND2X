@@ -153,7 +153,8 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         var currentUserId = null
         var pendingProfileFile = null
 
@@ -646,5 +647,11 @@
         restoreCooldownIfAny()
         restorePasswordTokenIfAny()
         loadCurrentUser()
-    })
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', onReady)
+        } else {
+            onReady()
+        }
+    })()
 </script>

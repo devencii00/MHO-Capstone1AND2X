@@ -54,36 +54,24 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($adminRecentAuditLogs ?? [] as $log)
-                        <tr class="border-b border-slate-50 last:border-0 admin-audit-row"
-                            data-user="{{ strtolower($log->user ? $log->user->email : '') }}"
-                            data-table="{{ strtolower($log->table_name ?? '') }}"
-                            data-action="{{ strtolower($log->action ?? '') }}"
-                            data-date="{{ optional($log->created_at)->format('Y-m-d H:i') ?? '' }}">
-                            <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                                {{ optional($log->created_at)->format('Y-m-d H:i') ?? '-' }}
-                            </td>
-                            <td class="py-2 pr-4 text-[0.78rem] text-slate-700">
-                                @if ($log->user)
-                                    {{ $log->user->email }}
-                                @else
-                                    <span class="text-slate-400">System</span>
-                                @endif
-                            </td>
-                            <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                                {{ $log->action ?? 'Action' }}
-                            </td>
-                            <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                                {{ $log->table_name }} #{{ $log->record_id }}
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">
-                                No audit logs recorded yet.
-                            </td>
-                        </tr>
-                    @endforelse
+                    <tr class="admin-audit-skeleton border-b border-slate-50">
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-24"></span></td>
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
+                    </tr>
+                    <tr class="admin-audit-skeleton border-b border-slate-50">
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-24"></span></td>
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
+                    </tr>
+                    <tr class="admin-audit-skeleton border-b border-slate-50">
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-24"></span></td>
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -129,33 +117,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($adminRecentAccessLogs ?? [] as $access)
-                        <tr class="border-b border-slate-50 last:border-0 admin-access-row"
-                            data-user="{{ strtolower($access->user ? $access->user->email : '') }}"
-                            data-table="{{ strtolower($access->table_name ?? '') }}"
-                            data-record="{{ $access->record_id }}"
-                            data-date="{{ optional($access->created_at)->format('Y-m-d H:i') ?? '' }}">
-                            <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                                {{ optional($access->created_at)->format('Y-m-d H:i') ?? '-' }}
-                            </td>
-                            <td class="py-2 pr-4 text-[0.78rem] text-slate-700">
-                                @if ($access->user)
-                                    {{ $access->user->email }}
-                                @else
-                                    <span class="text-slate-400">System</span>
-                                @endif
-                            </td>
-                            <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                                {{ $access->table_name }} #{{ $access->record_id }}
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="3" class="py-4 text-center text-[0.78rem] text-slate-400">
-                                No record access logs recorded yet.
-                            </td>
-                        </tr>
-                    @endforelse
+                    <tr class="admin-access-skeleton border-b border-slate-50">
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
+                    </tr>
+                    <tr class="admin-access-skeleton border-b border-slate-50">
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
+                    </tr>
+                    <tr class="admin-access-skeleton border-b border-slate-50">
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
+                        <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -164,7 +140,8 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    (function () {
+        function onReady() {
         var tabAudit = document.getElementById('adminLogsTabAudit')
         var tabAccess = document.getElementById('adminLogsTabAccess')
         var panelAudit = document.getElementById('adminLogsPanelAudit')
@@ -546,40 +523,85 @@
         } catch (e) {}
         setActiveTab(initial)
 
+        // ── Data loading (fresh JSON on every shell show; replaces skeletons) ──
+        function escapeHtmlLogs(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+        }
+
+        function renderAuditRows(list) {
+            var tbody = document.querySelector('#adminLogsPanelAudit tbody')
+            if (!tbody) return
+            Array.prototype.forEach.call(tbody.querySelectorAll('.admin-audit-skeleton'), function (s) { s.parentNode.removeChild(s) })
+            if (!list || !list.length) {
+                tbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">No audit logs recorded yet.</td></tr>'
+            } else {
+                tbody.innerHTML = list.map(function (log) {
+                    return '<tr class="border-b border-slate-50 last:border-0 admin-audit-row" ' +
+                        'data-user="' + escapeHtmlLogs(String(log.user_email || '').toLowerCase()) + '" ' +
+                        'data-table="' + escapeHtmlLogs(String(log.table_name || '').toLowerCase()) + '" ' +
+                        'data-action="' + escapeHtmlLogs(String(log.action || '').toLowerCase()) + '" ' +
+                        'data-date="' + escapeHtmlLogs(log.created_at || '') + '">' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtmlLogs(log.created_at || '-') + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + (log.user_email ? escapeHtmlLogs(log.user_email) : '<span class="text-slate-400">System</span>') + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtmlLogs(log.action || 'Action') + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtmlLogs(log.table_name || '') + ' #' + escapeHtmlLogs(log.record_id) + '</td>' +
+                    '</tr>'
+                }).join('')
+            }
+            auditRows = Array.prototype.slice.call(document.querySelectorAll('.admin-audit-row'))
+            applyAuditFilters()
+            showAuditPage(1)
+        }
+
+        function renderAccessRows(list) {
+            var tbody = document.querySelector('#adminLogsPanelAccess tbody')
+            if (!tbody) return
+            Array.prototype.forEach.call(tbody.querySelectorAll('.admin-access-skeleton'), function (s) { s.parentNode.removeChild(s) })
+            if (!list || !list.length) {
+                tbody.innerHTML = '<tr><td colspan="3" class="py-4 text-center text-[0.78rem] text-slate-400">No record access logs recorded yet.</td></tr>'
+            } else {
+                tbody.innerHTML = list.map(function (access) {
+                    return '<tr class="border-b border-slate-50 last:border-0 admin-access-row" ' +
+                        'data-user="' + escapeHtmlLogs(String(access.user_email || '').toLowerCase()) + '" ' +
+                        'data-table="' + escapeHtmlLogs(String(access.table_name || '').toLowerCase()) + '" ' +
+                        'data-record="' + escapeHtmlLogs(access.record_id) + '" ' +
+                        'data-date="' + escapeHtmlLogs(access.created_at || '') + '">' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtmlLogs(access.created_at || '-') + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + (access.user_email ? escapeHtmlLogs(access.user_email) : '<span class="text-slate-400">System</span>') + '</td>' +
+                        '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtmlLogs(access.table_name || '') + ' #' + escapeHtmlLogs(access.record_id) + '</td>' +
+                    '</tr>'
+                }).join('')
+            }
+            accessRows = Array.prototype.slice.call(document.querySelectorAll('.admin-access-row'))
+            applyAccessFilters()
+            showAccessPage(1)
+        }
+
+        function loadAuditData() {
+            if (typeof window.fetchDashboardData !== 'function') return
+            window.fetchDashboardData('logs')
+                .then(function (body) {
+                    if (!body || !body.ok || !body.data) return
+                    renderAuditRows(body.data.recentAuditLogs || [])
+                    renderAccessRows(body.data.recentAccessLogs || [])
+                })
+                .catch(function () {})
+        }
+
         var auditRefreshBtn = document.getElementById('adminAuditRefreshBtn')
         var accessRefreshBtn = document.getElementById('adminAccessRefreshBtn')
-        if (auditRefreshBtn) auditRefreshBtn.addEventListener('click', function () { reloadAuditData() })
-        if (accessRefreshBtn) accessRefreshBtn.addEventListener('click', function () { reloadAuditData() })
-    })
+        if (auditRefreshBtn) auditRefreshBtn.addEventListener('click', function () { loadAuditData() })
+        if (accessRefreshBtn) accessRefreshBtn.addEventListener('click', function () { loadAuditData() })
 
-    function reloadAuditData() {
-        var auditTbody = document.querySelector('#adminLogsPanelAudit tbody')
-        var accessTbody = document.querySelector('#adminLogsPanelAccess tbody')
-        if (auditTbody) auditTbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">Loading audit logs…</td></tr>'
-        if (accessTbody) accessTbody.innerHTML = '<tr><td colspan="3" class="py-4 text-center text-[0.78rem] text-slate-400">Loading access logs…</td></tr>'
-        fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-            .then(function (r) { return r.text() })
-            .then(function (html) {
-                var parser = new DOMParser()
-                var doc = parser.parseFromString(html, 'text/html')
-
-                var oldAuditTbody = document.querySelector('#adminLogsPanelAudit tbody')
-                var newAuditTbody = doc.querySelector('#adminLogsPanelAudit tbody')
-                if (oldAuditTbody && newAuditTbody) {
-                    oldAuditTbody.innerHTML = newAuditTbody.innerHTML
-                }
-
-                var oldAccessTbody = document.querySelector('#adminLogsPanelAccess tbody')
-                var newAccessTbody = doc.querySelector('#adminLogsPanelAccess tbody')
-                if (oldAccessTbody && newAccessTbody) {
-                    oldAccessTbody.innerHTML = newAccessTbody.innerHTML
-                }
-
-                auditRows = Array.prototype.slice.call(document.querySelectorAll('.admin-audit-row'))
-                accessRows = Array.prototype.slice.call(document.querySelectorAll('.admin-access-row'))
-                applyAuditFilters()
-                applyAccessFilters()
-            })
-            .catch(function () {})
-    }
+        // Load fresh logs on every shell show (first load + SPA cache hits)
+        loadAuditData()
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', onReady)
+        } else {
+            onReady()
+        }
+    })()
 </script>

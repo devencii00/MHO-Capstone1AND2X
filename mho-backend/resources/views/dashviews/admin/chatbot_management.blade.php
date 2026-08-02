@@ -127,7 +127,8 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         var searchInput = document.getElementById('admin_chatbot_search')
         var sortSelect = document.getElementById('admin_chatbot_sort')
         var optionsContainer = document.getElementById('admin_chatbot_options_container')
@@ -752,5 +753,11 @@
         }
 
         loadOptions()
-    })
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', onReady)
+        } else {
+            onReady()
+        }
+    })()
 </script>

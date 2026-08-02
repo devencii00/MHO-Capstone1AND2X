@@ -32,6 +32,7 @@ Route::get('/create-account', function () {
     return view('landings.create-account');
 })->name('create.account');
 
+Route::get('/dashboard/data', [DashboardController::class, 'data'])->name('dashboard.data')->middleware('auth:sanctum');
 Route::get('/dashboard/{role?}', [DashboardController::class, 'show'])->name('dashboard');
 
 Route::get('/queue-display', [QueueDisplayController::class, 'page'])->name('queue.display');

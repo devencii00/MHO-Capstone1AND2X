@@ -47,44 +47,30 @@
                     <span class="text-[0.78rem] text-slate-500">Total patients</span>
                     <x-lucide-users class="w-[17px] h-[17px] text-green-600" />
                 </div>
-                <div class="font-serif font-bold text-xl text-slate-900">
-                    {{ number_format((int) ($metrics['patientCount'] ?? 0)) }}
-                </div>
+                <div id="adminMetricPatientCount" class="font-serif font-bold text-xl text-slate-900"><span class="skeleton h-5 w-14"></span></div>
             </div>
             <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
                 <div class="flex items-center justify-between mb-1">
                     <span class="text-[0.78rem] text-slate-500">Total doctors</span>
                     <x-lucide-stethoscope class="w-[17px] h-[17px] text-green-600" />
                 </div>
-                <div class="font-serif font-bold text-xl text-slate-900">
-                    {{ number_format((int) ($metrics['doctorCount'] ?? 0)) }}
-                </div>
+                <div id="adminMetricDoctorCount" class="font-serif font-bold text-xl text-slate-900"><span class="skeleton h-5 w-14"></span></div>
             </div>
             <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
                 <div class="flex items-center justify-between mb-1">
                     <span class="text-[0.78rem] text-slate-500">Today’s appointments</span>
                     <x-lucide-calendar-check class="w-[17px] h-[17px] text-green-600" />
                 </div>
-                <div class="font-serif font-bold text-xl text-slate-900">
-                    {{ number_format((int) ($metrics['appointmentsToday'] ?? 0)) }}
-                </div>
+                <div id="adminMetricAppointmentsToday" class="font-serif font-bold text-xl text-slate-900"><span class="skeleton h-5 w-14"></span></div>
             </div>
             <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
                 <div class="flex items-center justify-between mb-1">
                     <span class="text-[0.78rem] text-slate-500">Today’s revenue</span>
                     <x-lucide-coins class="w-[17px] h-[17px] text-green-600" />
                 </div>
-                <div class="font-serif font-bold text-xl text-slate-900">
-                    ₱{{ number_format((float) ($metrics['revenueToday'] ?? 0), 2) }}
-                </div>
+                <div id="adminMetricRevenueToday" class="font-serif font-bold text-xl text-slate-900"><span class="skeleton h-5 w-20"></span></div>
             </div>
         </div>
-
-        @php
-            $charts = $adminCharts ?? [];
-            $appointmentsChart = $charts['appointmentsPerDay'] ?? ['labels' => [], 'values' => []];
-            $revenueChart = $charts['revenuePerMonth'] ?? ['labels' => [], 'values' => []];
-        @endphp
 
         <div class="mt-6 grid gap-4 grid-cols-1 lg:grid-cols-2">
             <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
@@ -95,7 +81,7 @@
                     </div>
                     <x-lucide-chart-line class="w-[18px] h-[18px] text-green-600" />
                 </div>
-                <div id="adminAppointmentsPerDayChart" class="w-full h-[170px]"></div>
+                <div id="adminAppointmentsPerDayChart" class="w-full h-[170px]"><div class="skeleton w-full h-full"></div></div>
             </div>
 
             <div class="bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
@@ -106,26 +92,13 @@
                     </div>
                     <x-lucide-chart-column class="w-[18px] h-[18px] text-emerald-600" />
                 </div>
-                <div id="adminRevenuePerMonthChart" class="w-full h-[170px]"></div>
+                <div id="adminRevenuePerMonthChart" class="w-full h-[170px]"><div class="skeleton w-full h-full"></div></div>
             </div>
         </div>
 
-        <script type="application/json" id="adminAppointmentsPerDayChartData">@json($appointmentsChart)</script>
-        <script type="application/json" id="adminRevenuePerMonthChartData">@json($revenueChart)</script>
-
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                function safeParseJson(id) {
-                    var el = document.getElementById(id)
-                    if (!el) return null
-                    try {
-                        return JSON.parse(el.textContent || '{}')
-                    } catch (e) {
-                        return null
-                    }
-                }
-
-                function renderLineChart(container, labels, values, color) {
+            // Chart renderers — called after fresh overview data arrives (see initAdminOverview)
+            window.renderAdminLineChart = function (container, labels, values, color) {
                     if (!container) return
                     var w = 420
                     var h = 160
@@ -161,7 +134,7 @@
                     container.innerHTML = svg
                 }
 
-                function renderBarChart(container, labels, values, color) {
+            window.renderAdminBarChart = function (container, labels, values, color) {
                     if (!container) return
                     var w = 420
                     var h = 160
@@ -199,13 +172,6 @@
 
                     container.innerHTML = svg
                 }
-
-                var apptData = safeParseJson('adminAppointmentsPerDayChartData') || { labels: [], values: [] }
-                var revData = safeParseJson('adminRevenuePerMonthChartData') || { labels: [], values: [] }
-
-                renderLineChart(document.getElementById('adminAppointmentsPerDayChart'), apptData.labels || [], apptData.values || [], '#0cce3d')
-                renderBarChart(document.getElementById('adminRevenuePerMonthChart'), revData.labels || [], revData.values || [], '#059669')
-            })
         </script>
 
         <div class="mt-6 bg-white border border-slate-200 rounded-[18px] p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
@@ -227,32 +193,24 @@
                         </tr>
                     </thead>
                     <tbody id="adminRecentActivitiesBody">
-                        @forelse (($adminRecentAuditLogs ?? []) as $log)
-                            <tr class="border-b border-slate-50 last:border-0 admin-activity-row">
-                                <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                                    {{ optional($log->created_at)->format('Y-m-d H:i') ?? '-' }}
-                                </td>
-                                <td class="py-2 pr-4 text-[0.78rem] text-slate-700">
-                                    @if ($log->user)
-                                        {{ $log->user->email }}
-                                    @else
-                                        <span class="text-slate-400">System</span>
-                                    @endif
-                                </td>
-                                <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                                    {{ $log->action ?? 'Action' }}
-                                </td>
-                                <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                                    {{ $log->table_name }} #{{ $log->record_id }}
-                                </td>
-                            </tr>
-                        @empty
-                            <tr id="adminRecentActivitiesEmpty">
-                                <td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">
-                                    No recent activities recorded yet.
-                                </td>
-                            </tr>
-                        @endforelse
+                        <tr class="admin-activity-skeleton border-b border-slate-50">
+                            <td class="py-2 pr-4"><span class="skeleton h-3 w-24"></span></td>
+                            <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
+                            <td class="py-2 pr-4"><span class="skeleton h-3 w-36"></span></td>
+                            <td class="py-2 pr-4"><span class="skeleton h-3 w-16"></span></td>
+                        </tr>
+                        <tr class="admin-activity-skeleton border-b border-slate-50">
+                            <td class="py-2 pr-4"><span class="skeleton h-3 w-24"></span></td>
+                            <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
+                            <td class="py-2 pr-4"><span class="skeleton h-3 w-36"></span></td>
+                            <td class="py-2 pr-4"><span class="skeleton h-3 w-16"></span></td>
+                        </tr>
+                        <tr class="admin-activity-skeleton border-b border-slate-50">
+                            <td class="py-2 pr-4"><span class="skeleton h-3 w-24"></span></td>
+                            <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
+                            <td class="py-2 pr-4"><span class="skeleton h-3 w-36"></span></td>
+                            <td class="py-2 pr-4"><span class="skeleton h-3 w-16"></span></td>
+                        </tr>
                     </tbody>
                 </table>
                 <div id="adminRecentActivitiesPagination" class="flex items-center justify-center gap-3 pt-3 pb-1"></div>
@@ -260,76 +218,150 @@
         </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    var rows = document.querySelectorAll('#adminRecentActivitiesBody .admin-activity-row');
-    var empty = document.getElementById('adminRecentActivitiesEmpty');
-    var pagination = document.getElementById('adminRecentActivitiesPagination');
+// Data-driven renderers for the overview (metrics, charts, recent activities).
+// initAdminOverview() runs on every shell show and fetches fresh data.
+(function () {
+    var paginationState = { perPage: 10, currentPage: 1, totalPages: 1, rows: [] };
 
-    if (!rows.length || !pagination) return;
+    function numberFormat(n) {
+        var num = Number(n || 0);
+        return num.toLocaleString('en-US');
+    }
 
-    var perPage = 10;
-    var total = rows.length;
-    var totalPages = Math.ceil(total / perPage);
-    var currentPage = 1;
-    var visibleCount = 6;
+    function moneyFormat(n) {
+        return '₱' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 
-    function showPage(page) {
-        if (page < 1 || page > totalPages) return;
-        currentPage = page;
-        var start = (page - 1) * perPage;
-        var end = Math.min(start + perPage, total);
+    function escapeHtml(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function setMetric(id, text) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = text;
+    }
+
+    function renderActivityRows(logs) {
+        var tbody = document.getElementById('adminRecentActivitiesBody');
+        var pagination = document.getElementById('adminRecentActivitiesPagination');
+        if (!tbody) return;
+
+        // Remove skeleton rows
+        Array.prototype.forEach.call(tbody.querySelectorAll('.admin-activity-skeleton'), function (s) { s.parentNode.removeChild(s); });
+
+        var list = logs || [];
+        paginationState.rows = list;
+        paginationState.totalPages = Math.max(1, Math.ceil(list.length / paginationState.perPage));
+        paginationState.currentPage = 1;
+
+        if (!list.length) {
+            tbody.innerHTML =
+                '<tr id="adminRecentActivitiesEmpty">' +
+                    '<td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">No recent activities recorded yet.</td>' +
+                '</tr>';
+            if (pagination) pagination.innerHTML = '';
+            return;
+        }
+
+        tbody.innerHTML = list.map(function (log) {
+            return '<tr class="border-b border-slate-50 last:border-0 admin-activity-row" style="display:none">' +
+                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(log.created_at || '-') + '</td>' +
+                '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + (log.user_email ? escapeHtml(log.user_email) : '<span class="text-slate-400">System</span>') + '</td>' +
+                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(log.action || 'Action') + '</td>' +
+                '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(log.table_name || '') + ' #' + escapeHtml(log.record_id) + '</td>' +
+            '</tr>';
+        }).join('');
+
+        showActivityPage(1);
+    }
+
+    function showActivityPage(page) {
+        var p = paginationState;
+        if (page < 1 || page > p.totalPages) return;
+        p.currentPage = page;
+        var start = (page - 1) * p.perPage;
+        var end = Math.min(start + p.perPage, p.rows.length);
+        var rows = document.querySelectorAll('#adminRecentActivitiesBody .admin-activity-row');
         rows.forEach(function (row, i) {
             row.style.display = (i >= start && i < end) ? '' : 'none';
         });
-        renderPagination();
+        renderActivityPagination();
     }
 
-    function renderPagination() {
+    function renderActivityPagination() {
+        var pagination = document.getElementById('adminRecentActivitiesPagination');
+        if (!pagination) return;
+        var p = paginationState;
+        var currentPage = p.currentPage;
+        var totalPages = p.totalPages;
+        var visibleCount = 6;
         var html = '';
         var btnBase = 'px-2 py-1 text-[0.72rem] font-semibold rounded-md border ';
         var btnInactive = btnBase + 'border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer';
         var btnDisabled = btnBase + 'border-slate-200 text-slate-300 cursor-default';
         var btnActive = btnBase + 'bg-green-600 text-white border-green-600';
 
-       
         html += '<button type="button" class="' + (currentPage === 1 ? btnDisabled : btnInactive) + '" data-page="prev"' + (currentPage === 1 ? ' disabled' : '') + '>‹ Prev</button>';
 
-     
         var windowStart = currentPage;
         var windowEnd = Math.min(windowStart + visibleCount - 1, totalPages);
-
-    
         for (var i = windowStart; i <= windowEnd; i++) {
             html += '<button type="button" class="' + (i === currentPage ? btnActive : btnInactive) + '" data-page="' + i + '">' + i + '</button>';
         }
-
-     
         if (windowEnd < totalPages) {
-            var nextWindowStart = windowEnd + 1;
             html += '<button type="button" class="' + btnInactive + '" data-page="next-window" title="Next set">…</button>';
         }
-
-   
         html += '<button type="button" class="' + (currentPage === totalPages ? btnDisabled : btnInactive) + '" data-page="next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next ›</button>';
 
         pagination.innerHTML = html;
-
         pagination.querySelectorAll('button[data-page]').forEach(function (btn) {
             btn.addEventListener('click', function () {
-                var p = btn.getAttribute('data-page');
-                if (p === 'prev' && currentPage > 1) showPage(currentPage - 1);
-                else if (p === 'next' && currentPage < totalPages) showPage(currentPage + 1);
-                else if (p === 'next-window') {
-                    var nextStart = Math.min(windowEnd + 1, totalPages);
-                    showPage(nextStart);
-                }
-                else if (p !== 'prev' && p !== 'next') showPage(parseInt(p, 10));
+                var pg = btn.getAttribute('data-page');
+                if (pg === 'prev' && currentPage > 1) showActivityPage(currentPage - 1);
+                else if (pg === 'next' && currentPage < totalPages) showActivityPage(currentPage + 1);
+                else if (pg === 'next-window') showActivityPage(Math.min(windowEnd + 1, totalPages));
+                else if (pg !== 'prev' && pg !== 'next') showActivityPage(parseInt(pg, 10));
             });
         });
     }
 
-    showPage(1);
-});
+    window.initAdminOverview = function () {
+        if (typeof window.fetchDashboardData !== 'function') return;
+        window.fetchDashboardData('overview').then(function (body) {
+            if (!body || !body.ok || !body.data) return;
+            var d = body.data;
+
+            if (d.metrics) {
+                setMetric('adminMetricPatientCount', numberFormat(d.metrics.patientCount));
+                setMetric('adminMetricDoctorCount', numberFormat(d.metrics.doctorCount));
+                setMetric('adminMetricAppointmentsToday', numberFormat(d.metrics.appointmentsToday));
+                setMetric('adminMetricRevenueToday', moneyFormat(d.metrics.revenueToday));
+            }
+
+            if (d.charts) {
+                var appt = d.charts.appointmentsPerDay || { labels: [], values: [] };
+                var rev = d.charts.revenuePerMonth || { labels: [], values: [] };
+                if (window.renderAdminLineChart) {
+                    window.renderAdminLineChart(document.getElementById('adminAppointmentsPerDayChart'), appt.labels || [], appt.values || [], '#0cce3d');
+                }
+                if (window.renderAdminBarChart) {
+                    window.renderAdminBarChart(document.getElementById('adminRevenuePerMonthChart'), rev.labels || [], rev.values || [], '#059669');
+                }
+            }
+
+            renderActivityRows(d.recentAuditLogs || []);
+        });
+    };
+
+    // Run on every shell show (first load + SPA cache hits re-run inline scripts)
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAdminOverview);
+    } else {
+        initAdminOverview();
+    }
+})();
 </script>
         </div>
 

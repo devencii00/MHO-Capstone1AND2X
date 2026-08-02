@@ -158,7 +158,8 @@
     </div>
 </div>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         var errorBox = document.getElementById('adminMedicineError')
         var successBox = document.getElementById('adminMedicineSuccess')
         var searchInput = document.getElementById('admin_medicine_search')
@@ -798,5 +799,11 @@
 
         resetForm()
         loadMedicines(1)
-    })
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', onReady)
+        } else {
+            onReady()
+        }
+    })()
 </script>
