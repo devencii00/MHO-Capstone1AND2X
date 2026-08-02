@@ -589,7 +589,7 @@ function setWalkInTab(tab) {
         var walkinLastPage = 1
         var walkinTotal = 0
         var walkinFilterDate = ''
-        var walkinShowTodayOnly = false
+        var walkinShowTodayOnly = true
 
         // Consultation Receipt Modal
         var walkinConsultReceiptModal = document.getElementById('walkinConsultReceiptModal')
@@ -636,15 +636,9 @@ function setWalkInTab(tab) {
 
         function updateWalkinTodayButton() {
             if (!walkinTodayOnlyBtn) return
-            if (walkinShowTodayOnly) {
-                walkinTodayOnlyBtn.textContent = 'Showing today only'
-                walkinTodayOnlyBtn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50')
-                walkinTodayOnlyBtn.classList.add('bg-green-600', 'text-white', 'border-green-600', 'hover:bg-green-700', 'hover:border-green-700')
-            } else {
-                walkinTodayOnlyBtn.textContent = 'Show today only'
-                walkinTodayOnlyBtn.classList.add('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50')
-                walkinTodayOnlyBtn.classList.remove('bg-green-600', 'text-white', 'border-green-600', 'hover:bg-green-700', 'hover:border-green-700')
-            }
+            walkinTodayOnlyBtn.textContent = walkinShowTodayOnly ? 'Show today only' : 'Show all dates'
+            walkinTodayOnlyBtn.classList.add('bg-green-600', 'text-white', 'border-green-600', 'hover:bg-green-700', 'hover:border-green-700')
+            walkinTodayOnlyBtn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50')
         }
 
         function safeIsoParts(raw) {
@@ -1025,10 +1019,9 @@ function setWalkInTab(tab) {
                             }
                         })
 
-                        var uniqueCount = Object.keys(seenPids).length
                         var lastServerPage = result.data.last_page || serverPage
 
-                        if (uniqueCount >= page * walkinPerPage || raw.length === 0 || serverPage >= lastServerPage) {
+                        if (raw.length === 0 || serverPage >= lastServerPage) {
                             finish(pool, page)
                         } else {
                             serverPage++
@@ -1375,6 +1368,11 @@ function setWalkInTab(tab) {
             updateWalkinTodayButton()
             walkinTodayOnlyBtn.addEventListener('click', function () {
                 walkinShowTodayOnly = !walkinShowTodayOnly
+                if (!walkinShowTodayOnly && walkinFilterDate) {
+                    walkinFilterDate = ''
+                    if (walkInDateHeader) walkInDateHeader.style.display = 'none'
+                    if (walkInClearFilterBtn) walkInClearFilterBtn.style.display = 'none'
+                }
                 updateWalkinTodayButton()
                 walkinCurrentPage = 1
                 loadHistory()

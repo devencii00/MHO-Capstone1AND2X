@@ -503,21 +503,22 @@
             var now = new Date()
             var startIso = ''
             var endIso = ''
+            var hasDateFilter = false
             if (manageFilterDate) {
                 startIso = manageFilterDate
                 endIso = manageFilterDate
+                hasDateFilter = true
             } else if (manageShowTodayOnly) {
                 var todayIso = formatLocalDateIso(now)
                 startIso = todayIso
                 endIso = todayIso
-            } else {
-                var start = new Date(now.getFullYear(), now.getMonth(), 1)
-                var end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-                startIso = formatLocalDateIso(start)
-                endIso = formatLocalDateIso(end)
+                hasDateFilter = true
             }
-            baseUrl += '&start_date=' + encodeURIComponent(startIso)
-            baseUrl += '&end_date=' + encodeURIComponent(endIso)
+            // Show all dates mode: no start/end date so every appointment is returned
+            if (hasDateFilter) {
+                baseUrl += '&start_date=' + encodeURIComponent(startIso)
+                baseUrl += '&end_date=' + encodeURIComponent(endIso)
+            }
 
             // Always filter by the current doctor
             baseUrl += '&doctor_id=' + encodeURIComponent(doctorId)
@@ -558,10 +559,9 @@
                             }
                         })
 
-                        var uniqueCount = Object.keys(seenPids).length
                         var lastServerPage = result.data.last_page || serverPage
 
-                        if (uniqueCount >= page * managePerPage || raw.length === 0 || serverPage >= lastServerPage) {
+                        if (raw.length === 0 || serverPage >= lastServerPage) {
                             finish(pool, page)
                         } else {
                             serverPage++
@@ -595,12 +595,8 @@
                 renderManageAppointments(rows)
 
                 if (manageMeta) {
-                    if (manageShowTodayOnly) {
-                        manageMeta.textContent = 'Showing page ' + manageCurrentPage + ' of ' + manageLastPage + ' (' + manageTotal + ' appointments for ' + startIso + ').'
-                    } else {
-                        var monthLabel = startIso.slice(0, 7)
-                        manageMeta.textContent = 'Showing page ' + manageCurrentPage + ' of ' + manageLastPage + ' (' + manageTotal + ' appointments for ' + monthLabel + ').'
-                    }
+                    var scopeLabel = manageFilterDate ? manageFilterDate : (manageShowTodayOnly ? startIso : 'all dates')
+                    manageMeta.textContent = 'Showing page ' + manageCurrentPage + ' of ' + manageLastPage + ' (' + manageTotal + ' appointments for ' + scopeLabel + ').'
                 }
                 setManageSubmitting(false)
             }
@@ -691,15 +687,9 @@
 
         function updateManageTodayButton() {
             if (!manageTodayOnlyBtn) return
-            if (manageShowTodayOnly) {
-                manageTodayOnlyBtn.textContent = 'Showing today only'
-                manageTodayOnlyBtn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50')
-                manageTodayOnlyBtn.classList.add('bg-green-600', 'text-white', 'border-green-600', 'hover:bg-green-700', 'hover:border-green-700')
-            } else {
-                manageTodayOnlyBtn.textContent = 'Show today only'
-                manageTodayOnlyBtn.classList.add('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50')
-                manageTodayOnlyBtn.classList.remove('bg-green-600', 'text-white', 'border-green-600', 'hover:bg-green-700', 'hover:border-green-700')
-            }
+            manageTodayOnlyBtn.textContent = manageShowTodayOnly ? 'Show today only' : 'Show all dates'
+            manageTodayOnlyBtn.classList.add('bg-green-600', 'text-white', 'border-green-600', 'hover:bg-green-700', 'hover:border-green-700')
+            manageTodayOnlyBtn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50')
         }
 
         function wordPrefixMatch(value, query) {
@@ -1094,7 +1084,7 @@
         var manageMeta = document.getElementById('doctorManageAppointmentMeta')
         var manageRefreshBtn = document.getElementById('doctorManageRefreshBtn')
         var manageTodayOnlyBtn = document.getElementById('doctorManageTodayOnlyBtn')
-        var manageShowTodayOnly = false
+        var manageShowTodayOnly = true
         var manageSearchTimer = null
         var manageServices = []
         var manageServicesLoaded = false
@@ -1225,6 +1215,14 @@
         if (manageTodayOnlyBtn) {
             manageTodayOnlyBtn.addEventListener('click', function () {
                 manageShowTodayOnly = !manageShowTodayOnly
+                if (!manageShowTodayOnly && manageFilterDate) {
+                    manageFilterDate = ''
+                    if (manageDateHeader) {
+                        manageDateHeader.textContent = ''
+                        manageDateHeader.style.display = 'none'
+                    }
+                    if (manageClearFilterBtn) manageClearFilterBtn.style.display = 'none'
+                }
                 updateManageTodayButton()
                 manageCurrentPage = 1
                 loadManageAppointments()
