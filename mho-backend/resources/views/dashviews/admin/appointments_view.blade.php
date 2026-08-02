@@ -702,7 +702,7 @@
                         var uniqueCount = Object.keys(seenPids).length
                         var lastServerPage = result.data.last_page || serverPage
 
-                        if (uniqueCount >= page * 10 || items.length === 0 || serverPage >= lastServerPage) {
+                        if (items.length === 0 || serverPage >= lastServerPage) {
                             finish(pool, page)
                         } else {
                             serverPage++

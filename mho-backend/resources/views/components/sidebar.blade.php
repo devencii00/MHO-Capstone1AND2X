@@ -38,13 +38,13 @@
     <aside id="sidebar-aside" class="flex-shrink-0 bg-white flex flex-col border-r border-slate-200 sticky top-0 self-start h-screen">
 <style>
     #sidebar-aside {
-        width: 68px;
-        transition: width 0.1s ease-in-out;
+        width: 248px;
+        transition: width 0.12s ease-in-out;
         overflow: hidden;
         white-space: nowrap;
     }
-    #sidebar-aside:hover {
-        width: 248px;
+    #sidebar-aside.sidebar-collapsed {
+        width: 68px;
     }
 
     /* ── Independent scrollable nav area ── */
@@ -64,41 +64,46 @@
     }
 
     /* ── Nav links: icon centered in collapsed sidebar, text fully hidden ── */
-    #sidebar-aside:not(:hover) nav a {
+    #sidebar-aside.sidebar-collapsed nav a {
         justify-content: center;
         gap: 0;
         padding: 0.5rem 0;
         font-size: 0;
     }
-    #sidebar-aside:not(:hover) nav a svg {
+    #sidebar-aside.sidebar-collapsed nav a svg {
         font-size: initial;
         width: 20px;
         height: 20px;
         flex-shrink: 0;
     }
 
-    /* ── Logo header: center icon when collapsed ── */
-    #sidebar-aside:not(:hover) .sidebar-logo-wrap {
+    /* ── Logo header: push toggle to right when expanded; stack when collapsed ── */
+    #sidebar-aside:not(.sidebar-collapsed) #sidebarCollapseToggle {
+        margin-left: auto;
+    }
+    #sidebar-aside.sidebar-collapsed .sidebar-logo-wrap {
+        flex-direction: column;
+        align-items: center;
         justify-content: center;
-        padding-left: 0;
-        padding-right: 0;
+        gap: 0.5rem;
+        padding: 1rem 0;
     }
 
     /* ── Bottom section: center items when collapsed ── */
-    #sidebar-aside:not(:hover) .sidebar-bottom {
+    #sidebar-aside.sidebar-collapsed .sidebar-bottom {
         padding-left: 0;
         padding-right: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
     }
-    #sidebar-aside:not(:hover) .sidebar-bottom > div:first-child {
+    #sidebar-aside.sidebar-collapsed .sidebar-bottom > div:first-child {
         justify-content: center;
         padding: 0.5rem;
         width: auto;
         border-radius: 0.75rem;
     }
-    #sidebar-aside:not(:hover) .sidebar-bottom > button {
+    #sidebar-aside.sidebar-collapsed .sidebar-bottom > button {
         justify-content: center;
         padding: 0.5rem;
         width: 40px;
@@ -108,20 +113,44 @@
     }
 
     /* ── Hide text/labels when collapsed ── */
-    #sidebar-aside:not(:hover) .sidebar-text,
-    #sidebar-aside:not(:hover) .sidebar-group-header,
-    #sidebar-aside:not(:hover) .sidebar-group-toggle,
-    #sidebar-aside:not(:hover) .sidebar-user-details,
-    #sidebar-aside:not(:hover) .sidebar-signout-label {
+    #sidebar-aside.sidebar-collapsed .sidebar-text,
+    #sidebar-aside.sidebar-collapsed .sidebar-group-header,
+    #sidebar-aside.sidebar-collapsed .sidebar-group-toggle,
+    #sidebar-aside.sidebar-collapsed .sidebar-user-details,
+    #sidebar-aside.sidebar-collapsed .sidebar-signout-label {
         display: none !important;
     }
 
     /* ── Active state indicator: smaller bar when collapsed ── */
-    #sidebar-aside:not(:hover) nav a .sidebar-active-badge {
+    #sidebar-aside.sidebar-collapsed nav a .sidebar-active-badge {
         width: 3px;
         top: 35%;
         bottom: 35%;
         left: 3px;
+    }
+
+    /* ── Floating label tooltip shown while collapsed on hover ── */
+    .sidebar-tooltip {
+        position: fixed;
+        z-index: 9999;
+        background: #0f172a;
+        color: #fff;
+        font-size: 0.78rem;
+        font-weight: 600;
+        line-height: 1.2;
+        white-space: nowrap;
+        padding: 6px 10px;
+        border-radius: 8px;
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.28);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translateY(-50%);
+        transition: opacity 0.12s ease, visibility 0.12s ease;
+    }
+    .sidebar-tooltip.show {
+        opacity: 1;
+        visibility: visible;
     }
 </style>
 <div class="sidebar-logo-wrap flex items-center gap-3 p-6 border-b border-slate-100"> 
@@ -132,6 +161,11 @@
         <div class="font-serif font-bold text-slate-900 text-sm leading-[1.2]">OPOL - MHO</div> 
         <div class="text-slate-400 font-medium text-[0.68rem] uppercase tracking-widest">{{ $roleLabel }}</div> 
     </div> 
+    <button type="button" id="sidebarCollapseToggle" title="Collapse sidebar" aria-expanded="true" aria-label="Toggle sidebar"
+        class="shrink-0 inline-flex items-center justify-center w-8 h-8 text-slate-400 hover:text-green-700 transition-colors">
+        <x-lucide-chevrons-left id="sidebarCollapseIconExpanded" class="w-[18px] h-[18px]" />
+        <x-lucide-chevrons-right id="sidebarCollapseIconCollapsed" class="hidden w-[18px] h-[18px]" />
+    </button> 
 </div>
 
     <nav class="sidebar-nav flex-1 px-3 py-2 overflow-y-auto scrollbar-hidden">
@@ -807,6 +841,89 @@
             if (linkRect.top >= navRect.top + 10 && linkRect.bottom <= navRect.bottom - 10) return;
             var targetScroll = (linkRect.top - navRect.top) + nav.scrollTop - navRect.height / 2 + linkRect.height / 2;
             nav.scrollTop = Math.max(0, Math.min(targetScroll, nav.scrollHeight - nav.clientHeight));
+        });
+    })();
+
+    // ── Manual sidebar retract/show + hover labels while collapsed ──
+    (function () {
+        var aside = document.getElementById('sidebar-aside');
+        var toggle = document.getElementById('sidebarCollapseToggle');
+        if (!aside || !toggle || aside.getAttribute('data-sidebar-toggle-bound') === '1') return;
+        aside.setAttribute('data-sidebar-toggle-bound', '1');
+
+        var iconExpanded = document.getElementById('sidebarCollapseIconExpanded');
+        var iconCollapsed = document.getElementById('sidebarCollapseIconCollapsed');
+        var storageKey = 'sidebar_collapsed';
+        var collapsed = false;
+        try {
+            collapsed = window.localStorage ? window.localStorage.getItem(storageKey) === '1' : false;
+        } catch (_) {
+            collapsed = false;
+        }
+
+        // One shared floating tooltip appended to <body> so it is never clipped by the sidebar
+        var tooltip = document.querySelector('.sidebar-tooltip');
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.className = 'sidebar-tooltip';
+            document.body.appendChild(tooltip);
+        }
+
+        function labelFor(el) {
+            var explicit = el.getAttribute('data-label');
+            if (explicit) return explicit;
+            return (el.textContent || '').replace(/\s+/g, ' ').trim();
+        }
+
+        function positionTooltip(el) {
+            var r = el.getBoundingClientRect();
+            tooltip.style.top = (r.top + r.height / 2) + 'px';
+            tooltip.style.left = (r.right + 12) + 'px';
+        }
+
+        function bindHoverLabel(el) {
+            if (!el || el.getAttribute('data-label-bound') === '1') return;
+            el.setAttribute('data-label-bound', '1');
+            el.addEventListener('mouseenter', function () {
+                if (!aside.classList.contains('sidebar-collapsed')) return;
+                var label = labelFor(el);
+                if (!label) return;
+                tooltip.textContent = label;
+                positionTooltip(el);
+                tooltip.classList.add('show');
+            });
+            el.addEventListener('mousemove', function () {
+                if (!aside.classList.contains('sidebar-collapsed')) return;
+                positionTooltip(el);
+            });
+            el.addEventListener('mouseleave', function () {
+                tooltip.classList.remove('show');
+            });
+            el.addEventListener('click', function () {
+                tooltip.classList.remove('show');
+            });
+        }
+
+        function applyCollapsed(c) {
+            aside.classList.toggle('sidebar-collapsed', c);
+            if (iconExpanded) iconExpanded.classList.toggle('hidden', c);
+            if (iconCollapsed) iconCollapsed.classList.toggle('hidden', !c);
+            toggle.setAttribute('title', c ? 'Expand sidebar' : 'Collapse sidebar');
+            toggle.setAttribute('aria-expanded', String(!c));
+            tooltip.classList.remove('show');
+            aside.querySelectorAll('nav a').forEach(bindHoverLabel);
+            var logoutBtn = document.getElementById('sidebarLogoutButton');
+            if (logoutBtn) bindHoverLabel(logoutBtn);
+        }
+
+        applyCollapsed(collapsed);
+
+        toggle.addEventListener('click', function () {
+            collapsed = !collapsed;
+            applyCollapsed(collapsed);
+            try {
+                if (window.localStorage) window.localStorage.setItem(storageKey, collapsed ? '1' : '0');
+            } catch (_) {}
         });
     })();
 </script>
