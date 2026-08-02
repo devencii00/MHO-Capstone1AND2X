@@ -330,8 +330,116 @@ class DashboardController extends Controller
             ]);
         }
 
-        // Doctor / receptionist / patient payloads are added when those roles are converted.
+        if ($role === 'receptionist') {
+            return response()->json([
+                'ok' => true,
+                'data' => $this->receptionistData((string) $request->query('section', 'overview')),
+            ]);
+        }
+
+        // Doctor / patient payloads are added when those roles are converted.
         return response()->json(['ok' => true, 'data' => []]);
+    }
+
+    /**
+     * Section-aware dynamic data for the receptionist role.
+     */
+    private function receptionistData(?string $section): array
+    {
+        $today = now()->toDateString();
+
+        $metrics = function () use ($today) {
+            $pendingQueueRequests = Appointment::query()
+                ->where('status', 'pending')
+                ->whereDate('created_at', $today)
+                ->where(function ($q) {
+                    $q->where('appointment_type', 'scheduled')
+                        ->orWhere(function ($inner) {
+                            $inner->where('appointment_type', 'walk_in')
+                                ->whereNull('created_by');
+                        });
+                })
+                ->count();
+
+            return [
+                'newRegistrationsToday' => User::where('role', 'patient')
+                    ->whereDate('created_at', $today)
+                    ->count(),
+                'appointmentsToday' => Appointment::whereDate('appointment_datetime', $today)->count(),
+                'walkInsToday' => Appointment::whereDate('appointment_datetime', $today)
+                    ->where('appointment_type', 'walk_in')
+                    ->count(),
+                'pendingQueueRequests' => $pendingQueueRequests,
+                'waitingCount' => Queue::whereDate('queue_datetime', $today)
+                    ->where('status', 'waiting')
+                    ->count(),
+                'currentQueueCount' => Queue::whereDate('queue_datetime', $today)
+                    ->whereIn('status', ['waiting', 'serving'])
+                    ->count(),
+                'transactionsToday' => (float) Transaction::whereDate('transaction_datetime', $today)
+                    ->where('payment_status', 'paid')
+                    ->sum('amount'),
+            ];
+        };
+
+        $doctorSlots = function () {
+            $now = now();
+            $dayKey = strtolower($now->format('D'));
+            $time = $now->format('H:i:s');
+
+            $todayDoctorSchedules = DoctorSchedule::query()
+                ->with(['doctor'])
+                ->where('day_of_week', $dayKey)
+                ->where('is_available', true)
+                ->orderBy('start_time')
+                ->get();
+
+            $activeDoctorSchedules = $todayDoctorSchedules
+                ->filter(function (DoctorSchedule $schedule) use ($time) {
+                    return $schedule->start_time <= $time && $schedule->end_time >= $time;
+                })
+                ->values();
+
+            return $activeDoctorSchedules
+                ->groupBy('doctor_id')
+                ->map(function ($group) {
+                    return $group->sortBy('start_time')->first();
+                })
+                ->filter()
+                ->values()
+                ->map(function ($slot) {
+                    $doctor = optional($slot)->doctor;
+                    return [
+                        'doctor_id' => (int) ($slot->doctor_id ?? 0),
+                        'doctor_name' => (string) (
+                            optional(optional($doctor)->personalInformation)->full_name
+                            ?? $slot->doctor_name
+                            ?? 'Doctor'
+                        ),
+                        'doctor_specialization' => (string) (
+                            optional($doctor)->specialization
+                            ?? $slot->doctor_specialization
+                            ?? ''
+                        ),
+                        'slot_start' => optional($slot)->start_time,
+                        'slot_end' => optional($slot)->end_time,
+                    ];
+                })
+                ->filter(function ($slot) {
+                    return $slot['doctor_id'] > 0;
+                })
+                ->values()
+                ->all();
+        };
+
+        switch ($section) {
+            case 'overview':
+            default:
+                return [
+                    'metrics' => $metrics(),
+                    'doctorSlots' => $doctorSlots(),
+                ];
+        }
     }
 
     /**

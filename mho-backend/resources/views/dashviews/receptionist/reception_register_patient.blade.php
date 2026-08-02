@@ -801,7 +801,8 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         var apiBaseUrl = "{{ url('/api') }}"
         var form = document.getElementById('receptionRegisterPatientForm')
         var errorBox = document.getElementById('receptionRegisterPatientError')
@@ -3264,14 +3265,17 @@
         }
 
         // ── Event delegation for visit detail buttons ──
-        document.addEventListener('click', function (e) {
+        if (!window.__receptionRegisterClickBound) {
+            window.__receptionRegisterClickBound = true
+            document.addEventListener('click', function (e) {
             var btn = e.target.closest('.rec-visit-detail-btn')
             if (!btn) return
             try {
                 var visitData = JSON.parse(btn.getAttribute('data-visit') || '{}')
                 openRecVisitDetail(visitData)
             } catch (err) { /* ignore */ }
-        })
+            })
+        }
 
         window._recShowingDependentProfile = false
         window._recDependentProfileId = null
@@ -3412,5 +3416,11 @@
         recSetAgeFilterActiveStyles()
         recUpdateAgeCounts()
         recLoadPatients()
-    })
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', onReady)
+    } else {
+        onReady()
+    }
+})()
 </script>

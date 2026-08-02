@@ -426,7 +426,8 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         var recordTab = document.getElementById('receptionBillingTabRecord')
         var txTab = document.getElementById('receptionBillingTabTransactions')
         var recordPanel = document.getElementById('receptionBillingPanelRecord')
@@ -1884,17 +1885,21 @@
             })
         }
 
-        document.addEventListener('click', function (e) {
+        if (!window.__receptionRecordPaymentClickBound) {
+            window.__receptionRecordPaymentClickBound = true
+            document.addEventListener('click', function (e) {
             var target = e.target
             if (txServiceResults && !txServiceResults.classList.contains('hidden')) {
                 if (!(txServiceResults.contains(target) || (txServiceSearch && txServiceSearch.contains(target)))) {
                     txServiceResults.classList.add('hidden')
                 }
             }
-        })
+            })
+        }
 
         // ── Reverb: real-time updates for appointment modal ──
-        if (window.Echo) {
+        if (window.Echo && !window.__receptionRecordPaymentEchoBound) {
+            window.__receptionRecordPaymentEchoBound = true
             window.Echo.private('appointments.all')
                 .listen('.appointment.updated', function (e) {
                     // Refresh the appointment modal list if open
@@ -1917,5 +1922,11 @@
         }
 
         loadTransactions(1)
-    })
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', onReady)
+    } else {
+        onReady()
+    }
+})()
 </script>

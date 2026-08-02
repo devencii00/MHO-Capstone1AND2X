@@ -567,7 +567,8 @@
 </template>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         var iconX = (function () {
             var tpl = document.getElementById('receptionBookAppointmentIconX')
             return tpl ? String(tpl.innerHTML || '').trim() : ''
@@ -2809,20 +2810,26 @@ function setAppointmentTab(tab) {
             scheduleTimeBody.appendChild(container)
         }
 
-        document.addEventListener('click', function (e) {
+        if (!window.__receptionBookApptClickBound) {
+            window.__receptionBookApptClickBound = true
+            document.addEventListener('click', function (e) {
             if (scheduleOverlay && !scheduleOverlay.classList.contains('hidden')) {
                 if (e.target === scheduleOverlay) {
                     closeScheduleModal()
                 }
             }
-        })
+            })
+        }
 
-        document.addEventListener('keydown', function (e) {
+        if (!window.__receptionBookApptKeydownBound) {
+            window.__receptionBookApptKeydownBound = true
+            document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 closeSelectorModal()
                 closeScheduleModal()
             }
-        })
+            })
+        }
 
         function loadDoctorSchedulesAndAvailability(doctorId, dateStr) {
             if (!doctorId || typeof apiFetch !== 'function') return
@@ -3090,7 +3097,9 @@ function setAppointmentTab(tab) {
             typeWalkInBtn.addEventListener('click', function () { setAppointmentType('walk_in') })
         }
 
-        document.addEventListener('click', function (e) {
+        if (!window.__receptionBookApptClickBound2) {
+            window.__receptionBookApptClickBound2 = true
+            document.addEventListener('click', function (e) {
             var target = e && e.target ? e.target : null
 
             if (patientResults && !patientResults.classList.contains('hidden')) {
@@ -3108,7 +3117,8 @@ function setAppointmentTab(tab) {
                     doctorResults.classList.add('hidden')
                 }
             }
-        })
+            })
+        }
 
         // Preload services and doctors immediately (async — does not block render)
         loadServicesAndDoctors()
@@ -3856,11 +3866,14 @@ function updateManageTodayButton() {
             })
         }
 
-        document.addEventListener('keydown', function (e) {
+        if (!window.__receptionBookApptKeydownBound2) {
+            window.__receptionBookApptKeydownBound2 = true
+            document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && manageApptConsultReceiptModal && !manageApptConsultReceiptModal.classList.contains('hidden')) {
                 closeManageApptConsultReceipt()
             }
-        })
+            })
+        }
 
         function renderManageApptDetail(appt) {
             if (!appt || !manageHistDetailBody) {
@@ -4601,11 +4614,14 @@ function updateManageTodayButton() {
             })
         }
 
-        document.addEventListener('click', function (e) {
+        if (!window.__receptionBookApptClickBound3) {
+            window.__receptionBookApptClickBound3 = true
+            document.addEventListener('click', function (e) {
             if (!manageServiceResults || !manageServiceSearch) return
             if (manageServiceSearch.contains(e.target) || manageServiceResults.contains(e.target)) return
             manageServiceResults.classList.add('hidden')
-        })
+            })
+        }
 
         // ── Change Appointment overlay state ──
         var recBookDocPickerOverlay = document.getElementById('receptionBookDocPickerOverlay')
@@ -4801,7 +4817,9 @@ function updateManageTodayButton() {
         }
 
         // Open change appointment panel (inside details modal)
-        document.addEventListener('click', function (e) {
+        if (!window.__receptionBookApptClickBound4) {
+            window.__receptionBookApptClickBound4 = true
+            document.addEventListener('click', function (e) {
             var btn = e.target.closest('.rec-book-change-appt')
             if (!btn) return
             var appointmentId = btn.getAttribute('data-appointment-id')
@@ -4842,6 +4860,7 @@ function updateManageTodayButton() {
             manageHistLoadMonthAppts()
             if (manageHistChangeTimeBody) manageHistChangeTimeBody.innerHTML = '<div class="text-center text-[0.72rem] text-slate-400 py-4">Select a date to view time slots.</div>'
         })
+        }
 
         // Back button
         if (manageHistChangeBack) {
@@ -5017,7 +5036,9 @@ function updateManageTodayButton() {
         }
 
         // Doctor selected from picker → update date/time slots based on new doctor
-        document.addEventListener('click', function (e) {
+        if (!window.__receptionBookApptClickBound5) {
+            window.__receptionBookApptClickBound5 = true
+            document.addEventListener('click', function (e) {
             var opt = e.target.closest('.rec-book-pick-doctor')
             if (!opt || opt.disabled) return
             var newDocId = opt.getAttribute('data-doc-id')
@@ -5047,6 +5068,7 @@ function updateManageTodayButton() {
             if (recBookTimeOptions) recBookTimeOptions.innerHTML = ''
             if (recBookConfirmSlotBtn) recBookConfirmSlotBtn.disabled = true
         })
+        }
 
         // Render date options (uses provided doctor or current doctor)
         function recBookRenderDateOptions(doctorObj) {
@@ -5083,7 +5105,9 @@ function updateManageTodayButton() {
         }
 
         // Date option clicked
-        document.addEventListener('click', function (e) {
+        if (!window.__receptionBookApptClickBound6) {
+            window.__receptionBookApptClickBound6 = true
+            document.addEventListener('click', function (e) {
             var btn = e.target.closest('.rec-book-date-opt')
             if (!btn) return
             document.querySelectorAll('.rec-book-date-opt').forEach(function (b) {
@@ -5095,7 +5119,8 @@ function updateManageTodayButton() {
             recBookSelectedDate = btn.getAttribute('data-date')
             recBookSelectedTime = null
             recBookRenderTimeOptions(btn.getAttribute('data-day'))
-        })
+            })
+        }
 
         // Render time options based on doctor schedule
         function recBookRenderTimeOptions(dayName) {
@@ -5139,7 +5164,9 @@ function updateManageTodayButton() {
         }
 
         // Time option clicked
-        document.addEventListener('click', function (e) {
+        if (!window.__receptionBookApptClickBound7) {
+            window.__receptionBookApptClickBound7 = true
+            document.addEventListener('click', function (e) {
             var btn = e.target.closest('.rec-book-time-opt')
             if (!btn) return
             document.querySelectorAll('.rec-book-time-opt').forEach(function (b) {
@@ -5150,7 +5177,8 @@ function updateManageTodayButton() {
             btn.classList.add('border-green-500', 'bg-green-50', 'text-green-700')
             recBookSelectedTime = btn.getAttribute('data-time')
             if (recBookConfirmSlotBtn) recBookConfirmSlotBtn.disabled = false
-        })
+            })
+        }
 
         // Confirm slot button → confirmAction with 3s delay
         if (recBookConfirmSlotBtn) {
@@ -5255,7 +5283,8 @@ function updateManageTodayButton() {
         loadManageAppointments()
 
         // ── Reverb listener for appointment slot changes ──
-        if (typeof window.Echo !== 'undefined' && window.Echo) {
+        if (typeof window.Echo !== 'undefined' && window.Echo && !window.__receptionBookApptEchoBound) {
+            window.__receptionBookApptEchoBound = true
             // Listen for all doctor appointments to refresh the manage list
             window.Echo.private('appointments.all')
                 .listen('.appointment.updated', function (e) {
@@ -5295,6 +5324,12 @@ function updateManageTodayButton() {
                     }
                 });
         }
-    })
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', onReady)
+    } else {
+        onReady()
+    }
+})()
 </script>
 </div>

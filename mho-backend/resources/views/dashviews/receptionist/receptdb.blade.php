@@ -53,21 +53,21 @@
                             <span class="text-[0.78rem] text-slate-500">New registrations</span>
                             <x-lucide-user-plus class="w-[17px] h-[17px] text-green-600" />
                         </div>
-                        <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($newRegistrationsToday) }}</div>
+                        <div class="font-serif font-bold text-xl text-slate-900" id="recMetricNewRegistrations"><span class="skeleton h-5 w-14"></span></div>
                     </div>
                     <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
                         <div class="flex items-center justify-between mb-1">
                             <span class="text-[0.78rem] text-slate-500">Appointments booked</span>
                             <x-lucide-calendar-check class="w-[17px] h-[17px] text-green-600" />
                         </div>
-                        <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($appointmentsToday) }}</div>
+                        <div class="font-serif font-bold text-xl text-slate-900" id="recMetricAppointments"><span class="skeleton h-5 w-14"></span></div>
                     </div>
                     <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
                         <div class="flex items-center justify-between mb-1">
                             <span class="text-[0.78rem] text-slate-500">Waiting in queue</span>
                             <x-lucide-clock class="w-[17px] h-[17px] text-green-600" />
                         </div>
-                        <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($waitingInQueue) }}</div>
+                        <div class="font-serif font-bold text-xl text-slate-900" id="recMetricWaiting"><span class="skeleton h-5 w-14"></span></div>
                     </div>
                     <div class="sm:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
@@ -75,14 +75,14 @@
                                 <span class="text-[0.78rem] text-slate-500">Walk-ins</span>
                                 <x-lucide-door-open class="w-[17px] h-[17px] text-green-600" />
                             </div>
-                            <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($walkInsToday) }}</div>
+                            <div class="font-serif font-bold text-xl text-slate-900" id="recMetricWalkIns"><span class="skeleton h-5 w-14"></span></div>
                         </div>
                         <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
                             <div class="flex items-center justify-between mb-1">
                                 <span class="text-[0.78rem] text-slate-500">Current queue count</span>
                                 <x-lucide-users class="w-[17px] h-[17px] text-green-600" />
                             </div>
-                            <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($currentQueueCount) }}</div>
+                            <div class="font-serif font-bold text-xl text-slate-900" id="recMetricCurrentQueue"><span class="skeleton h-5 w-14"></span></div>
                         </div>
                     </div>
                     <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)] sm:col-span-3">
@@ -90,7 +90,7 @@
                             <span class="text-[0.78rem] text-slate-500">Today's transactions (paid)</span>
                             <x-lucide-coins class="w-[17px] h-[17px] text-green-600" />
                         </div>
-                        <div class="font-serif font-bold text-xl text-slate-900">₱{{ number_format($transactionsToday, 2) }}</div>
+                        <div class="font-serif font-bold text-xl text-slate-900" id="recMetricTransactions">₱<span class="skeleton h-5 w-16"></span></div>
                     </div>
                 </div>
 
@@ -165,20 +165,6 @@
                             <div class="flex items-center gap-2">
                                 <select id="receptionNextQueueDoctorSelect" class="w-[110px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-[0.75rem] text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                                     <option value="">Auto (any active doctor)</option>
-                                    @foreach ($activeCallNextDoctors as $doctorState)
-                                        @php
-                                            $doctorNameRaw = trim((string) ($doctorState->doctor_name ?? ''));
-                                            $doctorNameClean = preg_replace('/^\s*dr\.?\s*/i', '', $doctorNameRaw);
-                                            $doctorNameDisplay = $doctorNameClean !== '' ? $doctorNameClean : 'Doctor';
-                                            $doctorSpecialization = trim((string) ($doctorState->doctor_specialization ?? ''));
-                                        @endphp
-                                        <option value="{{ $doctorState->doctor_id }}">
-                                            Dr. {{ $doctorNameDisplay }}
-                                            @if ($doctorSpecialization !== '')
-                                                - {{ $doctorSpecialization }}
-                                            @endif
-                                        </option>
-                                    @endforeach
                                 </select>
                                 <button type="button" id="receptionNextQueueNextBtn" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-600 text-white text-[0.65rem] font-semibold hover:bg-green-700 transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none whitespace-nowrap">
                                     <span id="receptionNextQueueNextSpinner" class="hidden w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
@@ -226,7 +212,8 @@
             </div>
 
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
+            ;(function () {
+                function onReady() {
                 var nextApptsList = document.getElementById('receptionNextAppointments')
                 var nextApptsMeta = document.getElementById('receptionNextAppointmentsMeta')
                 var nextQueueList = document.getElementById('receptionNextQueue')
@@ -663,7 +650,52 @@ if (!next.length) {
 
                 load()
 
-                if (typeof window.Echo !== 'undefined' && window.Echo) {
+                // ── Fresh overview data (metrics + doctor slots) via the shell-cache endpoint ──
+                function initReceptionOverview() {
+                    if (typeof window.fetchDashboardData !== 'function') return
+                    window.fetchDashboardData('overview')
+                        .then(function (body) {
+                            if (!body || !body.ok || !body.data) return
+                            var d = body.data
+                            var m = d.metrics || {}
+                            var metricIds = {
+                                newRegistrationsToday: 'recMetricNewRegistrations',
+                                appointmentsToday: 'recMetricAppointments',
+                                waitingCount: 'recMetricWaiting',
+                                walkInsToday: 'recMetricWalkIns',
+                                currentQueueCount: 'recMetricCurrentQueue'
+                            }
+                            Object.keys(metricIds).forEach(function (key) {
+                                var el = document.getElementById(metricIds[key])
+                                if (el) el.textContent = Number(m[key] != null ? m[key] : 0).toLocaleString()
+                            })
+                            var txEl = document.getElementById('recMetricTransactions')
+                            if (txEl) txEl.innerHTML = '₱' + Number(m.transactionsToday != null ? m.transactionsToday : 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+                            // Populate the "Call next" doctor select from fresh slots
+                            var doctorSelect = document.getElementById('receptionNextQueueDoctorSelect')
+                            if (doctorSelect) {
+                                var slots = Array.isArray(d.doctorSlots) ? d.doctorSlots : []
+                                var curVal = doctorSelect.value
+                                doctorSelect.querySelectorAll('option:not([value=""])').forEach(function (o) { o.remove() })
+                                slots.forEach(function (s) {
+                                    var nameRaw = String(s.doctor_name || '').trim().replace(/^\s*dr\.?\s*/i, '')
+                                    var label = 'Dr. ' + (nameRaw || 'Doctor')
+                                    if (s.doctor_specialization) label += ' - ' + String(s.doctor_specialization).trim()
+                                    var opt = document.createElement('option')
+                                    opt.value = String(s.doctor_id)
+                                    opt.textContent = label
+                                    doctorSelect.appendChild(opt)
+                                })
+                                if (curVal) doctorSelect.value = curVal
+                            }
+                        })
+                        .catch(function () {})
+                }
+                initReceptionOverview()
+
+                if (typeof window.Echo !== 'undefined' && window.Echo && !window.__receptionOverviewEchoBound) {
+                    window.__receptionOverviewEchoBound = true
                     try {
                         window.Echo.private('queue.all')
                             .listen('.queue.updated', function () {
@@ -671,7 +703,13 @@ if (!next.length) {
                             })
                     } catch (_) {}
                 }
-            })
+                }
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', onReady)
+                } else {
+                    onReady()
+                }
+            })()
         </script>
     @else
      

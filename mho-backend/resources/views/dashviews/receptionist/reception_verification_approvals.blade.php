@@ -190,7 +190,8 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         var errorBox = document.getElementById('recVerifError')
         var statPending = document.getElementById('rec_verif_stat_pending')
         var statApproved = document.getElementById('rec_verif_stat_approved')
@@ -1080,15 +1081,18 @@
                 imageViewerState.startY = e.clientY - imageViewerState.offsetY
             })
         }
-        document.addEventListener('mousemove', function (e) {
+        if (!window.__receptionVerifMouseMoveBound) {
+            window.__receptionVerifMouseMoveBound = true
+            document.addEventListener('mousemove', function (e) {
             if (!imageViewerState.dragging) return
             imageViewerState.offsetX = e.clientX - imageViewerState.startX
             imageViewerState.offsetY = e.clientY - imageViewerState.startY
             setImageViewerScale(imageViewerState.scale)
-        })
-        document.addEventListener('mouseup', function () {
+            })
+            document.addEventListener('mouseup', function () {
             imageViewerState.dragging = false
-        })
+            })
+        }
 
         // ── Panel approve/reject button handlers ──
         if (panelApproveBtn) {
@@ -1157,13 +1161,16 @@
                 if (e.target === actionOverlay) closeActionModal(null)
             })
         }
-        document.addEventListener('keydown', function (e) {
+        if (!window.__receptionVerifKeydownBound) {
+            window.__receptionVerifKeydownBound = true
+            document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 closeImageViewer()
                 closeDocPanel()
                 closeActionModal(null)
             }
-        })
+            })
+        }
 
         if (searchInput) {
             searchInput.addEventListener('input', function () {
@@ -1195,5 +1202,11 @@
 
         loadStats()
         loadVerifications(1)
-    })
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', onReady)
+    } else {
+        onReady()
+    }
+})()
 </script>

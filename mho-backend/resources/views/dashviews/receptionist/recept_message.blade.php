@@ -61,7 +61,8 @@
         </div>
 
             <script>
-                document.addEventListener('DOMContentLoaded', function () {
+                ;(function () {
+                    function onReady() {
                     var root = document.getElementById('receptionMessageRoot')
                     var errorBox = document.getElementById('receptionMessagesError')
                     var refreshBtn = document.getElementById('receptionMessagesRefresh')
@@ -632,11 +633,14 @@
                             })
                         })
 
-                        document.addEventListener('click', function (e) {
+                        if (!window.__receptionMessageClickBound) {
+                            window.__receptionMessageClickBound = true
+                            document.addEventListener('click', function (e) {
                             if (!quickMessageMenu.contains(e.target) && !quickMessageToggle.contains(e.target)) {
                                 closeQuickMessageMenu()
                             }
-                        })
+                            })
+                        }
                     }
 
                     // ── Send form ──
@@ -867,5 +871,11 @@
                                 });
                         }
                     }
-                })
+                }
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', onReady)
+                } else {
+                    onReady()
+                }
+            })()
             </script>

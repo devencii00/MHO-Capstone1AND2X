@@ -428,7 +428,8 @@
 
 <script>
     window.receptionWalkInsIconX = '';
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         window.receptionWalkInsIconX = (function () {
             var tpl = document.getElementById('receptionWalkInsIconX')
             return tpl ? String(tpl.innerHTML || '').trim() : ''
@@ -485,7 +486,13 @@ function setWalkInTab(tab) {
         if (tabAccountBtn) tabAccountBtn.addEventListener('click', function () { setWalkInTab('account') })
         if (tabGuestBtn) tabGuestBtn.addEventListener('click', function () { setWalkInTab('guest') })
         setWalkInTab('account')
-    })
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', onReady)
+    } else {
+        onReady()
+    }
+})()
 </script>
 
 <!-- Queue Card Modal -->
@@ -542,7 +549,8 @@ function setWalkInTab(tab) {
     }
     window.receptionShowQueueCard = receptionShowQueueCard
 
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         // ── Queue Card close events (needs DOM) ──
         function closeQueueCard() {
             var overlay = document.getElementById('receptionQueueCardOverlay')
@@ -711,11 +719,14 @@ function setWalkInTab(tab) {
             })
         }
 
-        document.addEventListener('keydown', function (e) {
+        if (!window.__receptionWalkInsKeydownBound) {
+            window.__receptionWalkInsKeydownBound = true
+            document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && walkinConsultReceiptModal && !walkinConsultReceiptModal.classList.contains('hidden')) {
                 closeWalkinConsultReceipt()
             }
-        })
+            })
+        }
 
         function serviceSummary(appt) {
             var list = appt && Array.isArray(appt.services) ? appt.services : []
@@ -1429,11 +1440,14 @@ function setWalkInTab(tab) {
             })
         }
 
-        document.addEventListener('click', function (e) {
+        if (!window.__receptionWalkInsClickBound) {
+            window.__receptionWalkInsClickBound = true
+            document.addEventListener('click', function (e) {
             if (!serviceResults || !serviceSearch) return
             if (serviceSearch.contains(e.target) || serviceResults.contains(e.target)) return
             serviceResults.classList.add('hidden')
-        })
+            })
+        }
 
         // ── See History button delegation ──
         tableBody.addEventListener('click', function (e) {
@@ -1555,11 +1569,18 @@ function setWalkInTab(tab) {
         if (walkInCalendarArea) walkInCalendarArea.classList.remove('hidden')
         if (walkInTableArea) walkInTableArea.classList.add('hidden')
         loadWalkInMonthAppointments()
-    })
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', onReady)
+    } else {
+        onReady()
+    }
+})()
 </script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         var overlay = document.getElementById('receptionWalkInConfirmOverlay')
         var messageEl = document.getElementById('receptionWalkInConfirmMessage')
         var okBtn = document.getElementById('receptionWalkInConfirmOk')
@@ -1668,13 +1689,20 @@ function setWalkInTab(tab) {
 
         window.receptionWalkInConfirm = open
         window.receptionWalkInReview = openReview
-    })
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', onReady)
+    } else {
+        onReady()
+    }
+})()
 </script>
 
 
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         var accountPanel = document.getElementById('receptionWalkInPanelAccount')
         function accountQuery(selector) {
             return accountPanel ? accountPanel.querySelector(selector) : null
@@ -4418,7 +4446,9 @@ function setWalkInTab(tab) {
         bindSelectorTrigger(serviceSearch, servicePickerBtn, 'service')
         bindSelectorTrigger(doctorSearch, doctorPickerBtn, 'doctor')
 
-        document.addEventListener('click', function (e) {
+        if (!window.__receptionWalkInsClickBound2) {
+            window.__receptionWalkInsClickBound2 = true
+            document.addEventListener('click', function (e) {
             var target = e && e.target ? e.target : null
             if (patientResults && !patientResults.classList.contains('hidden')) {
                 if (!(patientResults.contains(target) || (patientSearch && patientSearch.contains(target)))) {
@@ -4435,7 +4465,8 @@ function setWalkInTab(tab) {
                     doctorResults.classList.add('hidden')
                 }
             }
-        })
+            })
+        }
 
         if (dateSelect) {
             dateSelect.addEventListener('change', onDateChanged)
@@ -4718,6 +4749,12 @@ function setWalkInTab(tab) {
 
         window._openSelectorModal = openSelectorModal
         window._closeSelectorModal = closeSelectorModal
-    })
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', onReady)
+    } else {
+        onReady()
+    }
+})()
 </script>
 

@@ -717,7 +717,8 @@
         return map[s3] || ''
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         var searchInput = document.getElementById('reception_queue_search')
         var sortSelect = document.getElementById('reception_queue_sort')
         var rows = Array.prototype.slice.call(document.querySelectorAll('.reception-queue-row'))
@@ -767,11 +768,14 @@
                     callNextOptions().forEach(function (o) { o.classList.remove('hidden') })
                 }
             })
-            document.addEventListener('click', function (e) {
+            if (!window.__receptionQueueClickBound) {
+                window.__receptionQueueClickBound = true
+                document.addEventListener('click', function (e) {
                 if (!callNextDropdown.classList.contains('hidden') && !callNextTrigger.contains(e.target) && !callNextDropdown.contains(e.target)) {
                     callNextDropdown.classList.add('hidden')
                 }
-            })
+                })
+            }
             if (callNextSearch) {
                 callNextSearch.addEventListener('input', function () {
                     var q = callNextSearch.value.trim().toLowerCase()
@@ -786,7 +790,9 @@
                     if (e.key === 'ArrowDown' && vis.length) { vis[0].focus(); e.preventDefault() }
                 })
             }
-            document.addEventListener('click', function (e) {
+            if (!window.__receptionQueueClickBound2) {
+                window.__receptionQueueClickBound2 = true
+                document.addEventListener('click', function (e) {
                 var opt = e.target && e.target.closest ? e.target.closest('.reception-callnext-option') : null
                 if (!opt) return
                 var val = opt.getAttribute('data-value') || ''
@@ -795,7 +801,8 @@
                 callNextTriggerText.textContent = label
                 callNextTriggerText.className = 'flex-1 truncate ' + (val ? 'text-slate-800' : 'text-slate-400')
                 callNextDropdown.classList.add('hidden')
-            })
+                })
+            }
             // Close dropdown on Escape key
             callNextDropdown.addEventListener('keydown', function (e) {
                 if (e.key === 'Escape') callNextDropdown.classList.add('hidden')
@@ -810,7 +817,9 @@
         var pendingQueueAppointmentId = null
         var pendingQueueRow = null
 
-        document.addEventListener('click', function (e) {
+        if (!window.__receptionQueueClickBound3) {
+            window.__receptionQueueClickBound3 = true
+            document.addEventListener('click', function (e) {
             var btn = e.target.closest('.rec-queue-change-doctor')
             if (!btn) return
             var row = btn.closest('.reception-queue-row')
@@ -861,6 +870,7 @@
                 doctorPickerOverlay.classList.add('flex')
             }
         })
+        }
 
         if (doctorPickerClose) {
             doctorPickerClose.addEventListener('click', function () {
@@ -874,7 +884,9 @@
         }
 
         // Doctor option click via delegation
-        document.addEventListener('click', function (e) {
+        if (!window.__receptionQueueClickBound4) {
+            window.__receptionQueueClickBound4 = true
+            document.addEventListener('click', function (e) {
             var option = e.target.closest('.rec-queue-doctor-option')
             if (!option || option.disabled) return
             var newDoctorId = option.getAttribute('data-doctor-id')
@@ -954,6 +966,7 @@
                 confirmCancel.addEventListener('click', cancelHandler)
             }
         })
+        }
 
         var serviceOverlayBackdrop = document.getElementById('receptionServiceOverlayBackdrop')
         var serviceOverlayPanel = document.getElementById('receptionServiceOverlayPanel')
@@ -1077,16 +1090,21 @@
         if (configClose) configClose.addEventListener('click', closeQueueConfig)
 
         // Close config overlay on outside click (like a dropdown)
-        document.addEventListener('click', function (e) {
+        if (!window.__receptionQueueClickBound5) {
+            window.__receptionQueueClickBound5 = true
+            document.addEventListener('click', function (e) {
             var overlay = document.getElementById('receptionQueueConfigOverlay')
             if (!overlay || overlay.classList.contains('hidden')) return
             if (overlay.contains(e.target)) return
             if (e.target && e.target.closest && e.target.closest('.reception-queue-config')) return
             closeQueueConfig()
-        })
+            })
+        }
 
         // Config button click — event delegation (handles DOM refreshes)
-        document.addEventListener('click', function (e) {
+        if (!window.__receptionQueueClickBound6) {
+            window.__receptionQueueClickBound6 = true
+            document.addEventListener('click', function (e) {
             var btn = e.target && e.target.closest ? e.target.closest('.reception-queue-config') : null
             if (!btn) return
             var queueId = btn.getAttribute('data-queue-id')
@@ -1103,6 +1121,7 @@
             }
             openQueueConfig(queueId, priority, 'Queue #' + String(code), btn)
         })
+        }
 
         // Close config overlay on scroll (handles scrollable containers + window scroll)
         document.addEventListener('scroll', function () {
@@ -1305,14 +1324,17 @@
             })
         }
 
-        document.addEventListener('click', function (e) {
+        if (!window.__receptionQueueClickBound7) {
+            window.__receptionQueueClickBound7 = true
+            document.addEventListener('click', function (e) {
             var target = e.target
             if (appointmentResults && !appointmentResults.classList.contains('hidden')) {
                 if (!(appointmentResults.contains(target) || (appointmentSearch && appointmentSearch.contains(target)))) {
                     appointmentResults.classList.add('hidden')
                 }
             }
-        })
+            })
+        }
 
         if (serviceOverlayBackdrop) {
             serviceOverlayBackdrop.addEventListener('click', function (e) {
@@ -1639,12 +1661,15 @@
             })
         }
 
-        document.addEventListener('keydown', function (e) {
+        if (!window.__receptionQueueKeydownBound) {
+            window.__receptionQueueKeydownBound = true
+            document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 closeQueueConfig()
                 closeServiceOverlay()
             }
-        })
+            })
+        }
 
         // Status dropdown toggle + status item clicks (event delegation)
         // Use named function so SPA re-navigation can remove old duplicates before re-adding
@@ -2002,11 +2027,14 @@
             })
         }
 
-        document.addEventListener('keydown', function (e) {
+        if (!window.__receptionQueueKeydownBound2) {
+            window.__receptionQueueKeydownBound2 = true
+            document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && overlay && !overlay.classList.contains('hidden')) {
                 closeOverlay()
             }
-        })
+            })
+        }
 
         // ── Queue table pagination ──
         initQueuePagination()
@@ -2233,5 +2261,11 @@
         }
 
         // Static estimated wait - calculated on page load from API data
-    })
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', onReady)
+    } else {
+        onReady()
+    }
+})()
 </script>
