@@ -883,7 +883,8 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         var appointmentSelect = document.getElementById('consult_appointment')
         var snapshotLoading = document.getElementById('consultSnapshotLoading')
         var safetyBox = document.getElementById('consultSafetyBox')
@@ -3344,15 +3345,18 @@
             if (el) el.textContent = val
         }
 
-        // ── Visit detail button delegation ──
-        document.addEventListener('click', function (e) {
-            var btn = e.target.closest('.doctor-visit-detail-btn')
-            if (!btn) return
-            try {
-                var visitData = JSON.parse(btn.getAttribute('data-visit') || '{}')
-                openVisitDetail(visitData)
-            } catch (err) { /* ignore */ }
-        })
+        // ── Visit detail button delegation (bound once) ──
+        if (!window.__doctorConsultVisitDetailBound) {
+            window.__doctorConsultVisitDetailBound = true
+            document.addEventListener('click', function (e) {
+                var btn = e.target.closest('.doctor-visit-detail-btn')
+                if (!btn) return
+                try {
+                    var visitData = JSON.parse(btn.getAttribute('data-visit') || '{}')
+                    openVisitDetail(visitData)
+                } catch (err) { /* ignore */ }
+            })
+        }
 
         // Delegate click on history cards in timeline
         if (historyTimeline) {
@@ -4688,5 +4692,11 @@
                 }
             })
         }
-    })
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', onReady)
+        } else {
+            onReady()
+        }
+    })()
 </script>

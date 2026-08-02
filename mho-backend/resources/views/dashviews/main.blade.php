@@ -103,7 +103,7 @@
         </div>
         @endif
 
-        <div id="main-content" class="flex-1 p-8 md:p-5" style="display:none" data-shell-safe="{{ in_array(strtolower($role ?? ''), ['admin', 'receptionist']) ? '1' : '0' }}">
+        <div id="main-content" class="flex-1 p-8 md:p-5" style="display:none" data-shell-safe="{{ in_array(strtolower($role ?? ''), ['admin', 'receptionist', 'doctor']) ? '1' : '0' }}">
             @php
                 $mapping = [
                     'admin' => 'admindb',

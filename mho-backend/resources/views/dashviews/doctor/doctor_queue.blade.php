@@ -290,7 +290,8 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         var searchInput = document.getElementById('doctor_queue_search')
         var sortSelect = document.getElementById('doctor_queue_sort')
         var rows = Array.prototype.slice.call(document.querySelectorAll('.doctor-queue-row'))
@@ -601,5 +602,11 @@
                 console.log('[DoctorQueue] Echo listener already attached, skipping.')
             }
         }
-    })
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', onReady)
+        } else {
+            onReady()
+        }
+    })()
 </script>

@@ -1316,15 +1316,19 @@
         });
     }
 
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            var rxModal = document.getElementById('histRxReceiptModal');
-            if (rxModal && !rxModal.classList.contains('hidden')) closeHistRxReceiptModal();
-            else if (histMedModal && !histMedModal.classList.contains('hidden')) closeHistMedicineSelector();
-            else if (editOverlay && !editOverlay.classList.contains('hidden')) closeEditModal();
-            else if (detailOverlay && !detailOverlay.classList.contains('hidden')) closeDetailModal();
-        }
-    });
+    // ── Global Escape close (dedup guard for SPA revisits) ──
+    if (!window.__consultHistEscBound) {
+        window.__consultHistEscBound = true;
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                var rxModal = document.getElementById('histRxReceiptModal');
+                if (rxModal && !rxModal.classList.contains('hidden')) closeHistRxReceiptModal();
+                else if (histMedModal && !histMedModal.classList.contains('hidden')) closeHistMedicineSelector();
+                else if (editOverlay && !editOverlay.classList.contains('hidden')) closeEditModal();
+                else if (detailOverlay && !detailOverlay.classList.contains('hidden')) closeDetailModal();
+            }
+        });
+    }
 
     // ── Prescription Receipt Modal ──
     var histRxReceiptModal = document.getElementById('histRxReceiptModal');

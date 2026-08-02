@@ -113,7 +113,8 @@
 </aside>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         // ── Pagination state ────────────────────────────────────────────
         var visitCurrentPage = 1
         var visitPerPage = 10
@@ -569,5 +570,11 @@
                 loadVisits(1)
             })
         }
-    })
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', onReady)
+        } else {
+            onReady()
+        }
+    })()
 </script>

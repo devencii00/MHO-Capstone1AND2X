@@ -133,21 +133,21 @@
                             <span class="text-[0.78rem] text-slate-500">Today&rsquo;s Patients</span>
                             <x-lucide-calendar-check class="w-[17px] h-[17px] text-green-600" />
                         </div>
-                        <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($appointmentsToday) }}</div>
+                        <div id="docMetricAppointmentsToday" class="font-serif font-bold text-xl text-slate-900"><span class="skeleton h-5 w-14"></span></div>
                     </div>
                     <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
                         <div class="flex items-center justify-between mb-1">
                             <span class="text-[0.78rem] text-slate-500">In queue</span>
                             <x-lucide-users class="w-[17px] h-[17px] text-green-600" />
                         </div>
-                        <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($queueToday) }}</div>
+                        <div id="docMetricQueueToday" class="font-serif font-bold text-xl text-slate-900"><span class="skeleton h-5 w-14"></span></div>
                     </div>
                     <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
                         <div class="flex items-center justify-between mb-1">
                             <span class="text-[0.78rem] text-slate-500">Completed today</span>
                             <x-lucide-check-circle class="w-[17px] h-[17px] text-green-600" />
                         </div>
-                        <div class="font-serif font-bold text-xl text-slate-900">{{ number_format($completedToday) }}</div>
+                        <div id="docMetricCompletedToday" class="font-serif font-bold text-xl text-slate-900"><span class="skeleton h-5 w-14"></span></div>
                     </div>
                 </div>
 
@@ -164,78 +164,27 @@
                             </tr>
                         </thead>
                         <tbody id="doctorScheduleTbody">
-                            @forelse ($todayAppointments as $appointment)
-                                @php
-                                    $patientName = $formatUserName($appointment->patient);
-                                    $time = optional($appointment->appointment_datetime)->format('H:i') ?? '-';
-                                    $typeLabel = $appointment->appointment_type ? ucfirst(str_replace('_', '-', $appointment->appointment_type)) : '-';
-                                    $isWalkIn = strtolower((string) ($appointment->appointment_type ?? '')) === 'walk_in';
-                                    if ($isWalkIn && $appointment->queue) {
-                                        $statusLabel = ucfirst(str_replace('_', ' ', $appointment->queue->status));
-                                        $statusKey = strtolower((string) ($appointment->queue->status ?? ''));
-                                    } else {
-                                        $statusLabel = $appointment->status ? ucfirst(str_replace('_', ' ', $appointment->status)) : '-';
-                                        $statusKey = strtolower((string) ($appointment->status ?? ''));
-                                    }
-                                    $apptStatusColors = [
-                                        'pending' => 'bg-amber-50 text-amber-700 border-amber-200',
-                                        'confirmed' => 'border-orange-200 bg-orange-50 text-orange-700',
-                                        'completed' => 'border-green-200 bg-green-50 text-green-700',
-                                        'cancelled' => 'bg-red-50 text-red-700 border-red-200',
-                                        'no_show' => 'bg-slate-100 text-slate-600 border-slate-200',
-                                        'consulted' => 'border-purple-200 bg-purple-50 text-purple-700',
-                                        'waiting' => 'bg-amber-50 text-amber-700 border-amber-100',
-                                        'serving' => 'bg-blue-50 text-blue-700 border-blue-100',
-                                        'done' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
-                                        'skipped' => 'bg-orange-50 text-orange-700 border-orange-100',
-                                        'on_hold' => 'bg-purple-50 text-purple-700 border-purple-100',
-                                    ];
-                                    $apptStatusColor = $apptStatusColors[$statusKey] ?? 'bg-slate-50 text-slate-600 border-slate-100';
-                                    $showStartBtn = $isWalkIn ? ($statusKey === 'waiting') : ($statusKey === 'confirmed');
-                                    $consultationParams = [
-                                        'role' => 'doctor',
-                                        'section' => 'consultation',
-                                        'appointment_id' => $appointment->appointment_id,
-                                    ];
-                                    if ($currentUserUuidQuery) {
-                                        $consultationParams['user_uuid'] = $currentUserUuidQuery;
-                                    }
-                                @endphp
-                                <tr class="border-b border-slate-100 last:border-0">
-                                    <td class="py-2 px-3 text-[0.78rem] text-slate-500">{{ $time }}</td>
-                                    <td class="py-2 px-3 text-[0.78rem] text-slate-700">{{ $patientName }}</td>
-                                    <td class="py-2 px-3 text-[0.78rem] text-slate-500">{{ $typeLabel }}</td>
-                                    <td class="py-2 px-3">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] font-medium border {{ $apptStatusColor }}">
-                                            {{ $statusLabel }}
-                                        </span>
-                                    </td>
-                                    <td class="py-2 px-3">
-                                        <div class="flex flex-wrap gap-1.5">
-                                            <button type="button"
-                                                class="doc-details-btn inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.7rem] font-medium text-slate-700 hover:bg-slate-50"
-                                                data-appointment='@json($appointment)'>
-                                                <x-lucide-info class="w-3.5 h-3.5" />
-                                                Details
-                                            </button>
-                                            @if ($showStartBtn)
-                                            <a href="{{ route('dashboard', $consultationParams) }}"
-                                                data-spa-nav="1"
-                                                class="inline-flex items-center justify-center gap-1 rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-[0.7rem] font-semibold text-green-700 hover:bg-green-100">
-                                                <x-lucide-play class="w-3.5 h-3.5" />
-                                                Start
-                                            </a>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="py-4 text-center text-[0.78rem] text-slate-400">
-                                        No appointments scheduled for today.
-                                    </td>
-                                </tr>
-                            @endforelse
+                            <tr class="border-b border-slate-100">
+                                <td class="py-2 px-3"><span class="skeleton h-3 w-10"></span></td>
+                                <td class="py-2 px-3"><span class="skeleton h-3 w-36"></span></td>
+                                <td class="py-2 px-3"><span class="skeleton h-3 w-14"></span></td>
+                                <td class="py-2 px-3"><span class="skeleton h-4 w-16 rounded-full"></span></td>
+                                <td class="py-2 px-3"><span class="skeleton h-6 w-16 rounded-lg"></span></td>
+                            </tr>
+                            <tr class="border-b border-slate-100">
+                                <td class="py-2 px-3"><span class="skeleton h-3 w-10"></span></td>
+                                <td class="py-2 px-3"><span class="skeleton h-3 w-40"></span></td>
+                                <td class="py-2 px-3"><span class="skeleton h-3 w-14"></span></td>
+                                <td class="py-2 px-3"><span class="skeleton h-4 w-16 rounded-full"></span></td>
+                                <td class="py-2 px-3"><span class="skeleton h-6 w-16 rounded-lg"></span></td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-3"><span class="skeleton h-3 w-10"></span></td>
+                                <td class="py-2 px-3"><span class="skeleton h-3 w-32"></span></td>
+                                <td class="py-2 px-3"><span class="skeleton h-3 w-14"></span></td>
+                                <td class="py-2 px-3"><span class="skeleton h-4 w-16 rounded-full"></span></td>
+                                <td class="py-2 px-3"><span class="skeleton h-6 w-16 rounded-lg"></span></td>
+                            </tr>
                         </tbody>
                     </table>
                     </div>
@@ -288,7 +237,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     @if (count($activeQueue))
-                    <div class="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-green-50 border border-green-100 text-green-700 text-[0.6rem] font-semibold whitespace-nowrap">
+                    <div id="doctorActiveQueueCountBadge" class="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-green-50 border border-green-100 text-green-700 text-[0.6rem] font-semibold whitespace-nowrap">
                         {{ count($activeQueue) }} {{ Str::plural('patient', count($activeQueue)) }}
                     </div>
                     @endif
@@ -303,66 +252,29 @@
             </div>
         </div>
         <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50">
-            @if (count($activeQueue))
-                <div id="doctorActiveQueueContainer" class="divide-y divide-slate-100">
-                    @foreach ($activeQueue as $queue)
-                        @php
-                            $patientName = $formatUserName(optional(optional($queue->appointment)->patient));
-                            $dateKey = optional($queue->queue_datetime)->format('Y-m-d') ?? '-';
-                            $timeKey = optional($queue->queue_datetime)->format('H:i') ?? '-';
-                            $statusLabel = $queue->status ? ucfirst(str_replace('_', ' ', $queue->status)) : '-';
-                            $statusColors = [
-                                'waiting' => 'border-orange-200 bg-orange-50 text-orange-700',
-                                'serving' => 'bg-blue-50 text-blue-700 border-blue-100',
-                                'consulted' => 'bg-blue-50 text-blue-700 border-blue-100',
-                                'done' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
-                                'cancelled' => 'bg-red-50 text-red-700 border-red-100',
-                                'no_show' => 'bg-slate-100 text-slate-600 border-slate-200',
-                                'skipped' => 'bg-orange-50 text-orange-700 border-orange-100',
-                                'on_hold' => 'bg-purple-50 text-purple-700 border-purple-100',
-                            ];
-                            $statusColor = $statusColors[strtolower($queue->status)] ?? 'bg-slate-50 text-slate-600 border-slate-100';
-                        @endphp
-                        <div class="px-5 py-3.5 hover:bg-slate-50/50 transition-all duration-150">
-                            <div class="flex items-start justify-between gap-3">
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <span class="inline-flex items-center gap-1.5 text-[0.8rem] font-semibold text-slate-800">
-                                            <x-lucide-hash class="w-3.5 h-3.5 text-slate-400" />
-                                            {{ $queue->queue_code }}
-                                        </span>
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.65rem] font-medium border {{ $statusColor }}">
-                                            {{ $statusLabel }}
-                                        </span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5 mt-1.5">
-                                        <x-lucide-user class="w-3 h-3 text-slate-400" />
-                                        <span class="text-[0.75rem] text-slate-600 truncate">{{ $patientName }}</span>
-                                    </div>
-                                </div>
-                                <div class="text-right flex-shrink-0">
-                                    <div class="flex items-center gap-1.5 text-[0.7rem] text-slate-500">
-                                        <x-lucide-calendar class="w-3 h-3 text-slate-400" />
-                                        <span>{{ $dateKey }}</span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5 mt-1 text-[0.7rem] text-slate-500">
-                                        <x-lucide-clock class="w-3 h-3 text-slate-400" />
-                                        <span>{{ $timeKey }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            @else
-                <div id="doctorActiveQueueContainer" class="flex flex-col items-center justify-center h-full px-4 text-center">
-                    <div class="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-2">
-                        <x-lucide-calendar-x class="w-5 h-5 text-slate-300" />
+            <div id="doctorActiveQueueContainer" class="divide-y divide-slate-100">
+                <div class="px-5 py-3.5">
+                    <div class="flex items-center gap-2">
+                        <span class="skeleton h-4 w-16"></span>
+                        <span class="skeleton h-4 w-14 rounded-full"></span>
                     </div>
-                    <p class="text-[0.78rem] font-medium text-slate-500">No active queue entries</p>
-                    <p class="text-[0.68rem] text-slate-400 mt-0.5">Queue is empty</p>
+                    <div class="mt-2 skeleton h-3 w-40"></div>
                 </div>
-            @endif
+                <div class="px-5 py-3.5">
+                    <div class="flex items-center gap-2">
+                        <span class="skeleton h-4 w-16"></span>
+                        <span class="skeleton h-4 w-14 rounded-full"></span>
+                    </div>
+                    <div class="mt-2 skeleton h-3 w-44"></div>
+                </div>
+                <div class="px-5 py-3.5">
+                    <div class="flex items-center gap-2">
+                        <span class="skeleton h-4 w-16"></span>
+                        <span class="skeleton h-4 w-14 rounded-full"></span>
+                    </div>
+                    <div class="mt-2 skeleton h-3 w-36"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -381,7 +293,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     @if (count($onHoldQueue))
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-purple-50 border border-purple-100 text-purple-700 text-[0.7rem] font-semibold">
+                    <span id="doctorOnHoldCountBadge" class="inline-flex items-center px-2.5 py-1 rounded-full bg-purple-50 border border-purple-100 text-purple-700 text-[0.7rem] font-semibold">
                         {{ count($onHoldQueue) }} {{ Str::plural('patient', count($onHoldQueue)) }}
                     </span>
                     @endif
@@ -390,45 +302,20 @@
         </div>
         <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50">
             <div id="doctorOnHoldContainer">
-                @if (count($onHoldQueue))
-                    <div class="divide-y divide-slate-100">
-                        @foreach ($onHoldQueue as $queue)
-                            @php
-                                $patientName = $formatUserName(optional(optional($queue->appointment)->patient));
-                                $timeKey = optional($queue->queue_datetime)->format('H:i') ?? '-';
-                            @endphp
-                            <div class="px-5 py-3.5 hover:bg-slate-50/50 transition-all duration-150">
-                                <div class="flex items-center justify-between gap-3">
-                                    <div class="flex items-center gap-2 min-w-0">
-                                        <span class="inline-flex items-center gap-1.5 text-[0.75rem] font-semibold text-slate-700">
-                                            <x-lucide-hash class="w-3 h-3 text-slate-400" />
-                                            {{ $queue->queue_code }}
-                                        </span>
-                                        <span class="text-[0.72rem] text-slate-600 truncate">{{ $patientName }}</span>
-                                    </div>
-                                    <div class="flex items-center gap-2 flex-shrink-0">
-                                        <span class="text-[0.65rem] text-slate-400">{{ $timeKey }}</span>
-                                        <button type="button"
-                                            class="call-on-hold-btn inline-flex items-center justify-center gap-1 rounded-lg border border-green-200 bg-green-50 px-2.5 py-1 text-[0.65rem] font-semibold text-green-700 hover:bg-green-100"
-                                            data-queue-id="{{ $queue->queue_id }}"
-                                            data-doctor-id="{{ (int) ($currentUser->user_id ?? 0) }}">
-                                            <x-lucide-megaphone class="w-3 h-3" />
-                                            Call
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div id="doctorOnHoldContainer" class="flex flex-col items-center justify-center h-full px-4 text-center">
-                        <div class="w-10 h-10 rounded-full bg-purple-50 border border-purple-100 flex items-center justify-center mb-2">
-                            <x-lucide-pause class="w-5 h-5 text-purple-300" />
+                <div class="divide-y divide-slate-100">
+                    <div class="px-5 py-3.5">
+                        <div class="flex items-center justify-between">
+                            <span class="skeleton h-4 w-24"></span>
+                            <span class="skeleton h-5 w-10 rounded-lg"></span>
                         </div>
-                        <p class="text-[0.78rem] font-medium text-slate-500">No patients on hold</p>
-                        <p class="text-[0.68rem] text-slate-400 mt-0.5">On hold queue is empty</p>
                     </div>
-                @endif
+                    <div class="px-5 py-3.5">
+                        <div class="flex items-center justify-between">
+                            <span class="skeleton h-4 w-28"></span>
+                            <span class="skeleton h-5 w-10 rounded-lg"></span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -520,264 +407,152 @@
 </div>
 
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                function escapeHtml(value) {
-                    return String(value == null ? '' : value)
-                        .replace(/&/g, '&amp;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;')
-                        .replace(/"/g, '&quot;')
-                        .replace(/'/g, '&#039;')
-                }
-
-                // ── Upcoming Appointments Pagination ─────────────────────────
-                var upcomingCurrentPage = 1
-                var upcomingPerPage = 10
-                var upcomingLastPage = 1
-                var upcomingTotal = 0
-                var doctorIdForApi = {{ (int) ($currentUser->user_id ?? 0) }}
-
-                function loadUpcomingAppointments(page) {
-                    var container = document.getElementById('doctorUpcomingAppointmentsAll')
-                    if (!container) return
-                    container.innerHTML = '<p class="text-[0.72rem] text-slate-400 animate-pulse">Loading…</p>'
-
-                    apiFetch("{{ url('/api/appointments') }}?per_page=" + upcomingPerPage + "&page=" + page + "&doctor_id=" + doctorIdForApi + "&appointment_type=scheduled&upcoming_only=1")
-                        .then(function (r) { return r.json() })
-                        .then(function (result) {
-                            if (!result || !result.data) {
-                                container.innerHTML = '<p class="text-[0.72rem] text-slate-400">No scheduled appointments found.</p>'
-                                updateUpcomingSeeMore()
-                                return
-                            }
-                            var data = result.data
-                            upcomingCurrentPage = result.current_page || page
-                            upcomingLastPage = result.last_page || 1
-                            upcomingTotal = result.total || 0
-
-                            if (!data.length) {
-                                container.innerHTML = '<p class="text-[0.72rem] text-slate-400">No scheduled appointments found.</p>'
-                            } else {
-                                var statusColors = {
-                                    pending: 'bg-amber-50 text-amber-700 border-amber-200',
-                                    confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
-                                    completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                                    cancelled: 'bg-red-50 text-red-700 border-red-200',
-                                    no_show: 'bg-slate-100 text-slate-600 border-slate-200',
-                                    consulted: 'bg-green-50 text-green-700 border-green-100'
-                                }
-                                var html = '<table class="min-w-full text-left text-[0.7rem] text-slate-600">' +
-                                    '<thead>' +
-                                    '<tr class="border-b border-slate-200 text-[0.6rem] uppercase tracking-widest text-slate-400">' +
-                                    '<th class="py-1.5 pr-3 font-semibold">Date</th>' +
-                                    '<th class="py-1.5 pr-3 font-semibold">Time</th>' +
-                                    '<th class="py-1.5 pr-3 font-semibold">Patient</th>' +
-                                    '<th class="py-1.5 pr-3 font-semibold">Status</th>' +
-                                    '<th class="py-1.5 font-semibold">Actions</th>' +
-                                    '</tr></thead><tbody>'
-                                data.forEach(function (a) {
-                                    var patient = a.patient || {}
-                                    var parts = [patient.firstname, patient.middlename, patient.lastname].filter(function (v) { return v && String(v).trim() !== '' })
-                                    var patientName = parts.length ? parts.join(' ') : (patient.email || 'Patient')
-                                    var dateStr = a.appointment_datetime ? new Date(a.appointment_datetime).toLocaleDateString() : '-'
-                                    var timeStr = a.appointment_datetime ? new Date(a.appointment_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'
-                                    var statusKey = (a.status || '').toLowerCase()
-                                    var statusLabel = a.status ? String(a.status).replace(/_/g, ' ') : '-'
-                                    var sc = statusColors[statusKey] || 'bg-slate-50 text-slate-600 border-slate-100'
-                                    var apptJson = JSON.stringify(a).replace(/'/g, '&#39;')
-                                    html += '<tr class="border-b border-slate-100 last:border-0">' +
-                                        '<td class="py-1.5 pr-3 text-slate-500">' + escapeHtml(dateStr) + '</td>' +
-                                        '<td class="py-1.5 pr-3 text-slate-500">' + escapeHtml(timeStr) + '</td>' +
-                                        '<td class="py-1.5 pr-3 text-slate-700 font-medium">' + escapeHtml(patientName) + '</td>' +
-                                        '<td class="py-1.5 pr-3"><span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[0.6rem] font-medium border ' + sc + '">' + escapeHtml(statusLabel) + '</span></td>' +
-                                        '<td class="py-1.5">' +
-                                        '<button type="button" class="doc-details-btn inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem] font-medium text-slate-600 hover:bg-slate-50" data-appointment=\'' + apptJson + '\'>' +
-                                        '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>' +
-                                        ' Details</button></td></tr>'
-                                })
-                                html += '</tbody></table>'
-                                container.innerHTML = html
-                            }
-                            updateUpcomingSeeMore()
-                            var counter = document.getElementById('doctorUpcomingCounter')
-                            if (counter) counter.textContent = upcomingTotal + ' entries'
-                        })
-                        .catch(function () {
-                            container.innerHTML = '<p class="text-[0.72rem] text-slate-400">Failed to load appointments.</p>'
-                            updateUpcomingSeeMore()
-                        })
-                }
-
-                function updateUpcomingSeeMore() {
-                    var btn = document.getElementById('doctorUpcomingSeeMore')
-                    if (!btn) return
-                    var disabled = upcomingCurrentPage >= upcomingLastPage || upcomingTotal === 0
-                    btn.disabled = disabled
-                }
-
-                // Initial load
-                loadUpcomingAppointments(1)
-                document.getElementById('doctorUpcomingSeeMore').addEventListener('click', function () {
-                    if (this.disabled) return
-                    loadUpcomingAppointments(upcomingCurrentPage + 1)
-                })
-
-                // ── Queue Call Next ──────────────────────────────────────────
-                var queueCallNextButton = document.getElementById('doctorOverviewCallNextButton')
-                var queueCallNextSpinner = document.getElementById('doctorOverviewCallNextSpinner')
-                var queueCallNextContent = document.getElementById('doctorOverviewCallNextContent')
-
-                function setQueueCallNextSubmitting(isSubmitting) {
-                    if (queueCallNextButton) queueCallNextButton.disabled = !!isSubmitting
-                    if (queueCallNextSpinner) queueCallNextSpinner.classList.toggle('hidden', !isSubmitting)
-                    if (queueCallNextContent) queueCallNextContent.classList.toggle('opacity-0', !!isSubmitting)
-                }
-
-                if (queueCallNextButton && typeof apiFetch === 'function') {
-                    queueCallNextButton.addEventListener('click', function () {
-                        if (queueCallNextButton.disabled) return
-                        setQueueCallNextSubmitting(true)
-
-                        apiFetch("{{ url('/api/queues/call-next') }}", {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ doctor_id: {{ (int) ($currentUser->user_id ?? 0) }} })
-                        })
-                            .then(function (response) {
-                                return response.json().then(function (data) {
-                                    return { ok: response.ok, data: data }
-                                }).catch(function () {
-                                    return { ok: response.ok, data: null }
-                                })
-                            })
-                            .then(function (result) {
-                                if (!result.ok) {
-                                    if (typeof showToast === 'function') showToast(result.data && result.data.message ? result.data.message : 'Failed to call next patient.', 'error')
-                                    setQueueCallNextSubmitting(false)
-                                    return
-                                }
-                                if (typeof showToast === 'function') showToast('Next patient called successfully.', 'success')
-                                setQueueCallNextSubmitting(false)
-                            })
-                            .catch(function () {
-                                if (typeof showToast === 'function') showToast('Network error while calling next patient.', 'error')
-                                setQueueCallNextSubmitting(false)
-                            })
-                    })
-                }
-
-                // ── On Hold Call button (event delegation, card refresh only) ─
-                document.addEventListener('click', function (e) {
-                    var btn = e.target.closest('.call-on-hold-btn')
-                    if (!btn) return
-                    if (btn.disabled) return
-                    var queueId = btn.getAttribute('data-queue-id')
-                    if (!queueId) return
-                    btn.disabled = true
-
-                    apiFetch("{{ url('/api/queues') }}/" + queueId, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ status: 'serving' })
-                    })
-                        .then(function (response) {
-                            return response.json().then(function (data) {
-                                return { ok: response.ok, data: data }
-                            }).catch(function () {
-                                return { ok: response.ok, data: null }
-                            })
-                        })
-                        .then(function (result) {
-                            if (!result.ok) {
-                                if (typeof showToast === 'function') showToast(result.data && result.data.message ? result.data.message : 'Failed to call patient.', 'error')
-                                btn.disabled = false
-                                return
-                            }
-                            if (typeof showToast === 'function') showToast('Patient called successfully.', 'success')
-                            btn.disabled = false
-                        })
-                        .catch(function () {
-                            if (typeof showToast === 'function') showToast('Network error while calling patient.', 'error')
-                            btn.disabled = false
-                        })
-                })
-
-                // ── Details Modal (event delegation) ───────────────────────
-                var modal = document.getElementById('appointmentDetailsModal')
-                var closeBtn = document.getElementById('appointmentDetailsModalClose')
-
-                function showModal() {
-                    modal.classList.remove('hidden')
-                    modal.style.display = 'flex'
-                }
-
-                function hideModal() {
-                    modal.classList.add('hidden')
-                    modal.style.display = 'none'
-                }
-
-                if (closeBtn) {
-                    closeBtn.addEventListener('click', hideModal)
-                }
-
-                if (modal) {
-                    modal.addEventListener('click', function (e) {
-                        if (e.target === modal) hideModal()
-                    })
-                }
-
-                function formatPatientName(patient) {
-                    if (!patient) return '-'
-                    var parts = [patient.firstname || '', patient.middlename || '', patient.lastname || ''].filter(function (v) { return v !== '' })
-                    return parts.length ? parts.join(' ') : (patient.email || 'Patient')
-                }
-
-                function computeAge(birthdate) {
-                    if (!birthdate) return '-'
-                    var birth = new Date(birthdate)
-                    var today = new Date()
-                    var age = today.getFullYear() - birth.getFullYear()
-                    var m = today.getMonth() - birth.getMonth()
-                    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
-                    return age
-                }
-
-                function formatServices(services) {
-                    if (!services || !services.length) return 'None'
-                    return services.map(function (s) { return s.name || s.service_name || s.service_id }).join(', ')
-                }
-
-                // Event delegation: any click on .doc-details-btn (works even after refresh)
-                document.addEventListener('click', function (e) {
-                    var btn = e.target.closest('.doc-details-btn')
-                    if (!btn) return
-
-                    var raw = btn.getAttribute('data-appointment')
-                    if (!raw) return
-                    try {
-                        var a = JSON.parse(raw)
-                    } catch (err) {
-                        return
+            ;(function () {
+                function onReady() {
+                    function escapeHtml(value) {
+                        return String(value == null ? '' : value)
+                            .replace(/&/g, '&amp;')
+                            .replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;')
+                            .replace(/"/g, '&quot;')
+                            .replace(/'/g, '&#039;')
                     }
 
-                    var patient = a.patient || {}
-                    var queue = a.queue || {}
+                    function titleCase(str) {
+                        var s = String(str == null ? '' : str)
+                        return s ? s.charAt(0).toUpperCase() + s.slice(1) : '-'
+                    }
 
-                    // Left panel – patient profile
-                    document.getElementById('modalPatientName').textContent = formatPatientName(patient)
-                    document.getElementById('modalPatientContact').textContent = patient.contact_no || patient.contact || '-'
-                    document.getElementById('modalPatientSex').textContent = patient.sex || '-'
-                    document.getElementById('modalPatientBirthdate').textContent = patient.birthdate ? new Date(patient.birthdate).toLocaleDateString() : '-'
-                    document.getElementById('modalPatientAge').textContent = computeAge(patient.birthdate)
-                    document.getElementById('modalPatientAddress').textContent = patient.address || '-'
+                    function formatPatientName(patient) {
+                        if (!patient) return '-'
+                        var parts = [patient.firstname || '', patient.middlename || '', patient.lastname || ''].filter(function (v) { return v !== '' })
+                        return parts.length ? parts.join(' ') : (patient.email || 'Patient')
+                    }
 
-                    // Right panel – appointment / queue details
-                    var apptDate = a.appointment_datetime ? new Date(a.appointment_datetime).toLocaleDateString() : '-'
-                    var apptTime = a.appointment_datetime ? new Date(a.appointment_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'
-                    var typeLabel = a.appointment_type ? a.appointment_type.replace(/_/g, ' ') : '-'
-                    var statusLabel = a.status ? a.status.replace(/_/g, ' ') : '-'
-                    var statusKey = a.status ? a.status.toLowerCase() : ''
-                    var modalStatusColors = {
+                    function computeAge(birthdate) {
+                        if (!birthdate) return '-'
+                        var birth = new Date(birthdate)
+                        var today = new Date()
+                        var age = today.getFullYear() - birth.getFullYear()
+                        var m = today.getMonth() - birth.getMonth()
+                        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
+                        return age
+                    }
+
+                    function formatServices(services) {
+                        if (!services || !services.length) return 'None'
+                        return services.map(function (s) { return s.name || s.service_name || s.service_id }).join(', ')
+                    }
+
+                    var doctorIdForApi = {{ (int) ($currentUser->user_id ?? 0) }}
+                    var currentUserUuidQuery = "{{ $currentUserUuidQuery }}"
+                    var consultationBaseUrl = "{{ route('dashboard', ['role' => 'doctor', 'section' => 'consultation']) }}"
+
+                    var SVG_HASH = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 text-slate-400"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></svg>'
+                    var SVG_USER = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 text-slate-400"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+                    var SVG_CALENDAR = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 text-slate-400"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>'
+                    var SVG_CLOCK = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 text-slate-400"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+                    var SVG_INFO = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>'
+                    var SVG_PLAY = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><polygon points="6 3 20 12 6 21 6 3"/></svg>'
+                    var SVG_CALENDAR_X = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-slate-300"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m14 14-4 4"/><path d="m10 14 4 4"/></svg>'
+                    var SVG_PAUSE = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-purple-300"><rect width="14" height="14" x="5" y="5" rx="1"/><path d="M10 9v6"/><path d="M14 9v6"/></svg>'
+                    var SVG_MEGAPHONE = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>'
+
+                    // ── Upcoming Appointments Pagination ─────────────────────────
+                    var upcomingCurrentPage = 1
+                    var upcomingPerPage = 10
+                    var upcomingLastPage = 1
+                    var upcomingTotal = 0
+
+                    function loadUpcomingAppointments(page) {
+                        var container = document.getElementById('doctorUpcomingAppointmentsAll')
+                        if (!container) return
+                        container.innerHTML = '<p class="text-[0.72rem] text-slate-400 animate-pulse">Loading…</p>'
+
+                        apiFetch("{{ url('/api/appointments') }}?per_page=" + upcomingPerPage + "&page=" + page + "&doctor_id=" + doctorIdForApi + "&appointment_type=scheduled&upcoming_only=1")
+                            .then(function (r) { return r.json() })
+                            .then(function (result) {
+                                if (!result || !result.data) {
+                                    container.innerHTML = '<p class="text-[0.72rem] text-slate-400">No scheduled appointments found.</p>'
+                                    updateUpcomingSeeMore()
+                                    return
+                                }
+                                var data = result.data
+                                upcomingCurrentPage = result.current_page || page
+                                upcomingLastPage = result.last_page || 1
+                                upcomingTotal = result.total || 0
+
+                                if (!data.length) {
+                                    container.innerHTML = '<p class="text-[0.72rem] text-slate-400">No scheduled appointments found.</p>'
+                                } else {
+                                    var statusColors = {
+                                        pending: 'bg-amber-50 text-amber-700 border-amber-200',
+                                        confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
+                                        completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                        cancelled: 'bg-red-50 text-red-700 border-red-200',
+                                        no_show: 'bg-slate-100 text-slate-600 border-slate-200',
+                                        consulted: 'bg-green-50 text-green-700 border-green-100'
+                                    }
+                                    var html = '<table class="min-w-full text-left text-[0.7rem] text-slate-600">' +
+                                        '<thead>' +
+                                        '<tr class="border-b border-slate-200 text-[0.6rem] uppercase tracking-widest text-slate-400">' +
+                                        '<th class="py-1.5 pr-3 font-semibold">Date</th>' +
+                                        '<th class="py-1.5 pr-3 font-semibold">Time</th>' +
+                                        '<th class="py-1.5 pr-3 font-semibold">Patient</th>' +
+                                        '<th class="py-1.5 pr-3 font-semibold">Status</th>' +
+                                        '<th class="py-1.5 font-semibold">Actions</th>' +
+                                        '</tr></thead><tbody>'
+                                    data.forEach(function (a) {
+                                        var patient = a.patient || {}
+                                        var parts = [patient.firstname, patient.middlename, patient.lastname].filter(function (v) { return v && String(v).trim() !== '' })
+                                        var patientName = parts.length ? parts.join(' ') : (patient.email || 'Patient')
+                                        var dateStr = a.appointment_datetime ? new Date(a.appointment_datetime).toLocaleDateString() : '-'
+                                        var timeStr = a.appointment_datetime ? new Date(a.appointment_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'
+                                        var statusKey = (a.status || '').toLowerCase()
+                                        var statusLabel = a.status ? String(a.status).replace(/_/g, ' ') : '-'
+                                        var sc = statusColors[statusKey] || 'bg-slate-50 text-slate-600 border-slate-100'
+                                        var apptJson = JSON.stringify(a).replace(/'/g, '&#39;')
+                                        html += '<tr class="border-b border-slate-100 last:border-0">' +
+                                            '<td class="py-1.5 pr-3 text-slate-500">' + escapeHtml(dateStr) + '</td>' +
+                                            '<td class="py-1.5 pr-3 text-slate-500">' + escapeHtml(timeStr) + '</td>' +
+                                            '<td class="py-1.5 pr-3 text-slate-700 font-medium">' + escapeHtml(patientName) + '</td>' +
+                                            '<td class="py-1.5 pr-3"><span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[0.6rem] font-medium border ' + sc + '">' + escapeHtml(statusLabel) + '</span></td>' +
+                                            '<td class="py-1.5">' +
+                                            '<button type="button" class="doc-details-btn inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem] font-medium text-slate-600 hover:bg-slate-50" data-appointment=\'' + apptJson + '\'>' +
+                                            '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>' +
+                                            ' Details</button></td></tr>'
+                                    })
+                                    html += '</tbody></table>'
+                                    container.innerHTML = html
+                                }
+                                updateUpcomingSeeMore()
+                                var counter = document.getElementById('doctorUpcomingCounter')
+                                if (counter) counter.textContent = upcomingTotal + ' entries'
+                            })
+                            .catch(function () {
+                                container.innerHTML = '<p class="text-[0.72rem] text-slate-400">Failed to load appointments.</p>'
+                                updateUpcomingSeeMore()
+                            })
+                    }
+
+                    function updateUpcomingSeeMore() {
+                        var btn = document.getElementById('doctorUpcomingSeeMore')
+                        if (!btn) return
+                        var disabled = upcomingCurrentPage >= upcomingLastPage || upcomingTotal === 0
+                        btn.disabled = disabled
+                    }
+
+                    var seeMoreBtn = document.getElementById('doctorUpcomingSeeMore')
+                    if (seeMoreBtn) {
+                        seeMoreBtn.addEventListener('click', function () {
+                            if (this.disabled) return
+                            loadUpcomingAppointments(upcomingCurrentPage + 1)
+                        })
+                    }
+                    loadUpcomingAppointments(1)
+
+                    // ── Overview render (fresh JSON via shell-cache endpoint) ──
+                    var apptStatusColors = {
                         pending: 'bg-amber-50 text-amber-700 border-amber-200',
                         confirmed: 'border-orange-200 bg-orange-50 text-orange-700',
                         completed: 'border-green-200 bg-green-50 text-green-700',
@@ -790,126 +565,388 @@
                         skipped: 'bg-orange-50 text-orange-700 border-orange-100',
                         on_hold: 'bg-purple-50 text-purple-700 border-purple-100'
                     }
-                    var statusColor = modalStatusColors[statusKey] || 'bg-slate-50 text-slate-600 border-slate-100'
-
-                    document.getElementById('modalApptType').textContent = typeLabel
-                    var statusBadgeEl = document.createElement('span')
-                    statusBadgeEl.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] font-medium border ' + statusColor
-                    statusBadgeEl.textContent = statusLabel
-                    var modalStatusContainer = document.getElementById('modalApptStatus')
-                    modalStatusContainer.innerHTML = ''
-                    modalStatusContainer.appendChild(statusBadgeEl)
-                    document.getElementById('modalApptDate').textContent = apptDate
-                    document.getElementById('modalApptTime').textContent = apptTime
-                    document.getElementById('modalQueueCode').textContent = queue.queue_code || 'N/A'
-                    document.getElementById('modalQueueStatus').textContent = queue.status ? queue.status.replace(/_/g, ' ') : 'N/A'
-                    document.getElementById('modalApptServices').textContent = formatServices(a.services)
-                    document.getElementById('modalApptReason').textContent = a.reason_for_visit || 'No reason specified'
-
-                    showModal()
-                })
-
-                // ── Refresh All Cards (no page reload) ──────────────────────
-                function refreshAllCards() {
-                    var refreshBtn = document.getElementById('docScheduleRefreshBtn')
-                    if (refreshBtn) refreshBtn.disabled = true
-
-                    // Show loading state on ALL sections
-                    var tbody = document.getElementById('doctorScheduleTbody')
-                    if (tbody) tbody.innerHTML = '<tr><td colspan="999" class="py-4 text-center text-[0.78rem] text-slate-400 animate-pulse">Loading…</td></tr>'
-
-                    var metricsEl = document.getElementById('doctorMetricsContainer')
-                    if (metricsEl) metricsEl.innerHTML = '<div class="col-span-3 py-6 text-center text-[0.78rem] text-slate-400 animate-pulse">Loading…</div>'
-
-                    var activeQEl = document.getElementById('doctorActiveQueueContainer')
-                    if (activeQEl) activeQEl.innerHTML = '<div class="py-10 text-center text-[0.78rem] text-slate-400 animate-pulse">Loading…</div>'
-
-                    var onHoldEl = document.getElementById('doctorOnHoldContainer')
-                    if (onHoldEl) onHoldEl.innerHTML = '<div class="py-10 text-center text-[0.78rem] text-slate-400 animate-pulse">Loading…</div>'
-
-                    // Upcoming appointments: reload from API
-                    loadUpcomingAppointments(1)
-
-                    var url = window.location.href.split('#')[0]
-                    url += (url.indexOf('?') > -1 ? '&' : '?') + '_t=' + Date.now()
-
-                    fetch(url)
-                        .then(function (r) { return r.text() })
-                        .then(function (html) {
-                            var parser = new DOMParser()
-                            var doc = parser.parseFromString(html, 'text/html')
-
-                            // 1. Today's Schedule table
-                            var freshTbody = doc.getElementById('doctorScheduleTbody')
-                            var curTbody = document.getElementById('doctorScheduleTbody')
-                            if (freshTbody && curTbody) curTbody.innerHTML = freshTbody.innerHTML
-
-                            // 2. Metrics cards (Today's Patients, In queue, Completed today)
-                            var freshMetrics = doc.getElementById('doctorMetricsContainer')
-                            var curMetrics = document.getElementById('doctorMetricsContainer')
-                            if (freshMetrics && curMetrics) curMetrics.innerHTML = freshMetrics.innerHTML
-
-                            // 3. Active Queue list
-                            var freshActiveQ = doc.getElementById('doctorActiveQueueContainer')
-                            var curActiveQ = document.getElementById('doctorActiveQueueContainer')
-                            if (freshActiveQ && curActiveQ) curActiveQ.innerHTML = freshActiveQ.innerHTML
-
-                            // 4. On Hold list (removed upcoming — loaded via API above)
-                            var freshOnHold = doc.getElementById('doctorOnHoldContainer')
-                            var curOnHold = document.getElementById('doctorOnHoldContainer')
-                            if (freshOnHold && curOnHold) curOnHold.innerHTML = freshOnHold.innerHTML
-
-                            if (refreshBtn) refreshBtn.disabled = false
-                        })
-                        .catch(function () {
-                            var curTbody = document.getElementById('doctorScheduleTbody')
-                            if (curTbody) curTbody.innerHTML = '<tr><td colspan="999" class="py-4 text-center text-[0.78rem] text-red-500">Refresh failed.</td></tr>'
-                            if (refreshBtn) refreshBtn.disabled = false
-                        })
-                }
-
-                var refreshBtn = document.getElementById('docScheduleRefreshBtn')
-                if (refreshBtn) refreshBtn.addEventListener('click', refreshAllCards)
-
-                // ── Silent Refresh (no loading states, used by Reverb) ─────
-                function silentRefreshCards() {
-                    loadUpcomingAppointments(1)
-                    var url = window.location.href.split('#')[0]
-                    url += (url.indexOf('?') > -1 ? '&' : '?') + '_t=' + Date.now()
-                    fetch(url)
-                        .then(function (r) { return r.text() })
-                        .then(function (html) {
-                            var parser = new DOMParser()
-                            var doc = parser.parseFromString(html, 'text/html')
-                            var freshTbody = doc.getElementById('doctorScheduleTbody')
-                            var curTbody = document.getElementById('doctorScheduleTbody')
-                            if (freshTbody && curTbody) curTbody.innerHTML = freshTbody.innerHTML
-                            var freshMetrics = doc.getElementById('doctorMetricsContainer')
-                            var curMetrics = document.getElementById('doctorMetricsContainer')
-                            if (freshMetrics && curMetrics) curMetrics.innerHTML = freshMetrics.innerHTML
-                            var freshActiveQ = doc.getElementById('doctorActiveQueueContainer')
-                            var curActiveQ = document.getElementById('doctorActiveQueueContainer')
-                            if (freshActiveQ && curActiveQ) curActiveQ.innerHTML = freshActiveQ.innerHTML
-                            var freshOnHold = doc.getElementById('doctorOnHoldContainer')
-                            var curOnHold = document.getElementById('doctorOnHoldContainer')
-                            if (freshOnHold && curOnHold) curOnHold.innerHTML = freshOnHold.innerHTML
-                        })
-                }
-
-                // ── Realtime queue updates via Reverb ──
-                if (typeof window.Echo !== 'undefined' && window.Echo && !window.__doctorDashboardQueueInited) {
-                    try {
-                        window.__doctorDashboardQueueInited = true
-                        window.Echo.private('queue.all')
-                            .listen('.queue.updated', function () {
-                                silentRefreshCards()
-                            })
-                        console.log('[DoctorDashboard] Echo listener attached to queue.all')
-                    } catch (e) {
-                        console.error('[DoctorDashboard] Echo subscribe failed:', e)
+                    var queueStatusColors = {
+                        waiting: 'border-orange-200 bg-orange-50 text-orange-700',
+                        serving: 'bg-blue-50 text-blue-700 border-blue-100',
+                        consulted: 'bg-blue-50 text-blue-700 border-blue-100',
+                        done: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                        cancelled: 'bg-red-50 text-red-700 border-red-100',
+                        no_show: 'bg-slate-100 text-slate-600 border-slate-200',
+                        skipped: 'bg-orange-50 text-orange-700 border-orange-100',
+                        on_hold: 'bg-purple-50 text-purple-700 border-purple-100'
                     }
+
+                    function renderDoctorOverview(d) {
+                        if (!d) return
+
+                        // Metrics
+                        var m = d.metrics || {}
+                        var metricIds = {
+                            appointmentsToday: 'docMetricAppointmentsToday',
+                            queueToday: 'docMetricQueueToday',
+                            completedToday: 'docMetricCompletedToday'
+                        }
+                        Object.keys(metricIds).forEach(function (key) {
+                            var el = document.getElementById(metricIds[key])
+                            if (el) el.textContent = Number(m[key] != null ? m[key] : 0).toLocaleString()
+                        })
+
+                        // Today's Schedule table
+                        var tbody = document.getElementById('doctorScheduleTbody')
+                        var appts = Array.isArray(d.todayAppointments) ? d.todayAppointments : []
+                        if (tbody) {
+                            if (!appts.length) {
+                                tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-[0.78rem] text-slate-400">No appointments scheduled for today.</td></tr>'
+                            } else {
+                                var scheduleHtml = ''
+                                appts.forEach(function (a) {
+                                    var time = String(a.appointment_datetime || '').slice(11, 16) || '-'
+                                    var patient = a.patient || {}
+                                    var parts = [patient.firstname, patient.middlename, patient.lastname].filter(function (v) { return String(v || '').trim() !== '' })
+                                    var patientName = parts.length ? parts.join(' ') : (patient.email || 'Patient')
+                                    var typeLabel = a.appointment_type ? titleCase(a.appointment_type.replace(/_/g, '-')) : '-'
+                                    var isWalkIn = String(a.appointment_type || '').toLowerCase() === 'walk_in'
+                                    var queue = a.queue || {}
+                                    var statusKey = String((isWalkIn && queue) ? (queue.status || a.status || '') : (a.status || '')).toLowerCase()
+                                    var statusLabel = statusKey ? titleCase(statusKey.replace(/_/g, ' ')) : '-'
+                                    var sc = apptStatusColors[statusKey] || 'bg-slate-50 text-slate-600 border-slate-100'
+                                    var showStartBtn = isWalkIn ? statusKey === 'waiting' : statusKey === 'confirmed'
+                                    var apptJson = JSON.stringify(a).replace(/'/g, '&#39;')
+                                    var startUrl = consultationBaseUrl + '&appointment_id=' + a.appointment_id
+                                    if (currentUserUuidQuery) startUrl += '&user_uuid=' + encodeURIComponent(currentUserUuidQuery)
+                                    scheduleHtml += '<tr class="border-b border-slate-100 last:border-0">' +
+                                        '<td class="py-2 px-3 text-[0.78rem] text-slate-500">' + escapeHtml(time) + '</td>' +
+                                        '<td class="py-2 px-3 text-[0.78rem] text-slate-700">' + escapeHtml(patientName) + '</td>' +
+                                        '<td class="py-2 px-3 text-[0.78rem] text-slate-500">' + escapeHtml(typeLabel) + '</td>' +
+                                        '<td class="py-2 px-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] font-medium border ' + sc + '">' + escapeHtml(statusLabel) + '</span></td>' +
+                                        '<td class="py-2 px-3"><div class="flex flex-wrap gap-1.5">' +
+                                        '<button type="button" class="doc-details-btn inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.7rem] font-medium text-slate-700 hover:bg-slate-50" data-appointment=\'' + apptJson + '\'>' + SVG_INFO + ' Details</button>' +
+                                        (showStartBtn ? '<a href="' + escapeHtml(startUrl) + '" data-spa-nav="1" class="inline-flex items-center justify-center gap-1 rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-[0.7rem] font-semibold text-green-700 hover:bg-green-100">' + SVG_PLAY + ' Start</a>' : '') +
+                                        '</div></td></tr>'
+                                })
+                                tbody.innerHTML = scheduleHtml
+                            }
+                        }
+
+                        // Active queue list
+                        var activeQEl = document.getElementById('doctorActiveQueueContainer')
+                        var activeQ = Array.isArray(d.activeQueue) ? d.activeQueue : []
+                        if (activeQEl) {
+                            if (!activeQ.length) {
+                                activeQEl.innerHTML = '<div class="flex flex-col items-center justify-center h-full px-4 text-center">' + SVG_CALENDAR_X + '<p class="text-[0.78rem] font-medium text-slate-500 mt-2">No active queue entries</p><p class="text-[0.68rem] text-slate-400 mt-0.5">Queue is empty</p></div>'
+                            } else {
+                                var activeHtml = '<div class="divide-y divide-slate-100">'
+                                activeQ.forEach(function (q) {
+                                    var statusKey = String(q.status || '').toLowerCase()
+                                    var statusLabel = statusKey ? titleCase(q.status.replace(/_/g, ' ')) : '-'
+                                    var sc = queueStatusColors[statusKey] || 'bg-slate-50 text-slate-600 border-slate-100'
+                                    var dateKey = String(q.queue_datetime || '').slice(0, 10) || '-'
+                                    var timeKey = String(q.queue_datetime || '').slice(11, 16) || '-'
+                                    activeHtml += '<div class="px-5 py-3.5 hover:bg-slate-50/50 transition-all duration-150">' +
+                                        '<div class="flex items-start justify-between gap-3">' +
+                                        '<div class="flex-1 min-w-0">' +
+                                        '<div class="flex items-center gap-2 flex-wrap">' +
+                                        '<span class="inline-flex items-center gap-1.5 text-[0.8rem] font-semibold text-slate-800">' + SVG_HASH + escapeHtml(q.queue_code) + '</span>' +
+                                        '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.65rem] font-medium border ' + sc + '">' + escapeHtml(statusLabel) + '</span>' +
+                                        '</div>' +
+                                        '<div class="flex items-center gap-1.5 mt-1.5">' + SVG_USER + '<span class="text-[0.75rem] text-slate-600 truncate">' + escapeHtml(q.patient_name) + '</span></div>' +
+                                        '</div>' +
+                                        '<div class="text-right flex-shrink-0">' +
+                                        '<div class="flex items-center gap-1.5 text-[0.7rem] text-slate-500">' + SVG_CALENDAR + '<span>' + escapeHtml(dateKey) + '</span></div>' +
+                                        '<div class="flex items-center gap-1.5 mt-1 text-[0.7rem] text-slate-500">' + SVG_CLOCK + '<span>' + escapeHtml(timeKey) + '</span></div>' +
+                                        '</div></div></div>'
+                                })
+                                activeQEl.innerHTML = activeHtml + '</div>'
+                            }
+                        }
+
+                        // On hold list
+                        var onHoldEl = document.getElementById('doctorOnHoldContainer')
+                        var onHold = Array.isArray(d.onHoldQueue) ? d.onHoldQueue : []
+                        if (onHoldEl) {
+                            if (!onHold.length) {
+                                onHoldEl.innerHTML = '<div class="flex flex-col items-center justify-center h-full px-4 text-center">' + SVG_PAUSE + '<p class="text-[0.78rem] font-medium text-slate-500 mt-2">No patients on hold</p><p class="text-[0.68rem] text-slate-400 mt-0.5">On hold queue is empty</p></div>'
+                            } else {
+                                var holdHtml = '<div class="divide-y divide-slate-100">'
+                                onHold.forEach(function (q) {
+                                    var timeKey = String(q.queue_datetime || '').slice(11, 16) || '-'
+                                    holdHtml += '<div class="px-5 py-3.5 hover:bg-slate-50/50 transition-all duration-150">' +
+                                        '<div class="flex items-center justify-between gap-3">' +
+                                        '<div class="flex items-center gap-2 min-w-0">' +
+                                        '<span class="inline-flex items-center gap-1.5 text-[0.75rem] font-semibold text-slate-700">' + SVG_HASH + escapeHtml(q.queue_code) + '</span>' +
+                                        '<span class="text-[0.72rem] text-slate-600 truncate">' + escapeHtml(q.patient_name) + '</span>' +
+                                        '</div>' +
+                                        '<div class="flex items-center gap-2 flex-shrink-0">' +
+                                        '<span class="text-[0.65rem] text-slate-400">' + escapeHtml(timeKey) + '</span>' +
+                                        '<button type="button" class="call-on-hold-btn inline-flex items-center justify-center gap-1 rounded-lg border border-green-200 bg-green-50 px-2.5 py-1 text-[0.65rem] font-semibold text-green-700 hover:bg-green-100" data-queue-id="' + q.queue_id + '" data-doctor-id="' + doctorIdForApi + '">' + SVG_MEGAPHONE + ' Call</button>' +
+                                        '</div></div></div>'
+                                })
+                                onHoldEl.innerHTML = holdHtml + '</div>'
+                            }
+                        }
+
+                        // Count badges
+                        var activeBadge = document.getElementById('doctorActiveQueueCountBadge')
+                        if (activeBadge) activeBadge.textContent = activeQ.length + ' ' + (activeQ.length === 1 ? 'patient' : 'patients')
+                        var holdBadge = document.getElementById('doctorOnHoldCountBadge')
+                        if (holdBadge) holdBadge.textContent = onHold.length + ' ' + (onHold.length === 1 ? 'patient' : 'patients')
+                    }
+
+                    function doctorOverviewParams() {
+                        var p = {}
+                        if (doctorIdForApi) p.doctor_id = doctorIdForApi
+                        return p
+                    }
+
+                    function initDoctorOverview() {
+                        if (typeof window.fetchDashboardData !== 'function') return
+                        window.fetchDashboardData('overview', doctorOverviewParams())
+                            .then(function (body) {
+                                if (!body || !body.ok || !body.data) return
+                                renderDoctorOverview(body.data)
+                            })
+                            .catch(function () {})
+                    }
+
+                    // ── Queue Call Next ──────────────────────────────────────────
+                    var queueCallNextButton = document.getElementById('doctorOverviewCallNextButton')
+                    var queueCallNextSpinner = document.getElementById('doctorOverviewCallNextSpinner')
+                    var queueCallNextContent = document.getElementById('doctorOverviewCallNextContent')
+
+                    function setQueueCallNextSubmitting(isSubmitting) {
+                        if (queueCallNextButton) queueCallNextButton.disabled = !!isSubmitting
+                        if (queueCallNextSpinner) queueCallNextSpinner.classList.toggle('hidden', !isSubmitting)
+                        if (queueCallNextContent) queueCallNextContent.classList.toggle('opacity-0', !!isSubmitting)
+                    }
+
+                    if (queueCallNextButton && typeof apiFetch === 'function') {
+                        queueCallNextButton.addEventListener('click', function () {
+                            if (queueCallNextButton.disabled) return
+                            setQueueCallNextSubmitting(true)
+
+                            apiFetch("{{ url('/api/queues/call-next') }}", {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ doctor_id: {{ (int) ($currentUser->user_id ?? 0) }} })
+                            })
+                                .then(function (response) {
+                                    return response.json().then(function (data) {
+                                        return { ok: response.ok, data: data }
+                                    }).catch(function () {
+                                        return { ok: response.ok, data: null }
+                                    })
+                                })
+                                .then(function (result) {
+                                    if (!result.ok) {
+                                        if (typeof showToast === 'function') showToast(result.data && result.data.message ? result.data.message : 'Failed to call next patient.', 'error')
+                                        setQueueCallNextSubmitting(false)
+                                        return
+                                    }
+                                    if (typeof showToast === 'function') showToast('Next patient called successfully.', 'success')
+                                    setQueueCallNextSubmitting(false)
+                                })
+                                .catch(function () {
+                                    if (typeof showToast === 'function') showToast('Network error while calling next patient.', 'error')
+                                    setQueueCallNextSubmitting(false)
+                                })
+                        })
+                    }
+
+                    // ── On Hold Call button (document delegation, bound once) ────
+                    if (!window.__doctorDashboardHoldCallBound) {
+                        window.__doctorDashboardHoldCallBound = true
+                        document.addEventListener('click', function (e) {
+                            var btn = e.target.closest('.call-on-hold-btn')
+                            if (!btn) return
+                            if (btn.disabled) return
+                            var queueId = btn.getAttribute('data-queue-id')
+                            if (!queueId) return
+                            btn.disabled = true
+
+                            apiFetch("{{ url('/api/queues') }}/" + queueId, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ status: 'serving' })
+                            })
+                                .then(function (response) {
+                                    return response.json().then(function (data) {
+                                        return { ok: response.ok, data: data }
+                                    }).catch(function () {
+                                        return { ok: response.ok, data: null }
+                                    })
+                                })
+                                .then(function (result) {
+                                    if (!result.ok) {
+                                        if (typeof showToast === 'function') showToast(result.data && result.data.message ? result.data.message : 'Failed to call patient.', 'error')
+                                        btn.disabled = false
+                                        return
+                                    }
+                                    if (typeof showToast === 'function') showToast('Patient called successfully.', 'success')
+                                    btn.disabled = false
+                                })
+                                .catch(function () {
+                                    if (typeof showToast === 'function') showToast('Network error while calling patient.', 'error')
+                                    btn.disabled = false
+                                })
+                        })
+                    }
+
+                    // ── Details Modal ────────────────────────────────────────────
+                    var modalEl = document.getElementById('appointmentDetailsModal')
+                    var closeBtn = document.getElementById('appointmentDetailsModalClose')
+
+                    function closeAppointmentModal() {
+                        var modal = document.getElementById('appointmentDetailsModal')
+                        if (!modal) return
+                        modal.classList.add('hidden')
+                        modal.style.display = 'none'
+                    }
+
+                    function openAppointmentModal(a) {
+                        var modal = document.getElementById('appointmentDetailsModal')
+                        if (!modal) return
+
+                        var patient = a.patient || {}
+                        var queue = a.queue || {}
+
+                        // Left panel – patient profile
+                        document.getElementById('modalPatientName').textContent = formatPatientName(patient)
+                        document.getElementById('modalPatientContact').textContent = patient.contact_no || patient.contact || '-'
+                        document.getElementById('modalPatientSex').textContent = patient.sex || '-'
+                        document.getElementById('modalPatientBirthdate').textContent = patient.birthdate ? new Date(patient.birthdate).toLocaleDateString() : '-'
+                        document.getElementById('modalPatientAge').textContent = computeAge(patient.birthdate)
+                        document.getElementById('modalPatientAddress').textContent = patient.address || '-'
+
+                        // Right panel – appointment / queue details
+                        var apptDate = a.appointment_datetime ? new Date(a.appointment_datetime).toLocaleDateString() : '-'
+                        var apptTime = a.appointment_datetime ? new Date(a.appointment_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'
+                        var typeLabel = a.appointment_type ? a.appointment_type.replace(/_/g, ' ') : '-'
+                        var statusLabel = a.status ? a.status.replace(/_/g, ' ') : '-'
+                        var statusKey = a.status ? a.status.toLowerCase() : ''
+                        var modalStatusColors = {
+                            pending: 'bg-amber-50 text-amber-700 border-amber-200',
+                            confirmed: 'border-orange-200 bg-orange-50 text-orange-700',
+                            completed: 'border-green-200 bg-green-50 text-green-700',
+                            cancelled: 'bg-red-50 text-red-700 border-red-200',
+                            no_show: 'bg-slate-100 text-slate-600 border-slate-200',
+                            consulted: 'border-purple-200 bg-purple-50 text-purple-700',
+                            waiting: 'bg-amber-50 text-amber-700 border-amber-100',
+                            serving: 'bg-blue-50 text-blue-700 border-blue-100',
+                            done: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                            skipped: 'bg-orange-50 text-orange-700 border-orange-100',
+                            on_hold: 'bg-purple-50 text-purple-700 border-purple-100'
+                        }
+                        var statusColor = modalStatusColors[statusKey] || 'bg-slate-50 text-slate-600 border-slate-100'
+
+                        document.getElementById('modalApptType').textContent = typeLabel
+                        var statusBadgeEl = document.createElement('span')
+                        statusBadgeEl.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] font-medium border ' + statusColor
+                        statusBadgeEl.textContent = statusLabel
+                        var modalStatusContainer = document.getElementById('modalApptStatus')
+                        modalStatusContainer.innerHTML = ''
+                        modalStatusContainer.appendChild(statusBadgeEl)
+                        document.getElementById('modalApptDate').textContent = apptDate
+                        document.getElementById('modalApptTime').textContent = apptTime
+                        document.getElementById('modalQueueCode').textContent = queue.queue_code || 'N/A'
+                        document.getElementById('modalQueueStatus').textContent = queue.status ? queue.status.replace(/_/g, ' ') : 'N/A'
+                        document.getElementById('modalApptServices').textContent = formatServices(a.services)
+                        document.getElementById('modalApptReason').textContent = a.reason_for_visit || 'No reason specified'
+
+                        modal.classList.remove('hidden')
+                        modal.style.display = 'flex'
+                    }
+
+                    if (closeBtn) closeBtn.addEventListener('click', closeAppointmentModal)
+                    if (modalEl) {
+                        modalEl.addEventListener('click', function (e) {
+                            if (e.target === modalEl) closeAppointmentModal()
+                        })
+                    }
+
+                    // Event delegation: any click on .doc-details-btn (bound once)
+                    if (!window.__doctorDashboardDetailsBound) {
+                        window.__doctorDashboardDetailsBound = true
+                        document.addEventListener('click', function (e) {
+                            var btn = e.target.closest('.doc-details-btn')
+                            if (!btn) return
+
+                            var raw = btn.getAttribute('data-appointment')
+                            if (!raw) return
+                            try {
+                                var a = JSON.parse(raw)
+                            } catch (err) {
+                                return
+                            }
+                            openAppointmentModal(a)
+                        })
+                    }
+
+                    // ── Refresh All Cards (fresh JSON, no page reload) ──────────
+                    function refreshAllCards() {
+                        var refreshBtn = document.getElementById('docScheduleRefreshBtn')
+                        if (refreshBtn) refreshBtn.disabled = true
+
+                        var tbody = document.getElementById('doctorScheduleTbody')
+                        if (tbody) tbody.innerHTML = '<tr><td colspan="999" class="py-4 text-center text-[0.78rem] text-slate-400 animate-pulse">Loading…</td></tr>'
+
+                        var metricsEl = document.getElementById('doctorMetricsContainer')
+                        if (metricsEl) metricsEl.innerHTML = '<div class="col-span-3 py-6 text-center text-[0.78rem] text-slate-400 animate-pulse">Loading…</div>'
+
+                        var activeQEl = document.getElementById('doctorActiveQueueContainer')
+                        if (activeQEl) activeQEl.innerHTML = '<div class="py-10 text-center text-[0.78rem] text-slate-400 animate-pulse">Loading…</div>'
+
+                        var onHoldEl = document.getElementById('doctorOnHoldContainer')
+                        if (onHoldEl) onHoldEl.innerHTML = '<div class="py-10 text-center text-[0.78rem] text-slate-400 animate-pulse">Loading…</div>'
+
+                        loadUpcomingAppointments(1)
+
+                        window.fetchDashboardData('overview', doctorOverviewParams())
+                            .then(function (body) {
+                                if (body && body.ok && body.data) renderDoctorOverview(body.data)
+                                if (refreshBtn) refreshBtn.disabled = false
+                            })
+                            .catch(function () {
+                                var curTbody = document.getElementById('doctorScheduleTbody')
+                                if (curTbody) curTbody.innerHTML = '<tr><td colspan="999" class="py-4 text-center text-[0.78rem] text-red-500">Refresh failed.</td></tr>'
+                                if (refreshBtn) refreshBtn.disabled = false
+                            })
+                    }
+
+                    var refreshBtn = document.getElementById('docScheduleRefreshBtn')
+                    if (refreshBtn) refreshBtn.addEventListener('click', refreshAllCards)
+
+                    // ── Silent Refresh (no loading states, used by Reverb) ──────
+                    function silentRefreshCards() {
+                        loadUpcomingAppointments(1)
+                        window.fetchDashboardData('overview', doctorOverviewParams())
+                            .then(function (body) {
+                                if (body && body.ok && body.data) renderDoctorOverview(body.data)
+                            })
+                            .catch(function () {})
+                    }
+
+                    // ── Realtime queue updates via Reverb ──
+                    if (typeof window.Echo !== 'undefined' && window.Echo && !window.__doctorDashboardQueueInited) {
+                        try {
+                            window.__doctorDashboardQueueInited = true
+                            window.Echo.private('queue.all')
+                                .listen('.queue.updated', function () {
+                                    silentRefreshCards()
+                                })
+                            console.log('[DoctorDashboard] Echo listener attached to queue.all')
+                        } catch (e) {
+                            console.error('[DoctorDashboard] Echo subscribe failed:', e)
+                        }
+                    }
+
+                    initDoctorOverview()
                 }
-            })
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', onReady)
+                } else {
+                    onReady()
+                }
+            })()
         </script>
     @else
         @php

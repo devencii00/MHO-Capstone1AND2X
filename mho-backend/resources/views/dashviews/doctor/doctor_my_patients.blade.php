@@ -83,7 +83,8 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         var searchInput = document.getElementById('doctor_patient_search')
         var sortSelect = document.getElementById('doctor_patient_sort')
         var rows = Array.prototype.slice.call(document.querySelectorAll('.doctor-patient-row'))
@@ -154,5 +155,11 @@
         }
 
         applyDoctorPatientFilters()
-    })
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', onReady)
+        } else {
+            onReady()
+        }
+    })()
 </script>

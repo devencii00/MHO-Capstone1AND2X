@@ -76,7 +76,8 @@
 </aside>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         // ── Pagination state ────────────────────────────────────────────
         var prescCurrentPage = 1
         var prescPerPage = 10
@@ -324,9 +325,12 @@
         // ── Panel close ──────────────────────────────────────────────────
         if (closeButton) closeButton.addEventListener('click', closePanel)
         if (overlay) overlay.addEventListener('click', closePanel)
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') closePanel()
-        })
+        if (!window.__doctorPrescriptionsEscBound) {
+            window.__doctorPrescriptionsEscBound = true
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') closePanel()
+            })
+        }
 
         // ── Refresh button ───────────────────────────────────────────────
         if (document.getElementById('docPrescriptionRefreshBtn')) {
@@ -335,5 +339,11 @@
                 loadPrescriptions(1)
             })
         }
-    })
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', onReady)
+        } else {
+            onReady()
+        }
+    })()
 </script>

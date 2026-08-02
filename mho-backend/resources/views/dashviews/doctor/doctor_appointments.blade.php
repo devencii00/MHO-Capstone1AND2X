@@ -211,7 +211,8 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    ;(function () {
+        function onReady() {
         // ── Helper functions ──
 
         function escapeHtml(str) {
@@ -1276,11 +1277,14 @@
                 if (e.target === manageConsultReceiptModal) closeManageConsultReceipt()
             })
         }
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && manageConsultReceiptModal && !manageConsultReceiptModal.classList.contains('hidden')) {
-                closeManageConsultReceipt()
-            }
-        })
+        if (!window.__doctorApptsKeydownBound) {
+            window.__doctorApptsKeydownBound = true
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && manageConsultReceiptModal && !manageConsultReceiptModal.classList.contains('hidden')) {
+                    closeManageConsultReceipt()
+                }
+            })
+        }
 
         // Calendar toggle click
         if (manageCalendarToggle && manageTableArea && manageCalendarArea) {
@@ -1412,11 +1416,14 @@
         }
 
         // Click outside service results to close
-        document.addEventListener('click', function (e) {
-            if (!manageServiceResults || !manageServiceSearch) return
-            if (manageServiceSearch.contains(e.target) || manageServiceResults.contains(e.target)) return
-            manageServiceResults.classList.add('hidden')
-        })
+        if (!window.__doctorApptsClickBound) {
+            window.__doctorApptsClickBound = true
+            document.addEventListener('click', function (e) {
+                if (!manageServiceResults || !manageServiceSearch) return
+                if (manageServiceSearch.contains(e.target) || manageServiceResults.contains(e.target)) return
+                manageServiceResults.classList.add('hidden')
+            })
+        }
 
         // ── Initial Load ──
         updateManageTodayButton()
@@ -1434,12 +1441,19 @@
         if (manageCalendarToggleText) manageCalendarToggleText.textContent = 'Table view'
 
         // ── Echo Listener ──
-        if (typeof window.Echo !== 'undefined' && window.Echo && doctorId) {
+        if (typeof window.Echo !== 'undefined' && window.Echo && doctorId && !window.__doctorApptsEchoBound) {
+            window.__doctorApptsEchoBound = true
             window.Echo.private('appointments.' + doctorId)
                 .listen('.appointment.updated', function (e) {
                     loadManageAppointments()
                     loadManageMonthAppointments()
                 });
         }
-    })
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', onReady)
+        } else {
+            onReady()
+        }
+    })()
 </script>

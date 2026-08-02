@@ -337,8 +337,176 @@ class DashboardController extends Controller
             ]);
         }
 
-        // Doctor / patient payloads are added when those roles are converted.
+        if ($role === 'doctor') {
+            $doctorId = $request->query('doctor_id') ? (int) $request->query('doctor_id') : null;
+            if (!$doctorId) {
+                $publicUserKey = $request->query('user_uuid') ?: $request->query('user_id');
+                if ($publicUserKey) {
+                    $user = User::findByPublicIdentifier($publicUserKey);
+                    $doctorId = $user ? (int) $user->user_id : null;
+                }
+            }
+
+            return response()->json([
+                'ok' => true,
+                'data' => $this->doctorData((string) $request->query('section', 'overview'), $doctorId),
+            ]);
+        }
+
+        // Patient payload is added when that role is converted.
         return response()->json(['ok' => true, 'data' => []]);
+    }
+
+    /**
+     * Section-aware dynamic data for the doctor role.
+     */
+    private function doctorData(?string $section, ?int $doctorId): array
+    {
+        $today = now()->toDateString();
+
+        $metrics = function () use ($today, $doctorId) {
+            $appointmentsToday = Appointment::whereDate('appointment_datetime', $today)
+                ->when($doctorId, function ($q) use ($doctorId) {
+                    $q->where('doctor_id', $doctorId);
+                })
+                ->count();
+
+            $todayQueue = Queue::with(['appointment'])
+                ->whereDate('queue_datetime', $today)
+                ->when($doctorId, function ($q) use ($doctorId) {
+                    $q->whereHas('appointment', function ($sub) use ($doctorId) {
+                        $sub->where('doctor_id', $doctorId);
+                    });
+                })
+                ->get();
+
+            $activeQueueCount = $todayQueue->filter(function ($row) {
+                return in_array($row->status, ['waiting', 'serving'], true);
+            })->count();
+
+            $completedToday = Appointment::whereDate('appointment_datetime', $today)
+                ->where('status', 'completed')
+                ->when($doctorId, function ($q) use ($doctorId) {
+                    $q->where('doctor_id', $doctorId);
+                })
+                ->count();
+
+            return [
+                'appointmentsToday' => $appointmentsToday,
+                'queueToday' => $activeQueueCount,
+                'completedToday' => $completedToday,
+            ];
+        };
+
+        $todayAppointments = function () use ($today, $doctorId) {
+            return Appointment::with(['patient', 'doctor', 'queue', 'transaction', 'services'])
+                ->whereDate('appointment_datetime', $today)
+                ->when($doctorId, function ($q) use ($doctorId) {
+                    $q->where('doctor_id', $doctorId);
+                })
+                ->orderBy('appointment_datetime')
+                ->get()
+                ->map(function ($a) {
+                    $patient = optional($a->patient);
+                    $queue = optional($a->queue);
+                    return [
+                        'appointment_id' => $a->appointment_id,
+                        'appointment_datetime' => optional($a->appointment_datetime)->format('Y-m-d H:i'),
+                        'appointment_type' => $a->appointment_type,
+                        'status' => $a->status,
+                        'reason_for_visit' => $a->reason_for_visit,
+                        'patient' => [
+                            'firstname' => $patient->firstname ?? null,
+                            'middlename' => $patient->middlename ?? null,
+                            'lastname' => $patient->lastname ?? null,
+                            'email' => $patient->email ?? null,
+                            'contact_no' => $patient->contact_no ?? ($patient->contact_number ?? null),
+                            'sex' => $patient->sex ?? null,
+                            'birthdate' => optional($patient->birthdate)->format('Y-m-d'),
+                            'address' => $patient->address ?? null,
+                        ],
+                        'queue' => [
+                            'status' => $queue->status ?? null,
+                            'queue_code' => $queue->queue_code ?? null,
+                        ],
+                        'services' => collect($a->services ?? [])->map(function ($s) {
+                            return [
+                                'name' => $s->name ?? null,
+                                'service_name' => $s->service_name ?? null,
+                                'service_id' => $s->service_id ?? null,
+                            ];
+                        })->values(),
+                    ];
+                })
+                ->values()
+                ->all();
+        };
+
+        $queueRows = function (string $statusFilter) use ($today, $doctorId) {
+            $queueItems = Queue::with(['appointment.patient'])
+                ->whereDate('queue_datetime', $today)
+                ->when($doctorId, function ($q) use ($doctorId) {
+                    $q->whereHas('appointment', function ($sub) use ($doctorId) {
+                        $sub->where('doctor_id', $doctorId);
+                    });
+                })
+                ->get();
+
+            $rows = $statusFilter === 'on_hold'
+                ? $queueItems->filter(function ($q) {
+                    return strtolower((string) ($q->status ?? '')) === 'on_hold';
+                })
+                : $queueItems->reject(function ($q) {
+                    return strtolower((string) ($q->status ?? '')) === 'on_hold';
+                });
+
+            return $rows->sortBy(function ($q) {
+                $status = strtolower((string) ($q->status ?? ''));
+                $rank = match ($status) {
+                    'serving' => 1,
+                    'waiting', 'skipped' => 3,
+                    'consulted' => 4,
+                    'done' => 5,
+                    'on_hold' => 2,
+                    default => 6,
+                };
+                $priority = (int) ($q->priority_level ?? 5);
+                $number = (int) ($q->queue_number ?? 999999);
+                return str_pad((string) $rank, 6, '0', STR_PAD_LEFT) . '-' . str_pad((string) $priority, 6, '0', STR_PAD_LEFT) . '-' . str_pad((string) $number, 6, '0', STR_PAD_LEFT);
+            })->map(function ($q) {
+                $patient = optional(optional($q->appointment)->patient);
+                $patientParts = array_filter([
+                    $patient->firstname ?? null,
+                    $patient->middlename ?? null,
+                    $patient->lastname ?? null,
+                ], function ($v) {
+                    return (string) $v !== '';
+                });
+                $patientName = trim(implode(' ', $patientParts));
+                if ($patientName === '') {
+                    $patientName = $patient->email ?? ('Patient #' . (optional($q->appointment)->patient_id ?? ''));
+                }
+                return [
+                    'queue_id' => $q->queue_id,
+                    'queue_code' => $q->queue_code,
+                    'queue_number' => $q->queue_number,
+                    'status' => $q->status,
+                    'queue_datetime' => optional($q->queue_datetime)->format('Y-m-d H:i'),
+                    'patient_name' => $patientName,
+                ];
+            })->values()->all();
+        };
+
+        switch ($section) {
+            case 'overview':
+            default:
+                return [
+                    'metrics' => $metrics(),
+                    'todayAppointments' => $todayAppointments(),
+                    'activeQueue' => $queueRows('active'),
+                    'onHoldQueue' => $queueRows('on_hold'),
+                ];
+        }
     }
 
     /**
