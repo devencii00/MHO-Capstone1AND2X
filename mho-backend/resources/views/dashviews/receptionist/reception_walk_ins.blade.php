@@ -2790,7 +2790,7 @@ function setWalkInTab(tab) {
                 walkInDoctorSearchResults = enriched
                 walkInDoctorSearchHasMore = false
                 buildWalkInDoctorList(enriched, '', false)
-                // Auto-select first selectable doctor if none active
+             
                 if (!selectorState.activeItem && enriched.length) {
                     var firstSelectable = enriched.find(function (e) { return e.isSelectable })
                     if (firstSelectable) {

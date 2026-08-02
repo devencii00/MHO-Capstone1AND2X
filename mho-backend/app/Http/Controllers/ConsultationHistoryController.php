@@ -26,8 +26,7 @@ class ConsultationHistoryController extends Controller
             $sortOrder = 'desc';
         }
 
-        // Get the latest transaction_id per patient
-        // Optional doctor_id filter — when provided, only show patients seen by this doctor
+   
         $doctorId = $request->query('doctor_id');
 
         try {
