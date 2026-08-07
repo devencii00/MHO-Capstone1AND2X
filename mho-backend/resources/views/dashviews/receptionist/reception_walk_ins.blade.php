@@ -744,7 +744,7 @@ function setWalkInTab(tab) {
             var status = normalizeText(appt && appt.status ? appt.status : '')
             if (status === 'completed') return 'border-green-200 bg-green-50 text-green-700'
             if (status === 'confirmed') return 'border-orange-200 bg-orange-50 text-orange-700'
-            if (status === 'consulted') return 'border-purple-200 bg-purple-50 text-purple-700'
+            if (status === 'awaiting_payment') return 'border-purple-200 bg-purple-50 text-purple-700'
             if (status === 'cancelled') return 'border-rose-200 bg-rose-50 text-rose-700'
             if (status === 'no_show') return 'border-slate-200 bg-slate-100 text-slate-600'
             if (status === 'pending') return 'border-amber-200 bg-amber-50 text-amber-700'
@@ -1921,9 +1921,9 @@ function setWalkInTab(tab) {
             return normalizeText(parts[0] || s)
         }
 
-        function specializationMatches(serviceCategory, doctorSpecialization) {
+        function designationMatches(serviceCategory, doctorDesignation) {
             var a = normalizeText(serviceCategory)
-            var b = normalizeText(doctorSpecialization)
+            var b = normalizeText(doctorDesignation)
             if (!a || !b) return false
             return b.indexOf(a) !== -1 || a.indexOf(b) !== -1
         }
@@ -2231,8 +2231,8 @@ function setWalkInTab(tab) {
                         '<div class="grid grid-cols-2 gap-x-3 gap-y-2 text-[0.78rem]">' +
                             '<div class="text-slate-500">Full Name</div>' +
                             '<div class="text-slate-800 font-medium">' + escapeHtml(name) + '</div>' +
-                            '<div class="text-slate-500">Specialization</div>' +
-                            '<div class="text-slate-800 font-medium">' + escapeHtml(doctor.specialization || '-') + '</div>' +
+                            '<div class="text-slate-500">Designation</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(doctor.designation || '-') + '</div>' +
                             '<div class="text-slate-500">Schedule</div>' +
                             '<div class="text-slate-800 font-medium">' + escapeHtml(doctorScheduleSummary(doctor)) + '</div>' +
                         '</div>' +
@@ -2682,12 +2682,12 @@ function setWalkInTab(tab) {
                 .map(function (service) { return extractServiceCategory(service && service.service_name ? service.service_name : '') })
                 .filter(function (category) { return !!category })
             var list = (srcDoctorList || []).filter(function (doctor) {
-                var spec = doctor && doctor.specialization ? doctor.specialization : ''
-                return categories.every(function (category) { return specializationMatches(category, spec) })
+                var spec = doctor && doctor.designation ? doctor.designation : ''
+                return categories.every(function (category) { return designationMatches(category, spec) })
             })
             if (query) {
                 list = list.filter(function (doctor) {
-                    var spec = doctor && doctor.specialization ? doctor.specialization : ''
+                    var spec = doctor && doctor.designation ? doctor.designation : ''
                     return wordPrefixMatch(doctorDisplayName(doctor) + ' ' + spec, query)
                 })
             }
@@ -2732,8 +2732,8 @@ function setWalkInTab(tab) {
                 .map(function (service) { return extractServiceCategory(service && service.service_name ? service.service_name : '') })
                 .filter(function (category) { return !!category })
             var list = (rawDoctors || []).filter(function (doctor) {
-                var spec = doctor && doctor.specialization ? doctor.specialization : ''
-                return categories.every(function (category) { return specializationMatches(category, spec) })
+                var spec = doctor && doctor.designation ? doctor.designation : ''
+                return categories.every(function (category) { return designationMatches(category, spec) })
             })
             var enriched = list.map(function (doctor) {
                 var isDoctorAvailable = doctor && doctor.is_available !== false
@@ -2794,7 +2794,7 @@ function setWalkInTab(tab) {
                 walkInDoctorSearchQuery = ''
                 walkInDoctorSearchPage = 1
                 setSelectorLoading('Loading doctors…')
-                // Filter by specialization (same pattern as book appointment)
+                // Filter by designation (same pattern as book appointment)
                 var categories = (srcSelectedServices || [])
                     .map(function (s) { return extractServiceCategory(s && s.service_name ? s.service_name : '') })
                     .filter(function (c) { return !!c })
@@ -2802,8 +2802,8 @@ function setWalkInTab(tab) {
                 var todayKey = dayKeyFromDate(todayDate)
                 var nowTime = new Date().toTimeString().slice(0, 5)
                 var filtered = (Array.isArray(doctors) ? doctors : []).filter(function (d) {
-                    var spec = d && d.specialization ? d.specialization : ''
-                    return categories.length === 0 || categories.every(function (c) { return specializationMatches(c, spec) })
+                    var spec = d && d.designation ? d.designation : ''
+                    return categories.length === 0 || categories.every(function (c) { return designationMatches(c, spec) })
                 })
                 var enriched = filtered.map(function (d) {
                     var hasSchedule = !!todayKey && hasScheduleAtTime(d, todayKey, todayDate, nowTime)
@@ -2845,7 +2845,7 @@ function setWalkInTab(tab) {
                         '<div class="flex items-start justify-between gap-3">' +
                             '<div class="min-w-0">' +
                                 '<div class="text-[0.8rem] font-semibold text-slate-900 truncate">' + escapeHtml('Dr. ' + doctorDisplayName(doctor)) + '</div>' +
-                                '<div class="mt-1 text-[0.72rem] text-slate-500">' + escapeHtml(doctor.specialization || '-') + '</div>' +
+                                '<div class="mt-1 text-[0.72rem] text-slate-500">' + escapeHtml(doctor.designation || '-') + '</div>' +
                             '</div>' +
                             (entry.tag ? '<span class="inline-flex items-center rounded-full border px-2 py-0.5 text-[0.65rem] font-semibold ' + (entry.tag === 'Last provider' ? 'border-green-200 bg-white text-green-700' : 'border-slate-200 bg-white text-slate-500') + '">' + escapeHtml(entry.tag) + '</span>' : '') +
                         '</div>' +
@@ -3002,7 +3002,7 @@ function setWalkInTab(tab) {
                 selectorState.activeItem = selectedDoctor
                 if (selectorTitle) selectorTitle.textContent = 'Select Doctor'
                 if (selectorSubtitle) selectorSubtitle.textContent = 'Choose from the most recently created matching doctors or search for another doctor.'
-                if (selectorSearch) selectorSearch.placeholder = 'Search doctor name or specialization'
+                if (selectorSearch) selectorSearch.placeholder = 'Search doctor name or designation'
                 if (selectorConfirmBtn) selectorConfirmBtn.textContent = 'Select Doctor'
                 setSelectorOpen(true)
                 setSelectorLoading('Loading doctors…')
@@ -3527,11 +3527,11 @@ function setWalkInTab(tab) {
                     var categories = (selectedServices || [])
                         .map(function (s) { return extractServiceCategory(s && s.service_name ? s.service_name : '') })
                         .filter(function (c) { return !!c })
-                    var spec = doctor && doctor.specialization ? doctor.specialization : ''
-                    var matchesService = !categories.length || categories.every(function (c) { return specializationMatches(c, spec) })
+                    var spec = doctor && doctor.designation ? doctor.designation : ''
+                    var matchesService = !categories.length || categories.every(function (c) { return designationMatches(c, spec) })
 
                     lines.push('<div class="text-[0.78rem] text-slate-700"><span class="font-semibold text-slate-800">Name:</span> ' + escapeHtml(name) + '</div>')
-                    if (doctor.specialization) lines.push('<div class="text-[0.7rem] text-slate-500"><span class="font-semibold text-slate-600">Specialization:</span> ' + escapeHtml(doctor.specialization) + '</div>')
+                    if (doctor.designation) lines.push('<div class="text-[0.7rem] text-slate-500"><span class="font-semibold text-slate-600">Designation:</span> ' + escapeHtml(doctor.designation) + '</div>')
                     if (previousDoctorId && parseInt(doctor.user_id, 10) === previousDoctorId) lines.push('<div class="text-[0.7rem] text-slate-500"><span class="font-semibold text-slate-600">Note:</span> Last provider</div>')
                     lines.push('<div class="text-[0.7rem] text-slate-500"><span class="font-semibold text-slate-600">Availability:</span> ' + ((doctor.is_available !== false && hasSchedule) ? 'Available' : 'Unavailable') + '</div>')
                     if (categories.length) lines.push('<div class="text-[0.7rem] text-slate-500"><span class="font-semibold text-slate-600">Service match:</span> ' + (matchesService ? 'Yes' : 'No') + '</div>')
@@ -3612,7 +3612,7 @@ function setWalkInTab(tab) {
             var enriched = list.map(function (d) {
                 var name = [d.firstname, d.middlename, d.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
                 if (!name) name = d.email || ''
-                var spec = d && d.specialization ? String(d.specialization) : ''
+                var spec = d && d.designation ? String(d.designation) : ''
                 var isDoctorAvailable = d && d.is_available !== false
                 var hasSchedule = !!dayKey && hasScheduleAtTime(d, dayKey, dateStr, checkTime)
                 var isSelectable = isDoctorAvailable && hasSchedule
@@ -3678,8 +3678,8 @@ function setWalkInTab(tab) {
                 .filter(function (c) { return !!c })
 
             var filtered = list.filter(function (d) {
-                var spec = d && d.specialization ? d.specialization : ''
-                return categories.every(function (c) { return specializationMatches(c, spec) })
+                var spec = d && d.designation ? d.designation : ''
+                return categories.every(function (c) { return designationMatches(c, spec) })
             })
             if (doctorSearch) doctorSearch.disabled = false
             if (filtered.length === 1) {
@@ -3801,8 +3801,8 @@ function setWalkInTab(tab) {
                     .map(function (s) { return extractServiceCategory(s && s.service_name ? s.service_name : '') })
                     .filter(function (c) { return !!c })
                 list = list.filter(function (d) {
-                    var spec = d && d.specialization ? d.specialization : ''
-                    return categories.every(function (c) { return specializationMatches(c, spec) })
+                    var spec = d && d.designation ? d.designation : ''
+                    return categories.every(function (c) { return designationMatches(c, spec) })
                 })
             }
             if (!q) {
@@ -3811,7 +3811,7 @@ function setWalkInTab(tab) {
             }
             var filtered = list.filter(function (d) {
                 var name = normalizeText([d.firstname, d.middlename, d.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' '))
-                var spec = normalizeText(d && d.specialization ? d.specialization : '')
+                var spec = normalizeText(d && d.designation ? d.designation : '')
                 return wordPrefixMatch(name, q) || wordPrefixMatch(spec, q)
             })
             renderDoctorResults(filtered.slice(0, 30))

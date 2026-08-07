@@ -44,7 +44,7 @@ class User extends Authenticatable
         'philhealth_number',
         'prc_license',
         'ptr_number',
-        'specialization',
+        'designation',
         'employment_status',
         'active_in_service',
         'signature_path',
@@ -237,7 +237,7 @@ class User extends Authenticatable
             ->join('appointments', 'queues.appointment_id', '=', 'appointments.appointment_id')
             ->where('appointments.patient_id', $this->user_id)
             ->whereDate('queues.queue_datetime', now()->toDateString())
-            ->whereIn('queues.status', ['waiting', 'serving', 'consulted', 'skipped', 'on_hold'])
+            ->whereIn('queues.status', ['waiting', 'serving', 'awaiting_payment', 'skipped', 'on_hold'])
             ->whereNull('queues.deleted_at')
             ->exists();
     }

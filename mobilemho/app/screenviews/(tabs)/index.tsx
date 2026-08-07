@@ -500,7 +500,7 @@ export default function PatientDashboardScreen() {
   );
   const [pendingBilling, setPendingBilling] = useState<PendingBillingCard>({
     value: "_ _",
-    sub: "All consulted bills are already paid",
+    sub: "All awaiting_payment bills are already paid",
   });
   const [error, setError] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -783,7 +783,7 @@ export default function PatientDashboardScreen() {
         });
 
         const pendingBillingAppointment = [...apptsMapped]
-          .filter((appointment) => appointment.statusRaw === "consulted")
+          .filter((appointment) => appointment.statusRaw === "awaiting_payment")
           .find((appointment) => {
             const transaction = transactionByAppointmentId.get(appointment.id);
             const paymentStatus =
@@ -800,7 +800,7 @@ export default function PatientDashboardScreen() {
             }
           : {
               value: "_ _",
-              sub: "All consulted bills are already paid",
+              sub: "All awaiting_payment bills are already paid",
             };
 
         if (!cancelled) {
@@ -866,7 +866,7 @@ export default function PatientDashboardScreen() {
       };
     }
 
-    // Priority 3: Consulted with pending payment
+    // Priority 3: Awaiting_payment with pending payment
     if (pendingBilling.value !== "_ _") {
       return {
         type: "payment",

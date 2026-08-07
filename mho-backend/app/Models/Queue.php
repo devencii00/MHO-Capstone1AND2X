@@ -18,7 +18,7 @@ class Queue extends Model
 
     public const STATUS_WAITING = 'waiting';
     public const STATUS_SERVING = 'serving';
-    public const STATUS_CONSULTED = 'consulted';
+    public const STATUS_AWAITING_PAYMENT = 'awaiting_payment';
     public const STATUS_DONE = 'done';
     public const STATUS_CANCELLED = 'cancelled';
     public const STATUS_NO_SHOW = 'no_show';
@@ -33,7 +33,7 @@ class Queue extends Model
     ];
 
     public const TERMINAL_STATUSES = [
-        self::STATUS_CONSULTED,
+        self::STATUS_AWAITING_PAYMENT,
         self::STATUS_DONE,
         self::STATUS_CANCELLED,
         self::STATUS_NO_SHOW,
@@ -42,7 +42,7 @@ class Queue extends Model
     public const STATUSES = [
         self::STATUS_WAITING,
         self::STATUS_SERVING,
-        self::STATUS_CONSULTED,
+        self::STATUS_AWAITING_PAYMENT,
         self::STATUS_DONE,
         self::STATUS_CANCELLED,
         self::STATUS_NO_SHOW,
@@ -52,6 +52,7 @@ class Queue extends Model
 
     protected $fillable = [
         'appointment_id',
+        'queue_type',
         'queue_number',
         'queue_code',
         'queue_datetime',
@@ -170,7 +171,7 @@ class Queue extends Model
             self::STATUS_WAITING => 1,
             self::STATUS_SKIPPED => 2,
             self::STATUS_ON_HOLD => 3,
-            self::STATUS_CONSULTED => 4,
+            self::STATUS_AWAITING_PAYMENT => 4,
             self::STATUS_DONE => 5,
             self::STATUS_CANCELLED => 6,
             self::STATUS_NO_SHOW => 7,

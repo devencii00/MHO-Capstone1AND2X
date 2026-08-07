@@ -451,7 +451,7 @@ class QueueDisplayController extends Controller
                 Queue::STATUS_WAITING, Queue::STATUS_SKIPPED => 0,
                 Queue::STATUS_SERVING => 1,
                 Queue::STATUS_ON_HOLD => 2,
-                Queue::STATUS_CONSULTED => 3,
+                Queue::STATUS_AWAITING_PAYMENT => 3,
                 Queue::STATUS_DONE => 4,
                 Queue::STATUS_CANCELLED => 5,
                 Queue::STATUS_NO_SHOW => 6,

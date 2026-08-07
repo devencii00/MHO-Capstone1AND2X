@@ -19,9 +19,9 @@
                     ?? $slot->doctor_name
                     ?? 'Doctor'
                 ),
-                'doctor_specialization' => (string) (
-                    optional($doctor)->specialization
-                    ?? $slot->doctor_specialization
+                'doctor_designation' => (string) (
+                    optional($doctor)->designation
+                    ?? $slot->doctor_designation
                     ?? ''
                 ),
                 'slot_start' => $slot->start_time ?? null,
@@ -681,7 +681,7 @@ if (!next.length) {
                                 slots.forEach(function (s) {
                                     var nameRaw = String(s.doctor_name || '').trim().replace(/^\s*dr\.?\s*/i, '')
                                     var label = 'Dr. ' + (nameRaw || 'Doctor')
-                                    if (s.doctor_specialization) label += ' - ' + String(s.doctor_specialization).trim()
+                                    if (s.doctor_designation) label += ' - ' + String(s.doctor_designation).trim()
                                     var opt = document.createElement('option')
                                     opt.value = String(s.doctor_id)
                                     opt.textContent = label

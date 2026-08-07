@@ -125,7 +125,7 @@ class AppointmentController extends Controller
                         ->orWhere('lastname', 'like', $contains)
                         ->orWhere('middlename', 'like', $contains)
                         ->orWhere('prc_license', 'like', $contains)
-                        ->orWhere('specialization', 'like', $contains)
+                        ->orWhere('designation', 'like', $contains)
                         ->orWhereRaw("TRIM(CONCAT_WS(' ', firstname, middlename, lastname)) like ?", [$contains]);
 
                     foreach ($tokens as $token) {
@@ -253,7 +253,7 @@ class AppointmentController extends Controller
             'doctor_id' => ['required', 'exists:users,user_id'],
             'appointment_datetime' => ['nullable', 'date'],
             'appointment_type' => ['required', 'in:walk_in,scheduled'],
-            'status' => ['nullable', 'in:pending,confirmed,consulted,completed,cancelled,no_show'],
+            'status' => ['nullable', 'in:pending,confirmed,awaiting_payment,completed,cancelled,no_show'],
             'reason_for_visit' => ['nullable', 'string'],
             'priority_level' => ['nullable', 'integer'],
             'service_id' => ['nullable', 'exists:services,service_id'],
@@ -539,7 +539,7 @@ class AppointmentController extends Controller
                 $doctor = User::query()->find($doctorId);
 
                 if ($doctor) {
-                    $doctorSpec = strtolower(trim((string) ($doctor->specialization ?? '')));
+                    $doctorSpec = strtolower(trim((string) ($doctor->designation ?? '')));
                     $doctorSpec = trim($doctorSpec);
 
                     if ($doctorSpec !== '') {
@@ -555,7 +555,7 @@ class AppointmentController extends Controller
                             if (! $matches) {
                                 return response()->json([
                                     'message' => 'Selected doctor does not match the chosen service.',
-                                    'code' => 'SPECIALIZATION_MISMATCH',
+                                    'code' => 'DESIGNATION_MISMATCH',
                                 ], 422);
                             }
                         }
@@ -674,7 +674,7 @@ class AppointmentController extends Controller
             'doctor_id' => ['sometimes', 'exists:users,user_id'],
             'appointment_datetime' => ['sometimes', 'date'],
             'appointment_type' => ['sometimes', 'in:walk_in,scheduled'],
-            'status' => ['sometimes', 'in:pending,confirmed,consulted,completed,cancelled,no_show'],
+            'status' => ['sometimes', 'in:pending,confirmed,awaiting_payment,completed,cancelled,no_show'],
             'reason_for_visit' => ['sometimes', 'nullable', 'string'],
             'priority_level' => ['sometimes', 'integer'],
             'check_in_time' => ['sometimes', 'nullable', 'date'],
@@ -729,7 +729,7 @@ class AppointmentController extends Controller
                 $doctorIdForCheck = array_key_exists('doctor_id', $data) ? (int) $data['doctor_id'] : (int) $appointment->doctor_id;
                 $doctor = User::query()->find($doctorIdForCheck);
                 if ($doctor) {
-                    $doctorSpec = strtolower(trim((string) ($doctor->specialization ?? '')));
+                    $doctorSpec = strtolower(trim((string) ($doctor->designation ?? '')));
                     $doctorSpec = trim($doctorSpec);
 
                     if ($doctorSpec !== '') {
@@ -745,7 +745,7 @@ class AppointmentController extends Controller
                             if (! $matches) {
                                 return response()->json([
                                     'message' => 'Selected doctor does not match the chosen service.',
-                                    'code' => 'SPECIALIZATION_MISMATCH',
+                                    'code' => 'DESIGNATION_MISMATCH',
                                 ], 422);
                             }
                         }
@@ -792,12 +792,12 @@ class AppointmentController extends Controller
                 $appointment->services()->sync(array_map(fn ($v) => (int) $v, $serviceIds));
             }
 
-            // Auto-update linked queue to "consulted" when appointment is marked as consulted
-            if (array_key_exists('status', $data) && $data['status'] === 'consulted') {
+            // Auto-update linked queue to "awaiting_payment" when appointment is marked as awaiting_payment
+            if (array_key_exists('status', $data) && $data['status'] === 'awaiting_payment') {
                 Queue::query()
                     ->where('appointment_id', (int) $appointment->appointment_id)
-                    ->whereNotIn('status', ['done', 'cancelled', 'no_show', 'skipped', 'consulted'])
-                    ->update(['status' => 'consulted']);
+                    ->whereNotIn('status', ['done', 'cancelled', 'no_show', 'skipped', 'awaiting_payment'])
+                    ->update(['status' => 'awaiting_payment']);
             }
         });
 

@@ -195,7 +195,7 @@
                             $statusDropdownColor = match($statusName) {
                                 'waiting' => 'text-orange-700 border-orange-300 bg-orange-50',
                                 'serving' => 'text-blue-700 border-blue-300 bg-blue-50',
-                                'consulted' => 'text-blue-700 border-blue-300 bg-blue-50',
+                                'awaiting_payment' => 'text-blue-700 border-blue-300 bg-blue-50',
                                 'skipped' => 'text-orange-700 border-orange-300 bg-orange-50',
                                 'on_hold' => 'text-purple-700 border-purple-300 bg-purple-50',
                                 default => 'text-slate-700 border-slate-200 bg-white',
@@ -203,7 +203,7 @@
                             $statusBadgeColor = match($statusName) {
                                 'waiting' => 'border-orange-200 bg-orange-50 text-orange-700',
                                 'serving' => 'bg-blue-50 text-blue-700 border-blue-100',
-                                'consulted' => 'bg-blue-50 text-blue-700 border-blue-100',
+                                'awaiting_payment' => 'bg-blue-50 text-blue-700 border-blue-100',
                                 'done' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
                                 'cancelled' => 'bg-red-50 text-red-700 border-red-100',
                                 'no_show' => 'bg-slate-100 text-slate-600 border-slate-200',
@@ -265,7 +265,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        @if ($statusName === 'consulted')
+                                        @if ($statusName === 'awaiting_payment')
                                             <span class="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[0.68rem] font-medium text-slate-600">
                                                 Waiting for payment
                                             </span>
@@ -352,7 +352,7 @@
                     if (status === 'serving') return 0
                     if (status === 'waiting' || status === 'skipped') return 1
                     if (status === 'on_hold') return 2
-                    if (status === 'consulted') return 3
+                    if (status === 'awaiting_payment') return 3
                     if (status === 'done') return 4
                     if (status === 'cancelled') return 5
                     if (status === 'no_show') return 6
@@ -589,7 +589,7 @@
                         })
                     console.log('[DoctorQueue] Echo listener attached to queue.' + doctorUserId)
 
-                    // Also listen for appointment status changes (e.g. consulted) so the queue table updates
+                    // Also listen for appointment status changes (e.g. awaiting_payment) so the queue table updates
                     window.Echo.private('appointments.' + doctorUserId)
                         .listen('.appointment.updated', function () {
                             silentRefreshTableFromServer(document.getElementById('doctorQueueTbody'))

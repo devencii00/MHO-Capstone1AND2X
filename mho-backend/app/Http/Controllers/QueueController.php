@@ -184,7 +184,7 @@ class QueueController extends Controller
 
         $exists = Queue::query()
             ->whereDate('queue_datetime', $date)
-            ->whereIn('status', array_merge(Queue::activeStatuses(), ['consulted']))
+            ->whereIn('status', array_merge(Queue::activeStatuses(), ['awaiting_payment']))
             ->whereHas('appointment', function ($q) use ($patientId) {
                 $q->where('patient_id', $patientId);
             })
@@ -382,7 +382,7 @@ class QueueController extends Controller
         if ($patientId > 0) {
             $duplicatePatient = Queue::query()
                 ->whereDate('queue_datetime', $date)
-                ->whereIn('status', array_merge(Queue::activeStatuses(), ['consulted']))
+                ->whereIn('status', array_merge(Queue::activeStatuses(), ['awaiting_payment']))
                 ->whereHas('appointment', function ($q) use ($patientId) {
                     $q->where('patient_id', $patientId);
                 })
@@ -793,7 +793,7 @@ class QueueController extends Controller
             ], 422);
         }
 
-        $doctorSpec = strtolower(trim((string) ($doctor->specialization ?? '')));
+        $doctorSpec = strtolower(trim((string) ($doctor->designation ?? '')));
         if ($doctorSpec !== '') {
             foreach ($services as $service) {
                 $serviceName = (string) ($service->service_name ?? '');
@@ -807,7 +807,7 @@ class QueueController extends Controller
                 if (! $matches) {
                     return response()->json([
                         'message' => 'Selected doctor does not match the chosen service.',
-                        'code' => 'SPECIALIZATION_MISMATCH',
+                        'code' => 'DESIGNATION_MISMATCH',
                     ], 422);
                 }
             }
@@ -876,14 +876,14 @@ class QueueController extends Controller
         $data = $request->validate([
             'queue_number' => ['sometimes', 'integer'],
             'queue_datetime' => ['sometimes', 'nullable', 'date'],
-            'status' => ['sometimes', 'in:waiting,serving,consulted,done,cancelled,no_show,skipped,on_hold'],
+            'status' => ['sometimes', 'in:waiting,serving,awaiting_payment,done,cancelled,no_show,skipped,on_hold'],
             'priority_level' => ['sometimes', 'integer'],
         ]);
 
         $nextStatus = array_key_exists('status', $data) ? $data['status'] : null;
 
         // Lock: if queue is in a terminal/locked state, reject further modifications
-        $lockedStatuses = ['consulted', 'done', 'cancelled', 'no_show'];
+        $lockedStatuses = ['awaiting_payment', 'done', 'cancelled', 'no_show'];
         $currentStatus = strtolower(trim((string) $queue->status));
         if (in_array($currentStatus, $lockedStatuses, true)) {
             return response()->json([
@@ -1031,9 +1031,9 @@ class QueueController extends Controller
                 } elseif ($queue->status === 'serving') {
                     $notificationBody = 'You are now being called. Please proceed to the consultation area.';
                     $statusText = 'Being Called';
-                } elseif ($queue->status === 'consulted') {
+                } elseif ($queue->status === 'awaiting_payment') {
                     $notificationBody = 'Your consultation is done and payment is pending.';
-                    $statusText = 'Consulted';
+                    $statusText = 'Awaiting_payment';
                 } elseif ($queue->status === 'done') {
                     $notificationBody = 'Your queue entry is marked as done. Thank you!';
                     $statusText = 'Done';
@@ -1150,7 +1150,7 @@ class QueueController extends Controller
         }
 
         // When a queue advances (called/completed), notify remaining active patients of improved position
-        $advancingStatuses = ['serving', 'consulted', 'done', 'cancelled', 'no_show'];
+        $advancingStatuses = ['serving', 'awaiting_payment', 'done', 'cancelled', 'no_show'];
         $isAdvancing = $statusChanged && in_array($queue->status, $advancingStatuses, true);
         if ($isAdvancing && $queue->appointment) {
             $advancingDoctorId = (int) ($queue->appointment->doctor_id ?? 0);
@@ -1227,7 +1227,7 @@ class QueueController extends Controller
     public function move(Request $request, Queue $queue)
     {
         // Lock: prevent moving queue entries in terminal/locked states
-        $lockedStatuses = ['consulted', 'done', 'cancelled', 'no_show'];
+        $lockedStatuses = ['awaiting_payment', 'done', 'cancelled', 'no_show'];
         $currentStatus = strtolower(trim((string) $queue->status));
         if (in_array($currentStatus, $lockedStatuses, true)) {
             return response()->json([
@@ -1315,7 +1315,7 @@ class QueueController extends Controller
                 Queue::STATUS_WAITING, Queue::STATUS_SKIPPED => 0,
                 Queue::STATUS_SERVING => 1,
                 Queue::STATUS_ON_HOLD => 2,
-                Queue::STATUS_CONSULTED => 3,
+                Queue::STATUS_AWAITING_PAYMENT => 3,
                 Queue::STATUS_DONE => 4,
                 Queue::STATUS_CANCELLED => 5,
                 Queue::STATUS_NO_SHOW => 6,

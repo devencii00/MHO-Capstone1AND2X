@@ -805,9 +805,9 @@ function setAppointmentTab(tab) {
             return normalizeText(parts[0] || s)
         }
 
-        function specializationMatches(serviceCategory, doctorSpecialization) {
+        function designationMatches(serviceCategory, doctorDesignation) {
             var a = normalizeText(serviceCategory)
-            var b = normalizeText(doctorSpecialization)
+            var b = normalizeText(doctorDesignation)
             if (!a || !b) return false
             return b.indexOf(a) !== -1 || a.indexOf(b) !== -1
         }
@@ -1100,8 +1100,8 @@ function setAppointmentTab(tab) {
                         '<div class="grid grid-cols-2 gap-x-3 gap-y-2 text-[0.78rem]">' +
                             '<div class="text-slate-500">Full Name</div>' +
                             '<div class="text-slate-800 font-medium">' + escapeHtml(name) + '</div>' +
-                            '<div class="text-slate-500">Specialization</div>' +
-                            '<div class="text-slate-800 font-medium">' + escapeHtml(doctor.specialization || '-') + '</div>' +
+                            '<div class="text-slate-500">Designation</div>' +
+                            '<div class="text-slate-800 font-medium">' + escapeHtml(doctor.designation || '-') + '</div>' +
                             '<div class="text-slate-500">Schedule</div>' +
                             '<div class="text-slate-800 font-medium">' + escapeHtml(doctorScheduleSummary(doctor)) + '</div>' +
                         '</div>' +
@@ -1206,7 +1206,7 @@ function setAppointmentTab(tab) {
                     if (query) {
                         var q = normalizeText(query)
                         items = items.filter(function (doc) {
-                            return normalizeText(doc.specialization || '') === q
+                            return normalizeText(doc.designation || '') === q
                         })
                     }
                     return {
@@ -1455,11 +1455,11 @@ function setAppointmentTab(tab) {
             var dayKey = dayKeyFromDate(dateStr)
             var checkTime = selectedSlotStart ? String(selectedSlotStart).slice(0, 5) : ''
             var list = (doctors || []).filter(function (doctor) {
-                return specializationMatches(category, doctor.specialization)
+                return designationMatches(category, doctor.designation)
             })
             if (query) {
                 list = list.filter(function (doctor) {
-                    return wordPrefixMatch(doctorDisplayName(doctor) + ' ' + (doctor.specialization || ''), query)
+                    return wordPrefixMatch(doctorDisplayName(doctor) + ' ' + (doctor.designation || ''), query)
                 })
             }
             list.sort(function (a, b) {
@@ -1530,7 +1530,7 @@ function setAppointmentTab(tab) {
             // Use doctors already loaded by ensureBookDoctorsLoaded(true), filter client-side
             var q = normalizeText(category)
             var filtered = (Array.isArray(doctors) ? doctors : []).filter(function (d) {
-                return normalizeText(d.specialization || '') === q
+                return normalizeText(d.designation || '') === q
             })
             bookDoctorSearchResults = filtered
             bookDoctorSearchHasMore = false
@@ -1559,7 +1559,7 @@ function setAppointmentTab(tab) {
                         '<div class="flex items-start justify-between gap-3">' +
                             '<div class="min-w-0">' +
                                 '<div class="text-[0.8rem] font-semibold text-slate-900 truncate">' + escapeHtml('Dr. ' + doctorDisplayName(doctor)) + '</div>' +
-                                '<div class="mt-1 text-[0.72rem] text-slate-500">' + escapeHtml(doctor.specialization || '-') + '</div>' +
+                                '<div class="mt-1 text-[0.72rem] text-slate-500">' + escapeHtml(doctor.designation || '-') + '</div>' +
                             '</div>' +
                         '</div>' +
                     '</button>'
@@ -1711,7 +1711,7 @@ function setAppointmentTab(tab) {
                 selectorState.activeItem = selectedDoctor
                 if (selectorTitle) selectorTitle.textContent = 'Select Doctor'
                 if (selectorSubtitle) selectorSubtitle.textContent = 'Choose from the most recently created matching doctors or search for another doctor.'
-                if (selectorSearch) selectorSearch.placeholder = 'Search doctor name or specialization'
+                if (selectorSearch) selectorSearch.placeholder = 'Search doctor name or designation'
                 if (selectorConfirmBtn) selectorConfirmBtn.textContent = 'Select Doctor'
                 setSelectorOpen(true)
                 setSelectorLoading('Loading doctors…')
@@ -2293,7 +2293,7 @@ function setAppointmentTab(tab) {
             if (!d) return ''
             var name = [d.firstname, d.middlename, d.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
             if (!name) name = d.email || ''
-            return name + (d.specialization ? ' - ' + d.specialization : '')
+            return name + (d.designation ? ' - ' + d.designation : '')
         }
 
         function doctorSchedulesForDay(doctor, dayKey, dateStr) {
@@ -2335,11 +2335,11 @@ function setAppointmentTab(tab) {
                     doctorPreview.classList.add('hidden')
                 } else {
                     var name = doctorDisplayName(doctor) || (doctor.email || '')
-                    var spec = doctor.specialization ? String(doctor.specialization).trim() : 'N/A'
+                    var spec = doctor.designation ? String(doctor.designation).trim() : 'N/A'
                     var sched = doctorScheduleSummary(doctor)
                     var lines = []
                     lines.push('<div class="text-[0.78rem] text-slate-700 font-semibold">' + escapeHtml(name) + '</div>')
-                    lines.push('<div class="text-[0.7rem] text-slate-500">Specialization: ' + escapeHtml(spec) + '</div>')
+                    lines.push('<div class="text-[0.7rem] text-slate-500">Designation: ' + escapeHtml(spec) + '</div>')
                     lines.push('<div class="text-[0.7rem] text-slate-500">Schedule: ' + escapeHtml(sched) + '</div>')
                     doctorPreview.innerHTML = lines.join('')
                     doctorPreview.classList.remove('hidden')
@@ -2375,7 +2375,7 @@ function setAppointmentTab(tab) {
             var list = []
             if (category) {
                 list = (doctors || []).filter(function (d) {
-                    return specializationMatches(category, d.specialization)
+                    return designationMatches(category, d.designation)
                 })
             }
 
@@ -2438,7 +2438,7 @@ function setAppointmentTab(tab) {
                 html += '<button type="button" class="w-full text-left px-3 py-2 border-b border-slate-100 last:border-0 flex items-start justify-between gap-3 ' + (x.isSelectable ? 'hover:bg-slate-50' : 'bg-slate-50/60 cursor-not-allowed') + '" ' + (x.isSelectable ? '' : 'disabled') + '>' +
                     '<div class="min-w-0">' +
                         '<div class="text-[0.78rem] text-slate-800 font-semibold">' + escapeHtml('Dr. ' + name) + '</div>' +
-                        '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(d.specialization || '-') + '</div>' +
+                        '<div class="text-[0.72rem] text-slate-500">' + escapeHtml(d.designation || '-') + '</div>' +
                     '</div>' +
                     (x.tag
                         ? '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] font-semibold ' + ((x.tag === 'Last provider') ? 'bg-green-500/10 text-green-700 border border-green-200' : 'bg-slate-100 text-slate-500 border border-slate-200') + '">' + escapeHtml(x.tag) + '</span>'
@@ -3652,7 +3652,7 @@ function updateManageTodayButton() {
                 statusClass = 'border-green-200 bg-green-50 text-green-700'
             } else if (isCheckedIn || statusKey === 'confirmed') {
                 statusClass = 'border-orange-200 bg-orange-50 text-orange-700'
-            } else if (statusKey === 'consulted') {
+            } else if (statusKey === 'awaiting_payment') {
                 statusClass = 'border-purple-200 bg-purple-50 text-purple-700'
             } else if (statusKey === 'cancelled') {
                 statusClass = 'border-rose-200 bg-rose-50 text-rose-700'
@@ -3782,7 +3782,7 @@ function updateManageTodayButton() {
                 var sc = ''
                 if (stKey === 'completed') sc = 'border-green-200 bg-green-50 text-green-700'
                 else if (isCI || stKey === 'confirmed') sc = 'border-orange-200 bg-orange-50 text-orange-700'
-                else if (stKey === 'consulted') sc = 'border-purple-200 bg-purple-50 text-purple-700'
+                else if (stKey === 'awaiting_payment') sc = 'border-purple-200 bg-purple-50 text-purple-700'
                 else if (stKey === 'cancelled') sc = 'border-rose-200 bg-rose-50 text-rose-700'
                 else if (stKey === 'no_show') sc = 'border-slate-200 bg-slate-100 text-slate-600'
                 else if (stKey === 'pending') sc = 'border-amber-200 bg-amber-50 text-amber-700'
@@ -3893,7 +3893,7 @@ function updateManageTodayButton() {
             var sc = ''
             if (stKey === 'completed') sc = 'border-green-200 bg-green-50 text-green-700'
             else if (isCI || stKey === 'confirmed') sc = 'border-orange-200 bg-orange-50 text-orange-700'
-            else if (stKey === 'consulted') sc = 'border-purple-200 bg-purple-50 text-purple-700'
+            else if (stKey === 'awaiting_payment') sc = 'border-purple-200 bg-purple-50 text-purple-700'
             else if (stKey === 'cancelled') sc = 'border-rose-200 bg-rose-50 text-rose-700'
             else if (stKey === 'no_show') sc = 'border-slate-200 bg-slate-100 text-slate-600'
             else if (stKey === 'pending') sc = 'border-amber-200 bg-amber-50 text-amber-700'
@@ -4660,17 +4660,17 @@ function updateManageTodayButton() {
 
         function manageHistRenderDoctorDropdown(docList, selectedDocId) {
             if (!manageHistChangeDoctor || !docList || !docList.length) return
-            var allowedSpecializations = [
+            var allowedDesignations = [
                 'general surgeon',
                 'obstetrician-gynecologist',
                 'obstetrician - gynecologist',
                 'internal medicine'
             ]
             var filtered = docList.filter(function (doc) {
-                if (!doc || !doc.specialization) return false
-                var spec = normalizeText(doc.specialization)
-                for (var s = 0; s < allowedSpecializations.length; s++) {
-                    if (specializationMatches(allowedSpecializations[s], spec)) return true
+                if (!doc || !doc.designation) return false
+                var spec = normalizeText(doc.designation)
+                for (var s = 0; s < allowedDesignations.length; s++) {
+                    if (designationMatches(allowedDesignations[s], spec)) return true
                 }
                 return false
             })
@@ -5008,7 +5008,7 @@ function updateManageTodayButton() {
             }
             var currentDoctorId = String(recBookCurrentDoctor.user_id)
             var allDoctors = doctors.filter(function (d) {
-                    var spec = String(d.specialization || '').trim().toLowerCase()
+                    var spec = String(d.designation || '').trim().toLowerCase()
                     var allowedSpecs = ['general surgeon', 'obstetrician-gynecologist', 'obstetrician - gynecologist', 'internal medicine']
                     if (allowedSpecs.indexOf(spec) === -1) return false
                     var schedules = Array.isArray(d.doctor_schedules) ? d.doctor_schedules : []

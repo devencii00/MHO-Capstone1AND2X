@@ -60,7 +60,7 @@
                     <th class="py-2 pr-4 font-semibold">Profile</th>
                     <th class="py-2 pr-4 font-semibold">Name</th>
                     <th class="py-2 pr-4 font-semibold">Role</th>
-                    <th class="py-2 pr-4 font-semibold">Specialization</th>
+                    <th class="py-2 pr-4 font-semibold">Designation</th>
                     <th class="py-2 pr-4 font-semibold">Employee #</th>
                     <th class="py-2 pr-4 font-semibold">PRC #</th>
                     <th class="py-2 pr-4 font-semibold">PTR #</th>
@@ -334,10 +334,10 @@
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label for="adminDoctorEditSpecialization" class="block text-[0.7rem] text-slate-600 mb-1">Specialization <span id="adminDoctorEditSpecRequired" class="text-red-500 hidden">*</span></label>
-                                <input id="adminDoctorEditSpecialization" type="text" list="adminDoctorSpecializationList" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. General Medicine">
+                                <label for="adminDoctorEditDesignation" class="block text-[0.7rem] text-slate-600 mb-1">Designation <span id="adminDoctorEditSpecRequired" class="text-red-500 hidden">*</span></label>
+                                <input id="adminDoctorEditDesignation" type="text" list="adminDoctorDesignationList" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. General Medicine">
                                 <span id="adminDoctorEditSpecHint" class="mt-1 text-[0.68rem] leading-tight text-slate-400 hidden"></span>
-                                <datalist id="adminDoctorSpecializationList">
+                                <datalist id="adminDoctorDesignationList">
                                     <option value="Pediatrics"></option>
                                     <option value="General Medicine"></option>
                                     <option value="General Surgeon"></option>
@@ -543,7 +543,7 @@
         var doctorEditFirstname = document.getElementById('adminDoctorEditFirstname')
         var doctorEditMiddlename = document.getElementById('adminDoctorEditMiddlename')
         var doctorEditLastname = document.getElementById('adminDoctorEditLastname')
-        var doctorEditSpecialization = document.getElementById('adminDoctorEditSpecialization')
+        var doctorEditDesignation = document.getElementById('adminDoctorEditDesignation')
         var doctorEditSexMale = document.querySelector('input[name="adminDoctorEditSex"][value="Male"]')
         var doctorEditSexFemale = document.querySelector('input[name="adminDoctorEditSex"][value="Female"]')
         var doctorEditBirthdate = document.getElementById('adminDoctorEditBirthdate')
@@ -675,20 +675,20 @@
             if (doctorEditFirstname) doctorEditFirstname.value = doctor.firstname || ''
             if (doctorEditMiddlename) doctorEditMiddlename.value = doctor.middlename || ''
             if (doctorEditLastname) doctorEditLastname.value = doctor.lastname || ''
-            if (doctorEditSpecialization) {
+            if (doctorEditDesignation) {
                 var specRequired = document.getElementById('adminDoctorEditSpecRequired')
                 var specHint = document.getElementById('adminDoctorEditSpecHint')
                 if (doctor.role === 'receptionist') {
-                    doctorEditSpecialization.value = doctor.specialization || 'N/A'
-                    doctorEditSpecialization.removeAttribute('required')
+                    doctorEditDesignation.value = doctor.designation || 'N/A'
+                    doctorEditDesignation.removeAttribute('required')
                     if (specRequired) specRequired.classList.add('hidden')
                     if (specHint) {
                         specHint.textContent = 'Defaults to N/A for receptionists'
                         specHint.classList.remove('hidden')
                     }
                 } else {
-                    doctorEditSpecialization.value = doctor.specialization || ''
-                    doctorEditSpecialization.setAttribute('required', 'required')
+                    doctorEditDesignation.value = doctor.designation || ''
+                    doctorEditDesignation.setAttribute('required', 'required')
                     if (specRequired) specRequired.classList.remove('hidden')
                     if (specHint) specHint.classList.add('hidden')
                 }
@@ -905,27 +905,27 @@
             })
         }
 
-        // Role change handler - toggle specialization required / N/A default
+        // Role change handler - toggle designation required / N/A default
         if (doctorEditRole) {
             doctorEditRole.addEventListener('change', function () {
-                if (!doctorEditSpecialization) return
+                if (!doctorEditDesignation) return
                 var specRequired = document.getElementById('adminDoctorEditSpecRequired')
                 var specHint = document.getElementById('adminDoctorEditSpecHint')
                 if (this.value === 'receptionist') {
-                    if (!doctorEditSpecialization.value || doctorEditSpecialization.value === 'N/A') {
-                        doctorEditSpecialization.value = 'N/A'
+                    if (!doctorEditDesignation.value || doctorEditDesignation.value === 'N/A') {
+                        doctorEditDesignation.value = 'N/A'
                     }
-                    doctorEditSpecialization.removeAttribute('required')
+                    doctorEditDesignation.removeAttribute('required')
                     if (specRequired) specRequired.classList.add('hidden')
                     if (specHint) {
                         specHint.textContent = 'Defaults to N/A for receptionists'
                         specHint.classList.remove('hidden')
                     }
                 } else {
-                    if (doctorEditSpecialization.value === 'N/A') {
-                        doctorEditSpecialization.value = ''
+                    if (doctorEditDesignation.value === 'N/A') {
+                        doctorEditDesignation.value = ''
                     }
-                    doctorEditSpecialization.setAttribute('required', 'required')
+                    doctorEditDesignation.setAttribute('required', 'required')
                     if (specRequired) specRequired.classList.remove('hidden')
                     if (specHint) specHint.classList.add('hidden')
                 }
@@ -976,11 +976,11 @@
                         appendIf('firstname', val(doctorEditFirstname))
                         formData.append('middlename', val(doctorEditMiddlename) || '')
                         appendIf('lastname', val(doctorEditLastname))
-                        var specVal = val(doctorEditSpecialization)
+                        var specVal = val(doctorEditDesignation)
                         if (doctorEditRole && doctorEditRole.value === 'receptionist' && !specVal) {
                             specVal = 'N/A'
                         }
-                        appendIf('specialization', specVal)
+                        appendIf('designation', specVal)
                         var sexVal = doctorEditSexMale && doctorEditSexMale.checked ? 'Male' : (doctorEditSexFemale && doctorEditSexFemale.checked ? 'Female' : null)
                         appendIf('sex', sexVal)
                         appendIf('birthdate', val(doctorEditBirthdate))
@@ -1417,7 +1417,7 @@
                 if (!fullName) {
                     fullName = staff.email || ('Staff #' + staff.user_id)
                 }
-                var specialization = (staff.specialization || '').trim()
+                var designation = (staff.designation || '').trim()
                 var empNum = (staff.employee_number || '').trim()
                 var prc = (staff.prc_license || '').trim()
                 var ptr = (staff.ptr_number || '').trim()
@@ -1439,7 +1439,7 @@
                         '">' + roleLabel + '</span>' +
                     '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' +
-                        (specialization ? specialization : (staff.role === 'receptionist' ? 'N/A' : '<span class="text-slate-400">-</span>')) +
+                        (designation ? designation : (staff.role === 'receptionist' ? 'N/A' : '<span class="text-slate-400">-</span>')) +
                     '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (empNum ? empNum : '<span class="text-slate-400">-</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (prc ? prc : '<span class="text-slate-400">-</span>') + '</td>' +

@@ -214,7 +214,7 @@
                         if (doctorNameEl) doctorNameEl.textContent = nameForUser(doctor, 'Doctor');
                         if (doctorInfoEl) {
                             var doctorMeta = [];
-                            if (doctor && doctor.specialization) doctorMeta.push(doctor.specialization);
+                            if (doctor && doctor.designation) doctorMeta.push(doctor.designation);
                             if (doctor && doctor.prc_license) doctorMeta.push('Lic: ' + doctor.prc_license);
                             doctorInfoEl.textContent = doctorMeta.length ? doctorMeta.join(' • ') : '-';
                         }

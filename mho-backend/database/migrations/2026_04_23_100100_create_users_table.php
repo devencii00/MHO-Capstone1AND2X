@@ -24,7 +24,7 @@ return new class extends Migration
     $table->string('email')->unique()->nullable();
     $table->string('password_hash')->nullable();
 
-    $table->enum('role', ['admin', 'doctor', 'receptionist', 'patient']);
+    $table->enum('role', ['admin', 'doctor', 'receptionist', 'patient','laboratory_personnel']);
     $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
 
    
@@ -51,7 +51,7 @@ return new class extends Migration
     $table->string('prc_license')->nullable();
     $table->string('ptr_number')->nullable();
 
-    $table->string('specialization')->nullable();
+    $table->string('designation')->nullable();
 
     $table->enum('employment_status', [
         'contractual',

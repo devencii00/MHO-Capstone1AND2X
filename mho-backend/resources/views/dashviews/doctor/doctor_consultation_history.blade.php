@@ -552,7 +552,7 @@
                         '<span class="inline-flex items-center px-2 py-0.5 rounded text-[0.6rem] font-medium border border-green-200 bg-green-50 text-green-700">Completed</span>' +
                     '</span>' +
                 '</div>' +
-                '<div class="text-[0.72rem] text-purple-600 font-medium mb-1">Consulted by: ' + esc(dName) + '</div>' +
+                '<div class="text-[0.72rem] text-purple-600 font-medium mb-1">Awaiting_payment by: ' + esc(dName) + '</div>' +
                 '<div class="text-[0.68rem] text-slate-500 mb-1 truncate"><span class="font-medium">Diagnosis:</span> ' + esc(diag.length > 80 ? diag.slice(0, 80) + '&hellip;' : diag) + '</div>' +
                 '<span class="text-[0.7rem] font-semibold text-green-700">View Details &rarr;</span>' +
                 '</button>';

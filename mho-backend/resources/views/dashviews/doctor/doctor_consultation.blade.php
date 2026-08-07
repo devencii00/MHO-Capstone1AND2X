@@ -88,7 +88,7 @@
                             data-queue-status="{{ optional($appointment->queue)->status ?? '' }}"
                             {{ (string) $appointment->appointment_id === (string) $preselectedAppointmentId ? 'selected' : '' }}
                         >
-                            {{ $statusName === 'consulted' ? '[ Consulted ] ' : '' }}{{ $patientName }} - {{ $labelDate }} {{ $labelTime }}
+                            {{ $statusName === 'awaiting_payment' ? '[ Awaiting_payment ] ' : '' }}{{ $patientName }} - {{ $labelDate }} {{ $labelTime }}
                         </option>
                     @endforeach
                 </select>
@@ -1196,11 +1196,11 @@
             var status = normalizeString(option.getAttribute('data-status'))
             if (!baseLabel) {
                 baseLabel = String(option.textContent || '')
-                    .replace(/^\s*\[\s*Consulted\s*\]\s*/i, '')
+                    .replace(/^\s*\[\s*Awaiting_payment\s*\]\s*/i, '')
                     .trim()
                 option.setAttribute('data-label', baseLabel)
             }
-            option.textContent = (status === 'consulted' ? '[ Consulted ] ' : '') + baseLabel
+            option.textContent = (status === 'awaiting_payment' ? '[ Awaiting_payment ] ' : '') + baseLabel
         }
 
         function formatAppointmentLabel(appt) {
@@ -1221,7 +1221,7 @@
             var colors = {
                 pending: 'bg-amber-50 text-amber-700 border-amber-200',
                 confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
-                consulted: 'bg-green-50 text-green-700 border-green-100',
+                awaiting_payment: 'bg-green-50 text-green-700 border-green-100',
                 completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
                 cancelled: 'bg-red-50 text-red-700 border-red-200',
                 no_show: 'bg-slate-100 text-slate-600 border-slate-200',
@@ -1245,7 +1245,7 @@
                 ' data-label="' + escapeHtml(label) + '"' +
                 ' data-appointment-type="' + escapeHtml(apptType) + '"' +
                 ' data-queue-status="' + escapeHtml(queueStatus) + '">' +
-                escapeHtml((statusName === 'consulted' ? '[ Consulted ] ' : '') + label) +
+                escapeHtml((statusName === 'awaiting_payment' ? '[ Awaiting_payment ] ' : '') + label) +
             '</option>'
         }
 
@@ -1321,8 +1321,8 @@
                 .then(function (resp) {
                     var appointments = getPaginatedData(resp).filter(function (appt) {
                         var status = normalizeString(appt && appt.status)
-                        // Hide appointments that are already consulted, completed, cancelled, or no_show
-                        return status !== 'consulted' && status !== 'completed' && status !== 'cancelled' && status !== 'no_show'
+                        // Hide appointments that are already awaiting_payment, completed, cancelled, or no_show
+                        return status !== 'awaiting_payment' && status !== 'completed' && status !== 'cancelled' && status !== 'no_show'
                     })
                     var servingAppointment = appointments.find(function (appt) {
                         return normalizeString(appt && appt.queue && appt.queue.status) === 'serving'
@@ -1420,14 +1420,14 @@
             }
         }
 
-        function markSelectedAppointmentConsulted() {
+        function markSelectedAppointmentAwaitingPayment() {
             if (!appointmentSelect) return
             var option = appointmentSelect.options[appointmentSelect.selectedIndex]
             if (!option) return
-            option.setAttribute('data-status', 'consulted')
-            option.setAttribute('data-queue-status', 'consulted')
-            state.currentAppointmentStatus = 'consulted'
-            state.currentQueueStatus = 'consulted'
+            option.setAttribute('data-status', 'awaiting_payment')
+            option.setAttribute('data-queue-status', 'awaiting_payment')
+            state.currentAppointmentStatus = 'awaiting_payment'
+            state.currentQueueStatus = 'awaiting_payment'
             syncAppointmentOptionLabel(option)
             updateAppointmentButtonDisplay()
         }
@@ -2775,7 +2775,7 @@
                 var tx = rx.transaction || null
                 state.transactionId = tx ? tx.transaction_id : null
                 state.lastSavedTransactionId = state.transactionId
-                markSelectedAppointmentConsulted()
+                markSelectedAppointmentAwaitingPayment()
 
                 // Capture prescription ID before resetWorkspace clears it
                 savedPrescriptionId = state.prescriptionId
@@ -3305,7 +3305,7 @@
                 completed: 'border-green-200 bg-green-50 text-green-700',
                 cancelled: 'bg-red-50 text-red-700 border-red-200',
                 no_show: 'bg-slate-100 text-slate-600 border-slate-200',
-                consulted: 'border-purple-200 bg-purple-50 text-purple-700',
+                awaiting_payment: 'border-purple-200 bg-purple-50 text-purple-700',
                 waiting: 'bg-amber-50 text-amber-700 border-amber-100',
                 serving: 'bg-blue-50 text-blue-700 border-blue-100',
                 done: 'bg-emerald-50 text-emerald-700 border-emerald-100',
@@ -3792,7 +3792,7 @@
                         completed: 'border-green-200 bg-green-50 text-green-700',
                         cancelled: 'bg-red-50 text-red-700 border-red-200',
                         no_show: 'bg-slate-100 text-slate-600 border-slate-200',
-                        consulted: 'border-purple-200 bg-purple-50 text-purple-700',
+                        awaiting_payment: 'border-purple-200 bg-purple-50 text-purple-700',
                         waiting: 'bg-amber-50 text-amber-700 border-amber-100',
                         serving: 'bg-blue-50 text-blue-700 border-blue-100',
                         done: 'bg-emerald-50 text-emerald-700 border-emerald-100',

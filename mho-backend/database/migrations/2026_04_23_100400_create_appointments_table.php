@@ -24,7 +24,7 @@ return new class extends Migration
 
             $table->dateTime('appointment_datetime')->nullable();
             $table->enum('appointment_type', ['walk_in', 'scheduled']);
-            $table->enum('status', ['pending', 'confirmed', 'consulted' ,  'completed', 'cancelled', 'no_show'])->default('pending');
+            $table->enum('status', ['pending', 'confirmed', 'awaiting_payment' ,  'completed', 'cancelled', 'no_show'])->default('pending');
 
             $table->text('reason_for_visit')->nullable();
             $table->integer('priority_level')->default(5);
@@ -38,6 +38,8 @@ return new class extends Migration
             $table->index('appointment_datetime', 'idx_appointments_datetime');
             $table->index(['doctor_id', 'appointment_datetime'], 'idx_appointments_doctor_datetime');
             $table->index(['patient_id', 'appointment_type', 'appointment_datetime'], 'idx_appointments_patient_type_datetime');
+            $table->index('status');
+            $table->index('created_by');
         });
     }
 

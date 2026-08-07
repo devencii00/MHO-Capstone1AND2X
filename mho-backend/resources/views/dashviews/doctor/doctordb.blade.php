@@ -19,7 +19,7 @@
         $rank = match ($status) {
             'serving' => 1,
             'waiting', 'skipped' => 3,
-            'consulted' => 4,
+            'awaiting_payment' => 4,
             'done' => 5,
             default => 6,
         };
@@ -491,7 +491,7 @@
                                         completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
                                         cancelled: 'bg-red-50 text-red-700 border-red-200',
                                         no_show: 'bg-slate-100 text-slate-600 border-slate-200',
-                                        consulted: 'bg-green-50 text-green-700 border-green-100'
+                                        awaiting_payment: 'bg-green-50 text-green-700 border-green-100'
                                     }
                                     var html = '<table class="min-w-full text-left text-[0.7rem] text-slate-600">' +
                                         '<thead>' +
@@ -558,7 +558,7 @@
                         completed: 'border-green-200 bg-green-50 text-green-700',
                         cancelled: 'bg-red-50 text-red-700 border-red-200',
                         no_show: 'bg-slate-100 text-slate-600 border-slate-200',
-                        consulted: 'border-purple-200 bg-purple-50 text-purple-700',
+                        awaiting_payment: 'border-purple-200 bg-purple-50 text-purple-700',
                         waiting: 'bg-amber-50 text-amber-700 border-amber-100',
                         serving: 'bg-blue-50 text-blue-700 border-blue-100',
                         done: 'bg-emerald-50 text-emerald-700 border-emerald-100',
@@ -568,7 +568,7 @@
                     var queueStatusColors = {
                         waiting: 'border-orange-200 bg-orange-50 text-orange-700',
                         serving: 'bg-blue-50 text-blue-700 border-blue-100',
-                        consulted: 'bg-blue-50 text-blue-700 border-blue-100',
+                        awaiting_payment: 'bg-blue-50 text-blue-700 border-blue-100',
                         done: 'bg-emerald-50 text-emerald-700 border-emerald-100',
                         cancelled: 'bg-red-50 text-red-700 border-red-100',
                         no_show: 'bg-slate-100 text-slate-600 border-slate-200',
@@ -829,7 +829,7 @@
                             completed: 'border-green-200 bg-green-50 text-green-700',
                             cancelled: 'bg-red-50 text-red-700 border-red-200',
                             no_show: 'bg-slate-100 text-slate-600 border-slate-200',
-                            consulted: 'border-purple-200 bg-purple-50 text-purple-700',
+                            awaiting_payment: 'border-purple-200 bg-purple-50 text-purple-700',
                             waiting: 'bg-amber-50 text-amber-700 border-amber-100',
                             serving: 'bg-blue-50 text-blue-700 border-blue-100',
                             done: 'bg-emerald-50 text-emerald-700 border-emerald-100',

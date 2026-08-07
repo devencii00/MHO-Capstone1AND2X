@@ -465,7 +465,7 @@ class DashboardController extends Controller
                 $rank = match ($status) {
                     'serving' => 1,
                     'waiting', 'skipped' => 3,
-                    'consulted' => 4,
+                    'awaiting_payment' => 4,
                     'done' => 5,
                     'on_hold' => 2,
                     default => 6,
@@ -584,9 +584,9 @@ class DashboardController extends Controller
                             ?? $slot->doctor_name
                             ?? 'Doctor'
                         ),
-                        'doctor_specialization' => (string) (
-                            optional($doctor)->specialization
-                            ?? $slot->doctor_specialization
+                        'doctor_designation' => (string) (
+                            optional($doctor)->designation
+                            ?? $slot->doctor_designation
                             ?? ''
                         ),
                         'slot_start' => optional($slot)->start_time,

@@ -4,7 +4,7 @@
         <span class="text-[0.7rem] text-slate-400 uppercase tracking-widest">Patients</span>
     </div>
     <p class="text-xs text-slate-500 mb-3">
-        Patients registered in the system that you may be consulting or have consulted recently.
+        Patients registered in the system that you may be consulting or have awaiting_payment recently.
     </p>
 
     <div class="mb-3 flex flex-col gap-2 md:flex-row md:items-end">

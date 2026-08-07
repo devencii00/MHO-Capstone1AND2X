@@ -51,7 +51,7 @@ class PrescriptionController extends Controller
         ]);
 
         $prescription = Prescription::create($data);
-        $this->markLinkedAppointmentConsulted($prescription);
+        $this->markLinkedAppointmentAwaitingPayment($prescription);
 
         return response()->json($prescription->load(['doctor', 'transaction']), 201);
     }
@@ -83,7 +83,7 @@ class PrescriptionController extends Controller
         ]);
 
         $prescription->update($data);
-        $this->markLinkedAppointmentConsulted($prescription);
+        $this->markLinkedAppointmentAwaitingPayment($prescription);
 
         return $prescription->refresh()->load(['doctor', 'transaction', 'items']);
     }
@@ -102,7 +102,7 @@ class PrescriptionController extends Controller
         ]);
     }
 
-    private function markLinkedAppointmentConsulted(Prescription $prescription): void
+    private function markLinkedAppointmentAwaitingPayment(Prescription $prescription): void
     {
         $prescription->loadMissing('transaction.appointment');
 
@@ -111,14 +111,14 @@ class PrescriptionController extends Controller
             return;
         }
 
-        if ((string) $appointment->status !== 'completed' && (string) $appointment->status !== 'consulted') {
-            $appointment->status = 'consulted';
+        if ((string) $appointment->status !== 'completed' && (string) $appointment->status !== 'awaiting_payment') {
+            $appointment->status = 'awaiting_payment';
             $appointment->save();
         }
 
         Queue::query()
             ->where('appointment_id', (int) $appointment->appointment_id)
             ->whereNotIn('status', ['done', 'cancelled', 'no_show', 'skipped'])
-            ->update(['status' => 'consulted']);
+            ->update(['status' => 'awaiting_payment']);
     }
 }

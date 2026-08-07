@@ -35,7 +35,7 @@ class StaffUsersSeeder extends Seeder
                 'lastname' => 'Dela Cruz',
                 'email' => 'john@doctor.com',
                 'password' => 'doctor123',
-                'specialization' => 'Pediatrics',
+                'designation' => 'Pediatrics',
             ],
             [
                 'role' => 'doctor',
@@ -43,7 +43,7 @@ class StaffUsersSeeder extends Seeder
                 'lastname' => 'Garcia',
                 'email' => 'michael@doctor.com',
                 'password' => 'doctor123',
-                'specialization' => 'General Medicine',
+                'designation' => 'General Medicine',
             ],
             [
                 'role' => 'doctor',
@@ -51,7 +51,7 @@ class StaffUsersSeeder extends Seeder
                 'lastname' => 'Lim',
                 'email' => 'sarah@doctor.com',
                 'password' => 'doctor123',
-                'specialization' => 'General Medicine',
+                'designation' => 'General Medicine',
             ],
             [
                 'role' => 'doctor',
@@ -59,7 +59,7 @@ class StaffUsersSeeder extends Seeder
                 'lastname' => 'Torres',
                 'email' => 'james@doctor.com',
                 'password' => 'doctor123',
-                'specialization' => 'Internal Medicine',
+                'designation' => 'Internal Medicine',
             ],
             [
                 'role' => 'doctor',
@@ -67,7 +67,7 @@ class StaffUsersSeeder extends Seeder
                 'lastname' => 'Fernandez',
                 'email' => 'patricia@doctor.com',
                 'password' => 'doctor123',
-                'specialization' => 'General Surgeon',
+                'designation' => 'General Surgeon',
             ],
         ];
 
@@ -78,7 +78,7 @@ class StaffUsersSeeder extends Seeder
                     'firstname' => $user['firstname'],
                     'lastname' => $user['lastname'],
                     'role' => $user['role'],
-                    'specialization' => $user['specialization'] ?? null, 
+                    'designation' => $user['designation'] ?? null, 
                     'status' => 'active',
                     'password_hash' => Hash::make($user['password']),
                     'account_activated' => 1,

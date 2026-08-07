@@ -239,7 +239,7 @@
                         if (doctorName) doctorName.textContent = nameForUser(doctor, 'Doctor');
                         if (doctorInfo) {
                             var dmeta = [];
-                            if (doctor && doctor.specialization) dmeta.push(doctor.specialization);
+                            if (doctor && doctor.designation) dmeta.push(doctor.designation);
                             if (doctor && doctor.prc_license) dmeta.push('Lic: ' + doctor.prc_license);
                             doctorInfo.textContent = dmeta.length ? dmeta.join(' • ') : '-';
                         }

@@ -44,7 +44,7 @@
     $doctorPanelItems = $doctorSlots->map(function ($slot) use ($queueItems) {
         $doctorId = (int) ($slot->doctor_id ?? 0);
         $doctorName = optional($slot->doctor)->personalInformation->full_name ?: (optional($slot->doctor)->email ?? 'Doctor');
-        $doctorSpecialization = (string) (optional($slot->doctor)->specialization ?? '');
+        $doctorDesignation = (string) (optional($slot->doctor)->designation ?? '');
         $queueForDoctor = $queueItems
             ->filter(function ($row) use ($doctorId) {
                 return (int) (optional($row->appointment)->doctor_id ?? 0) === $doctorId;
@@ -68,7 +68,7 @@
         return (object) [
             'doctor_id' => $doctorId,
             'doctor_name' => $doctorName,
-            'doctor_specialization' => $doctorSpecialization,
+            'doctor_designation' => $doctorDesignation,
             'slot_start' => $slot->start_time ?? null,
             'slot_end' => $slot->end_time ?? null,
             'room_number' => $slot->room_number ?? null,
@@ -104,7 +104,7 @@
                         @foreach ($doctorPanelItems as $doctorState)
                             @php
                                 $doctorNameRaw = trim((string) ($doctorState->doctor_name ?? ''));
-                                $doctorSpecialization = trim((string) ($doctorState->doctor_specialization ?? ''));
+                                $doctorDesignation = trim((string) ($doctorState->doctor_designation ?? ''));
                                 $doctorRoom = $doctorState->room_number ? ('Room ' . (int) $doctorState->room_number) : '';
                             @endphp
                             <button type="button" class="reception-callnext-option w-full text-left px-3 py-2.5 hover:bg-slate-50 transition-colors" data-value="{{ $doctorState->doctor_id }}">
@@ -114,8 +114,8 @@
                                         <div class="text-[0.6rem] text-slate-400 whitespace-nowrap">{{ $doctorRoom }}</div>
                                     @endif
                                 </div>
-                                @if ($doctorSpecialization)
-                                    <div class="text-[0.65rem] text-slate-500 mt-0.5">{{ $doctorSpecialization }}</div>
+                                @if ($doctorDesignation)
+                                    <div class="text-[0.65rem] text-slate-500 mt-0.5">{{ $doctorDesignation }}</div>
                                 @endif
                             </button>
                         @endforeach
@@ -292,7 +292,7 @@
                             $statusDropdownColor = match(strtolower($statusName)) {
                                 'waiting' => 'text-orange-700 border-orange-300 bg-orange-50',
                                 'serving' => 'text-blue-700 border-blue-300 bg-blue-50',
-                                'consulted' => 'text-blue-700 border-blue-300 bg-blue-50',
+                                'awaiting_payment' => 'text-blue-700 border-blue-300 bg-blue-50',
                                 'skipped' => 'text-orange-700 border-orange-300 bg-orange-50',
                                 'on_hold' => 'text-purple-700 border-purple-300 bg-purple-50',
                                 default => 'text-slate-700 border-slate-200 bg-white',
@@ -324,7 +324,7 @@
                              $statusBadgeColor = match($statusNameLower) {
                                  'waiting' => 'border-orange-200 bg-orange-50 text-orange-700',
                                  'serving' => 'bg-blue-50 text-blue-700 border-blue-100',
-                                 'consulted' => 'bg-blue-50 text-blue-700 border-blue-100',
+                                 'awaiting_payment' => 'bg-blue-50 text-blue-700 border-blue-100',
                                  'done' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
                                  'cancelled' => 'bg-red-50 text-red-700 border-red-100',
                                  'no_show' => 'bg-slate-100 text-slate-600 border-slate-200',
@@ -400,9 +400,9 @@
                             </td>
                             <td class="py-2 pr-4 text-[0.78rem] text-right text-slate-500">
                                 @if ($queueId ?? null)
-                                    @if (in_array(strtolower($statusName), ['done', 'cancelled', 'no_show', 'consulted'], true))
+                                    @if (in_array(strtolower($statusName), ['done', 'cancelled', 'no_show', 'awaiting_payment'], true))
                                         <span class="inline-flex items-center gap-1.5 text-[0.7rem] text-slate-400">
-                                            @if (strtolower($statusName) === 'consulted')
+                                            @if (strtolower($statusName) === 'awaiting_payment')
                                                 <span class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[0.68rem] font-medium text-slate-600 cursor-pointer hover:bg-slate-100" onclick="window.navigateSpa('{{ route('dashboard', ['role' => 'receptionist', 'section' => 'record-payment']) }}&select_appt={{ optional($queue->appointment)->appointment_id }}')">
                                                     <x-lucide-lock class="w-3 h-3" />
                                                     Waiting for payment
@@ -679,14 +679,14 @@
 @php
     $queueAvailableDoctors = $doctorPanelItems
         ->filter(function ($ds) {
-            $spec = strtolower(trim($ds->doctor_specialization ?? ''));
+            $spec = strtolower(trim($ds->doctor_designation ?? ''));
             return in_array($spec, ['general medicine', 'pediatrics']);
         })
         ->map(function ($ds) {
             return [
                 'id' => $ds->doctor_id,
                 'name' => $ds->doctor_name,
-                'specialization' => $ds->doctor_specialization ?? '',
+                'designation' => $ds->doctor_designation ?? '',
             ];
         })->values()->toArray();
 @endphp
@@ -849,7 +849,7 @@
                 if (doctorPickerBody) {
                     doctorPickerBody.innerHTML = doctors.map(function (d) {
                         var isCurrent = String(d.id) === String(currentDoctorId)
-                        var spec = d.specialization ? ('<span class="text-[0.68rem] text-slate-400">' + escapeHtml(d.specialization) + '</span>') : ''
+                        var spec = d.designation ? ('<span class="text-[0.68rem] text-slate-400">' + escapeHtml(d.designation) + '</span>') : ''
                         return '<button type="button" class="rec-queue-doctor-option w-full text-left px-3 py-2.5 rounded-xl border ' +
                             (isCurrent
                                 ? 'border-green-300 bg-green-50 text-green-800 cursor-not-allowed opacity-60'
@@ -858,7 +858,7 @@
                             (isCurrent ? ' disabled' : '') +
                             '>' +
                             '<div class="font-semibold text-[0.78rem]">' + escapeHtml(d.name) + '</div>' +
-                            (d.specialization ? '<div class="text-[0.68rem] text-slate-400">' + escapeHtml(d.specialization) + '</div>' : '') +
+                            (d.designation ? '<div class="text-[0.68rem] text-slate-400">' + escapeHtml(d.designation) + '</div>' : '') +
                             (isCurrent ? '<div class="text-[0.65rem] text-green-600 mt-0.5">Currently assigned</div>' : '') +
                         '</button>'
                     }).join('')
@@ -1414,7 +1414,7 @@
                     if (s === 'serving') return 0
                     if (s === 'waiting' || s === 'skipped') return 1
                     if (s === 'on_hold') return 2
-                    if (s === 'consulted') return 3
+                    if (s === 'awaiting_payment') return 3
                     if (s === 'done') return 4
                     if (s === 'cancelled') return 5
                     if (s === 'no_show') return 6
@@ -2167,7 +2167,7 @@
                 on_hold:    'border-violet-200 bg-violet-50 text-violet-700',
                 cancelled:  'border-red-200 bg-red-50 text-red-700',
                 no_show:    'border-red-200 bg-red-50 text-red-700',
-                consulted:  'border-blue-200 bg-blue-50 text-blue-700',
+                awaiting_payment:  'border-blue-200 bg-blue-50 text-blue-700',
             }
             if (statusMap[rawStatus]) badgeColor = statusMap[rawStatus]
             var statusLabel = rawStatus.replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase() })

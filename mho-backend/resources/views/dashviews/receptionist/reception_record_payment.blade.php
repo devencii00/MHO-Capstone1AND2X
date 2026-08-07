@@ -964,10 +964,10 @@
 
         function renderApptList(list) {
             if (!apptList) return
-            // Only show appointments with consulted or completed status
+            // Only show appointments with awaiting_payment or completed status
             list = list.filter(function (appt) {
                 var s = appt && appt.status ? String(appt.status).toLowerCase() : ''
-                return s === 'consulted' || s === 'completed'
+                return s === 'awaiting_payment' || s === 'completed'
             })
             // Sort paid items to the bottom
             list = list.slice().sort(function (a, b) {

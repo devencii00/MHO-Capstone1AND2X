@@ -166,7 +166,7 @@ class UserController extends Controller
             'account_activated' => ['sometimes', 'boolean'],
             'is_first_login' => ['sometimes', 'boolean'],
             'prc_license' => ['sometimes', 'nullable', 'string'],
-            'specialization' => ['sometimes', 'nullable', 'string'],
+            'designation' => ['sometimes', 'nullable', 'string'],
             'hire_date' => ['sometimes', 'nullable', 'date'],
             'prof_path' => ['sometimes', 'nullable', 'image', 'max:5120'],
         ], [
@@ -186,7 +186,7 @@ class UserController extends Controller
                 $data['account_activated'],
                 $data['is_first_login'],
                 $data['prc_license'],
-                $data['specialization'],
+                $data['designation'],
                 $data['hire_date'],
                 $data['employment_status'],
                 $data['active_in_service'],
@@ -341,7 +341,7 @@ class UserController extends Controller
             'employment_status' => ['nullable', 'in:contractual,permanent'],
             'active_in_service' => ['nullable', 'boolean'],
             'prc_license' => ['nullable', 'string'],
-            'specialization' => ['nullable', 'string'],
+            'designation' => ['nullable', 'string'],
             'employee_number' => ['nullable', 'string'],
             'hire_date' => ['nullable', 'date'],
         ]);

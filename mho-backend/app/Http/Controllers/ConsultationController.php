@@ -54,14 +54,14 @@ class ConsultationController extends Controller
 
         return DB::transaction(function () use ($appointmentId, $doctorId, $items, $data, $currentUser) {
 
-            // 1. Mark appointment as 'consulted'
+            // 1. Mark appointment as 'awaiting_payment'
             $appointment = Appointment::query()->findOrFail($appointmentId);
             $apptStatus = strtolower(trim((string) ($appointment->status ?? '')));
-            if (! in_array($apptStatus, ['completed', 'consulted'], true)) {
-                $appointment->update(['status' => 'consulted']);
+            if (! in_array($apptStatus, ['completed', 'awaiting_payment'], true)) {
+                $appointment->update(['status' => 'awaiting_payment']);
             }
 
-            // 2. If walk-in, update queue status to 'consulted'
+            // 2. If walk-in, update queue status to 'awaiting_payment'
             // Try from explicit queue_id first, then fall back to the appointment's queue relation
             $queueId = ! empty($data['queue_id']) ? (int) $data['queue_id'] : null;
             if (! $queueId) {
@@ -72,7 +72,7 @@ class ConsultationController extends Controller
             }
             if ($queueId) {
                 Queue::query()->where('queue_id', $queueId)
-                    ->update(['status' => 'consulted']);
+                    ->update(['status' => 'awaiting_payment']);
 
                 // Broadcast the queue update so the doctor queue view refreshes in realtime
                 $updatedQueue = Queue::query()->with(['appointment.patient', 'appointment.doctor', 'appointment.services'])

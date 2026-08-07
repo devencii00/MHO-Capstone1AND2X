@@ -334,7 +334,7 @@
                 statusClass = 'border-green-200 bg-green-50 text-green-700'
             } else if (isCheckedIn || statusKey === 'confirmed') {
                 statusClass = 'border-orange-200 bg-orange-50 text-orange-700'
-            } else if (statusKey === 'consulted') {
+            } else if (statusKey === 'awaiting_payment') {
                 statusClass = 'border-purple-200 bg-purple-50 text-purple-700'
             } else if (statusKey === 'cancelled') {
                 statusClass = 'border-rose-200 bg-rose-50 text-rose-700'
@@ -839,7 +839,7 @@
                 var sc = ''
                 if (stKey === 'completed') sc = 'border-green-200 bg-green-50 text-green-700'
                 else if (isCI || stKey === 'confirmed') sc = 'border-orange-200 bg-orange-50 text-orange-700'
-                else if (stKey === 'consulted') sc = 'border-purple-200 bg-purple-50 text-purple-700'
+                else if (stKey === 'awaiting_payment') sc = 'border-purple-200 bg-purple-50 text-purple-700'
                 else if (stKey === 'cancelled') sc = 'border-rose-200 bg-rose-50 text-rose-700'
                 else if (stKey === 'no_show') sc = 'border-slate-200 bg-slate-100 text-slate-600'
                 else if (stKey === 'pending') sc = 'border-amber-200 bg-amber-50 text-amber-700'
@@ -905,7 +905,7 @@
             var sc = ''
             if (stKey === 'completed') sc = 'border-green-200 bg-green-50 text-green-700'
             else if (isCI || stKey === 'confirmed') sc = 'border-orange-200 bg-orange-50 text-orange-700'
-            else if (stKey === 'consulted') sc = 'border-purple-200 bg-purple-50 text-purple-700'
+            else if (stKey === 'awaiting_payment') sc = 'border-purple-200 bg-purple-50 text-purple-700'
             else if (stKey === 'cancelled') sc = 'border-rose-200 bg-rose-50 text-rose-700'
             else if (stKey === 'no_show') sc = 'border-slate-200 bg-slate-100 text-slate-600'
             else if (stKey === 'pending') sc = 'border-amber-200 bg-amber-50 text-amber-700'

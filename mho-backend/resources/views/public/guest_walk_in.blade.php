@@ -264,9 +264,9 @@
                 return g === 'obsterician - gynecologist' || g === 'obstetrician - gynecologist' || g === 'general surgeon'
             }
 
-            function specializationMatches(serviceCategory, doctorSpecialization) {
+            function designationMatches(serviceCategory, doctorDesignation) {
                 var a = normalizeText(serviceCategory)
-                var b = normalizeText(doctorSpecialization)
+                var b = normalizeText(doctorDesignation)
                 if (!a || !b) return false
                 return b.indexOf(a) !== -1 || a.indexOf(b) !== -1
             }
@@ -477,7 +477,7 @@
                         doctorPreview.classList.add('hidden')
                     } else {
                         var label = 'Doctor: ' + doctorDisplayName(doctor)
-                        if (doctor.specialization) label += ' • ' + String(doctor.specialization)
+                        if (doctor.designation) label += ' • ' + String(doctor.designation)
                         doctorPreview.textContent = label
                         doctorPreview.classList.remove('hidden')
                     }
@@ -505,7 +505,7 @@
 
                 var enriched = list.map(function (d) {
                     var name = doctorDisplayName(d)
-                    var spec = d && d.specialization ? String(d.specialization) : ''
+                    var spec = d && d.designation ? String(d.designation) : ''
                     var isDoctorAvailable = d && d.is_available !== false
                     var hasSchedule = !!dayKey && hasScheduleAtTime(d, dayKey, dateStr, checkTime)
                     var isSelectable = isDoctorAvailable && hasSchedule
@@ -556,12 +556,12 @@
                 var category = extractServiceCategory(baseService && baseService.service_name ? baseService.service_name : '')
                 if (category) {
                     list = list.filter(function (d) {
-                        return specializationMatches(category, d && d.specialization ? d.specialization : '')
+                        return designationMatches(category, d && d.designation ? d.designation : '')
                     })
                 }
                 if (q) {
                     list = list.filter(function (d) {
-                        return wordPrefixMatch(doctorDisplayName(d) + ' ' + (d && d.specialization ? d.specialization : ''), q)
+                        return wordPrefixMatch(doctorDisplayName(d) + ' ' + (d && d.designation ? d.designation : ''), q)
                     })
                 }
                 renderDoctorResults(list.slice(0, 20))

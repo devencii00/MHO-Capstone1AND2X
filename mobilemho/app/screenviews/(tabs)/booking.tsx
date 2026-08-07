@@ -80,7 +80,7 @@ type ServiceOption = {
 type DoctorOption = {
   id: string;
   name: string;
-  specialization: string;
+  designation: string;
   scheduleDayKeys: DayKey[];
   hasAnySchedule: boolean;
 };
@@ -494,10 +494,10 @@ export default function BookingScreen() {
   const filteredDoctors = useMemo(() => {
     if (!selectedCategory) return [];
     return doctors.filter((doctor) => {
-      const specialization = normalizeCategory(doctor.specialization);
+      const designation = normalizeCategory(doctor.designation);
       return (
-        specialization.includes(selectedCategory) ||
-        selectedCategory.includes(specialization)
+        designation.includes(selectedCategory) ||
+        selectedCategory.includes(designation)
       );
     });
   }, [doctors, selectedCategory]);
@@ -575,8 +575,8 @@ export default function BookingScreen() {
       id: doctor.id,
       label: doctor.name,
       description: noSchedule
-        ? `${doctor.specialization} • No schedule`
-        : doctor.specialization,
+        ? `${doctor.designation} • No schedule`
+        : doctor.designation,
       disabled: noSchedule,
     };
   });
@@ -722,9 +722,9 @@ export default function BookingScreen() {
             return {
               id: String(doctor?.user_id ?? ""),
               name: formatDoctorName(doctor),
-              specialization:
-                typeof doctor?.specialization === "string"
-                  ? doctor.specialization
+              designation:
+                typeof doctor?.designation === "string"
+                  ? doctor.designation
                   : "Doctor",
               scheduleDayKeys,
               hasAnySchedule: scheduleDayKeys.length > 0,
@@ -936,9 +936,7 @@ export default function BookingScreen() {
     }
 
     if (selectedCategory && selectedCategory !== service.category) {
-      setError(
-        "All selected services must stay under the same specialization.",
-      );
+      setError("All selected services must stay under the same designation.");
       return;
     }
 
@@ -1237,7 +1235,7 @@ export default function BookingScreen() {
                 </Text>
                 <Text style={styles.dropdownHint}>
                   {selectedCategory
-                    ? "Doctors are filtered by specialization match."
+                    ? "Doctors are filtered by designation match."
                     : "Select at least one service to unlock doctors."}
                 </Text>
               </View>
@@ -1469,7 +1467,7 @@ export default function BookingScreen() {
       <SelectionSheet
         visible={serviceSheetOpen}
         title="Select services"
-        subtitle="You can choose multiple services as long as they belong to the same specialization."
+        subtitle="You can choose multiple services as long as they belong to the same designation."
         options={serviceOptions}
         multiSelect
         selectedIds={selectedServiceIds}
@@ -1480,7 +1478,7 @@ export default function BookingScreen() {
       <SelectionSheet
         visible={doctorSheetOpen}
         title="Select doctor"
-        subtitle="Only doctors whose specialization matches the selected services are shown."
+        subtitle="Only doctors whose designation matches the selected services are shown."
         options={doctorOptions}
         selectedIds={selectedDoctorId ? [selectedDoctorId] : []}
         onClose={() => setDoctorSheetOpen(false)}

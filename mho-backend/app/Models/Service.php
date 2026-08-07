@@ -17,6 +17,8 @@ class Service extends Model
 
     protected $fillable = [
         'service_name',
+        'service_category',
+        'requires_consultation',
         'description',
         'price',
         'duration_minutes',
@@ -26,6 +28,7 @@ class Service extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'is_active' => 'bool',
+        'requires_consultation' => 'bool',
         'duration_minutes' => 'integer',
     ];
 

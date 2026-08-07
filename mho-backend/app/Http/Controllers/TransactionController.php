@@ -146,12 +146,12 @@ class TransactionController extends Controller
 
         $appointment = Appointment::query()->with('services')->findOrFail((int) $data['appointment_id']);
 
-        // Only allow transactions for "consulted" appointments
+        // Only allow transactions for "awaiting_payment" appointments
         $appointmentStatus = strtolower(trim((string) ($appointment->status ?? '')));
-        if ($appointmentStatus !== 'consulted') {
+        if ($appointmentStatus !== 'awaiting_payment') {
             return response()->json([
-                'message' => 'Payment can only be recorded for appointments with "Consulted" status.',
-                'code' => 'APPOINTMENT_NOT_CONSULTED',
+                'message' => 'Payment can only be recorded for appointments with "Awaiting_payment" status.',
+                'code' => 'APPOINTMENT_NOT_AWAITING_PAYMENT',
                 'appointment_status' => $appointmentStatus,
             ], 422);
         }
@@ -630,7 +630,7 @@ class TransactionController extends Controller
 
         Queue::query()
             ->where('appointment_id', (int) $appointment->appointment_id)
-            ->whereIn('status', ['waiting', 'serving', 'consulted'])
+            ->whereIn('status', ['waiting', 'serving', 'awaiting_payment'])
             ->update(['status' => 'done']);
     }
 

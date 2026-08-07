@@ -82,7 +82,7 @@ class PublicGuestWalkInController extends Controller
             ->with(['doctorSchedules'])
             ->orderBy('lastname')
             ->orderBy('firstname')
-            ->get(['user_id', 'firstname', 'middlename', 'lastname', 'specialization']);
+            ->get(['user_id', 'firstname', 'middlename', 'lastname', 'designation']);
 
         $doctorPayload = $doctors->map(function (User $doctor) {
             $availability = $this->doctorAvailabilitySnapshot((int) $doctor->user_id);
