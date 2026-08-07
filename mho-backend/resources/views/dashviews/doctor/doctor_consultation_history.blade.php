@@ -320,7 +320,7 @@
     }
 
     function fmtDate(iso) { return iso ? String(iso).replace('T', ' ').slice(0, 10) : '-'; }
-    function fmtDT(iso) { return iso ? String(iso).replace('T', ' ').slice(0, 16) : '-'; }
+    function fmtDT(iso) { return iso ? mhoFormatDateTime(iso) : '-'; }
 
     function loadData(page) {
         if (!tbody) return;

@@ -1776,7 +1776,7 @@
             })
         }
 
-        function recFormatRecordedAt(value) { var raw = value ? String(value) : ''; if (!raw) return '-'; return raw.replace('T', ' ').slice(0, 16) }
+        function recFormatRecordedAt(value) { var raw = value ? String(value) : ''; if (!raw) return '-'; return mhoFormatDateTime(raw) }
         function recFormatNumeric(value, decimals) { if (value == null || value === '') return '-'; var num = typeof value === 'number' ? value : parseFloat(value); if (isNaN(num)) return '-'; return num.toFixed(decimals == null ? 1 : decimals) }
         function recFormatCurrency(value) { if (value == null || value === '') return '-'; var num = typeof value === 'number' ? value : parseFloat(value); if (isNaN(num)) return '-'; return 'PHP ' + num.toFixed(2) }
 
@@ -2463,7 +2463,7 @@
                     var appointment = visit && visit.appointment ? visit.appointment : null
                     var doctor = appointment && appointment.doctor ? appointment.doctor : null
                     var dateRaw = visit && (visit.visit_datetime || visit.transaction_datetime) ? String(visit.visit_datetime || visit.transaction_datetime) : ''
-                    var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
+                    var dateText = dateRaw ? mhoFormatDateTime(dateRaw) : '-'
                     var apptStatus = (appointment && appointment.status) ? String(appointment.status) : ''
                     var statusColors = { pending:'bg-amber-50 text-amber-700 border-amber-200', confirmed:'border-orange-200 bg-orange-50 text-orange-700', completed:'border-green-200 bg-green-50 text-green-700', cancelled:'bg-red-50 text-red-700 border-red-200', no_show:'bg-slate-100 text-slate-600 border-slate-200', awaiting_payment:'border-purple-200 bg-purple-50 text-purple-700', waiting:'bg-amber-50 text-amber-700 border-amber-100', serving:'bg-blue-50 text-blue-700 border-blue-100', done:'bg-emerald-50 text-emerald-700 border-emerald-100', skipped:'bg-orange-50 text-orange-700 border-orange-100', on_hold:'bg-purple-50 text-purple-700 border-purple-100' }
                     var statusClass = statusColors[apptStatus] || 'bg-slate-50 text-slate-600 border-slate-100'
@@ -3223,7 +3223,7 @@
             var services = appt.services || []
             var prescriptions = visit.prescriptions || []
             var dateRaw = visit.visit_datetime || visit.transaction_datetime || ''
-            var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
+            var dateText = dateRaw ? mhoFormatDateTime(dateRaw) : '-'
             var dateEl = document.getElementById('recVisitDetailDate'); if (dateEl) dateEl.textContent = dateText
             var doctorEl = document.getElementById('recVisitDetailDoctor'); if (doctorEl) doctorEl.textContent = recFullName(doctor, 'Doctor')
             var svcHtml = services.length

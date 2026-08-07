@@ -968,7 +968,7 @@
                     var appointment = visit && visit.appointment ? visit.appointment : null
                     var doctor = appointment && appointment.doctor ? appointment.doctor : null
                     var dateRaw = visit && (visit.visit_datetime || visit.transaction_datetime) ? String(visit.visit_datetime || visit.transaction_datetime) : ''
-                    var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
+                    var dateText = dateRaw ? mhoFormatDateTime(dateRaw) : '-'
                     var apptStatus = (appointment && appointment.status) ? String(appointment.status) : ''
                     var statusColors = {
                         pending: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -1102,7 +1102,7 @@
         function formatRecordedAt(value) {
             var raw = value ? String(value) : ''
             if (!raw) return '-'
-            return raw.replace('T', ' ').slice(0, 16)
+            return mhoFormatDateTime(raw)
         }
 
         function formatNumeric(value, decimals) {
@@ -1378,7 +1378,7 @@
                 var appointment = visit && visit.appointment ? visit.appointment : null
                 var doctor = appointment && appointment.doctor ? appointment.doctor : null
                 var dateRaw = visit && (visit.visit_datetime || visit.transaction_datetime) ? String(visit.visit_datetime || visit.transaction_datetime) : ''
-                var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
+                var dateText = dateRaw ? mhoFormatDateTime(dateRaw) : '-'
                 rowsHtml += '<tr class="border-b border-slate-300 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(fullName(doctor, 'Doctor')) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(dateText) + '</td>' +
@@ -1622,7 +1622,7 @@
                 var appointment = visit && visit.appointment ? visit.appointment : null
                 var doctor = appointment && appointment.doctor ? appointment.doctor : null
                 var dateRaw = visit && (visit.visit_datetime || visit.transaction_datetime) ? String(visit.visit_datetime || visit.transaction_datetime) : ''
-                var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
+                var dateText = dateRaw ? mhoFormatDateTime(dateRaw) : '-'
                 rowsHtml += '<tr class="border-b border-slate-300 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(fullName(doctor, 'Doctor')) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(dateText) + '</td>' +
@@ -3203,7 +3203,7 @@
             var prescriptions = visit.prescriptions || []
 
             var dateRaw = visit.visit_datetime || visit.transaction_datetime || ''
-            var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
+            var dateText = dateRaw ? mhoFormatDateTime(dateRaw) : '-'
             setTextById('doctorVisitDetailDate', dateText)
             setTextById('doctorVisitDetailDoctor', fullName(doctor, 'Doctor'))
 

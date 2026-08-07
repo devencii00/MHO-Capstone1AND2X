@@ -77,7 +77,7 @@
                         @php
                             $patientName = $formatUserName($appointment->patient);
                             $labelDate = optional($appointment->appointment_datetime)->format('Y-m-d') ?? '-';
-                            $labelTime = optional($appointment->appointment_datetime)->format('H:i') ?? '-';
+                            $labelTime = mho_time($appointment->appointment_datetime);
                             $statusName = strtolower((string) ($appointment->status ?? ''));
                         @endphp
                         <option
@@ -1080,16 +1080,6 @@
             return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0')
         }
 
-        function formatTime12h(hhmmss) {
-            var t = String(hhmmss || '').slice(0, 5)
-            if (!/^\d{2}:\d{2}$/.test(t)) return t
-            var parts = t.split(':')
-            var h24 = parseInt(parts[0], 10)
-            var h12 = h24 % 12
-            if (h12 === 0) h12 = 12
-            return h12 + ':' + parts[1] + (h24 >= 12 ? ' PM' : ' AM')
-        }
-
         function escapeHtml(value) {
             return String(value == null ? '' : value)
                 .replace(/&/g, '&amp;')
@@ -1207,7 +1197,7 @@
             var patientName = formatName(appt && appt.patient)
             var dt = appt && appt.appointment_datetime ? String(appt.appointment_datetime) : ''
             var labelDate = dt ? dt.slice(0, 10) : '-'
-            var labelTime = dt ? dt.slice(11, 16) : '-'
+            var labelTime = dt ? mhoFormatTime(dt) : '-'
             return patientName + ' - ' + labelDate + ' ' + labelTime
         }
 
@@ -1253,7 +1243,7 @@
             if (!appt) return ''
             var patientName = formatName(appt.patient)
             var dt = appt.appointment_datetime ? String(appt.appointment_datetime) : ''
-            var apptTime = dt ? dt.slice(11, 16) : '-'
+            var apptTime = dt ? mhoFormatTime(dt) : '-'
             var apptDate = dt ? dt.slice(0, 10) : '-'
             var statusKey = normalizeString(appt.status)
             var statusLabel = appointmentStatusLabel(appt.status)
@@ -1351,7 +1341,7 @@
                             scheduledPatientName = [scheduledAppt.patient.firstname, scheduledAppt.patient.lastname].filter(Boolean).join(' ')
                         }
                         var scheduledTime = scheduledAppt && scheduledAppt.appointment_datetime
-                            ? scheduledAppt.appointment_datetime.toString().slice(11, 16)
+                            ? mhoFormatTime(scheduledAppt.appointment_datetime)
                             : ''
                         if (typeof showToast === 'function') {
                             showToast('You have an appointment with ' + (scheduledPatientName || 'patient') + ' at ' + (scheduledTime || 'this time') + '.', 'info', 8000)
@@ -2112,7 +2102,7 @@
 
                 var dt = appt.appointment_datetime || ''
                 var dateStr = dt ? dt.toString().slice(0, 10) : '-'
-                var timeStr = dt ? formatTime12h(dt.toString().slice(11, 16)) : '-'
+                var timeStr = dt ? mhoFormatTime(dt) : '-'
                 state.appointmentServices = Array.isArray(appt.services) ? appt.services : []
                 state.appointmentServicesExpanded = false
                 setText(elApptDateTime, dateStr + ' ' + timeStr)
@@ -2485,11 +2475,11 @@
                         ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400'
                         : (isSelected ? 'border-green-600 bg-green-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'))
                 btn.disabled = isBooked
-                btn.textContent = formatTime12h(startHHMM) + ' - ' + formatTime12h(endHHMM) + (isBooked ? ' · Booked' : '')
+                btn.textContent = mhoFormatTime(startHHMM) + ' - ' + mhoFormatTime(endHHMM) + (isBooked ? ' · Booked' : '')
                 btn.addEventListener('click', function () {
                     followUpState.selectedTime = startHHMM
                     if (followUpSelectionMeta) {
-                        followUpSelectionMeta.textContent = 'Selected: ' + followUpState.selectedDate + ' at ' + formatTime12h(startHHMM)
+                        followUpSelectionMeta.textContent = 'Selected: ' + followUpState.selectedDate + ' at ' + mhoFormatTime(startHHMM)
                     }
                     if (followUpConfirm) followUpConfirm.disabled = false
                     renderFollowUpTimeSlots()
@@ -2666,7 +2656,7 @@
                     service_ids: appointmentServiceIds(),
                 }),
             }).then(function () {
-                state.followUpScheduledSummary = 'Follow-up appointment booked for ' + followUpState.selectedDate + ' at ' + formatTime12h(followUpState.selectedTime) + '.'
+                state.followUpScheduledSummary = 'Follow-up appointment booked for ' + followUpState.selectedDate + ' at ' + mhoFormatTime(followUpState.selectedTime) + '.'
                 updateFollowUpAction()
                 closeFollowUpModal()
                 if (typeof showToast === 'function') showToast('Follow-up appointment booked successfully.', 'success')
@@ -3276,7 +3266,7 @@
             var prescriptions = visit.prescriptions || []
 
             var dateRaw = visit.visit_datetime || visit.transaction_datetime || ''
-            var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
+            var dateText = dateRaw ? mhoFormatDateTime(dateRaw) : '-'
             setTextById('consultVisitDetailDate', dateText)
             setTextById('consultVisitDetailDoctor', fullName(doctor, 'Doctor'))
 
@@ -3660,10 +3650,7 @@
         function formatRecordedAt(value) {
             var raw = value ? String(value) : ''
             if (!raw) return '-'
-            var d = raw.replace('T', ' ')
-            var datePart = d.slice(0, 10)
-            var timePart = d.slice(11, 16)
-            return datePart + ' ' + formatTime12h(timePart)
+            return mhoFormatDateTime(raw)
         }
 
         function formatNumeric(value, decimals) {
@@ -3788,7 +3775,7 @@
                     var appointment = visit && visit.appointment ? visit.appointment : null
                     var doctor = appointment && appointment.doctor ? appointment.doctor : null
                     var dateRaw = visit && (visit.visit_datetime || visit.transaction_datetime) ? String(visit.visit_datetime || visit.transaction_datetime) : ''
-                    var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
+                    var dateText = dateRaw ? mhoFormatDateTime(dateRaw) : '-'
                     var apptStatus = (appointment && appointment.status) ? String(appointment.status) : ''
                     var statusColors = {
                         pending: 'bg-amber-50 text-amber-700 border-amber-200',

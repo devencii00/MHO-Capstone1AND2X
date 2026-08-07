@@ -140,6 +140,25 @@
     
     <script>
         (function () {
+            function mhoFormatTime(value) {
+                if (value === null || value === undefined || value === '') return '-'
+                var raw = String(value).replace('T', ' ').trim()
+                var m = raw.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/)
+                if (!m) return String(value)
+                var h24 = parseInt(m[1], 10)
+                var minute = m[2]
+                var ap = h24 >= 12 ? 'PM' : 'AM'
+                var h12 = h24 % 12
+                if (h12 === 0) h12 = 12
+                return h12 + ':' + minute + ' ' + ap
+            }
+            function mhoFormatDateTime(value) {
+                if (value === null || value === undefined || value === '') return '-'
+                var raw = String(value).replace('T', ' ').trim()
+                var dm = raw.match(/^(\d{4}-\d{2}-\d{2})(?:\s+(\d{1,2}:\d{2}(?::\d{2})?))?/)
+                if (!dm) return String(value)
+                return dm[2] ? dm[1] + ' ' + mhoFormatTime(dm[2]) : dm[1]
+            }
             var prescriptionId = {{ (int) $prescriptionId }};
             var errorBox = document.getElementById('rxError');
 
@@ -231,7 +250,7 @@
                         var doctor = rx.doctor || null;
                         var items = rx.items || [];
 
-                        var dt = rx.prescribed_datetime ? String(rx.prescribed_datetime).replace('T', ' ').slice(0, 16) : '';
+                        var dt = rx.prescribed_datetime ? mhoFormatDateTime(rx.prescribed_datetime) : '';
                         if (rxMeta) rxMeta.textContent = dt ? ('Prescribed: ' + dt) : '-';
 
                         if (patientName) patientName.textContent = nameForUser(patient, 'Patient');

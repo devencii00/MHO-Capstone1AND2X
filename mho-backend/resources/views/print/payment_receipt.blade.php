@@ -76,6 +76,25 @@
     </div>
 
     <script>
+        function mhoFormatTime(value) {
+            if (value === null || value === undefined || value === '') return '-'
+            var raw = String(value).replace('T', ' ').trim()
+            var m = raw.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/)
+            if (!m) return String(value)
+            var h24 = parseInt(m[1], 10)
+            var minute = m[2]
+            var ap = h24 >= 12 ? 'PM' : 'AM'
+            var h12 = h24 % 12
+            if (h12 === 0) h12 = 12
+            return h12 + ':' + minute + ' ' + ap
+        }
+        function mhoFormatDateTime(value) {
+            if (value === null || value === undefined || value === '') return '-'
+            var raw = String(value).replace('T', ' ').trim()
+            var dm = raw.match(/^(\d{4}-\d{2}-\d{2})(?:\s+(\d{1,2}:\d{2}(?::\d{2})?))?/)
+            if (!dm) return String(value)
+            return dm[2] ? dm[1] + ' ' + mhoFormatTime(dm[2]) : dm[1]
+        }
         document.addEventListener('DOMContentLoaded', function () {
             var txnId = {{ $transactionId }};
             var root = document.getElementById('receiptRoot');
@@ -134,7 +153,7 @@
             var change = parseFloat(tx.money_change != null ? tx.money_change : Math.max(0, paid - net)) || 0;
             var discType = tx.discount_type || 'none';
             var mode = (tx.payment_mode || 'cash').toUpperCase();
-            var txnDate = tx.transaction_datetime ? String(tx.transaction_datetime).replace('T', ' ').slice(0, 16) : '-';
+            var txnDate = tx.transaction_datetime ? mhoFormatDateTime(tx.transaction_datetime) : '-';
             var payStatus = (tx.payment_status || '').toLowerCase();
 
             root.querySelector('.receipt-gross').textContent = 'PHP ' + gross.toLocaleString('en-US', {minimumFractionDigits:2});

@@ -528,7 +528,7 @@
         var selectedAppointment = null
         var transactionsSearchTimer = null
         var showDiscount = false
-        var txTodayOnly = false
+        var txTodayOnly = true
         var txServices = []
         var txServicesLoaded = false
         var txServicesLoading = false
@@ -606,18 +606,6 @@
             var n = parseFloat(value || 0)
             if (isNaN(n)) n = 0
             return 'PHP ' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-        }
-
-        function formatTime12h(hhmmss) {
-            var t = String(hhmmss || '').slice(0, 5)
-            if (!/^\d{2}:\d{2}$/.test(t)) return t
-            var parts = t.split(':')
-            var h24 = parseInt(parts[0], 10)
-            var m = parts[1]
-            var ap = h24 >= 12 ? 'PM' : 'AM'
-            var h12 = h24 % 12
-            if (h12 === 0) h12 = 12
-            return h12 + ':' + m + ' ' + ap
         }
 
         function currentSqlDatetime() {
@@ -983,8 +971,8 @@
             }
             apptList.innerHTML = list.map(function (appt, idx) {
                 var patient = appointmentPatientName(appt)
-                var when = appt && appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
-                var timeOnly = when.length >= 16 ? formatTime12h(when.slice(11, 16)) : ''
+                var when = appt && appt.appointment_datetime ? mhoFormatDateTime(appt.appointment_datetime) : '-'
+                var timeOnly = appt && appt.appointment_datetime ? mhoFormatTime(appt.appointment_datetime) : ''
                 var type = normalizeAppointmentType(appt && appt.appointment_type ? appt.appointment_type : '')
                 var typeLabel = type === 'walk_in' ? 'Walk-in' : 'Scheduled'
                 var typeColors = type === 'walk_in' ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-purple-50 text-purple-700 border-purple-200'
@@ -1048,7 +1036,7 @@
             var doctor = appointmentDoctorName(appt)
             var services = servicesFromAppointment(appt)
             var gross = originalAmount(appt)
-            var when = appt && appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
+            var when = appt && appt.appointment_datetime ? mhoFormatDateTime(appt.appointment_datetime) : '-'
 
             // Payment status badge
             var txn = appt && appt.transaction ? appt.transaction : null
@@ -1119,15 +1107,9 @@
 
         function txSetTodayButton() {
             if (!txTodayBtn) return
-            if (txTodayOnly) {
-                txTodayBtn.textContent = 'Showing today only'
-                txTodayBtn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50', 'hover:border-slate-300')
-                txTodayBtn.classList.add('bg-green-600', 'text-white', 'border-green-600', 'hover:bg-green-700', 'hover:border-green-700')
-            } else {
-                txTodayBtn.textContent = 'Show today only'
-                txTodayBtn.classList.add('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50', 'hover:border-slate-300')
-                txTodayBtn.classList.remove('bg-green-600', 'text-white', 'border-green-600', 'hover:bg-green-700', 'hover:border-green-700')
-            }
+            txTodayBtn.textContent = txTodayOnly ? 'Show today only' : 'Show all dates'
+            txTodayBtn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50', 'hover:border-slate-300')
+            txTodayBtn.classList.add('bg-green-600', 'text-white', 'border-green-600', 'hover:bg-green-700', 'hover:border-green-700')
         }
 
         function txServiceSummary(tx) {
@@ -1162,7 +1144,7 @@
         function txDatePart(tx) {
             var raw = tx && tx.transaction_datetime ? String(tx.transaction_datetime) : ''
             if (!raw) raw = tx && tx.created_at ? String(tx.created_at) : ''
-            return raw ? raw.replace('T', ' ').slice(0, 16) : '-'
+            return raw ? mhoFormatDateTime(raw) : '-'
         }
 
         function renderTransactions(rows) {
@@ -1255,10 +1237,6 @@
             var today = yyyy + '-' + mm + '-' + dd
             if (txTodayOnly) {
                 url += '&start_date=' + encodeURIComponent(today) + '&end_date=' + encodeURIComponent(today)
-            } else {
-                var start = yyyy + '-' + mm + '-01'
-                var end = yyyy + '-' + mm + '-' + String(new Date(yyyy, now.getMonth() + 1, 0).getDate()).padStart(2, '0')
-                url += '&start_date=' + encodeURIComponent(start) + '&end_date=' + encodeURIComponent(end)
             }
 
             var search = txSearch ? normalizeText(txSearch.value) : ''
@@ -1388,7 +1366,7 @@
             var html = ''
             list.forEach(function (tx) {
                 var appt = tx && tx.appointment ? tx.appointment : null
-                var dt = tx.transaction_datetime ? String(tx.transaction_datetime).replace('T', ' ').slice(0, 16) : '-'
+                var dt = tx.transaction_datetime ? mhoFormatDateTime(tx.transaction_datetime) : '-'
                 var ref = tx && tx.reference_number ? String(tx.reference_number) : '-'
                 var gross = parseFloat(tx && tx.amount != null ? tx.amount : 0)
                 var disc = parseFloat(tx && tx.discount_amount != null ? tx.discount_amount : 0)
@@ -1451,7 +1429,7 @@
             var net = Math.max(0, gross - disc)
             var discType = tx && tx.discount_type ? String(tx.discount_type) : 'none'
             var mode = tx && tx.payment_mode ? String(tx.payment_mode).toUpperCase() : 'CASH'
-            var txnDate = tx.transaction_datetime ? String(tx.transaction_datetime).replace('T', ' ').slice(0, 16) : '-'
+            var txnDate = tx.transaction_datetime ? mhoFormatDateTime(tx.transaction_datetime) : '-'
             var payStatus = tx && tx.payment_status ? String(tx.payment_status).toLowerCase() : ''
             var paid = parseFloat(tx && tx.money_paid != null ? tx.money_paid : (tx.amount || 0))
             if (isNaN(paid)) paid = gross
@@ -1839,6 +1817,7 @@
             txSetTodayButton()
             txTodayBtn.addEventListener('click', function () {
                 txTodayOnly = !txTodayOnly
+                if (!txTodayOnly && txDate && txDate.value) txDate.value = ''
                 txSetTodayButton()
                 txCurrentPage = 1
                 loadTransactions()

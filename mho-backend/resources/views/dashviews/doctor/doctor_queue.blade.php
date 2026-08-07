@@ -110,7 +110,7 @@
                         @foreach ($onHoldQueueForCards as $queue)
                             @php
                                 $patientName = $formatUserName(optional(optional($queue->appointment)->patient));
-                                $timeKey = optional($queue->queue_datetime)->format('H:i') ?? '-';
+                                $timeKey = mho_time($queue->queue_datetime);
                             @endphp
                             <div class="px-5 py-3.5 hover:bg-slate-50/50 transition-all duration-150">
                                 <div class="flex items-center justify-between gap-3">
@@ -190,7 +190,7 @@
                             $statusName = strtolower((string) ($queue->status ?? ''));
                             $queueId = $queue->queue_id ?? null;
                             $dateKey = optional($queue->queue_datetime)->format('Y-m-d') ?? '';
-                            $timeKey = optional($queue->queue_datetime)->format('H:i') ?? '';
+                            $timeKey = mho_time($queue->queue_datetime);
                             $dateTimeKey = optional($queue->queue_datetime)->format('Y-m-d H:i:s') ?? '';
                             $statusDropdownColor = match($statusName) {
                                 'waiting' => 'text-orange-700 border-orange-300 bg-orange-50',

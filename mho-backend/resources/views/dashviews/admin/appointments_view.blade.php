@@ -370,7 +370,7 @@
 
             var html = ''
             filtered.forEach(function (a) {
-                var dt = a.appointment_datetime ? String(a.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
+                var dt = a.appointment_datetime ? mhoFormatDateTime(a.appointment_datetime) : '-'
                 var doctor = personLabel(a.doctor, '-')
                 html += '<div class="rounded-xl border border-slate-200 bg-white p-3 hover:border-green-200 transition-colors cursor-pointer admin-history-row" data-appointment-id="' + a.appointment_id + '">' +
                     '<div class="flex items-center justify-between mb-1">' +
@@ -462,7 +462,7 @@
             }
             var patient = appt.patient || {}
             var patientName = personLabel(patient, 'N/A')
-            var dt = appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
+            var dt = appt.appointment_datetime ? mhoFormatDateTime(appt.appointment_datetime) : '-'
             var tx = appt.transaction || null
             var services = Array.isArray(appt.services) ? appt.services : []
             var serviceRows = services.length ? services.map(function (s) {
@@ -802,7 +802,7 @@
 
             var html = ''
             sorted.forEach(function (a) {
-                var dt = a.appointment_datetime ? String(a.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
+                var dt = a.appointment_datetime ? mhoFormatDateTime(a.appointment_datetime) : '-'
                 var patient = personLabel(a.patient, 'Patient #' + (a.patient_id || ''))
                 var patientId = a.patient_id || (a.patient && a.patient.user_id) || ''
                 var doctor = personLabel(a.doctor, 'Doctor #' + (a.doctor_id || ''))

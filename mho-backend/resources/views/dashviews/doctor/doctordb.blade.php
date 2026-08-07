@@ -507,7 +507,7 @@
                                         var parts = [patient.firstname, patient.middlename, patient.lastname].filter(function (v) { return v && String(v).trim() !== '' })
                                         var patientName = parts.length ? parts.join(' ') : (patient.email || 'Patient')
                                         var dateStr = a.appointment_datetime ? new Date(a.appointment_datetime).toLocaleDateString() : '-'
-                                        var timeStr = a.appointment_datetime ? new Date(a.appointment_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'
+                                        var timeStr = a.appointment_datetime ? mhoFormatTime(a.appointment_datetime) : '-'
                                         var statusKey = (a.status || '').toLowerCase()
                                         var statusLabel = a.status ? String(a.status).replace(/_/g, ' ') : '-'
                                         var sc = statusColors[statusKey] || 'bg-slate-50 text-slate-600 border-slate-100'
@@ -600,7 +600,7 @@
                             } else {
                                 var scheduleHtml = ''
                                 appts.forEach(function (a) {
-                                    var time = String(a.appointment_datetime || '').slice(11, 16) || '-'
+                                    var time = mhoFormatTime(a.appointment_datetime)
                                     var patient = a.patient || {}
                                     var parts = [patient.firstname, patient.middlename, patient.lastname].filter(function (v) { return String(v || '').trim() !== '' })
                                     var patientName = parts.length ? parts.join(' ') : (patient.email || 'Patient')
@@ -641,7 +641,7 @@
                                     var statusLabel = statusKey ? titleCase(q.status.replace(/_/g, ' ')) : '-'
                                     var sc = queueStatusColors[statusKey] || 'bg-slate-50 text-slate-600 border-slate-100'
                                     var dateKey = String(q.queue_datetime || '').slice(0, 10) || '-'
-                                    var timeKey = String(q.queue_datetime || '').slice(11, 16) || '-'
+                                    var timeKey = q.queue_datetime ? mhoFormatTime(q.queue_datetime) : '-'
                                     activeHtml += '<div class="px-5 py-3.5 hover:bg-slate-50/50 transition-all duration-150">' +
                                         '<div class="flex items-start justify-between gap-3">' +
                                         '<div class="flex-1 min-w-0">' +
@@ -669,7 +669,7 @@
                             } else {
                                 var holdHtml = '<div class="divide-y divide-slate-100">'
                                 onHold.forEach(function (q) {
-                                    var timeKey = String(q.queue_datetime || '').slice(11, 16) || '-'
+                                    var timeKey = q.queue_datetime ? mhoFormatTime(q.queue_datetime) : '-'
                                     holdHtml += '<div class="px-5 py-3.5 hover:bg-slate-50/50 transition-all duration-150">' +
                                         '<div class="flex items-center justify-between gap-3">' +
                                         '<div class="flex items-center gap-2 min-w-0">' +
@@ -819,7 +819,7 @@
 
                         // Right panel – appointment / queue details
                         var apptDate = a.appointment_datetime ? new Date(a.appointment_datetime).toLocaleDateString() : '-'
-                        var apptTime = a.appointment_datetime ? new Date(a.appointment_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'
+                        var apptTime = a.appointment_datetime ? mhoFormatTime(a.appointment_datetime) : '-'
                         var typeLabel = a.appointment_type ? a.appointment_type.replace(/_/g, ' ') : '-'
                         var statusLabel = a.status ? a.status.replace(/_/g, ' ') : '-'
                         var statusKey = a.status ? a.status.toLowerCase() : ''

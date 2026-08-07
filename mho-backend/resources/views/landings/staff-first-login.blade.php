@@ -35,7 +35,13 @@
             </div>
             <div>
                 <label for="staff_new_password_confirmation" class="block text-xs text-slate-600 mb-1">Confirm new password</label>
-                <input type="password" id="staff_new_password_confirmation" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                <div class="relative">
+                    <input type="password" id="staff_new_password_confirmation" class="w-full pr-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    <button type="button" id="staffTogglePasswordConfirm" class="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 text-xl">
+                        <x-lucide-eye id="staffTogglePasswordConfirmEye" class="w-[20px] h-[20px]" />
+                        <x-lucide-eye-off id="staffTogglePasswordConfirmEyeOff" class="hidden w-[20px] h-[20px]" />
+                    </button>
+                </div>
             </div>
             <button id="staffFirstLoginSubmit" type="submit" class="w-full mt-2 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-green-700 text-white text-sm font-semibold hover:from-green-600 hover:to-green-800 transition-colors disabled:opacity-70 disabled:hover:from-green-500 disabled:hover:to-green-700 relative flex items-center justify-center">
                 <span id="staffFirstLoginSpinner" class="hidden absolute w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
@@ -110,6 +116,7 @@
             var newPasswordInput = document.getElementById('staff_new_password')
             var confirmInput = document.getElementById('staff_new_password_confirmation')
             var toggleBtn = document.getElementById('staffTogglePassword')
+            var toggleConfirmBtn = document.getElementById('staffTogglePasswordConfirm')
             var submitBtn = document.getElementById('staffFirstLoginSubmit')
             var submitSpinner = document.getElementById('staffFirstLoginSpinner')
             var submitLabel = document.getElementById('staffFirstLoginSubmitLabel')
@@ -125,6 +132,12 @@
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', function () {
                     togglePasswordVisibility('staff_new_password', 'staffTogglePasswordEye', 'staffTogglePasswordEyeOff')
+                })
+            }
+
+            if (toggleConfirmBtn) {
+                toggleConfirmBtn.addEventListener('click', function () {
+                    togglePasswordVisibility('staff_new_password_confirmation', 'staffTogglePasswordConfirmEye', 'staffTogglePasswordConfirmEyeOff')
                 })
             }
 

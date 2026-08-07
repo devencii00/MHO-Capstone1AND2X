@@ -651,18 +651,6 @@ function setWalkInTab(tab) {
             }
         }
 
-        function formatTime12h(hhmm) {
-            var value = String(hhmm || '').slice(0, 5)
-            if (!/^\d{2}:\d{2}$/.test(value)) return value || '-'
-            var parts = value.split(':')
-            var hour = parseInt(parts[0], 10)
-            var minute = parts[1]
-            var suffix = hour >= 12 ? 'PM' : 'AM'
-            var hour12 = hour % 12
-            if (!hour12) hour12 = 12
-            return hour12 + ':' + minute + ' ' + suffix
-        }
-
         function personName(person, fallback) {
             var parts = person ? [person.firstname, person.middlename, person.lastname] : []
             var name = parts.filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim()
@@ -778,7 +766,7 @@ function setWalkInTab(tab) {
 
                 return '' +
                     '<tr>' +
-                        '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(formatTime12h(when.time)) + '</td>' +
+                        '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(mhoFormatTime(when.time)) + '</td>' +
                         '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(patientName) + '</td>' +
                         '<td class="px-3 py-2 text-slate-700 truncate max-w-[18rem]" title="' + escapeHtml(serviceSummary(appt).replace(/"/g, '&quot;')) + '">' + escapeHtml(serviceSummary(appt)) + '</td>' +
                         '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(doctorName) + '</td>' +
@@ -1150,7 +1138,7 @@ function setWalkInTab(tab) {
 
             var html = ''
             filtered.forEach(function (a) {
-                var dt = a.appointment_datetime ? String(a.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
+                var dt = a.appointment_datetime ? mhoFormatDateTime(a.appointment_datetime) : '-'
                 var doctor = a.doctor ? personName(a.doctor, '-') : '-'
                 var typeLabel = a.appointment_type ? String(a.appointment_type).replace(/_/g, ' ') : '-'
                 var services = Array.isArray(a.services) ? a.services : []
@@ -1206,7 +1194,7 @@ function setWalkInTab(tab) {
         function renderWalkinAppointmentDetail(appt) {
             var detailBody = document.getElementById('receptionWalkInHistDetailBody')
             if (!detailBody) return
-            var dt = appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
+            var dt = appt.appointment_datetime ? mhoFormatDateTime(appt.appointment_datetime) : '-'
             var tx = appt.transaction || null
             var services = Array.isArray(appt.services) ? appt.services : []
             var serviceRows = services.length ? services.map(function (s) {
@@ -3013,17 +3001,7 @@ function setWalkInTab(tab) {
 
         function formatAppointmentVisitLabel(value) {
             if (!value) return 'No walk-in visit yet.'
-            var date = new Date(value)
-            if (isNaN(date.getTime())) {
-                return String(value || '').replace('T', ' ').slice(0, 16) || 'No walk-in visit yet.'
-            }
-            return date.toLocaleString(undefined, {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit'
-            })
+            return mhoFormatDateTime(value)
         }
 
         function setPatientSummaryCard(summary) {
@@ -3822,18 +3800,6 @@ function setWalkInTab(tab) {
             return (parseInt(parts[0], 10) * 60) + parseInt(parts[1], 10)
         }
 
-        function formatTime12h(hhmmss) {
-            var t = String(hhmmss || '').slice(0, 5)
-            if (!/^\d{2}:\d{2}$/.test(t)) return t
-            var parts = t.split(':')
-            var h24 = parseInt(parts[0], 10)
-            var m = parts[1]
-            var ap = h24 >= 12 ? 'PM' : 'AM'
-            var h12 = h24 % 12
-            if (h12 === 0) h12 = 12
-            return h12 + ':' + m + ' ' + ap
-        }
-
         function readResponse(response) {
             return response.text().then(function (text) {
                 var data = null
@@ -4182,7 +4148,7 @@ function setWalkInTab(tab) {
 
             if (timeTrigger) {
                 timeTrigger.disabled = false
-                timeTrigger.textContent = selectedSlotStart ? ('Selected: ' + formatTime12h(selectedSlotStart)) : 'Select a time slot'
+                timeTrigger.textContent = selectedSlotStart ? ('Selected: ' + mhoFormatTime(selectedSlotStart)) : 'Select a time slot'
             }
 
             slots.forEach(function (slot) {
@@ -4190,7 +4156,7 @@ function setWalkInTab(tab) {
                 var endHHMM = hhmmFromMinutes(slot.end)
                 var isBooked = !!bookedSet[startHHMM]
                 var isSelected = String(selectedSlotStart || '') === startHHMM
-                var label = formatTime12h(startHHMM) + '–' + formatTime12h(endHHMM)
+                var label = mhoFormatTime(startHHMM) + '–' + mhoFormatTime(endHHMM)
 
                 var btn = document.createElement('button')
                 btn.type = 'button'

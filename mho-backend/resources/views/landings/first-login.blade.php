@@ -38,7 +38,13 @@
             </div>
             <div>
                 <label for="new_password_confirmation" class="block text-xs text-slate-600 mb-1">Confirm new password</label>
-                <input type="password" id="new_password_confirmation" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                <div class="relative">
+                    <input type="password" id="new_password_confirmation" class="w-full pr-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    <button type="button" id="toggleNewPasswordConfirm" class="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 text-xl">
+                        <x-lucide-eye id="toggleNewPasswordConfirmEye" class="w-[20px] h-[20px]" />
+                        <x-lucide-eye-off id="toggleNewPasswordConfirmEyeOff" class="hidden w-[20px] h-[20px]" />
+                    </button>
+                </div>
             </div>
             <button id="firstLoginSubmit" type="submit" class="w-full mt-2 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-green-700 text-white text-sm font-semibold hover:from-green-600 hover:to-green-800 transition-colors disabled:opacity-70 disabled:hover:from-green-500 disabled:hover:to-green-700 relative flex items-center justify-center">
                 <span id="firstLoginSpinner" class="hidden absolute w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
@@ -154,6 +160,7 @@
             const newPasswordInput = document.getElementById('new_password');
             const newPasswordConfirmInput = document.getElementById('new_password_confirmation');
             const toggleNewPassword = document.getElementById('toggleNewPassword');
+            const toggleNewPasswordConfirm = document.getElementById('toggleNewPasswordConfirm');
             const newEmailError = document.getElementById('newEmailError');
             const newPasswordError = document.getElementById('newPasswordError');
             const submitBtn = document.getElementById('firstLoginSubmit');
@@ -163,6 +170,12 @@
             if (toggleNewPassword) {
                 toggleNewPassword.addEventListener('click', function () {
                     togglePasswordVisibility('new_password', 'toggleNewPasswordEye', 'toggleNewPasswordEyeOff');
+                });
+            }
+
+            if (toggleNewPasswordConfirm) {
+                toggleNewPasswordConfirm.addEventListener('click', function () {
+                    togglePasswordVisibility('new_password_confirmation', 'toggleNewPasswordConfirmEye', 'toggleNewPasswordConfirmEyeOff');
                 });
             }
 

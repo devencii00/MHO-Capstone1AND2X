@@ -387,7 +387,7 @@
                             </td>
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-500">{{ $priority }} - {{ $priorityLabel }}</td>
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
-                                {{ $dateKey }}
+                                {{ mho_time($queue->queue_datetime) }}
                             </td>
                             <td class="py-2 pr-4 text-[0.78rem] text-slate-500">
                                 @if ($statusName)
@@ -1206,7 +1206,7 @@
             var doctor = appt.doctor || null
             var pName = patient ? [patient.firstname, patient.middlename, patient.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim() : ''
             var dName = doctor ? [doctor.firstname, doctor.middlename, doctor.lastname].filter(function (v) { return String(v || '').trim() !== '' }).join(' ').trim() : ''
-            var when = appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : 'Queue request'
+            var when = appt.appointment_datetime ? mhoFormatDateTime(appt.appointment_datetime) : 'Queue request'
             return (pName || 'Patient') + ' · ' + (dName || 'Doctor') + ' · ' + when
         }
 

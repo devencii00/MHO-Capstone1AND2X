@@ -1745,17 +1745,7 @@ function setAppointmentTab(tab) {
 
         function formatAppointmentVisitLabel(value) {
             if (!value) return 'No scheduled visit yet.'
-            var date = new Date(value)
-            if (isNaN(date.getTime())) {
-                return String(value || '').replace('T', ' ').slice(0, 16) || 'No scheduled visit yet.'
-            }
-            return date.toLocaleString(undefined, {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit'
-            })
+            return mhoFormatDateTime(value)
         }
 
         function setPatientSummaryCard(summary) {
@@ -2009,18 +1999,6 @@ function setAppointmentTab(tab) {
             return (parseInt(parts[0], 10) * 60) + parseInt(parts[1], 10)
         }
 
-        function formatTime12h(hhmmss) {
-            var t = String(hhmmss || '').slice(0, 5)
-            if (!/^\d{2}:\d{2}$/.test(t)) return t
-            var parts = t.split(':')
-            var h24 = parseInt(parts[0], 10)
-            var m = parts[1]
-            var ap = h24 >= 12 ? 'PM' : 'AM'
-            var h12 = h24 % 12
-            if (h12 === 0) h12 = 12
-            return h12 + ':' + m + ' ' + ap
-        }
-
         function readResponse(response) {
             return response.text().then(function (text) {
                 var data = null
@@ -2070,7 +2048,7 @@ function setAppointmentTab(tab) {
             var time = timeInput ? timeInput.value : ''
             if (date && time) {
                 scheduleCard.classList.remove('hidden')
-                scheduleCardText.textContent = friendlyDateLabelFromIso(date) + ' · ' + formatTime12h(time)
+                scheduleCardText.textContent = friendlyDateLabelFromIso(date) + ' · ' + mhoFormatTime(time)
                 scheduleTrigger.textContent = 'Change Schedule'
             } else {
                 scheduleCard.classList.add('hidden')
@@ -2782,7 +2760,7 @@ function setAppointmentTab(tab) {
                 var endHHMM = hhmmFromMinutes(slot.end)
                 var isBooked = !!bookedSet[startHHMM]
                 var isSelected = String(selectedSlotStart || '') === startHHMM
-                var label = formatTime12h(startHHMM) + '–' + formatTime12h(endHHMM)
+                var label = mhoFormatTime(startHHMM) + '–' + mhoFormatTime(endHHMM)
 
                 var btn = document.createElement('button')
                 btn.type = 'button'
@@ -2798,7 +2776,7 @@ function setAppointmentTab(tab) {
                 btn.addEventListener('click', function () {
                     selectedSlotStart = startHHMM
                     if (timeInput) timeInput.value = startHHMM
-                    if (scheduleTimeHint) scheduleTimeHint.textContent = 'Selected: ' + formatTime12h(startHHMM)
+                    if (scheduleTimeHint) scheduleTimeHint.textContent = 'Selected: ' + mhoFormatTime(startHHMM)
                     if (scheduleSetBtn) scheduleSetBtn.disabled = false
                     renderScheduleTimeSlotsInModal()
                 })
@@ -3199,7 +3177,7 @@ function setAppointmentTab(tab) {
                     'Doctor': selectedDoctor ? doctorLabel(selectedDoctor) : ('#' + String(doctorId)),
                     'Services': (selectedServices || []).map(function (s) { return s && s.service_name ? s.service_name : '' }).filter(Boolean).join(', ') || 'N/A',
                     'Date': date || 'N/A',
-                    'Time': time ? formatTime12h(time) : 'N/A',
+                    'Time': time ? mhoFormatTime(time) : 'N/A',
                     'Reason': reason || 'N/A'
                 }
 
@@ -3671,7 +3649,7 @@ function updateManageTodayButton() {
             return (
                 '<tr data-appointment-id="' + escapeHtml(id) + '">' +
                     '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.date || '-') + '</td>' +
-                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.time ? formatTime12h(when.time) : '-') + '</td>' +
+                    '<td class="px-3 py-2 text-slate-700 whitespace-nowrap">' + escapeHtml(when.time ? mhoFormatTime(when.time) : '-') + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + escapeHtml(patientName) + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 truncate max-w-[18rem]" title="' + escapeHtml(serviceText.replace(/"/g, '&quot;')) + '">' + escapeHtml(serviceText) + '</td>' +
                     '<td class="px-3 py-2 text-slate-700 min-w-[12rem] whitespace-nowrap">' + doctorCell + '</td>' +
@@ -3773,7 +3751,7 @@ function updateManageTodayButton() {
                 var aid = a.id || a.appointment_id || ''
                 var w = safeIsoParts(a && a.appointment_datetime ? String(a.appointment_datetime) : '')
                 var d = w ? (w.date || '') : ''
-                var t = w ? (w.time ? formatTime12h(w.time) : '') : ''
+                var t = w ? (w.time ? mhoFormatTime(w.time) : '') : ''
                 var doctor = a.doctor ? personName(a.doctor, '-') : '-'
                 var stLabel = manageStatusLabel(a)
                 var stKey = String(a && a.status ? a.status : '').toLowerCase()
@@ -3898,7 +3876,7 @@ function updateManageTodayButton() {
             else if (stKey === 'pending') sc = 'border-amber-200 bg-amber-50 text-amber-700'
             else sc = 'border-slate-200 bg-slate-100 text-slate-600'
 
-            var dt = appt.appointment_datetime ? String(appt.appointment_datetime).replace('T', ' ').slice(0, 16) : '-'
+            var dt = appt.appointment_datetime ? mhoFormatDateTime(appt.appointment_datetime) : '-'
             var tx = appt.transaction || null
             var services = Array.isArray(appt.services) ? appt.services : []
             var serviceRows = services.length ? services.map(function (s) {

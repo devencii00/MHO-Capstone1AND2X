@@ -189,6 +189,36 @@
     </script>
 
     <script>
+        // ── Global time formatters (single source of truth for 12hr AM/PM display) ──
+        // Accepts "HH:MM", "HH:MM:SS", "YYYY-MM-DD HH:MM[:SS]", or ISO "YYYY-MM-DDTHH:MM:SS"
+        // (server serializes Manila Y-m-d H:i:s; the T/offset variants are tolerated too).
+        // Always returns 12-hour "h:mm AM/PM". Never re-interprets timezones — it only
+        // re-formats the string the server already sent, so it is safe on any machine.
+        window.mhoFormatTime = function (value) {
+            if (value === null || value === undefined || value === '') return '-'
+            var raw = String(value).replace('T', ' ').trim()
+            var m = raw.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/)
+            if (!m) return String(value)
+            var h24 = parseInt(m[1], 10)
+            var minute = m[2]
+            var ap = h24 >= 12 ? 'PM' : 'AM'
+            var h12 = h24 % 12
+            if (h12 === 0) h12 = 12
+            return h12 + ':' + minute + ' ' + ap
+        }
+
+        // Full datetime "YYYY-MM-DD h:mm AM/PM" (e.g. "2025-07-10 2:30 PM").
+        // Passes through date-only values unchanged and falls back to the raw string.
+        window.mhoFormatDateTime = function (value) {
+            if (value === null || value === undefined || value === '') return '-'
+            var raw = String(value).replace('T', ' ').trim()
+            var dm = raw.match(/^(\d{4}-\d{2}-\d{2})(?:\s+(\d{1,2}:\d{2}(?::\d{2})?))?/)
+            if (!dm) return String(value)
+            return dm[2] ? dm[1] + ' ' + window.mhoFormatTime(dm[2]) : dm[1]
+        }
+    </script>
+
+    <script>
         // Fetch fresh data for a dashboard section. Pages call this from their init
         // function every time the cached shell is shown, then replace skeletons.
         window.fetchDashboardData = function (section, extraParams) {

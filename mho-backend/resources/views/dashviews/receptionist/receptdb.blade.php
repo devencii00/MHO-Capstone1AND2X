@@ -269,7 +269,7 @@
 
                 function formatTime(dt) {
                     try {
-                        return dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        return new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit', hour12: true }).format(dt)
                     } catch (_) {
                         return ''
                     }
@@ -428,7 +428,7 @@ if (!next.length) {
                                 if (nextQueueLabel) nextQueueLabel.textContent = 'Call next'
                             }
 
-                            var stamp = 'Updated ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            var stamp = 'Updated ' + new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit', hour12: true }).format(now)
                             if (nextApptsMeta) nextApptsMeta.textContent = stamp
                             if (nextQueueMeta) nextQueueMeta.textContent = stamp
                         })
