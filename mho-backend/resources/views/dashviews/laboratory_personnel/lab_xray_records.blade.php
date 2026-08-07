@@ -31,9 +31,9 @@
             </select>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto overflow-y-auto scrollbar-hidden min-h-[400px]">
             <table class="w-full text-left text-[0.75rem] text-slate-600 whitespace-nowrap">
-                <thead class="text-slate-500 border-b border-slate-100 bg-slate-50/60">
+                <thead class="text-slate-500 border-b border-slate-300 bg-slate-50/60">
                     <tr>
                         <th class="px-4 py-3 font-semibold text-[0.68rem] uppercase tracking-widest">Patient ID</th>
                         <th class="px-4 py-3 font-semibold text-[0.68rem] uppercase tracking-widest">Patient Name</th>
@@ -43,15 +43,15 @@
                         <th class="px-4 py-3 font-semibold text-[0.68rem] uppercase tracking-widest text-right">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100" id="labXrRecTableBody">
+                <tbody class="divide-y divide-slate-300" id="labXrRecTableBody">
                     <tr>
                         <td colspan="6" class="px-4 py-12 text-center">
-                            <div class="flex flex-col items-center gap-2">
-                                <div class="w-14 h-14 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
-                                    <x-lucide-scan-line class="w-7 h-7" />
+                            <div class="flex flex-col items-center gap-2.5">
+                                <div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
+                                    <x-lucide-scan-line class="w-5 h-5" />
                                 </div>
-                                <p class="text-slate-400 text-[0.8rem] font-medium">No x-ray records found</p>
-                                <p class="text-slate-400 text-[0.7rem]">Records will appear here once the backend is connected.</p>
+                                <p class="text-sm font-medium text-slate-400">No x-ray records found</p>
+                                <p class="text-[0.7rem] text-slate-400">Records will appear here once the backend is connected.</p>
                             </div>
                         </td>
                     </tr>
@@ -96,8 +96,8 @@
         if (!rows.length) {
             body.innerHTML = '<tr><td colspan="6" class="px-4 py-12 text-center">' +
                 '<div class="flex flex-col items-center gap-2">' +
-                '<div class="w-14 h-14 rounded-full bg-slate-50 flex items-center justify-center text-slate-300"><svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg></div>' +
-                '<p class="text-slate-400 text-[0.8rem] font-medium">No matching records</p></div></td></tr>'
+                '<div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg></div>' +
+                '<p class="text-sm font-medium text-slate-400">No matching records</p></div></td></tr>'
             if (countEl) countEl.textContent = 'Showing 0 records'
             return
         }

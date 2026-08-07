@@ -31,9 +31,9 @@
             </select>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto overflow-y-auto scrollbar-hidden min-h-[400px]">
             <table class="w-full text-left text-[0.75rem] text-slate-600 whitespace-nowrap">
-                <thead class="text-slate-500 border-b border-slate-100 bg-slate-50/60">
+                <thead class="text-slate-500 border-b border-slate-300 bg-slate-50/60">
                     <tr>
                         <th class="px-4 py-3 font-semibold text-[0.68rem] uppercase tracking-widest">Patient ID</th>
                         <th class="px-4 py-3 font-semibold text-[0.68rem] uppercase tracking-widest">Last Name</th>
@@ -44,15 +44,15 @@
                         <th class="px-4 py-3 font-semibold text-[0.68rem] uppercase tracking-widest text-right">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100" id="labLabRecTableBody">
+                <tbody class="divide-y divide-slate-300" id="labLabRecTableBody">
                     <tr>
                         <td colspan="7" class="px-4 py-12 text-center">
-                            <div class="flex flex-col items-center gap-2">
-                                <div class="w-14 h-14 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
-                                    <x-lucide-flask-conical class="w-7 h-7" />
+                            <div class="flex flex-col items-center gap-2.5">
+                                <div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
+                                    <x-lucide-flask-conical class="w-5 h-5" />
                                 </div>
-                                <p class="text-slate-400 text-[0.8rem] font-medium">No laboratory records found</p>
-                                <p class="text-slate-400 text-[0.7rem]">Records will appear here once the backend is connected.</p>
+                                <p class="text-sm font-medium text-slate-400">No laboratory records found</p>
+                                <p class="text-[0.7rem] text-slate-400">Records will appear here once the backend is connected.</p>
                             </div>
                         </td>
                     </tr>
@@ -146,8 +146,8 @@
         if (!rows.length) {
             body.innerHTML = '<tr><td colspan="7" class="px-4 py-12 text-center">' +
                 '<div class="flex flex-col items-center gap-2">' +
-                '<div class="w-14 h-14 rounded-full bg-slate-50 flex items-center justify-center text-slate-300"><svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg></div>' +
-                '<p class="text-slate-400 text-[0.8rem] font-medium">No matching records</p></div></td></tr>'
+                '<div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg></div>' +
+                '<p class="text-sm font-medium text-slate-400">No matching records</p></div></td></tr>'
             if (countEl) countEl.textContent = 'Showing 0 records'
             return
         }
