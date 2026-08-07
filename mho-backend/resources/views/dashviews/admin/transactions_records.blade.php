@@ -35,7 +35,7 @@
     <div class="overflow-x-auto scrollbar-hidden">
         <table class="min-w-full text-left text-xs text-slate-600">
             <thead>
-                <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
+                <tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400">
                     <th class="py-2 pr-4 font-semibold">Transaction</th>
                     <th class="py-2 pr-4 font-semibold">Patient</th>
                     <th class="py-2 pr-4 font-semibold">Amount</th>
@@ -57,7 +57,7 @@
                         ];
                         $statusClass = $statusColors[$status] ?? 'bg-slate-50 text-slate-600 border-slate-100';
                     @endphp
-                    <tr class="border-b border-slate-50 last:border-0 admin-txn-row"
+                    <tr class="border-b border-slate-300 last:border-0 admin-txn-row"
                         data-txn-id="{{ $transaction->transaction_id }}"
                         data-patient="{{ strtolower($patientName) }}"
                         data-ref="{{ strtolower($transaction->reference_number ?? '') }}"
@@ -93,8 +93,13 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="py-4 text-center text-[0.78rem] text-slate-400">
-                            No transactions recorded yet.
+                        <td colspan="5" class="py-12 text-center">
+                            <div class="flex flex-col items-center justify-center gap-2.5">
+                                <div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
+                                    <x-lucide-inbox class="w-5 h-5" />
+                                </div>
+                                <span class="text-sm font-medium text-slate-400">No transactions recorded yet.</span>
+                            </div>
                         </td>
                     </tr>
                 @endforelse

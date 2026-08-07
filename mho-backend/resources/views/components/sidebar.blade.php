@@ -535,6 +535,93 @@
                     
                 @endif
             </a>
+        @elseif ($roleKey === 'laboratory_personnel')
+            @php
+                $isLabRecords = $currentSection === 'records' || $currentSection === 'records-view';
+                $isLabResults = $currentSection === 'results' || in_array($currentSection, ['lab-result', 'ultrasound-result', 'xray-result', 'xray-pdf']);
+                $isLabLaboratoryRecords = $currentSection === 'laboratory-records';
+                $isLabUltrasoundRecords = $currentSection === 'ultrasound-records';
+                $isLabXrayRecords = $currentSection === 'xray-records';
+                $isLabSettings = $currentSection === 'settings-lab';
+
+                $groupHeaderBase = 'sidebar-group-header flex items-center justify-between gap-2 pt-4 pb-1 text-slate-400 text-[0.67rem] font-semibold uppercase tracking-widest';
+                $groupToggleBtn = 'inline-flex items-center justify-center w-7 h-7 rounded-lg hover:bg-slate-50 text-slate-400 hover:text-slate-700';
+            @endphp
+
+            <div class="{{ $groupHeaderBase }}">
+                <div>Laboratory Work</div>
+                <button type="button" class="{{ $groupToggleBtn }} sidebar-group-toggle" data-group="lab-work">
+                    <x-lucide-chevron-down class="sidebar-group-icon-expanded w-[18px] h-[18px]" />
+                    <x-lucide-chevron-right class="sidebar-group-icon-collapsed hidden w-[18px] h-[18px]" />
+                </button>
+            </div>
+            <div data-group-body="lab-work">
+                <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'records']) }}" class="{{ $navBase }} {{ $isLabRecords ? $navActive : $navInactive }}">
+                    <x-lucide-folder-open class="w-[18px] h-[18px] {{ $isLabRecords ? 'text-green-600' : '' }}" />
+                    Patient Records
+                    @if ($isLabRecords)
+                        
+                    @endif
+                </a>
+
+                <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'results']) }}" class="{{ $navBase }} {{ $isLabResults ? $navActive : $navInactive }} mb-3">
+                    <x-lucide-clipboard-list class="w-[18px] h-[18px] {{ $isLabResults ? 'text-green-600' : '' }}" />
+                    Medical Results
+                    @if ($isLabResults)
+                        
+                    @endif
+                </a>
+            </div>
+
+            <div class="{{ $groupHeaderBase }}">
+                <div>Departments</div>
+                <button type="button" class="{{ $groupToggleBtn }} sidebar-group-toggle" data-group="lab-departments">
+                    <x-lucide-chevron-down class="sidebar-group-icon-expanded w-[18px] h-[18px]" />
+                    <x-lucide-chevron-right class="sidebar-group-icon-collapsed hidden w-[18px] h-[18px]" />
+                </button>
+            </div>
+            <div data-group-body="lab-departments">
+                <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'laboratory-records']) }}" class="{{ $navBase }} {{ $isLabLaboratoryRecords ? $navActive : $navInactive }}">
+                    <x-lucide-flask-conical class="w-[18px] h-[18px] {{ $isLabLaboratoryRecords ? 'text-green-600' : '' }}" />
+                    Laboratory
+                    @if ($isLabLaboratoryRecords)
+                        
+                    @endif
+                </a>
+
+                <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'ultrasound-records']) }}" class="{{ $navBase }} {{ $isLabUltrasoundRecords ? $navActive : $navInactive }}">
+                    <x-lucide-activity class="w-[18px] h-[18px] {{ $isLabUltrasoundRecords ? 'text-green-600' : '' }}" />
+                    Ultrasound
+                    @if ($isLabUltrasoundRecords)
+                        
+                    @endif
+                </a>
+
+                <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'xray-records']) }}" class="{{ $navBase }} {{ $isLabXrayRecords ? $navActive : $navInactive }}">
+                    <x-lucide-scan-line class="w-[18px] h-[18px] {{ $isLabXrayRecords ? 'text-green-600' : '' }}" />
+                    X-Ray
+                    @if ($isLabXrayRecords)
+                        
+                    @endif
+                </a>
+            </div>
+
+            <div class="{{ $groupHeaderBase }}">
+                <div>System</div>
+                <button type="button" class="{{ $groupToggleBtn }} sidebar-group-toggle" data-group="lab-system">
+                    <x-lucide-chevron-down class="sidebar-group-icon-expanded w-[18px] h-[18px]" />
+                    <x-lucide-chevron-right class="sidebar-group-icon-collapsed hidden w-[18px] h-[18px]" />
+                </button>
+            </div>
+            <div data-group-body="lab-system">
+                <a href="{{ route('dashboard', ['role' => $roleKey, 'section' => 'settings-lab']) }}" class="{{ $navBase }} {{ $isLabSettings ? $navActive : $navInactive }}">
+                    <x-lucide-settings class="w-[18px] h-[18px] {{ $isLabSettings ? 'text-green-600' : '' }}" />
+                    Settings
+                    @if ($isLabSettings)
+                        
+                    @endif
+                </a>
+            </div>
         @endif
     </nav>
 

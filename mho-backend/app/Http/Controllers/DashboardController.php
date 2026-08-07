@@ -20,7 +20,7 @@ class DashboardController extends Controller
     {
         $role = strtolower($role);
 
-        $allowed = ['admin', 'doctor', 'receptionist', 'patient'];
+        $allowed = ['admin', 'doctor', 'receptionist', 'patient', 'laboratory_personnel'];
 
         if (! in_array($role, $allowed, true)) {
             abort(404);

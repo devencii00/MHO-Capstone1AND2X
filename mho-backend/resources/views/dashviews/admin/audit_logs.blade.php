@@ -43,10 +43,10 @@
             </div>
         </div>
 
-       <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[400px]">
+       <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 min-h-[400px]">
             <table class="min-w-full text-left text-xs text-slate-600">
                 <thead>
-                    <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
+                    <tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400">
                         <th class="py-2 pr-4 font-semibold">When</th>
                         <th class="py-2 pr-4 font-semibold">User</th>
                         <th class="py-2 pr-4 font-semibold">Action</th>
@@ -54,19 +54,19 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="admin-audit-skeleton border-b border-slate-50">
+                    <tr class="admin-audit-skeleton border-b border-slate-300">
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-24"></span></td>
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
                     </tr>
-                    <tr class="admin-audit-skeleton border-b border-slate-50">
+                    <tr class="admin-audit-skeleton border-b border-slate-300">
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-24"></span></td>
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
                     </tr>
-                    <tr class="admin-audit-skeleton border-b border-slate-50">
+                    <tr class="admin-audit-skeleton border-b border-slate-300">
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-24"></span></td>
@@ -107,27 +107,27 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[400px]">
+        <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 min-h-[400px]">
             <table class="min-w-full text-left text-xs text-slate-600">
                 <thead>
-                    <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
+                    <tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400">
                         <th class="py-2 pr-4 font-semibold">When</th>
                         <th class="py-2 pr-4 font-semibold">User</th>
                         <th class="py-2 pr-4 font-semibold">Record</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="admin-access-skeleton border-b border-slate-50">
+                    <tr class="admin-access-skeleton border-b border-slate-300">
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
                     </tr>
-                    <tr class="admin-access-skeleton border-b border-slate-50">
+                    <tr class="admin-access-skeleton border-b border-slate-300">
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
                     </tr>
-                    <tr class="admin-access-skeleton border-b border-slate-50">
+                    <tr class="admin-access-skeleton border-b border-slate-300">
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
                         <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
@@ -535,10 +535,10 @@
             if (!tbody) return
             Array.prototype.forEach.call(tbody.querySelectorAll('.admin-audit-skeleton'), function (s) { s.parentNode.removeChild(s) })
             if (!list || !list.length) {
-                tbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">No audit logs recorded yet.</td></tr>'
+                tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center"><div class="flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No audit logs recorded yet.</span></div></td></tr>'
             } else {
                 tbody.innerHTML = list.map(function (log) {
-                    return '<tr class="border-b border-slate-50 last:border-0 admin-audit-row" ' +
+                    return '<tr class="border-b border-slate-300 last:border-0 admin-audit-row" ' +
                         'data-user="' + escapeHtmlLogs(String(log.user_email || '').toLowerCase()) + '" ' +
                         'data-table="' + escapeHtmlLogs(String(log.table_name || '').toLowerCase()) + '" ' +
                         'data-action="' + escapeHtmlLogs(String(log.action || '').toLowerCase()) + '" ' +
@@ -560,10 +560,10 @@
             if (!tbody) return
             Array.prototype.forEach.call(tbody.querySelectorAll('.admin-access-skeleton'), function (s) { s.parentNode.removeChild(s) })
             if (!list || !list.length) {
-                tbody.innerHTML = '<tr><td colspan="3" class="py-4 text-center text-[0.78rem] text-slate-400">No record access logs recorded yet.</td></tr>'
+                tbody.innerHTML = '<tr><td colspan="3" class="py-12 text-center"><div class="flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No record access logs recorded yet.</span></div></td></tr>'
             } else {
                 tbody.innerHTML = list.map(function (access) {
-                    return '<tr class="border-b border-slate-50 last:border-0 admin-access-row" ' +
+                    return '<tr class="border-b border-slate-300 last:border-0 admin-access-row" ' +
                         'data-user="' + escapeHtmlLogs(String(access.user_email || '').toLowerCase()) + '" ' +
                         'data-table="' + escapeHtmlLogs(String(access.table_name || '').toLowerCase()) + '" ' +
                         'data-record="' + escapeHtmlLogs(access.record_id) + '" ' +

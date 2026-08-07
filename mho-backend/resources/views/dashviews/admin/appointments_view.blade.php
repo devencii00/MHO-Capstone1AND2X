@@ -59,10 +59,10 @@
         </div>
     </div>
 
-   <div class="overflow-auto scrollbar-hidden h-[575px]">
+   <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 min-h-[400px]">
         <table class="min-w-full text-left text-xs text-slate-600">
             <thead>
-                <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
+                <tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400">
                     <th class="py-2 pr-4 font-semibold">Datetime</th>
                     <th class="py-2 pr-4 font-semibold">Patient</th>
                     <th class="py-2 pr-4 font-semibold">Doctor</th>
@@ -364,7 +364,7 @@
             })
 
             if (!filtered.length) {
-                historyBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No matching appointments found.</div>'
+                historyBody.innerHTML = '<div class="flex flex-col items-center justify-center gap-2.5 py-12"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No matching appointments found.</span></div>'
                 return
             }
 
@@ -795,7 +795,7 @@
             sorted = sorted.slice(pageStart, pageStart + 10)
 
             if (!sorted.length) {
-                tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No appointments found.</td></tr>'
+                tableBody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><div class="flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No appointments found.</span></div></td></tr>'
                 renderApptPagination()
                 return
             }
@@ -806,7 +806,7 @@
                 var patient = personLabel(a.patient, 'Patient #' + (a.patient_id || ''))
                 var patientId = a.patient_id || (a.patient && a.patient.user_id) || ''
                 var doctor = personLabel(a.doctor, 'Doctor #' + (a.doctor_id || ''))
-                html += '<tr class="border-b border-slate-50 last:border-0">' +
+                html += '<tr class="border-b border-slate-300 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(dt) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(patient) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(doctor) + '</td>' +

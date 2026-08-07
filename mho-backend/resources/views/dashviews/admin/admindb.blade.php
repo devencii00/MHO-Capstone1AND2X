@@ -185,7 +185,7 @@
             <div class="overflow-x-auto">
                 <table id="adminRecentActivitiesTable" class="min-w-full text-left text-xs text-slate-600">
                     <thead>
-                        <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
+                        <tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400">
                             <th class="py-2 pr-4 font-semibold">When</th>
                             <th class="py-2 pr-4 font-semibold">User</th>
                             <th class="py-2 pr-4 font-semibold">Action</th>
@@ -193,19 +193,19 @@
                         </tr>
                     </thead>
                     <tbody id="adminRecentActivitiesBody">
-                        <tr class="admin-activity-skeleton border-b border-slate-50">
+                        <tr class="admin-activity-skeleton border-b border-slate-300">
                             <td class="py-2 pr-4"><span class="skeleton h-3 w-24"></span></td>
                             <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
                             <td class="py-2 pr-4"><span class="skeleton h-3 w-36"></span></td>
                             <td class="py-2 pr-4"><span class="skeleton h-3 w-16"></span></td>
                         </tr>
-                        <tr class="admin-activity-skeleton border-b border-slate-50">
+                        <tr class="admin-activity-skeleton border-b border-slate-300">
                             <td class="py-2 pr-4"><span class="skeleton h-3 w-24"></span></td>
                             <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
                             <td class="py-2 pr-4"><span class="skeleton h-3 w-36"></span></td>
                             <td class="py-2 pr-4"><span class="skeleton h-3 w-16"></span></td>
                         </tr>
-                        <tr class="admin-activity-skeleton border-b border-slate-50">
+                        <tr class="admin-activity-skeleton border-b border-slate-300">
                             <td class="py-2 pr-4"><span class="skeleton h-3 w-24"></span></td>
                             <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
                             <td class="py-2 pr-4"><span class="skeleton h-3 w-36"></span></td>
@@ -259,14 +259,19 @@
         if (!list.length) {
             tbody.innerHTML =
                 '<tr id="adminRecentActivitiesEmpty">' +
-                    '<td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">No recent activities recorded yet.</td>' +
+                    '<td colspan="4" class="py-12 text-center">' +
+                        '<div class="flex flex-col items-center justify-center gap-2.5">' +
+                            '<div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg></div>' +
+                            '<span class="text-sm font-medium text-slate-400">No recent activities recorded yet.</span>' +
+                        '</div>' +
+                    '</td>' +
                 '</tr>';
             if (pagination) pagination.innerHTML = '';
             return;
         }
 
         tbody.innerHTML = list.map(function (log) {
-            return '<tr class="border-b border-slate-50 last:border-0 admin-activity-row" style="display:none">' +
+            return '<tr class="border-b border-slate-300 last:border-0 admin-activity-row" style="display:none">' +
                 '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(log.created_at || '-') + '</td>' +
                 '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + (log.user_email ? escapeHtml(log.user_email) : '<span class="text-slate-400">System</span>') + '</td>' +
                 '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(log.action || 'Action') + '</td>' +

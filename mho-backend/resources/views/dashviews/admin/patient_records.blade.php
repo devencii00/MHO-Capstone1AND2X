@@ -59,10 +59,10 @@
         </div>
     </div>
 
-    <div class="overflow-x-auto overflow-y-auto scrollbar-hidden h-[610px]">
+    <div class="overflow-x-auto overflow-y-auto scrollbar-hidden min-h-[610px]">
         <table class="min-w-full text-left text-xs text-slate-600">
             <thead>
-                <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
+                <tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400">
                     <th class="py-2 pr-4 font-semibold"></th>
                     <th class="py-2 pr-4 font-semibold">Patient</th>
                     <th class="py-2 pr-4 font-semibold">Address</th>
@@ -941,7 +941,7 @@
                             '</td>' +
                         '</tr>'
                     } else {
-                        rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                        rowsHtml += '<tr class="border-b border-slate-300 last:border-0">' +
                             '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(categoryLabel(row.category)) + '</td>' +
                             '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(row && row.name ? String(row.name) : '-') + '</td>' +
                             '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosisDate ? escapeHtml(diagnosisDate) : '<span class="text-slate-400">-</span>') + '</td>' +
@@ -972,7 +972,7 @@
                     var statusColors = { pending:'bg-amber-50 text-amber-700 border-amber-200', confirmed:'border-orange-200 bg-orange-50 text-orange-700', completed:'border-green-200 bg-green-50 text-green-700', cancelled:'bg-red-50 text-red-700 border-red-200', no_show:'bg-slate-100 text-slate-600 border-slate-200', awaiting_payment:'border-purple-200 bg-purple-50 text-purple-700', waiting:'bg-amber-50 text-amber-700 border-amber-100', serving:'bg-blue-50 text-blue-700 border-blue-100', done:'bg-emerald-50 text-emerald-700 border-emerald-100', skipped:'bg-orange-50 text-orange-700 border-orange-100', on_hold:'bg-purple-50 text-purple-700 border-purple-100' }
                     var statusClass = statusColors[apptStatus] || 'bg-slate-50 text-slate-600 border-slate-100'
                     var statusLabel = apptStatus ? apptStatus.charAt(0).toUpperCase() + apptStatus.slice(1).replace(/_/g, ' ') : '-'
-                    rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                    rowsHtml += '<tr class="border-b border-slate-300 last:border-0">' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(fullName(doctor, 'Doctor')) + '</td>' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(dateText) + '</td>' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(formatCurrency(visit && visit.amount != null ? visit.amount : '')) + '</td>' +
@@ -995,7 +995,7 @@
                     var bp = vital && vital.blood_pressure ? String(vital.blood_pressure) : '-'
                     var temp = vital && vital.temperature != null ? formatNumeric(vital.temperature, 1) : '-'
                     var pulse = vital && vital.pulse_rate != null ? String(vital.pulse_rate) : '-'
-                    rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                    rowsHtml += '<tr class="border-b border-slate-300 last:border-0">' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(recorded) + '</td>' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(height) + '</td>' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(weight) + '</td>' +
@@ -1034,7 +1034,7 @@
                         return
                     }
                     if (!cachedDependentRows.length) {
-                        container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-4 text-[0.78rem] text-slate-500">No dependents found for this patient.</div></div>'
+                        container.innerHTML = '<div class="space-y-3"><div class="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-12 flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No dependents found for this patient.</span></div></div>'
                         return
                     }
                     renderAdminParentOrDependentCards(container, cachedDependentRows, 'dependent')
@@ -1320,9 +1320,13 @@
             var bodyHtml = rowsHtml
             if (!bodyHtml) {
                 var message = loadingMessage || emptyMessage
-                bodyHtml = '<tr><td colspan="' + headers.length + '" class="py-4 text-center text-[0.78rem] text-slate-400">' + escapeHtml(message) + '</td></tr>'
+                if (loadingMessage) {
+                    bodyHtml = '<tr><td colspan="' + headers.length + '" class="py-4 text-center text-[0.78rem] text-slate-400">' + escapeHtml(message) + '</td></tr>'
+                } else {
+                    bodyHtml = '<tr><td colspan="' + headers.length + '" class="py-12 text-center"><div class="flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">' + escapeHtml(message) + '</span></div></td></tr>'
+                }
             }
-            return '<div class="overflow-x-auto"><table class="min-w-full text-left text-xs text-slate-600"><thead><tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">' + headerHtml + '</tr></thead><tbody>' + bodyHtml + '</tbody></table></div>'
+            return '<div class="overflow-x-auto"><table class="min-w-full text-left text-xs text-slate-600"><thead><tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400">' + headerHtml + '</tr></thead><tbody>' + bodyHtml + '</tbody></table></div>'
         }
 
         function renderDrawerTable(headers, rowsHtml, emptyMessage, loadingMessage) {
@@ -1339,7 +1343,7 @@
             entries.forEach(function (row) {
                 var diagnosisDate = row && row.diagnosis_date ? String(row.diagnosis_date).replace('T', ' ').slice(0, 16) : ''
                 var procedureDate = row && row.procedure_date ? String(row.procedure_date) : ''
-                rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                rowsHtml += '<tr class="border-b border-slate-300 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(categoryLabel(row.category)) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(row && row.name ? String(row.name) : '-') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosisDate ? escapeHtml(diagnosisDate) : '<span class="text-slate-400">-</span>') + '</td>' +
@@ -1362,7 +1366,7 @@
                 var doctor = appointment && appointment.doctor ? appointment.doctor : null
                 var dateRaw = visit && (visit.visit_datetime || visit.transaction_datetime) ? String(visit.visit_datetime || visit.transaction_datetime) : ''
                 var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
-                rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                rowsHtml += '<tr class="border-b border-slate-300 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(fullName(doctor, 'Doctor')) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(dateText) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(formatCurrency(visit && visit.amount != null ? visit.amount : '')) + '</td>' +
@@ -1394,7 +1398,7 @@
                 var bp = vital && vital.blood_pressure ? String(vital.blood_pressure) : '-'
                 var temp = vital && vital.temperature != null ? formatNumeric(vital.temperature, 1) : '-'
                 var pulse = vital && vital.pulse_rate != null ? String(vital.pulse_rate) : '-'
-                rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                rowsHtml += '<tr class="border-b border-slate-300 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(recorded) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(height) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(weight) + '</td>' +
@@ -1416,7 +1420,7 @@
 
             if (!rows.length) {
                 tabDrawerBody.innerHTML = '<div class="space-y-3">' +
-                    '<div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-[0.78rem] text-slate-600">No dependents found for this patient.</div>' +
+                    '<div class="rounded-2xl border border-slate-200 bg-white px-4 py-12 flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No dependents found for this patient.</span></div>' +
                 '</div>'
                 return
             }
@@ -1587,7 +1591,7 @@
             entries.forEach(function (row) {
                 var diagnosisDate = row && row.diagnosis_date ? String(row.diagnosis_date).replace('T', ' ').slice(0, 16) : ''
                 var procedureDate = row && row.procedure_date ? String(row.procedure_date) : ''
-                rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                rowsHtml += '<tr class="border-b border-slate-300 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(categoryLabel(row.category)) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(displayValue(row && row.name)) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosisDate ? escapeHtml(diagnosisDate) : '<span class="text-slate-400">-</span>') + '</td>' +
@@ -1606,7 +1610,7 @@
                 var doctor = appointment && appointment.doctor ? appointment.doctor : null
                 var dateRaw = visit && (visit.visit_datetime || visit.transaction_datetime) ? String(visit.visit_datetime || visit.transaction_datetime) : ''
                 var dateText = dateRaw ? dateRaw.replace('T', ' ').slice(0, 16) : '-'
-                rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                rowsHtml += '<tr class="border-b border-slate-300 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(fullName(doctor, 'Doctor')) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(dateText) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(formatCurrency(visit && visit.amount != null ? visit.amount : '')) + '</td>' +
@@ -1626,7 +1630,7 @@
                 var bp = vital && vital.blood_pressure ? String(vital.blood_pressure) : '-'
                 var temp = vital && vital.temperature != null ? formatNumeric(vital.temperature, 1) : '-'
                 var pulse = vital && vital.pulse_rate != null ? String(vital.pulse_rate) : '-'
-                rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                rowsHtml += '<tr class="border-b border-slate-300 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(recorded) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(height) + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + escapeHtml(weight) + '</td>' +
@@ -1874,7 +1878,7 @@
             if (count65UpEl) count65UpEl.textContent = String(counts['65_up'])
 
             if (!base.length) {
-                patientsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No patients found.</td></tr>'
+                patientsTableBody.innerHTML = '<tr><td colspan="7" class="py-12 text-center"><div class="flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No patients found.</span></div></td></tr>'
                 renderPagination()
                 return
             }
@@ -1888,7 +1892,7 @@
                 var sex = patient && patient.sex ? String(patient.sex) : ''
                 var verificationType = patient && patient.verification_type ? String(patient.verification_type) : ''
                 var profileImg = patient && patient.prof_path_url ? String(patient.prof_path_url) : ''
-                html += '<tr class="admin-pr-patient-row border-b border-slate-50 last:border-0">' +
+                html += '<tr class="admin-pr-patient-row border-b border-slate-300 last:border-0">' +
                     '<td class="py-2 pr-4">' +
                         (profileImg
                             ? '<img src="' + profileImg.replace(/"/g, '&quot;') + '" alt="" class="w-10 h-10 rounded-lg object-cover border border-slate-200">'

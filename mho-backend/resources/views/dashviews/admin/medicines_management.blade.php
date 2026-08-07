@@ -66,10 +66,10 @@
         </div>
     </div>
 
-<div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[460px]">
+<div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 min-h-[460px]">
         <table class="min-w-full text-left text-xs text-slate-600">
             <thead>
-                <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
+                <tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400">
                     <th class="py-2 pr-4 font-semibold">Generic name</th>
                     <th class="py-2 pr-4 font-semibold">Brand name</th>
                     <th class="py-2 pr-4 font-semibold">Indications</th>
@@ -558,7 +558,7 @@
             })
 
             if (!filtered.length) {
-                tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No medicines found.</td></tr>'
+                tableBody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><div class="flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No medicines found.</span></div></td></tr>'
                 renderMedPagination()
                 return
             }
@@ -570,7 +570,7 @@
                     ? '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border bg-emerald-50 text-emerald-700 border-emerald-100">Active</span>'
                     : '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border bg-slate-50 text-slate-600 border-slate-100">Inactive</span>'
 
-                html += '<tr class="border-b border-slate-50 last:border-0">' +
+                html += '<tr class="border-b border-slate-300 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(m.generic_name || '-') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (m.brand_name ? escapeHtml(m.brand_name) : '<span class="text-slate-400">-</span>') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (m.indications ? escapeHtml(m.indications) : '<span class="text-slate-400">-</span>') + '</td>' +

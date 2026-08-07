@@ -18,14 +18,14 @@ class StaffUsersSeeder extends Seeder
                 'firstname' => 'Angela',
                 'lastname' => 'Reyes',
                 'email' => 'angela@reception.com',
-                'password' => 'reception123',
+                'password' => 'global123',
             ],
             [
                 'role' => 'receptionist',
                 'firstname' => 'Karen',
                 'lastname' => 'Lopez',
                 'email' => 'karen@reception.com',
-                'password' => 'reception123',
+                'password' => 'global123',
             ],
 
             // Doctors
@@ -34,7 +34,7 @@ class StaffUsersSeeder extends Seeder
                 'firstname' => 'John',
                 'lastname' => 'Dela Cruz',
                 'email' => 'john@doctor.com',
-                'password' => 'doctor123',
+                'password' => 'global123',
                 'designation' => 'Pediatrics',
             ],
             [
@@ -42,7 +42,7 @@ class StaffUsersSeeder extends Seeder
                 'firstname' => 'Michael',
                 'lastname' => 'Garcia',
                 'email' => 'michael@doctor.com',
-                'password' => 'doctor123',
+                'password' => 'global123',
                 'designation' => 'General Medicine',
             ],
             [
@@ -50,7 +50,7 @@ class StaffUsersSeeder extends Seeder
                 'firstname' => 'Sarah',
                 'lastname' => 'Lim',
                 'email' => 'sarah@doctor.com',
-                'password' => 'doctor123',
+                'password' => 'global123',
                 'designation' => 'General Medicine',
             ],
             [
@@ -58,7 +58,7 @@ class StaffUsersSeeder extends Seeder
                 'firstname' => 'James',
                 'lastname' => 'Torres',
                 'email' => 'james@doctor.com',
-                'password' => 'doctor123',
+                'password' => 'global123',
                 'designation' => 'Internal Medicine',
             ],
             [
@@ -66,8 +66,34 @@ class StaffUsersSeeder extends Seeder
                 'firstname' => 'Patricia',
                 'lastname' => 'Fernandez',
                 'email' => 'patricia@doctor.com',
-                'password' => 'doctor123',
+                'password' => 'global123',
                 'designation' => 'General Surgeon',
+            ],
+
+            // Laboratory Personnel
+            [
+                'role' => 'laboratory_personnel',
+                'firstname' => 'Miguel',
+                'lastname' => 'Santos',
+                'email' => 'miguel@lab.com',
+                'password' => 'global123',
+                'designation' => 'Medical Technologist',
+            ],
+            [
+                'role' => 'laboratory_personnel',
+                'firstname' => 'Rosa',
+                'lastname' => 'Aquino',
+                'email' => 'rosa@lab.com',
+                'password' => 'global123',
+                'designation' => 'Radiologic Technologist',
+            ],
+            [
+                'role' => 'laboratory_personnel',
+                'firstname' => 'Danilo',
+                'lastname' => 'Villanueva',
+                'email' => 'danilo@lab.com',
+                'password' => 'global123',
+                'designation' => 'Laboratory Assistant',
             ],
         ];
 

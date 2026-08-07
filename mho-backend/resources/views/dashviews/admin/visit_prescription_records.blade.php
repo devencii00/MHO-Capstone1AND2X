@@ -24,10 +24,10 @@
         </div>
     </div>
 
-    <div class="overflow-x-auto scrollbar-hidden">
+    <div class="overflow-x-auto scrollbar-hidden min-h-[400px]">
         <table class="min-w-full text-left text-xs text-slate-600">
             <thead>
-                <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
+                <tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400">
                     <th class="py-2 pr-4 font-semibold">Transaction</th>
                     <th class="py-2 pr-4 font-semibold">Visit</th>
                     <th class="py-2 pr-4 font-semibold">Amount</th>
@@ -36,7 +36,7 @@
             </thead>
             <tbody>
                 @forelse ($adminRecentTransactions ?? [] as $transaction)
-                    <tr class="border-b border-slate-50 last:border-0 admin-visit-row"
+                    <tr class="border-b border-slate-300 last:border-0 admin-visit-row"
                         data-txn-id="{{ $transaction->transaction_id }}"
                         data-visit-id="{{ $transaction->appointment ? $transaction->appointment->appointment_id : '' }}"
                         data-date="{{ optional($transaction->transaction_datetime)->format('Y-m-d') ?? '' }}"
@@ -60,8 +60,13 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="py-4 text-center text-[0.78rem] text-slate-400">
-                            No transactions recorded yet.
+                        <td colspan="4" class="py-12 text-center">
+                            <div class="flex flex-col items-center justify-center gap-2.5">
+                                <div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
+                                    <x-lucide-inbox class="w-5 h-5" />
+                                </div>
+                                <span class="text-sm font-medium text-slate-400">No transactions recorded yet.</span>
+                            </div>
                         </td>
                     </tr>
                 @endforelse

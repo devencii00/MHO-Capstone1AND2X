@@ -203,10 +203,10 @@
         </div>
     </div>
 
-   <div class="overflow-x-auto scrollbar-hidden mb-4 h-[460px]">
+   <div class="overflow-x-auto scrollbar-hidden mb-4 min-h-[460px]">
         <table id="adminUserTable" class="min-w-full text-left text-xs text-slate-600">
             <thead>
-                <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
+                <tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400">
                     <th class="py-2 pr-4 font-semibold">Name</th>
                     <th class="py-2 pr-4 font-semibold">Contact</th>
                     <th class="py-2 pr-4 font-semibold">Email</th>
@@ -217,7 +217,7 @@
                 </tr>
             </thead>
             <tbody id="adminUserTableBody">
-                <tr class="admin-user-skeleton border-b border-slate-50">
+                <tr class="admin-user-skeleton border-b border-slate-300">
                     <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
                     <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
                     <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
@@ -226,7 +226,7 @@
                     <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
                     <td class="py-2 pr-4"><span class="skeleton h-3 w-16"></span></td>
                 </tr>
-                <tr class="admin-user-skeleton border-b border-slate-50">
+                <tr class="admin-user-skeleton border-b border-slate-300">
                     <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
                     <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
                     <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
@@ -235,7 +235,7 @@
                     <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
                     <td class="py-2 pr-4"><span class="skeleton h-3 w-16"></span></td>
                 </tr>
-                <tr class="admin-user-skeleton border-b border-slate-50">
+                <tr class="admin-user-skeleton border-b border-slate-300">
                     <td class="py-2 pr-4"><span class="skeleton h-3 w-28"></span></td>
                     <td class="py-2 pr-4"><span class="skeleton h-3 w-20"></span></td>
                     <td class="py-2 pr-4"><span class="skeleton h-3 w-32"></span></td>
@@ -518,7 +518,7 @@
             Array.prototype.forEach.call(tbody.querySelectorAll('.admin-user-skeleton'), function (s) { s.parentNode.removeChild(s) })
 
             if (!list || !list.length) {
-                tbody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No users found yet.</td></tr>'
+                tbody.innerHTML = '<tr><td colspan="7" class="py-12 text-center"><div class="flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No users found yet.</span></div></td></tr>'
             } else {
                 tbody.innerHTML = list.map(function (u) {
                     var status = String(u.status || 'active').toLowerCase()
@@ -534,7 +534,7 @@
                     var statusBtn = (status === 'suspended' || status === 'inactive')
                         ? '<button type="button" class="px-2 py-1 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-[0.72rem] font-semibold admin-user-toggle-status" data-user-id="' + u.user_id + '">Activate</button>'
                         : '<button type="button" class="px-2 py-1 rounded-md border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 text-[0.72rem] font-semibold admin-user-toggle-status" data-user-id="' + u.user_id + '">Suspend</button>'
-                    return '<tr class="border-b border-slate-50 last:border-0 admin-user-row" ' +
+                    return '<tr class="border-b border-slate-300 last:border-0 admin-user-row" ' +
                         'data-user-id="' + u.user_id + '" ' +
                         'data-email="' + escapeHtml(String(u.email || '').toLowerCase()) + '" ' +
                         'data-name="' + escapeHtml(String(fullName || '').toLowerCase()) + '" ' +
@@ -961,7 +961,7 @@
 
             if (!Array.isArray(dependents) || dependents.length === 0) {
                 dependentsListView.innerHTML =
-                    '<div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-[0.78rem] text-slate-600">No dependents found for this user.</div>'
+                    '<div class="rounded-xl border border-slate-200 bg-white px-4 py-12 flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No dependents found for this user.</span></div>'
                 return
             }
 
@@ -973,7 +973,7 @@
             html += '<div class="overflow-x-auto scrollbar-hidden">' +
                 '<table class="min-w-full text-left text-[0.78rem] text-slate-600">' +
                 '<thead>' +
-                '<tr class="border-b border-slate-200 text-[0.68rem] uppercase tracking-widest text-slate-400">' +
+                '<tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400">' +
                 '<th class="py-2 pr-4 font-semibold">Name</th>' +
                 '<th class="py-2 pr-4 font-semibold">Relationship</th>' +
                 '<th class="py-2 pr-4 font-semibold">Age</th>' +
@@ -994,7 +994,7 @@
                 var statusLabel = activated ? 'Activated' : 'Not activated'
                 var statusClass = activated ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'
 
-                html += '<tr class="border-b border-slate-200/60 last:border-0">' +
+                html += '<tr class="border-b border-slate-300 last:border-0">' +
                     '<td class="py-2 pr-4 text-slate-700">' + escapeHtml(name) + '</td>' +
                     '<td class="py-2 pr-4 text-slate-500">' + (relationship ? escapeHtml(relationship) : '-') + '</td>' +
                     '<td class="py-2 pr-4 text-slate-500">' + (age === null ? '-' : String(age)) + '</td>' +

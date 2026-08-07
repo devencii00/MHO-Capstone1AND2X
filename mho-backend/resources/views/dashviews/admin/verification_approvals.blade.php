@@ -62,10 +62,10 @@
         </div>
     </div>
 
-<div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[460px]">
+<div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 min-h-[460px]">
         <table class="min-w-full w-full table-fixed text-left text-xs text-slate-600">
             <thead>
-                <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
+                <tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400">
                     <th class="w-[28%] py-2 pr-4 font-semibold">Patient</th>
                     <th class="w-[12%] py-2 pr-4 font-semibold">Type</th>
                     <th class="w-[14%] py-2 pr-4 font-semibold">Status</th>
@@ -479,7 +479,7 @@
             })
 
             if (!items.length) {
-                tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No verifications found.</td></tr>'
+                tableBody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><div class="flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No verifications found.</span></div></td></tr>'
                 var pag = document.getElementById('adminVerifPagination')
                 if (pag) pag.innerHTML = ''
                 return
@@ -495,7 +495,7 @@
                 var verifier = escapeHtml(getVerifierLabel(v))
                 var hasDoc = !!v.document_path
 
-                html += '<tr class="border-b border-slate-50 last:border-0">' +
+                html += '<tr class="border-b border-slate-300 last:border-0">' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + patientLabel + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + type + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem]">' + statusBadge(status) + '</td>' +
@@ -832,7 +832,7 @@
             var items = Array.isArray(rows) ? rows : []
             currentHistoryRows = items
             if (!items.length) {
-                historyBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No verification history found.</div>'
+                historyBody.innerHTML = '<div class="flex flex-col items-center justify-center gap-2.5 py-12"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No verification history found.</span></div>'
                 return
             }
             historyBody.innerHTML = items.map(function (entry) {
