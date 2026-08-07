@@ -40,7 +40,7 @@
 
     {{-- Table --}}
     <div class="rounded-2xl border border-slate-200 overflow-hidden">
-        <div class="overflow-x-auto overflow-y-auto scrollbar-hidden" style="height:540px">
+        <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4" style="min-height:400px">
             <table class="text-xs" style="min-width:600px;width:100%;table-layout:auto;">
                 <thead class="bg-slate-50 text-slate-600 sticky top-0">
                     <tr>
@@ -54,7 +54,7 @@
                         <th class="text-right px-3 py-2 font-semibold whitespace-nowrap">Action</th>
                     </tr>
                 </thead>
-                <tbody id="consultHistTbody" class="divide-y divide-slate-100 bg-white">
+                <tbody id="consultHistTbody" class="divide-y divide-slate-300 bg-white">
                     <tr>
                         <td colspan="8" class="py-6 text-center text-[0.78rem] text-slate-400">Loading&hellip;</td>
                     </tr>
@@ -343,7 +343,7 @@
             .then(function(r) { return r.json(); })
             .then(function(result) {
                 if (!result || !result.data) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="py-4 text-center text-[0.78rem] text-slate-400">No records found.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" class="py-12 text-center"><div class="flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No records found.</span></div></td></tr>';
                     histTotal = 0; histLastPage = 1; renderPagination();
                     return;
                 }
@@ -353,7 +353,7 @@
                 histTotal = result.total || 0;
 
                 if (!data.length) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="py-4 text-center text-[0.78rem] text-slate-400">No records found.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" class="py-12 text-center"><div class="flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No records found.</span></div></td></tr>';
                 } else {
                     var html = '';
                     data.forEach(function(tx) {
@@ -384,7 +384,7 @@
 
                         var pid = patient.user_id != null ? patient.user_id : '';
 
-                        html += '<tr class="divide-slate-100">' +
+                        html += '<tr class="divide-slate-300">' +
                             '<td class="px-3 py-2 text-[0.78rem] text-slate-500 whitespace-nowrap">' + esc(vDate) + '</td>' +
                             '<td class="px-3 py-2 text-[0.78rem] text-slate-700"><div class="font-medium">' + esc(pName) + '</div>' + (pEmail ? '<div class="text-[0.65rem] text-slate-400">' + esc(pEmail) + '</div>' : '') + '</td>' +
                             '<td class="px-3 py-2 text-[0.78rem] text-slate-500 whitespace-nowrap">' + esc(dName) + '</td>' +

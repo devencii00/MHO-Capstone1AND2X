@@ -152,10 +152,10 @@
                 </div>
 
                 <div class="mt-5 border border-slate-100 rounded-xl bg-white overflow-hidden flex-shrink-0">
-                    <div class="h-[12rem] overflow-y-auto overflow-x-hidden scrollbar-hidden">
+                    <div class="min-h-[400px] overflow-y-auto overflow-x-hidden scrollbar-hidden">
                     <table class="min-w-full text-left text-xs text-slate-600">
                         <thead class="sticky top-0 z-10 bg-white">
-                            <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
+                            <tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400">
                                 <th class="py-2 px-3 font-semibold">Time</th>
                                 <th class="py-2 px-3 font-semibold">Patient</th>
                                 <th class="py-2 px-3 font-semibold">Type</th>
@@ -164,14 +164,14 @@
                             </tr>
                         </thead>
                         <tbody id="doctorScheduleTbody">
-                            <tr class="border-b border-slate-100">
+                            <tr class="border-b border-slate-300">
                                 <td class="py-2 px-3"><span class="skeleton h-3 w-10"></span></td>
                                 <td class="py-2 px-3"><span class="skeleton h-3 w-36"></span></td>
                                 <td class="py-2 px-3"><span class="skeleton h-3 w-14"></span></td>
                                 <td class="py-2 px-3"><span class="skeleton h-4 w-16 rounded-full"></span></td>
                                 <td class="py-2 px-3"><span class="skeleton h-6 w-16 rounded-lg"></span></td>
                             </tr>
-                            <tr class="border-b border-slate-100">
+                            <tr class="border-b border-slate-300">
                                 <td class="py-2 px-3"><span class="skeleton h-3 w-10"></span></td>
                                 <td class="py-2 px-3"><span class="skeleton h-3 w-40"></span></td>
                                 <td class="py-2 px-3"><span class="skeleton h-3 w-14"></span></td>
@@ -512,7 +512,7 @@
                                         var statusLabel = a.status ? String(a.status).replace(/_/g, ' ') : '-'
                                         var sc = statusColors[statusKey] || 'bg-slate-50 text-slate-600 border-slate-100'
                                         var apptJson = JSON.stringify(a).replace(/'/g, '&#39;')
-                                        html += '<tr class="border-b border-slate-100 last:border-0">' +
+                                        html += '<tr class="border-b border-slate-300 last:border-0">' +
                                             '<td class="py-1.5 pr-3 text-slate-500">' + escapeHtml(dateStr) + '</td>' +
                                             '<td class="py-1.5 pr-3 text-slate-500">' + escapeHtml(timeStr) + '</td>' +
                                             '<td class="py-1.5 pr-3 text-slate-700 font-medium">' + escapeHtml(patientName) + '</td>' +
@@ -596,7 +596,7 @@
                         var appts = Array.isArray(d.todayAppointments) ? d.todayAppointments : []
                         if (tbody) {
                             if (!appts.length) {
-                                tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-[0.78rem] text-slate-400">No appointments scheduled for today.</td></tr>'
+                                tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center"><div class="flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No appointments scheduled for today.</span></div></td></tr>'
                             } else {
                                 var scheduleHtml = ''
                                 appts.forEach(function (a) {
@@ -614,7 +614,7 @@
                                     var apptJson = JSON.stringify(a).replace(/'/g, '&#39;')
                                     var startUrl = consultationBaseUrl + '&appointment_id=' + a.appointment_id
                                     if (currentUserUuidQuery) startUrl += '&user_uuid=' + encodeURIComponent(currentUserUuidQuery)
-                                    scheduleHtml += '<tr class="border-b border-slate-100 last:border-0">' +
+                                    scheduleHtml += '<tr class="border-b border-slate-300 last:border-0">' +
                                         '<td class="py-2 px-3 text-[0.78rem] text-slate-500">' + escapeHtml(time) + '</td>' +
                                         '<td class="py-2 px-3 text-[0.78rem] text-slate-700">' + escapeHtml(patientName) + '</td>' +
                                         '<td class="py-2 px-3 text-[0.78rem] text-slate-500">' + escapeHtml(typeLabel) + '</td>' +

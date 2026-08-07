@@ -171,10 +171,10 @@
             </div>
         </div>
 
-    <div class="overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50 flex-1 min-h-0">
+    <div class="overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50 flex-1 min-h-[400px]">
             <table class="min-w-full text-left text-xs text-slate-600">
                 <thead>
-                    <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
+                    <tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400">
                         <th class="py-2 pr-4 font-semibold">Queue #</th>
                         <th class="py-2 pr-4 font-semibold">Patient</th>
                         <th class="py-2 pr-4 font-semibold">Date</th>
@@ -212,7 +212,7 @@
                                 default => 'bg-slate-50 text-slate-700 border-slate-100',
                             };
                         @endphp
-                        <tr class="border-b border-slate-50 last:border-0 doctor-queue-row"
+                        <tr class="border-b border-slate-300 last:border-0 doctor-queue-row"
                             data-queue-id="{{ $queueId }}"
                             data-queue-number="{{ $queue->queue_number }}"
                             data-queue-code="{{ $queue->queue_code }}"
@@ -278,8 +278,13 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">
-                                No queue entries assigned to you today.
+                            <td colspan="6" class="py-12 text-center">
+                                <div class="flex flex-col items-center justify-center gap-2.5">
+                                    <div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
+                                        <x-lucide-inbox class="w-5 h-5" />
+                                    </div>
+                                    <span class="text-sm font-medium text-slate-400">No queue entries assigned to you today.</span>
+                                </div>
                             </td>
                         </tr>
                     @endforelse
