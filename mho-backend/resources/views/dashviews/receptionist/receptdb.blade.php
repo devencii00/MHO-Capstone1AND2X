@@ -109,7 +109,7 @@
     </div>
     <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50">
         <table class="w-full text-left text-[0.75rem] text-slate-600 whitespace-nowrap">
-            <thead class="text-slate-500 border-b border-slate-100">
+            <thead class="text-slate-500 border-b border-slate-300">
                 <tr>
                     <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Time</th>
                     <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Reference</th>
@@ -119,10 +119,15 @@
                     <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Status</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100" id="receptionTodaysTransactionsTableBody">
+            <tbody class="divide-y divide-slate-300" id="receptionTodaysTransactionsTableBody">
                 <tr>
-                    <td colspan="6" class="px-4 py-8 text-center text-slate-400">
-                        No transactions recorded today.
+                    <td colspan="6" class="px-4 py-12 text-center">
+                        <div class="flex flex-col items-center justify-center gap-2.5">
+                            <div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+                            </div>
+                            <span class="text-sm font-medium text-slate-400">No transactions recorded today.</span>
+                        </div>
                     </td>
                 </tr>
             </tbody>

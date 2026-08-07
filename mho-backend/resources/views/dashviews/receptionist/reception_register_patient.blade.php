@@ -177,10 +177,10 @@
                 </div>
             </div>
 
-            <div class="overflow-x-auto overflow-y-auto scrollbar-hidden h-[610px]">
+            <div class="overflow-x-auto overflow-y-auto scrollbar-hidden min-h-[400px]">
                 <table class="min-w-full text-left text-xs text-slate-600">
                     <thead>
-                        <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
+                        <tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400">
                             <th class="py-2 pr-4 font-semibold">Profile</th>
                             <th class="py-2 pr-4 font-semibold">Patient</th>
                             <th class="py-2 pr-4 font-semibold">Address</th>
@@ -1944,7 +1944,7 @@
                 return recMatchesAgeFilter(age, recActiveAgeFilter)
             })
             if (!filtered.length) {
-                recPatientsTableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No patients found.<br><button type="button" onclick="window.switchPatientTab(\'register\')" class="mt-2 inline-flex items-center gap-1 text-green-700 hover:text-green-800 font-semibold underline underline-offset-2">Register patient?</button></td></tr>'
+                recPatientsTableBody.innerHTML = '<tr><td colspan="7" class="py-12 text-center"><div class="flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No patients found.</span><button type="button" onclick="window.switchPatientTab(\'register\')" class="mt-1 inline-flex items-center gap-1 text-green-700 hover:text-green-800 font-semibold underline underline-offset-2">Register patient?</button></div></td></tr>'
                 if (recPagination) recPagination.innerHTML = ''
                 return
             }
@@ -1957,7 +1957,7 @@
                 var sex = p && p.sex ? String(p.sex) : ''
                 var verificationType = p && p.verification_type ? String(p.verification_type) : ''
                 var profileImg = p && p.profile_photo_url ? String(p.profile_photo_url) : ''
-                html += '<tr class="reception-pr-patient-row border-b border-slate-50 last:border-0" data-patient-id="' + recEscHtml(patientId) + '">' +
+                html += '<tr class="reception-pr-patient-row border-b border-slate-300 last:border-0" data-patient-id="' + recEscHtml(patientId) + '">' +
                     '<td class="py-2 pr-4">' +
                         (profileImg
                             ? '<img src="' + profileImg.replace(/"/g, '&quot;') + '" alt="" class="w-10 h-10 rounded-lg object-cover border border-slate-200">'
@@ -2232,12 +2232,12 @@
         function recRenderVisits(rows) {
             if (!recTabDrawerBody) return
             if (!rows || !rows.length) { recTabDrawerBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No visit history.</div>'; return }
-            var html = '<div class="overflow-x-auto"><table class="min-w-full text-left text-xs text-slate-600"><thead><tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400"><th class="py-2 pr-3 font-semibold">Date</th><th class="py-2 pr-3 font-semibold">Doctor</th><th class="py-2 pr-3 font-semibold">Diagnosis</th><th class="py-2 pr-3 font-semibold">Status</th></tr></thead><tbody>'
+            var html = '<div class="overflow-x-auto"><table class="min-w-full text-left text-xs text-slate-600"><thead><tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400"><th class="py-2 pr-3 font-semibold">Date</th><th class="py-2 pr-3 font-semibold">Doctor</th><th class="py-2 pr-3 font-semibold">Diagnosis</th><th class="py-2 pr-3 font-semibold">Status</th></tr></thead><tbody>'
             rows.forEach(function (v) {
                 var doctorName = v.doctor ? recFullName(v.doctor, '-') : '-'
                 var diagnosis = v.diagnosis || '-'
                 var status = String(v.status || 'pending').charAt(0).toUpperCase() + String(v.status || 'pending').slice(1)
-                html += '<tr class="border-b border-slate-50"><td class="py-2 pr-3">' + recEscHtml(recFormatRecordedAt(v.appointment_date || v.created_at)) + '</td>' +
+                html += '<tr class="border-b border-slate-300"><td class="py-2 pr-3">' + recEscHtml(recFormatRecordedAt(v.appointment_date || v.created_at)) + '</td>' +
                     '<td class="py-2 pr-3">' + recEscHtml(doctorName) + '</td>' +
                     '<td class="py-2 pr-3">' + recEscHtml(diagnosis) + '</td>' +
                     '<td class="py-2 pr-3">' + recEscHtml(status) + '</td></tr>'
@@ -2261,9 +2261,9 @@
         function recRenderVitals(rows) {
             if (!recTabDrawerBody) return
             if (!rows || !rows.length) { recTabDrawerBody.innerHTML = '<div class="text-center text-[0.78rem] text-slate-400 py-8">No vitals history.</div>'; return }
-            var html = '<div class="overflow-x-auto"><table class="min-w-full text-left text-xs text-slate-600"><thead><tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400"><th class="py-2 pr-3 font-semibold">Date</th><th class="py-2 pr-3 font-semibold">BP</th><th class="py-2 pr-3 font-semibold">HR</th><th class="py-2 pr-3 font-semibold">RR</th><th class="py-2 pr-3 font-semibold">Temp</th><th class="py-2 pr-3 font-semibold">O2 Sat</th></tr></thead><tbody>'
+            var html = '<div class="overflow-x-auto"><table class="min-w-full text-left text-xs text-slate-600"><thead><tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400"><th class="py-2 pr-3 font-semibold">Date</th><th class="py-2 pr-3 font-semibold">BP</th><th class="py-2 pr-3 font-semibold">HR</th><th class="py-2 pr-3 font-semibold">RR</th><th class="py-2 pr-3 font-semibold">Temp</th><th class="py-2 pr-3 font-semibold">O2 Sat</th></tr></thead><tbody>'
             rows.forEach(function (v) {
-                html += '<tr class="border-b border-slate-50"><td class="py-2 pr-3">' + recEscHtml(recFormatRecordedAt(v.recorded_at || v.created_at)) + '</td>' +
+                html += '<tr class="border-b border-slate-300"><td class="py-2 pr-3">' + recEscHtml(recFormatRecordedAt(v.recorded_at || v.created_at)) + '</td>' +
                     '<td class="py-2 pr-3">' + recEscHtml(recDisplayValue(v.blood_pressure)) + '</td>' +
                     '<td class="py-2 pr-3">' + recEscHtml(recFormatNumeric(v.heart_rate, 0)) + '</td>' +
                     '<td class="py-2 pr-3">' + recEscHtml(recFormatNumeric(v.respiratory_rate, 0)) + '</td>' +
@@ -2400,7 +2400,7 @@
                 var message = loadingMessage || emptyMessage
                 bodyHtml = '<tr><td colspan="' + headers.length + '" class="py-4 text-center text-[0.78rem] text-slate-400">' + recEscHtml(message) + '</td></tr>'
             }
-            return '<div class="overflow-x-auto"><table class="min-w-full text-left text-xs text-slate-600"><thead><tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">' + headerHtml + '</tr></thead><tbody>' + bodyHtml + '</tbody></table></div>'
+            return '<div class="overflow-x-auto"><table class="min-w-full text-left text-xs text-slate-600"><thead><tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400">' + headerHtml + '</tr></thead><tbody>' + bodyHtml + '</tbody></table></div>'
         }
 
         function recRenderViewTabContent(tabKey) {
@@ -2437,7 +2437,7 @@
                             '</td>' +
                         '</tr>'
                     } else {
-                        rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                        rowsHtml += '<tr class="border-b border-slate-300 last:border-0">' +
                             '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + recEscHtml(recCategoryLabel(row.category)) + '</td>' +
                             '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + recEscHtml(row && row.name ? String(row.name) : '-') + '</td>' +
                             '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (diagnosisDate ? recEscHtml(diagnosisDate) : '<span class="text-slate-400">-</span>') + '</td>' +
@@ -2468,7 +2468,7 @@
                     var statusColors = { pending:'bg-amber-50 text-amber-700 border-amber-200', confirmed:'border-orange-200 bg-orange-50 text-orange-700', completed:'border-green-200 bg-green-50 text-green-700', cancelled:'bg-red-50 text-red-700 border-red-200', no_show:'bg-slate-100 text-slate-600 border-slate-200', awaiting_payment:'border-purple-200 bg-purple-50 text-purple-700', waiting:'bg-amber-50 text-amber-700 border-amber-100', serving:'bg-blue-50 text-blue-700 border-blue-100', done:'bg-emerald-50 text-emerald-700 border-emerald-100', skipped:'bg-orange-50 text-orange-700 border-orange-100', on_hold:'bg-purple-50 text-purple-700 border-purple-100' }
                     var statusClass = statusColors[apptStatus] || 'bg-slate-50 text-slate-600 border-slate-100'
                     var statusLabel = apptStatus ? apptStatus.charAt(0).toUpperCase() + apptStatus.slice(1).replace(/_/g, ' ') : '-'
-                    rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                    rowsHtml += '<tr class="border-b border-slate-300 last:border-0">' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + recEscHtml(recFullName(doctor, 'Doctor')) + '</td>' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + recEscHtml(dateText) + '</td>' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + recEscHtml(recFormatCurrency(visit && visit.amount != null ? visit.amount : '')) + '</td>' +
@@ -2491,7 +2491,7 @@
                     var bp = vital && vital.blood_pressure ? String(vital.blood_pressure) : '-'
                     var temp = vital && vital.temperature != null ? recFormatNumeric(vital.temperature, 1) : '-'
                     var pulse = vital && vital.pulse_rate != null ? String(vital.pulse_rate) : '-'
-                    rowsHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                    rowsHtml += '<tr class="border-b border-slate-300 last:border-0">' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + recEscHtml(recorded) + '</td>' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + recEscHtml(height) + '</td>' +
                         '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + recEscHtml(weight) + '</td>' +

@@ -72,10 +72,10 @@
     <div id="walkInDateHeader" style="display:none" class="text-center text-sm font-semibold text-slate-700 mb-3"></div>
     <div id="receptionWalkInHistoryError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
     <div id="walkInTableArea" class="hidden rounded-xl border border-slate-200 bg-white overflow-hidden">
-        <div class="overflow-x-auto overflow-y-auto scrollbar-hidden" style="height:470px;">
+        <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 min-h-[400px]">
             <table class="text-xs" style="min-width:720px;width:100%;table-layout:auto;">
                 <thead class="bg-slate-50 text-slate-600 sticky top-0">
-                    <tr>
+                    <tr class="border-b border-slate-300">
                         <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Time</th>
                         <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Patient</th>
                         <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Service</th>
@@ -84,7 +84,7 @@
                         <th class="text-right px-3 py-2 font-semibold whitespace-nowrap">Action</th>
                     </tr>
                 </thead>
-                <tbody id="receptionWalkInHistoryTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+                <tbody id="receptionWalkInHistoryTableBody" class="divide-y divide-slate-300 bg-white"></tbody>
             </table>
         </div>
         <div id="receptionWalkInHistoryMeta" class="px-4 py-2 text-[0.72rem] text-slate-500 border-t border-slate-100 bg-slate-50">Loading walk-in history…</div>
@@ -761,7 +761,7 @@ function setWalkInTab(tab) {
             if (!tableBody) return
             var list = Array.isArray(rows) ? rows : []
             if (!list.length) {
-                tableBody.innerHTML = '<tr><td colspan="6" class="px-3 py-6 text-center text-[0.78rem] text-slate-500">No walk-in appointments found.</td></tr>'
+                tableBody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><div class="flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No walk-in appointments found.</span></div></td></tr>'
                 var pag = document.getElementById('receptionWalkInPagination')
                 if (pag) pag.innerHTML = ''
                 return
@@ -1307,7 +1307,7 @@ function setWalkInTab(tab) {
                                 '<div class="overflow-x-auto">' +
                                     '<table class="w-full text-[0.72rem] text-slate-700">' +
                                         '<thead>' +
-                                            '<tr class="text-[0.6rem] uppercase tracking-wider text-slate-400 border-b border-slate-100">' +
+                                            '<tr class="text-[0.6rem] uppercase tracking-wider text-slate-400 border-b border-slate-300">' +
                                                 '<th class="py-1 pr-2 text-left">Medicine</th>' +
                                                 '<th class="py-1 pr-2 text-left">Dosage</th>' +
                                                 '<th class="py-1 pr-2 text-left">Frequency</th>' +
@@ -1318,7 +1318,7 @@ function setWalkInTab(tab) {
                             var rxItems = Array.isArray(rx.items) ? rx.items : []
                             if (rxItems.length) {
                                 rxItems.forEach(function (it) {
-                                    rxHtml += '<tr class="border-b border-slate-50 last:border-0">' +
+                                    rxHtml += '<tr class="border-b border-slate-300 last:border-0">' +
                                         '<td class="py-1 pr-2 font-medium">' + escapeHtml(it.medicine_name || '-') + '</td>' +
                                         '<td class="py-1 pr-2">' + escapeHtml(it.dosage || '-') + '</td>' +
                                         '<td class="py-1 pr-2">' + escapeHtml(it.frequency || '-') + '</td>' +

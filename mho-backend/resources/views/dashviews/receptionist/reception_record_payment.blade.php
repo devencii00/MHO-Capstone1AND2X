@@ -194,10 +194,10 @@
 
         <div class="w-full" style="display:grid;">
             <div class="rounded-2xl border border-slate-200 overflow-hidden">
-               <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 h-[470px]">
+               <div class="overflow-x-auto overflow-y-auto scrollbar-hidden mb-4 min-h-[400px]">
                     <table class="text-xs" style="min-width:700px;width:100%;table-layout:auto;">
                         <thead class="bg-slate-50 text-slate-600 sticky top-0">
-                            <tr>
+                            <tr class="border-b border-slate-300">
                                 <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Date</th>
                                 <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Reference</th>
                                 <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Patient</th>
@@ -207,7 +207,7 @@
                                 <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="receptionTransactionsTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+                        <tbody id="receptionTransactionsTableBody" class="divide-y divide-slate-300 bg-white"></tbody>
                     </table>
                 </div>
                 <div id="receptionTransactionsPagination" class="flex items-center justify-center gap-1.5 px-3 py-2 bg-white border-t border-slate-100"></div>
@@ -1169,7 +1169,7 @@
             if (!txTableBody) return
             var list = Array.isArray(rows) ? rows : []
             if (!list.length) {
-                txTableBody.innerHTML = '<tr><td colspan="7" class="px-3 py-6 text-center text-[0.78rem] text-slate-500">No transactions found.</td></tr>'
+                txTableBody.innerHTML = '<tr><td colspan="7" class="py-12 text-center"><div class="flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No transactions found.</span></div></td></tr>'
                 if (txPagination) txPagination.innerHTML = ''
                 return
             }
