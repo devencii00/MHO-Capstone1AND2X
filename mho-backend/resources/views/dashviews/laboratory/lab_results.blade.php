@@ -170,7 +170,7 @@
         var html = ''
         rows.forEach(function (r, i) {
             var dept = r.department || categoryFor(r.service_name)
-            var encodeUrl = '/dashboard/laboratory_personnel?role=laboratory_personnel&section=results&view=' + encodeURIComponent(r.result_id || r.id || i) + '&type=' + encodeURIComponent(dept)
+            var encodeUrl = '/dashboard/laboratory?role=laboratory&section=results&view=' + encodeURIComponent(r.result_id || r.id || i) + '&type=' + encodeURIComponent(dept)
             var action = (r.status || 'awaiting_result') === 'completed'
                 ? '<span class="text-slate-300 text-[0.7rem]">—</span>'
                 : '<a href="' + encodeUrl + '" data-spa-nav="1" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-green-600 text-white text-[0.65rem] font-semibold hover:bg-green-700 transition-colors"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Input Result</a>'

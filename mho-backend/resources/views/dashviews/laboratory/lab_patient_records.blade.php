@@ -132,7 +132,7 @@
                 '<td class="px-4 py-3">' + escapeHtml(r.date || '—') + '</td>' +
                 '<td class="px-4 py-3">' + escapeHtml(r.time || '—') + '</td>' +
                 '<td class="px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded-full border text-[0.65rem] font-semibold ' + statusClass + '">' + escapeHtml(status.charAt(0).toUpperCase() + status.slice(1)) + '</span></td>' +
-                '<td class="px-4 py-3 text-right"><a href="' + escapeHtml(r.view_url || '/dashboard/laboratory_personnel?role=laboratory_personnel&section=records-view&view=1') + '" data-spa-nav="1" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-green-200 bg-green-50 text-green-700 text-[0.65rem] font-semibold hover:bg-green-100 transition-colors">View</a></td>' +
+                '<td class="px-4 py-3 text-right"><a href="' + escapeHtml(r.view_url || '/dashboard/laboratory?role=laboratory&section=records-view&view=1') + '" data-spa-nav="1" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-green-200 bg-green-50 text-green-700 text-[0.65rem] font-semibold hover:bg-green-100 transition-colors">View</a></td>' +
                 '</tr>'
         })
         body.innerHTML = html

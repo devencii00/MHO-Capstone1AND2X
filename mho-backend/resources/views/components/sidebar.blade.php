@@ -535,7 +535,7 @@
                     
                 @endif
             </a>
-        @elseif ($roleKey === 'laboratory_personnel')
+        @elseif (in_array($roleKey, ['laboratory', 'laboratory_personnel'], true))
             @php
                 $isLabRecords = $currentSection === 'records' || $currentSection === 'records-view';
                 $isLabResults = $currentSection === 'results' || in_array($currentSection, ['lab-result', 'ultrasound-result', 'xray-result', 'xray-pdf']);

@@ -1,15 +1,15 @@
 <div class="space-y-6">
     <div class="flex items-start justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-semibold text-slate-900 mb-1">Ultrasound Records</h1>
-            <p class="text-sm text-slate-500">List of all ultrasound patient results.</p>
+            <h1 class="text-2xl font-semibold text-slate-900 mb-1">X-Ray Records</h1>
+            <p class="text-sm text-slate-500">List of all x-ray patient results.</p>
         </div>
         <div class="flex items-center gap-2">
-            <button type="button" id="labUsRecPrintBtn" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-[0.72rem] font-semibold hover:border-green-400 hover:text-green-600 transition-colors">
+            <button type="button" id="labXrRecPrintBtn" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-[0.72rem] font-semibold hover:border-green-400 hover:text-green-600 transition-colors">
                 <x-lucide-printer class="w-3.5 h-3.5" />
                 Print
             </button>
-            <button type="button" id="labUsRecResetBtn" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-500 text-[0.72rem] font-semibold hover:bg-slate-50 transition-colors">
+            <button type="button" id="labXrRecResetBtn" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-500 text-[0.72rem] font-semibold hover:bg-slate-50 transition-colors">
                 <x-lucide-rotate-cw class="w-3.5 h-3.5" />
                 Reset
             </button>
@@ -20,11 +20,11 @@
         <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
             <div class="relative w-full sm:w-80">
                 <x-lucide-search class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input type="text" id="labUsRecSearch"
+                <input type="text" id="labXrRecSearch"
                        class="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2 text-[0.78rem] text-slate-800 placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all"
                        placeholder="Search Patient ID, Name..." autocomplete="off">
             </div>
-            <select id="labUsRecStatusFilter" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[0.75rem] text-slate-700 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+            <select id="labXrRecStatusFilter" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[0.75rem] text-slate-700 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                 <option value="">All Status</option>
                 <option value="awaiting_result">Awaiting Result</option>
                 <option value="completed">Completed</option>
@@ -43,14 +43,14 @@
                         <th class="px-4 py-3 font-semibold text-[0.68rem] uppercase tracking-widest text-right">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-300" id="labUsRecTableBody">
+                <tbody class="divide-y divide-slate-300" id="labXrRecTableBody">
                     <tr>
                         <td colspan="6" class="px-4 py-12 text-center">
                             <div class="flex flex-col items-center gap-2.5">
                                 <div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
-                                    <x-lucide-activity class="w-5 h-5" />
+                                    <x-lucide-scan-line class="w-5 h-5" />
                                 </div>
-                                <p class="text-sm font-medium text-slate-400">No ultrasound records found</p>
+                                <p class="text-sm font-medium text-slate-400">No x-ray records found</p>
                                 <p class="text-[0.7rem] text-slate-400">Records will appear here once the backend is connected.</p>
                             </div>
                         </td>
@@ -60,7 +60,7 @@
         </div>
 
         <div class="px-5 py-3 border-t border-slate-100 flex items-center justify-between">
-            <p class="text-[0.7rem] text-slate-400" id="labUsRecCount">Showing 0 records</p>
+            <p class="text-[0.7rem] text-slate-400" id="labXrRecCount">Showing 0 records</p>
         </div>
     </div>
 </div>
@@ -69,12 +69,12 @@
 (function () {
     if (typeof window.apiFetch !== 'function') return
 
-    var searchEl = document.getElementById('labUsRecSearch')
-    var statusEl = document.getElementById('labUsRecStatusFilter')
-    var resetBtn = document.getElementById('labUsRecResetBtn')
-    var printBtn = document.getElementById('labUsRecPrintBtn')
-    var body = document.getElementById('labUsRecTableBody')
-    var countEl = document.getElementById('labUsRecCount')
+    var searchEl = document.getElementById('labXrRecSearch')
+    var statusEl = document.getElementById('labXrRecStatusFilter')
+    var resetBtn = document.getElementById('labXrRecResetBtn')
+    var printBtn = document.getElementById('labXrRecPrintBtn')
+    var body = document.getElementById('labXrRecTableBody')
+    var countEl = document.getElementById('labXrRecCount')
 
     var allRows = []
 
@@ -96,7 +96,7 @@
         if (!rows.length) {
             body.innerHTML = '<tr><td colspan="6" class="px-4 py-12 text-center">' +
                 '<div class="flex flex-col items-center gap-2">' +
-                '<div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>' +
+                '<div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg></div>' +
                 '<p class="text-sm font-medium text-slate-400">No matching records</p></div></td></tr>'
             if (countEl) countEl.textContent = 'Showing 0 records'
             return
@@ -104,7 +104,7 @@
 
         var html = ''
         rows.forEach(function (r) {
-            var viewUrl = '/dashboard/laboratory_personnel?role=laboratory_personnel&section=results&view=' + encodeURIComponent(r.id || '') + '&type=ultrasound'
+            var viewUrl = '/dashboard/laboratory?role=laboratory&section=results&view=' + encodeURIComponent(r.id || '') + '&type=xray'
             html += '<tr class="hover:bg-slate-50/60 transition-colors" data-status="' + escapeHtml(r.status || '') + '">' +
                 '<td class="px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[0.68rem] font-semibold">' + escapeHtml(r.patient_id || '—') + '</span></td>' +
                 '<td class="px-4 py-3 font-medium text-slate-800">' + escapeHtml(r.patient_name || '—') + '</td>' +
@@ -134,7 +134,7 @@
 
     function loadData() {
         if (typeof window.fetchDashboardData !== 'function') return
-        window.fetchDashboardData('ultrasound-records')
+        window.fetchDashboardData('xray-records')
             .then(function (payload) {
                 allRows = (payload && payload.data && Array.isArray(payload.data.records)) ? payload.data.records : []
                 applyFilters()

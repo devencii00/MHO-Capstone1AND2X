@@ -20,7 +20,7 @@ class DashboardController extends Controller
     {
         $role = strtolower($role);
 
-        $allowed = ['admin', 'doctor', 'receptionist', 'patient', 'laboratory_personnel'];
+        $allowed = ['admin', 'doctor', 'receptionist', 'patient', 'laboratory', 'laboratory_personnel'];
 
         if (! in_array($role, $allowed, true)) {
             abort(404);
@@ -319,7 +319,7 @@ class DashboardController extends Controller
     public function data(Request $request)
     {
         $role = strtolower((string) $request->query('role', 'admin'));
-        if (!in_array($role, ['admin', 'doctor', 'receptionist', 'patient', 'laboratory_personnel'], true)) {
+        if (!in_array($role, ['admin', 'doctor', 'receptionist', 'patient', 'laboratory', 'laboratory_personnel'], true)) {
             return response()->json(['ok' => false, 'message' => 'Invalid role.'], 422);
         }
 

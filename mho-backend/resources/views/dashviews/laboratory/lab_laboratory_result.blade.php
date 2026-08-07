@@ -1,7 +1,7 @@
 <div class="space-y-6">
     <div class="flex items-center justify-between gap-3">
         <div class="flex items-center gap-3">
-            <a href="{{ url('/dashboard/laboratory_personnel?role=laboratory_personnel&section=results') }}"
+            <a href="{{ url('/dashboard/laboratory?role=laboratory&section=results') }}"
                data-spa-nav="1"
                class="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:border-green-400 hover:text-green-600 transition-colors">
                 <x-lucide-arrow-left class="w-4 h-4" />

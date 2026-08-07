@@ -62,7 +62,7 @@
                             <p class="text-[0.7rem] text-slate-500 mt-0.5">Results waiting to be encoded</p>
                         </div>
                     </div>
-                    <a href="{{ url('/dashboard/laboratory_personnel?role=laboratory_personnel&section=results') }}"
+                    <a href="{{ url('/dashboard/laboratory?role=laboratory&section=results') }}"
                        data-spa-nav="1"
                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-[0.7rem] font-semibold text-slate-600 hover:border-green-400 hover:text-green-600 transition-colors">
                         View all
@@ -72,7 +72,7 @@
             </div>
             <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-slate-50">
                 <table class="w-full text-left text-[0.75rem] text-slate-600 whitespace-nowrap">
-                    <thead class="text-slate-500 border-b border-slate-100">
+                    <thead class="text-slate-500 border-b border-slate-300">
                         <tr>
                             <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Patient</th>
                             <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Service</th>
@@ -82,14 +82,14 @@
                             <th class="px-4 py-2.5 font-semibold text-[0.68rem] uppercase tracking-widest">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100" id="labPendingResultsBody">
+                    <tbody class="divide-y divide-slate-300" id="labPendingResultsBody">
                         <tr>
-                            <td colspan="6" class="px-4 py-10 text-center">
-                                <div class="flex flex-col items-center gap-2">
-                                    <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
-                                        <x-lucide-clipboard-list class="w-6 h-6" />
+                            <td colspan="6" class="px-4 py-12 text-center">
+                                <div class="flex flex-col items-center gap-2.5">
+                                    <div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
+                                        <x-lucide-clipboard-list class="w-5 h-5" />
                                     </div>
-                                    <p class="text-slate-400 text-[0.78rem]">No pending results at the moment.</p>
+                                    <p class="text-sm font-medium text-slate-400">No pending results at the moment.</p>
                                 </div>
                             </td>
                         </tr>
@@ -112,7 +112,7 @@
                     </div>
                 </div>
                 <div class="p-4 space-y-2.5">
-                    <a href="{{ url('/dashboard/laboratory_personnel?role=laboratory_personnel&section=records') }}" data-spa-nav="1"
+                    <a href="{{ url('/dashboard/laboratory?role=laboratory&section=records') }}" data-spa-nav="1"
                        class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-green-300 hover:bg-green-50/40 transition-colors">
                         <div class="w-9 h-9 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600"><x-lucide-folder-open class="w-4 h-4" /></div>
                         <div>
@@ -120,7 +120,7 @@
                             <div class="text-[0.68rem] text-slate-400">Browse patient files</div>
                         </div>
                     </a>
-                    <a href="{{ url('/dashboard/laboratory_personnel?role=laboratory_personnel&section=results') }}" data-spa-nav="1"
+                    <a href="{{ url('/dashboard/laboratory?role=laboratory&section=results') }}" data-spa-nav="1"
                        class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-green-300 hover:bg-green-50/40 transition-colors">
                         <div class="w-9 h-9 rounded-lg bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-600"><x-lucide-clipboard-list class="w-4 h-4" /></div>
                         <div>
@@ -128,7 +128,7 @@
                             <div class="text-[0.68rem] text-slate-400">Input pending medical results</div>
                         </div>
                     </a>
-                    <a href="{{ url('/dashboard/laboratory_personnel?role=laboratory_personnel&section=laboratory-records') }}" data-spa-nav="1"
+                    <a href="{{ url('/dashboard/laboratory?role=laboratory&section=laboratory-records') }}" data-spa-nav="1"
                        class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-green-300 hover:bg-green-50/40 transition-colors">
                         <div class="w-9 h-9 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600"><x-lucide-flask-conical class="w-4 h-4" /></div>
                         <div>
@@ -136,7 +136,7 @@
                             <div class="text-[0.68rem] text-slate-400">Fecalysis, urinalysis, CBC &amp; more</div>
                         </div>
                     </a>
-                    <a href="{{ url('/dashboard/laboratory_personnel?role=laboratory_personnel&section=ultrasound-records') }}" data-spa-nav="1"
+                    <a href="{{ url('/dashboard/laboratory?role=laboratory&section=ultrasound-records') }}" data-spa-nav="1"
                        class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-green-300 hover:bg-green-50/40 transition-colors">
                         <div class="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600"><x-lucide-activity class="w-4 h-4" /></div>
                         <div>
@@ -144,7 +144,7 @@
                             <div class="text-[0.68rem] text-slate-400">Imaging records &amp; results</div>
                         </div>
                     </a>
-                    <a href="{{ url('/dashboard/laboratory_personnel?role=laboratory_personnel&section=xray-records') }}" data-spa-nav="1"
+                    <a href="{{ url('/dashboard/laboratory?role=laboratory&section=xray-records') }}" data-spa-nav="1"
                        class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-green-300 hover:bg-green-50/40 transition-colors">
                         <div class="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600"><x-lucide-scan-line class="w-4 h-4" /></div>
                         <div>

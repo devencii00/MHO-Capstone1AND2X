@@ -46,9 +46,12 @@
             var expectedRole = "{{ strtolower($role ?? 'admin') }}"
             var actualRole = data && data.role ? String(data.role).toLowerCase() : ''
             var userUuid = data && data.uuid ? String(data.uuid) : ''
-            if (actualRole && actualRole !== expectedRole) {
-                var target = "{{ request()->getBaseUrl() }}/dashboard/" + encodeURIComponent(actualRole)
-                if (actualRole !== 'admin' && userUuid) {
+            function canonicalLabRole(r) { return (r === 'laboratory' || r === 'laboratory_personnel') ? 'laboratory' : r }
+            var canonicalExpected = canonicalLabRole(expectedRole)
+            var canonicalActual = canonicalLabRole(actualRole)
+            if (actualRole && canonicalActual !== canonicalExpected) {
+                var target = "{{ request()->getBaseUrl() }}/dashboard/" + encodeURIComponent(canonicalActual)
+                if (canonicalActual !== 'admin' && userUuid) {
                     target += '?user_uuid=' + encodeURIComponent(userUuid)
                 }
                 window.location.href = target
@@ -110,11 +113,13 @@
                     'doctor' => 'doctordb',
                     'receptionist' => 'receptdb',
                     'patient' => 'patientdb',
-                    'laboratory_personnel' => 'labdb',
+                    'laboratory' => 'labdb',
+                    'laboratory_personnel' => 'labdb', // legacy alias
                 ];
 
                 $key = $mapping[$role] ?? null;
-                $viewName = $key ? 'dashviews.' . $role . '.' . $key : null;
+                $folder = in_array($role, ['laboratory', 'laboratory_personnel'], true) ? 'laboratory' : $role;
+                $viewName = $key ? 'dashviews.' . $folder . '.' . $key : null;
             @endphp
 
             @if ($viewName)

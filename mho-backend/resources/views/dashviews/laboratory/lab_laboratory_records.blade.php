@@ -123,7 +123,7 @@
                     var badge = st === 'completed'
                         ? '<span class="inline-flex px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-[0.62rem] font-semibold">Completed</span>'
                         : '<span class="inline-flex px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-100 text-[0.62rem] font-semibold">Awaiting Result</span>'
-                    var encodeUrl = '/dashboard/laboratory_personnel?role=laboratory_personnel&section=results&view=' + encodeURIComponent(svc.id || '') + '&type=laboratory'
+                    var encodeUrl = '/dashboard/laboratory?role=laboratory&section=results&view=' + encodeURIComponent(svc.id || '') + '&type=laboratory'
                     html += '<div class="flex items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-200 bg-white">' +
                         '<div class="min-w-0"><div class="text-[0.8rem] font-semibold text-slate-800 truncate">' + escapeHtml(svc.service_name || 'Unknown Service') + '</div>' +
                         '<div class="text-[0.65rem] text-slate-400 mt-0.5">' + (st === 'completed' ? 'Result released' : 'Result pending') + '</div></div>' +
