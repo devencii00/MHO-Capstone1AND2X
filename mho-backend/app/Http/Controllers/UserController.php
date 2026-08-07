@@ -38,7 +38,7 @@ class UserController extends Controller
         $data = $request->validate([
             'email' => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
-            'role' => ['required', 'in:admin,doctor,receptionist,patient'],
+            'role' => ['required', 'in:admin,doctor,receptionist,patient,laboratory_personnel'],
             'status' => ['nullable', 'in:active,inactive,suspended'],
             'firstname' => ['nullable', 'string'],
             'lastname' => ['nullable', 'string'],
@@ -145,7 +145,7 @@ class UserController extends Controller
             'email' => $emailRules,
             'password' => $passwordRules,
             'must_change_credentials' => ['sometimes', 'boolean'],
-            'role' => ['sometimes', 'in:admin,doctor,receptionist,patient'],
+            'role' => ['sometimes', 'in:admin,doctor,receptionist,patient,laboratory_personnel'],
             'status' => ['sometimes', 'in:active,inactive,suspended'],
             'firstname' => ['sometimes', 'nullable', 'string', 'regex:/^[\p{L}\p{M}][\p{L}\p{M}\s\.\'\-\x{00B7}]*$/u'],
             'lastname' => ['sometimes', 'nullable', 'string', 'regex:/^[\p{L}\p{M}][\p{L}\p{M}\s\.\'\-\x{00B7}]*$/u'],
@@ -322,7 +322,7 @@ class UserController extends Controller
 
         $data = $request->validate([
             'email' => ['required', 'email', 'unique:users,email'],
-            'role' => ['required', 'in:admin,doctor,receptionist,patient'],
+            'role' => ['required', 'in:admin,doctor,receptionist,patient,laboratory_personnel'],
             'status' => ['nullable', 'in:active,inactive,suspended'],
             'firstname' => ['nullable', 'string'],
             'lastname' => ['nullable', 'string'],

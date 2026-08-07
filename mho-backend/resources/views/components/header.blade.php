@@ -7,6 +7,7 @@
         'doctor' => 'Doctor',
         'receptionist' => 'Receptionist',
         'patient' => 'Patient',
+        'laboratory_personnel' => 'Lab Personnel',
     ];
     $roleLabel = $roleNames[$roleKey] ?? ucfirst($roleKey);
 @endphp

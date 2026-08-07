@@ -5,7 +5,7 @@
     </div>
     <p class="text-xs text-slate-500 mb-4">
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
             <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Doctor</div>
             <div id="admin_staff_stat_doctor" class="mt-1 text-xl font-semibold text-slate-900">-</div>
@@ -13,6 +13,10 @@
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
             <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Receptionist</div>
             <div id="admin_staff_stat_receptionist" class="mt-1 text-xl font-semibold text-slate-900">-</div>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-4">
+            <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Lab Personnel</div>
+            <div id="admin_staff_stat_lab" class="mt-1 text-xl font-semibold text-slate-900">-</div>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
             <div class="text-[0.68rem] uppercase tracking-widest text-slate-400">Total Staff</div>
@@ -34,6 +38,7 @@
                 <option value="">All staff</option>
                 <option value="doctor">Doctors</option>
                 <option value="receptionist">Receptionists</option>
+                <option value="laboratory_personnel">Lab Personnel</option>
             </select>
         </div>
         <div class="w-full md:w-40">
@@ -280,6 +285,7 @@
                             <select id="adminDoctorEditRole" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                                 <option value="doctor">Doctor</option>
                                 <option value="receptionist">Receptionist</option>
+                                <option value="laboratory_personnel">Lab Personnel</option>
                             </select>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -1050,17 +1056,21 @@
         function updateStaffStats() {
             var docEl = document.getElementById('admin_staff_stat_doctor')
             var recEl = document.getElementById('admin_staff_stat_receptionist')
+            var labEl = document.getElementById('admin_staff_stat_lab')
             var totalEl = document.getElementById('admin_staff_stat_total')
-            if (!docEl && !recEl && !totalEl) return
+            if (!docEl && !recEl && !labEl && !totalEl) return
             var doctorsCount = 0
             var receptionistsCount = 0
+            var labCount = 0
             doctors.forEach(function (staff) {
                 if (staff.role === 'doctor') doctorsCount++
                 else if (staff.role === 'receptionist') receptionistsCount++
+                else if (staff.role === 'laboratory_personnel') labCount++
             })
             if (docEl) docEl.textContent = String(doctorsCount)
             if (recEl) recEl.textContent = String(receptionistsCount)
-            if (totalEl) totalEl.textContent = String(staffMeta.total || (doctorsCount + receptionistsCount))
+            if (labEl) labEl.textContent = String(labCount)
+            if (totalEl) totalEl.textContent = String(staffMeta.total || (doctorsCount + receptionistsCount + labCount))
         }
 
         function setScheduleSubmitting(isSubmitting) {
@@ -1422,7 +1432,7 @@
                 var prc = (staff.prc_license || '').trim()
                 var ptr = (staff.ptr_number || '').trim()
                 var phic = (staff.philhealth_number || '').trim()
-                var roleLabel = staff.role === 'doctor' ? 'Doctor' : (staff.role === 'receptionist' ? 'Receptionist' : (staff.role || '-'))
+                var roleLabel = staff.role === 'doctor' ? 'Doctor' : (staff.role === 'receptionist' ? 'Receptionist' : (staff.role === 'laboratory_personnel' ? 'Lab Personnel' : (staff.role || '-')))
                 var profileImg = staff.prof_path ? staff.prof_path : null
 
                 tr.innerHTML =
@@ -1435,7 +1445,7 @@
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700 font-medium">' + fullName + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem]">' +
                         '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.68rem] font-semibold border ' +
-                            (staff.role === 'doctor' ? 'text-green-700 bg-green-50 border-green-100' : 'text-blue-700 bg-blue-50 border-blue-100') +
+                            (staff.role === 'doctor' ? 'text-green-700 bg-green-50 border-green-100' : (staff.role === 'laboratory_personnel' ? 'text-purple-700 bg-purple-50 border-purple-100' : 'text-blue-700 bg-blue-50 border-blue-100')) +
                         '">' + roleLabel + '</span>' +
                     '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' +

@@ -938,8 +938,7 @@ function setWalkInTab(tab) {
         function loadServices() {
             if (servicesLoaded || servicesLoading || typeof apiFetch !== 'function') return
             servicesLoading = true
-            var allowedNames = encodeURIComponent('general medicine,pediatrics')
-            apiFetch("{{ url('/api/services') }}?per_page=15&service_names=" + allowedNames, { method: 'GET' })
+            apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
                 .then(function (response) {
                     return response.json().then(function (data) {
                         return { ok: response.ok, data: data }
@@ -2482,10 +2481,6 @@ function setWalkInTab(tab) {
             if (isWalkIn) {
                 list = list.filter(function (service) { return !isWalkInExcludedService(service) })
             }
-            if (selectorState.mode === 'guest') {
-                var allowedGroups = ['general medicine', 'pediatrics']
-                list = list.filter(function (service) { return allowedGroups.indexOf(serviceGroup(service)) !== -1 })
-            }
             var baseSelection = selectorState.stagedServices && selectorState.stagedServices.length ? selectorState.stagedServices[0] : null
             if (baseSelection) {
                 var baseGroup = serviceGroup(baseSelection)
@@ -2533,10 +2528,6 @@ function setWalkInTab(tab) {
                 .then(function (res) {
                     if (!res.ok) return { data: [], hasMore: false }
                     var items = Array.isArray(res.data.data) ? res.data.data : []
-                    var allowed = ['general medicine', 'pediatrics']
-                    items = items.filter(function (s) {
-                        return allowed.indexOf(normalizeText(s && s.service_name ? s.service_name : '')) !== -1
-                    })
                     return {
                         data: items,
                         hasMore: (res.data.current_page || 1) < (res.data.last_page || 1)
@@ -2905,8 +2896,7 @@ function setWalkInTab(tab) {
             }
             if (typeof apiFetch !== 'function') return Promise.resolve([])
             servicesLoading = true
-            var allowedNames = encodeURIComponent('general medicine,pediatrics')
-            cacheEntry.promise = apiFetch("{{ url('/api/services') }}?per_page=15&service_names=" + allowedNames, { method: 'GET' })
+            cacheEntry.promise = apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) return services || []
@@ -4322,8 +4312,7 @@ function setWalkInTab(tab) {
             if (!popularServicesLoaded && !popularServicesLoading) {
                 popularServicesLoading = true
                 popularServicesLoadError = ''
-                var popAllowedNames = encodeURIComponent('general medicine,pediatrics')
-                apiFetch("{{ url('/api/services-popular') }}?limit=10&service_names=" + popAllowedNames, { method: 'GET' })
+                apiFetch("{{ url('/api/services-popular') }}?limit=10", { method: 'GET' })
                     .then(function (r) { return readResponse(r) })
                     .then(function (res) {
                         if (res.ok) {

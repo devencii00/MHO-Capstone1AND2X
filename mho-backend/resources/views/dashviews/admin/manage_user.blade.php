@@ -28,6 +28,7 @@
                 <option value="admin">Admin</option>
                 <option value="doctor">Doctor</option>
                 <option value="receptionist">Receptionist</option>
+                <option value="laboratory_personnel">Lab Personnel</option>
                 <option value="patient">Patient</option>
             </select>
         </div>
@@ -84,6 +85,7 @@
                             <option value="admin">Admin</option>
                             <option value="doctor">Doctor</option>
                             <option value="receptionist">Receptionist</option>
+                            <option value="laboratory_personnel">Lab Personnel</option>
                             <option value="patient">Patient</option>
                         </select>
                     </div>
@@ -171,6 +173,7 @@
                 <option value="admin">Admin</option>
                 <option value="doctor">Doctor</option>
                 <option value="receptionist">Receptionist</option>
+                <option value="laboratory_personnel">Lab Personnel</option>
                 <option value="patient">Patient</option>
             </select>
         </div>

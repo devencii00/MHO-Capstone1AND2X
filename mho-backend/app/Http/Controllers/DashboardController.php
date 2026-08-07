@@ -319,7 +319,7 @@ class DashboardController extends Controller
     public function data(Request $request)
     {
         $role = strtolower((string) $request->query('role', 'admin'));
-        if (!in_array($role, ['admin', 'doctor', 'receptionist', 'patient'], true)) {
+        if (!in_array($role, ['admin', 'doctor', 'receptionist', 'patient', 'laboratory_personnel'], true)) {
             return response()->json(['ok' => false, 'message' => 'Invalid role.'], 422);
         }
 

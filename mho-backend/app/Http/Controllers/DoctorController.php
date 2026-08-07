@@ -223,7 +223,7 @@ class DoctorController extends Controller
         }
 
         $staff = User::query()
-            ->whereIn('role', ['doctor', 'receptionist'])
+            ->whereIn('role', ['doctor', 'receptionist', 'laboratory_personnel'])
             ->with(['doctorSchedules'])
             ->paginate($perPage)
             ->through(function (User $user) {

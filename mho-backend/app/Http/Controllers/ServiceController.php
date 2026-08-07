@@ -13,6 +13,7 @@ class ServiceController extends Controller
 
         $request->validate([
             'status' => ['nullable', 'in:active,inactive'],
+            'category' => ['nullable', 'in:Consultation,Laboratory'],
             'is_active' => ['nullable', 'boolean'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'in:name_asc,name_desc,price_asc,price_desc,created_desc,created_asc'],
@@ -46,6 +47,10 @@ class ServiceController extends Controller
                 $q->where('service_name', 'like', '%' . $search . '%')
                   ->orWhere('description', 'like', '%' . $search . '%');
             });
+        }
+
+        if ($category = $request->query('category')) {
+            $query->where('service_category', $category);
         }
 
         if (! $currentUser || $currentUser->role !== 'admin') {
@@ -147,6 +152,8 @@ class ServiceController extends Controller
 
         $data = $request->validate([
             'service_name' => ['required', 'string'],
+            'service_category' => ['nullable', 'in:Consultation,Laboratory'],
+            'requires_consultation' => ['nullable', 'boolean'],
             'description' => ['nullable', 'string'],
             'price' => ['nullable', 'numeric'],
             'duration_minutes' => ['nullable', 'integer', 'min:1', 'max:480'],
@@ -176,6 +183,8 @@ class ServiceController extends Controller
 
         $data = $request->validate([
             'service_name' => ['sometimes', 'string'],
+            'service_category' => ['sometimes', 'nullable', 'in:Consultation,Laboratory'],
+            'requires_consultation' => ['sometimes', 'nullable', 'boolean'],
             'description' => ['sometimes', 'nullable', 'string'],
             'price' => ['sometimes', 'nullable', 'numeric'],
             'duration_minutes' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:480'],

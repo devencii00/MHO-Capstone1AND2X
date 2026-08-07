@@ -10,7 +10,27 @@
     <div id="adminServiceError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
     <div id="adminServiceSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
 
-    <form id="adminAddServiceForm" class="mb-4 grid gap-2 grid-cols-1 md:grid-cols-5 items-end">
+    <form id="adminAddServiceForm" class="mb-4 grid gap-2 grid-cols-1 md:grid-cols-7 items-end">
+        <div>
+            <label for="admin_service_category" class="block text-[0.7rem] text-slate-600 mb-1">Category</label>
+            <select id="admin_service_category" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                <option value="Consultation" selected>Consultation</option>
+                <option value="Laboratory">Laboratory</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-[0.7rem] text-slate-600 mb-1">Requires Consultation?</label>
+            <div class="flex h-[34px] items-center gap-4">
+                <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                    <input type="radio" name="admin_service_requires_consultation" id="admin_service_requires_consultation_yes" value="1" checked class="rounded-full border-slate-300 text-green-600 focus:ring-green-500">
+                    Yes
+                </label>
+                <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                    <input type="radio" name="admin_service_requires_consultation" id="admin_service_requires_consultation_no" value="0" class="rounded-full border-slate-300 text-green-600 focus:ring-green-500">
+                    No
+                </label>
+            </div>
+        </div>
         <div>
             <label for="admin_service_name" class="block text-[0.7rem] text-slate-600 mb-1">Service name</label>
             <input id="admin_service_name" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" required>
@@ -41,6 +61,14 @@
             <input id="admin_service_search" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="Search by name or description">
         </div>
         <div class="w-full md:w-44">
+            <label for="admin_service_category_filter" class="block text-[0.7rem] text-slate-600 mb-1">Category</label>
+            <select id="admin_service_category_filter" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                <option value="">All</option>
+                <option value="Consultation">Consultation</option>
+                <option value="Laboratory">Laboratory</option>
+            </select>
+        </div>
+        <div class="w-full md:w-44">
             <label for="admin_service_status_filter" class="block text-[0.7rem] text-slate-600 mb-1">Status</label>
             <select id="admin_service_status_filter" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
                 <option value="">All</option>
@@ -66,6 +94,7 @@
             <thead>
                 <tr class="border-b border-slate-100 text-[0.68rem] uppercase tracking-widest text-slate-400">
                     <th class="py-2 pr-4 font-semibold">Service</th>
+                    <th class="py-2 pr-4 font-semibold">Category</th>
                     <th class="py-2 pr-4 font-semibold">Description</th>
                     <th class="py-2 pr-4 font-semibold">Duration</th>
                     <th class="py-2 pr-4 font-semibold">Fees</th>
@@ -75,7 +104,7 @@
             </thead>
             <tbody id="admin_service_table_body">
                 <tr>
-                    <td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">
+                    <td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">
                         Loading services…
                     </td>
                 </tr>
@@ -174,10 +203,12 @@
         var successBox = document.getElementById('adminServiceSuccess')
         var addForm = document.getElementById('adminAddServiceForm')
         var nameInput = document.getElementById('admin_service_name')
+        var categoryInput = document.getElementById('admin_service_category')
         var descInput = document.getElementById('admin_service_description')
         var durationInput = document.getElementById('admin_service_duration')
         var priceInput = document.getElementById('admin_service_price')
         var searchInput = document.getElementById('admin_service_search')
+        var categoryFilter = document.getElementById('admin_service_category_filter')
         var statusFilter = document.getElementById('admin_service_status_filter')
         var sortSelect = document.getElementById('admin_service_sort')
         var tableBody = document.getElementById('admin_service_table_body')
@@ -454,13 +485,15 @@
 
         function loadServices() {
             if (!tableBody) return
-            tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">Loading services…</td></tr>'
+            tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading services…</td></tr>'
 
             var sort = sortSelect ? String(sortSelect.value || 'created_desc') : 'created_desc'
             var query = searchInput ? searchInput.value.trim() : ''
+            var category = categoryFilter ? String(categoryFilter.value || '') : ''
             var status = statusFilter ? String(statusFilter.value || '') : ''
             var params = 'per_page=10&page=' + serviceCurrentPage + '&sort=' + encodeURIComponent(sort)
             if (query) params += '&search=' + encodeURIComponent(query)
+            if (category) params += '&category=' + encodeURIComponent(category)
             if (status) params += '&status=' + encodeURIComponent(status)
             apiFetch("{{ url('/api/services') }}?" + params, {
                 method: 'GET'
@@ -472,7 +505,7 @@
                 })
                 .then(function (result) {
                     if (!result.ok) {
-                        tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-red-500">Failed to load services.</td></tr>'
+                        tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-red-500">Failed to load services.</td></tr>'
                         return
                     }
                     var payload = result.data
@@ -486,7 +519,7 @@
                     renderServices()
                 })
                 .catch(function () {
-                    tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-red-500">Network error while loading services.</td></tr>'
+                    tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-red-500">Network error while loading services.</td></tr>'
                 })
         }
 
@@ -494,7 +527,7 @@
             if (!tableBody) return
 
             if (!services.length) {
-                tableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[0.78rem] text-slate-400">No services found.</td></tr>'
+                tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">No services found.</td></tr>'
                 renderServicePagination()
                 return
             }
@@ -513,6 +546,9 @@
 
                 tr.innerHTML =
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + (service.service_name || '') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem]">' +
+                        '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border ' + ((service.service_category === 'Laboratory') ? 'bg-violet-50 text-violet-700 border-violet-100' : 'bg-blue-50 text-blue-700 border-blue-100') + '">' + ((service.service_category === 'Laboratory') ? 'Laboratory' : 'Consultation') + '</span>' +
+                    '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (service.description || '') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + duration + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + price + '</td>' +
@@ -752,7 +788,9 @@
                 }
 
                 var body = {
-                    service_name: name
+                    service_name: name,
+                    service_category: categoryInput ? (categoryInput.value || 'Consultation') : 'Consultation',
+                    requires_consultation: (document.querySelector('input[name="admin_service_requires_consultation"]:checked') || {}).value === '1'
                 }
                 if (description) {
                     body.description = description
@@ -771,6 +809,8 @@
 
                 var detailsHtml = '<div class="grid grid-cols-2 gap-x-4 gap-y-1">' +
                     '<div class="text-slate-500">Name:</div><div class="text-slate-800 font-medium">' + escapeHtml(body.service_name) + '</div>' +
+                    '<div class="text-slate-500">Category:</div><div class="text-slate-800 font-medium">' + escapeHtml(body.service_category) + '</div>' +
+                    '<div class="text-slate-500">Requires Consultation:</div><div class="text-slate-800 font-medium">' + (body.requires_consultation ? 'Yes' : 'No') + '</div>' +
                     (body.description ? '<div class="text-slate-500">Description:</div><div class="text-slate-800 font-medium">' + escapeHtml(body.description) + '</div>' : '') +
                     (body.duration_minutes ? '<div class="text-slate-500">Duration:</div><div class="text-slate-800 font-medium">' + escapeHtml(body.duration_minutes) + ' minutes</div>' : '') +
                     (body.price ? '<div class="text-slate-500">Price:</div><div class="text-slate-800 font-medium">₱' + escapeHtml(body.price) + '</div>' : '') +
@@ -800,6 +840,9 @@
                                     return
                                 }
                                 if (nameInput) nameInput.value = ''
+                                if (categoryInput) categoryInput.value = 'Consultation'
+                                var requiresYes = document.getElementById('admin_service_requires_consultation_yes')
+                                if (requiresYes) requiresYes.checked = true
                                 if (descInput) descInput.value = ''
                                 if (durationInput) durationInput.value = ''
                                 if (priceInput) priceInput.value = ''
@@ -818,6 +861,12 @@
 
         if (searchInput) {
             searchInput.addEventListener('input', function () {
+                serviceCurrentPage = 1
+                loadServices()
+            })
+        }
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', function () {
                 serviceCurrentPage = 1
                 loadServices()
             })

@@ -1616,8 +1616,7 @@ function setAppointmentTab(tab) {
             }
             if (typeof apiFetch !== 'function') return Promise.resolve([])
             servicesLoading = true
-            var allowedNames = encodeURIComponent('general surgeon,obstetrician-gynecologist,obstetrician - gynecologist,internal medicine')
-            cacheEntry.promise = apiFetch("{{ url('/api/services') }}?per_page=15&service_names=" + allowedNames, { method: 'GET' })
+            cacheEntry.promise = apiFetch("{{ url('/api/services') }}?per_page=15", { method: 'GET' })
                 .then(function (response) { return readResponse(response) })
                 .then(function (result) {
                     if (!result.ok) return services || []
