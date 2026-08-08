@@ -14,9 +14,17 @@ class AppointmentService extends Model
     protected $fillable = [
         'appointment_id',
         'service_id',
+        'status',
+        'completed_by',
+        'completed_at',
     ];
 
     public $timestamps = false;
+
+    protected $casts = [
+        'completed_by' => 'integer',
+        'completed_at' => 'datetime',
+    ];
 
     public function appointment()
     {
@@ -26,5 +34,10 @@ class AppointmentService extends Model
     public function service()
     {
         return $this->belongsTo(Service::class, 'service_id', 'service_id');
+    }
+
+    public function completedBy()
+    {
+        return $this->belongsTo(User::class, 'completed_by', 'user_id');
     }
 }

@@ -13,7 +13,7 @@ class ServiceController extends Controller
 
         $request->validate([
             'status' => ['nullable', 'in:active,inactive'],
-            'category' => ['nullable', 'in:Consultation,Laboratory'],
+            'category' => ['nullable', 'string', 'max:100'],
             'is_active' => ['nullable', 'boolean'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'in:name_asc,name_desc,price_asc,price_desc,created_desc,created_asc'],
@@ -50,7 +50,7 @@ class ServiceController extends Controller
         }
 
         if ($category = $request->query('category')) {
-            $query->where('service_category', $category);
+            $query->where('service_category', strtolower(trim($category)));
         }
 
         if (! $currentUser || $currentUser->role !== 'admin') {
@@ -152,12 +152,20 @@ class ServiceController extends Controller
 
         $data = $request->validate([
             'service_name' => ['required', 'string'],
-            'service_category' => ['nullable', 'in:Consultation,Laboratory'],
+            'service_category' => ['nullable', 'in:consultation,laboratory'],
+            'service_dept' => ['nullable', 'string', 'max:255'],
             'requires_consultation' => ['nullable', 'boolean'],
+            'service_type' => ['nullable', 'in:walk_in,scheduled,both'],
             'description' => ['nullable', 'string'],
             'price' => ['nullable', 'numeric'],
             'duration_minutes' => ['nullable', 'integer', 'min:1', 'max:480'],
         ]);
+
+        if (isset($data['service_category']) && $data['service_category'] !== null && $data['service_category'] !== '') {
+            $data['service_category'] = strtolower(trim($data['service_category']));
+        } else {
+            $data['service_category'] = 'consultation';
+        }
 
         $service = Service::create($data);
 
@@ -183,13 +191,19 @@ class ServiceController extends Controller
 
         $data = $request->validate([
             'service_name' => ['sometimes', 'string'],
-            'service_category' => ['sometimes', 'nullable', 'in:Consultation,Laboratory'],
+            'service_category' => ['sometimes', 'nullable', 'in:consultation,laboratory'],
+            'service_dept' => ['sometimes', 'nullable', 'string', 'max:255'],
             'requires_consultation' => ['sometimes', 'nullable', 'boolean'],
+            'service_type' => ['sometimes', 'nullable', 'in:walk_in,scheduled,both'],
             'description' => ['sometimes', 'nullable', 'string'],
             'price' => ['sometimes', 'nullable', 'numeric'],
             'duration_minutes' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:480'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
+
+        if (isset($data['service_category']) && $data['service_category'] !== null && $data['service_category'] !== '') {
+            $data['service_category'] = strtolower(trim($data['service_category']));
+        }
 
         $service->update($data);
 

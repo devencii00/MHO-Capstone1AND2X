@@ -12,7 +12,10 @@
 
     <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 mb-4">
         <div class="flex items-center justify-between mb-3">
-            <div class="text-[0.8rem] font-semibold text-slate-900" id="admin_medicine_form_title">Add medicine</div>
+            <div class="flex items-center gap-1.5">
+                <x-lucide-plus class="w-4 h-4 text-green-600" />
+                <div class="text-[0.8rem] font-semibold text-slate-900" id="admin_medicine_form_title">Add medicine</div>
+            </div>
             <button type="button" id="admin_medicine_form_toggle" class="text-[0.72rem] font-semibold text-slate-600 hover:text-slate-900">Hide</button>
         </div>
 
@@ -483,7 +486,7 @@
             if (brandInput) brandInput.value = ''
             if (indicationsInput) indicationsInput.value = ''
             if (contraindicationsInput) contraindicationsInput.value = ''
-            setFormExpanded(true)
+            setFormExpanded(false)
             setSaving(false)
         }
 

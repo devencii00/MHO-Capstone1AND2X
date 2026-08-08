@@ -10,50 +10,79 @@
     <div id="adminServiceError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
     <div id="adminServiceSuccess" class="hidden mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.75rem] text-emerald-700"></div>
 
-    <form id="adminAddServiceForm" class="mb-4 grid gap-2 grid-cols-1 md:grid-cols-7 items-end">
-        <div>
-            <label for="admin_service_category" class="block text-[0.7rem] text-slate-600 mb-1">Category</label>
-            <select id="admin_service_category" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-                <option value="Consultation" selected>Consultation</option>
-                <option value="Laboratory">Laboratory</option>
-            </select>
-        </div>
-        <div>
-            <label class="block text-[0.7rem] text-slate-600 mb-1">Requires Consultation?</label>
-            <div class="flex h-[34px] items-center gap-4">
-                <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
-                    <input type="radio" name="admin_service_requires_consultation" id="admin_service_requires_consultation_yes" value="1" checked class="rounded-full border-slate-300 text-green-600 focus:ring-green-500">
-                    Yes
-                </label>
-                <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
-                    <input type="radio" name="admin_service_requires_consultation" id="admin_service_requires_consultation_no" value="0" class="rounded-full border-slate-300 text-green-600 focus:ring-green-500">
-                    No
-                </label>
-            </div>
-        </div>
-        <div>
-            <label for="admin_service_name" class="block text-[0.7rem] text-slate-600 mb-1">Service name</label>
-            <input id="admin_service_name" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" required>
-        </div>
-        <div class="md:col-span-2">
-            <label for="admin_service_description" class="block text-[0.7rem] text-slate-600 mb-1">Description (optional)</label>
-            <input id="admin_service_description" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-        </div>
-        <div>
-            <label for="admin_service_duration" class="block text-[0.7rem] text-slate-600 mb-1">Duration (minutes)</label>
-            <input id="admin_service_duration" type="number" min="1" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. 30">
-        </div>
-        <div class="flex items-end gap-2">
-            <div class="flex-1">
-                <label for="admin_service_price" class="block text-[0.7rem] text-slate-600 mb-1">Fee</label>
-                <input id="admin_service_price" type="number" step="0.01" min="0" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
-            </div>
-            <button type="submit" id="adminAddServiceBtn" class="inline-flex h-[34px] items-center justify-center px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 disabled:hover:bg-green-600">
-                <span id="adminAddServiceSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin mr-2"></span>
-                <span>Add Service</span>
+    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 mb-4">
+        <div class="flex items-center justify-between mb-3">
+            <button type="button" id="admin_service_form_toggle" class="text-[0.8rem] font-semibold text-slate-900 hover:text-green-700 cursor-pointer flex items-center gap-1.5">
+                <x-lucide-plus class="w-4 h-4 text-green-600" />
+                Add service
             </button>
+            <button type="button" id="admin_service_form_toggle_btn" class="text-[0.72rem] font-semibold text-slate-600 hover:text-slate-900">Show</button>
         </div>
-    </form>
+
+        <div id="admin_service_form_body" class="hidden">
+            <form id="adminAddServiceForm" class="grid gap-2 grid-cols-1 md:grid-cols-4">
+                <div>
+                    <label class="block text-[0.7rem] text-slate-600 mb-1">Category</label>
+                    <div class="flex items-center gap-2">
+                        <input id="admin_service_category" type="hidden" value="consultation">
+                        <span id="admin_service_category_display" class="flex-1 min-w-0 truncate rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800">Consultation</span>
+                        <button type="button" id="adminServiceChooseCategoryBtn" class="shrink-0 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 whitespace-nowrap">Choose category</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[0.7rem] text-slate-600 mb-1">Department</label>
+                    <div class="flex items-center gap-2">
+                        <input id="admin_service_dept" type="hidden" value="">
+                        <span id="admin_service_dept_display" class="flex-1 min-w-0 truncate rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800">-</span>
+                        <button type="button" id="adminServiceChooseDeptBtn" class="shrink-0 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 whitespace-nowrap">Choose department</button>
+                    </div>
+                </div>
+                <div>
+                    <label for="admin_service_name" class="block text-[0.7rem] text-slate-600 mb-1">Service name</label>
+                    <input id="admin_service_name" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" required placeholder="Required">
+                </div>
+                <div>
+                    <label for="admin_service_duration" class="block text-[0.7rem] text-slate-600 mb-1">Duration (minutes)</label>
+                    <input id="admin_service_duration" type="number" min="1" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. 30">
+                </div>
+                <div>
+                    <label class="block text-[0.7rem] text-slate-600 mb-1">Requires Consultation?</label>
+                    <div class="flex h-[34px] items-center gap-4">
+                        <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                            <input type="radio" name="admin_service_requires_consultation" id="admin_service_requires_consultation_yes" value="1" checked class="rounded-full border-slate-300 text-green-600 focus:ring-green-500">
+                            Yes
+                        </label>
+                        <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                            <input type="radio" name="admin_service_requires_consultation" id="admin_service_requires_consultation_no" value="0" class="rounded-full border-slate-300 text-green-600 focus:ring-green-500">
+                            No
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label for="admin_service_type" class="block text-[0.7rem] text-slate-600 mb-1">Service type</label>
+                    <select id="admin_service_type" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        <option value="both" selected>Walk-in & scheduled</option>
+                        <option value="walk_in">Walk-in only</option>
+                        <option value="scheduled">Scheduled only</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="admin_service_price" class="block text-[0.7rem] text-slate-600 mb-1">Fee</label>
+                    <input id="admin_service_price" type="number" step="0.01" min="0" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="0.00">
+                </div>
+                <div>
+                    <label for="admin_service_description" class="block text-[0.7rem] text-slate-600 mb-1">Description (optional)</label>
+                    <input id="admin_service_description" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                </div>
+                <div class="md:col-span-4 flex items-center justify-end gap-2 pt-1">
+                    <button type="submit" id="adminAddServiceBtn" class="inline-flex h-[34px] items-center justify-center px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 disabled:hover:bg-green-600">
+                        <span id="adminAddServiceSpinner" class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin mr-2"></span>
+                        <span>Add Service</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div class="mb-3 flex flex-col gap-2 md:flex-row md:items-end">
         <div class="flex-1">
@@ -93,8 +122,9 @@
         <table class="min-w-full text-left text-xs text-slate-600">
             <thead>
                 <tr class="border-b border-slate-300 text-[0.68rem] uppercase tracking-widest text-slate-400">
-                    <th class="py-2 pr-4 font-semibold">Service</th>
                     <th class="py-2 pr-4 font-semibold">Category</th>
+                    <th class="py-2 pr-4 font-semibold">Department</th>
+                    <th class="py-2 pr-4 font-semibold">Service</th>
                     <th class="py-2 pr-4 font-semibold">Description</th>
                     <th class="py-2 pr-4 font-semibold">Duration</th>
                     <th class="py-2 pr-4 font-semibold">Fees</th>
@@ -104,7 +134,7 @@
             </thead>
             <tbody id="admin_service_table_body">
                 <tr>
-                    <td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">
+                    <td colspan="8" class="py-4 text-center text-[0.78rem] text-slate-400">
                         Loading services…
                     </td>
                 </tr>
@@ -169,8 +199,32 @@
             <div id="adminServiceEditError" class="hidden mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.75rem] text-red-700"></div>
             <form id="adminServiceEditForm" class="grid grid-cols-1 gap-3">
                 <div>
+                    <label class="block text-[0.7rem] text-slate-600 mb-1">Category</label>
+                    <div class="flex items-center gap-2">
+                        <input id="adminServiceEditCategory" type="hidden" value="consultation">
+                        <span id="adminServiceEditCategoryDisplay" class="flex-1 min-w-0 truncate rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800">Consultation</span>
+                        <button type="button" id="adminServiceEditChooseCategoryBtn" class="shrink-0 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 whitespace-nowrap">Choose category</button>
+                    </div>
+                </div>
+                <div>
                     <label for="adminServiceEditName" class="block text-[0.7rem] text-slate-600 mb-1">Service name</label>
                     <input id="adminServiceEditName" type="text" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" required>
+                </div>
+                <div>
+                    <label class="block text-[0.7rem] text-slate-600 mb-1">Department</label>
+                    <div class="flex items-center gap-2">
+                        <input id="adminServiceEditDept" type="hidden" value="">
+                        <span id="adminServiceEditDeptDisplay" class="flex-1 min-w-0 truncate rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800">-</span>
+                        <button type="button" id="adminServiceEditChooseDeptBtn" class="shrink-0 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-[0.72rem] font-semibold text-green-700 hover:bg-green-100 whitespace-nowrap">Choose department</button>
+                    </div>
+                </div>
+                <div>
+                    <label for="adminServiceEditType" class="block text-[0.7rem] text-slate-600 mb-1">Service type</label>
+                    <select id="adminServiceEditType" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                        <option value="both">Walk-in & scheduled</option>
+                        <option value="walk_in">Walk-in only</option>
+                        <option value="scheduled">Scheduled only</option>
+                    </select>
                 </div>
                 <div>
                     <label for="adminServiceEditDescription" class="block text-[0.7rem] text-slate-600 mb-1">Description (optional)</label>
@@ -196,6 +250,61 @@
     </div>
 </div>
 
+<div id="adminServiceCategoryOverlay" class="hidden fixed inset-0 z-[80] bg-slate-900/60 items-center justify-center p-4">
+    <div class="w-full max-w-md h-[85vh] rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] flex flex-col overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div>
+                <div class="text-sm font-semibold text-slate-900">Choose category</div>
+                <div class="text-[0.72rem] text-slate-500">Select one category for this service.</div>
+            </div>
+            <button type="button" id="adminServiceCategoryClose" class="text-slate-400 hover:text-slate-600">
+                <x-lucide-x class="w-[20px] h-[20px]" />
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-5 space-y-4">
+            <div>
+                <div class="text-[0.7rem] text-slate-600 mb-1.5">Select a category</div>
+                <div id="adminServiceCategoryList" class="space-y-1.5"></div>
+            </div>
+        </div>
+        <div class="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-2">
+            <button type="button" id="adminServiceCategoryCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button type="button" id="adminServiceCategorySelect" class="px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed" disabled>Select category</button>
+        </div>
+    </div>
+</div>
+
+<div id="adminServiceDeptOverlay" class="hidden fixed inset-0 z-[80] bg-slate-900/60 items-center justify-center p-4">
+    <div class="w-full max-w-md h-[85vh] rounded-2xl bg-white border border-slate-200 shadow-[0_12px_30px_rgba(15,23,42,0.24)] flex flex-col overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div>
+                <div class="text-sm font-semibold text-slate-900">Choose department</div>
+                <div class="text-[0.72rem] text-slate-500">Select one department for this service.</div>
+            </div>
+            <button type="button" id="adminServiceDeptClose" class="text-slate-400 hover:text-slate-600">
+                <x-lucide-x class="w-[20px] h-[20px]" />
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-5 space-y-4">
+            <div>
+                <label for="adminServiceDeptNew" class="block text-[0.7rem] text-slate-600 mb-1">Add a new department</label>
+                <div class="flex items-center gap-2">
+                    <input id="adminServiceDeptNew" type="text" class="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. Pediatrics">
+                    <button type="button" id="adminServiceDeptAddBtn" class="shrink-0 px-3 py-2 rounded-lg border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 text-[0.72rem] font-semibold">Add</button>
+                </div>
+            </div>
+            <div>
+                <div class="text-[0.7rem] text-slate-600 mb-1.5">Existing departments</div>
+                <div id="adminServiceDeptList" class="space-y-1.5"></div>
+            </div>
+        </div>
+        <div class="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-2">
+            <button type="button" id="adminServiceDeptCancel" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button type="button" id="adminServiceDeptSelect" class="px-4 py-2 rounded-xl bg-green-600 text-white text-[0.78rem] font-semibold hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed" disabled>Select department</button>
+        </div>
+    </div>
+</div>
+
 <script>
     ;(function () {
         function onReady() {
@@ -204,6 +313,10 @@
         var addForm = document.getElementById('adminAddServiceForm')
         var nameInput = document.getElementById('admin_service_name')
         var categoryInput = document.getElementById('admin_service_category')
+        var categoryDisplay = document.getElementById('admin_service_category_display')
+        var categoryChooseBtn = document.getElementById('adminServiceChooseCategoryBtn')
+        var deptInput = document.getElementById('admin_service_dept')
+        var typeInput = document.getElementById('admin_service_type')
         var descInput = document.getElementById('admin_service_description')
         var durationInput = document.getElementById('admin_service_duration')
         var priceInput = document.getElementById('admin_service_price')
@@ -213,6 +326,10 @@
         var sortSelect = document.getElementById('admin_service_sort')
         var tableBody = document.getElementById('admin_service_table_body')
 
+        var serviceFormBody = document.getElementById('admin_service_form_body')
+        var serviceFormToggle = document.getElementById('admin_service_form_toggle')
+        var serviceFormToggleBtn = document.getElementById('admin_service_form_toggle_btn')
+
         var addServiceBtn = document.getElementById('adminAddServiceBtn')
         var addServiceSpinner = document.getElementById('adminAddServiceSpinner')
 
@@ -220,6 +337,285 @@
         var editingServiceId = null
         var serviceCurrentPage = 1
         var serviceMeta = { current_page: 1, last_page: 1, total: 0, per_page: 10 }
+
+        function titleCase(str) {
+            var s = String(str || '').trim()
+            if (!s) return ''
+            return s.charAt(0).toUpperCase() + s.slice(1)
+        }
+
+        function categoryLabel(value) {
+            var v = String(value || '').trim()
+            if (!v) return ''
+            return titleCase(v)
+        }
+
+        var categoryOptions = [
+            { value: 'consultation', label: 'Consultation' },
+            { value: 'laboratory', label: 'Laboratory' }
+        ]
+        var categorySelected = null
+        var categoryPickCallback = null
+        var categoryOverlay = document.getElementById('adminServiceCategoryOverlay')
+        var categoryClose = document.getElementById('adminServiceCategoryClose')
+        var categoryCancel = document.getElementById('adminServiceCategoryCancel')
+        var categorySelectBtn = document.getElementById('adminServiceCategorySelect')
+        var categoryList = document.getElementById('adminServiceCategoryList')
+
+        function buildCategoryOptions() {
+            // Categories are fixed (enum): consultation | laboratory
+            categoryOptions = [
+                { value: 'consultation', label: 'Consultation' },
+                { value: 'laboratory', label: 'Laboratory' }
+            ]
+        }
+
+        function renderCategoryList() {
+            if (!categoryList) return
+            if (!categoryOptions.length) {
+                categoryList.innerHTML = '<div class="text-[0.75rem] text-slate-400">No categories yet.</div>'
+                return
+            }
+            var html = ''
+            categoryOptions.forEach(function (opt) {
+                var isSel = categorySelected && categorySelected.value === opt.value
+                html += '<div class="flex items-center gap-2 rounded-xl border px-3 py-2 cursor-pointer transition-colors admin-category-option ' +
+                    (isSel ? 'border-green-400 bg-green-50 ring-1 ring-green-200' : 'border-slate-200 bg-white hover:border-green-300 hover:bg-green-50/40') +
+                    '" data-value="' + escapeHtml(opt.value) + '">' +
+                    '<input type="radio" class="rounded-full border-slate-300 text-green-600 focus:ring-green-500" ' + (isSel ? 'checked' : '') + '>' +
+                    '<span class="text-[0.8rem] text-slate-700">' + escapeHtml(opt.label) + '</span>' +
+                '</div>'
+            })
+            categoryList.innerHTML = html
+            categoryList.querySelectorAll('.admin-category-option').forEach(function (row) {
+                row.addEventListener('click', function () {
+                    var value = this.getAttribute('data-value')
+                    var opt = categoryOptions.find(function (o) { return o.value === value })
+                    if (!opt) return
+                    categorySelected = opt
+                    renderCategoryList()
+                    if (categorySelectBtn) categorySelectBtn.disabled = false
+                })
+            })
+        }
+
+        function openCategoryModal(callback, currentValue) {
+            categoryPickCallback = callback
+            categorySelected = null
+            var cur = String(currentValue || '').trim().toLowerCase()
+            buildCategoryOptions()
+            if (cur) {
+                var found = categoryOptions.find(function (o) { return o.value === cur })
+                if (found) categorySelected = found
+            }
+            renderCategoryList()
+            if (categorySelectBtn) categorySelectBtn.disabled = !categorySelected
+            if (categoryOverlay) {
+                categoryOverlay.classList.remove('hidden')
+                categoryOverlay.classList.add('flex')
+            }
+        }
+
+        function closeCategoryModal() {
+            if (categoryOverlay) {
+                categoryOverlay.classList.add('hidden')
+                categoryOverlay.classList.remove('flex')
+            }
+            categoryPickCallback = null
+            categorySelected = null
+        }
+
+        function applyCategoryPick() {
+            if (!categorySelected || !categoryPickCallback) return
+            categoryPickCallback(categorySelected)
+            closeCategoryModal()
+        }
+
+        if (categoryChooseBtn) {
+            categoryChooseBtn.addEventListener('click', function () {
+                openCategoryModal(function (opt) {
+                    if (categoryInput) categoryInput.value = opt.value
+                    if (categoryDisplay) categoryDisplay.textContent = opt.label
+                }, categoryInput ? categoryInput.value : '')
+            })
+        }
+
+        if (categoryClose) categoryClose.addEventListener('click', closeCategoryModal)
+        if (categoryCancel) categoryCancel.addEventListener('click', closeCategoryModal)
+        if (categorySelectBtn) categorySelectBtn.addEventListener('click', applyCategoryPick)
+        if (categoryOverlay) {
+            categoryOverlay.addEventListener('click', function (e) {
+                if (e.target === categoryOverlay) closeCategoryModal()
+            })
+        }
+
+        function setServiceFormExpanded(expanded) {
+            if (!serviceFormBody || !serviceFormToggleBtn) return
+            serviceFormBody.classList.toggle('hidden', !expanded)
+            serviceFormToggleBtn.textContent = expanded ? 'Hide' : 'Show'
+        }
+
+        if (serviceFormToggle) {
+            serviceFormToggle.addEventListener('click', function () {
+                setServiceFormExpanded(!!serviceFormBody && serviceFormBody.classList.contains('hidden'))
+            })
+        }
+        if (serviceFormToggleBtn) {
+            serviceFormToggleBtn.addEventListener('click', function () {
+                setServiceFormExpanded(!!serviceFormBody && serviceFormBody.classList.contains('hidden'))
+            })
+        }
+
+        function populateCategoryFilter() {
+            if (!categoryFilter) return
+            var current = String(categoryFilter.value || '')
+            var html = '<option value="">All</option>'
+            categoryOptions.forEach(function (opt) {
+                html += '<option value="' + escapeHtml(opt.value) + '"' + (current === opt.value ? ' selected' : '') + '>' + escapeHtml(opt.label) + '</option>'
+            })
+            categoryFilter.innerHTML = html
+            categoryFilter.value = current
+        }
+
+        var deptOptions = []
+        var deptSelected = null
+        var deptPickCallback = null
+        var deptDisplay = document.getElementById('admin_service_dept_display')
+        var deptChooseBtn = document.getElementById('adminServiceChooseDeptBtn')
+        var serviceEditDeptDisplay = document.getElementById('adminServiceEditDeptDisplay')
+        var serviceEditChooseDeptBtn = document.getElementById('adminServiceEditChooseDeptBtn')
+        var deptOverlay = document.getElementById('adminServiceDeptOverlay')
+        var deptClose = document.getElementById('adminServiceDeptClose')
+        var deptCancel = document.getElementById('adminServiceDeptCancel')
+        var deptSelectBtn = document.getElementById('adminServiceDeptSelect')
+        var deptList = document.getElementById('adminServiceDeptList')
+        var deptNew = document.getElementById('adminServiceDeptNew')
+        var deptAddBtn = document.getElementById('adminServiceDeptAddBtn')
+
+        function buildDeptOptions() {
+            var merged = {}
+            ;(services || []).forEach(function (s) {
+                var d = String(s.service_dept || '').trim()
+                if (!d) return
+                merged[d.toLowerCase()] = d
+            })
+            deptOptions = Object.keys(merged).map(function (k) {
+                return { value: merged[k], label: merged[k] }
+            }).sort(function (a, b) { return a.label.localeCompare(b.label) })
+        }
+
+        function renderDeptList() {
+            if (!deptList) return
+            if (!deptOptions.length) {
+                deptList.innerHTML = '<div class="text-[0.75rem] text-slate-400">No departments yet — add one above.</div>'
+                return
+            }
+            var html = ''
+            deptOptions.forEach(function (opt) {
+                var isSel = deptSelected && deptSelected.value === opt.value
+                html += '<div class="flex items-center gap-2 rounded-xl border px-3 py-2 cursor-pointer transition-colors admin-dept-option ' +
+                    (isSel ? 'border-green-400 bg-green-50 ring-1 ring-green-200' : 'border-slate-200 bg-white hover:border-green-300 hover:bg-green-50/40') +
+                    '" data-value="' + escapeHtml(opt.value) + '">' +
+                    '<input type="radio" class="rounded-full border-slate-300 text-green-600 focus:ring-green-500" ' + (isSel ? 'checked' : '') + '>' +
+                    '<span class="text-[0.8rem] text-slate-700">' + escapeHtml(opt.label) + '</span>' +
+                '</div>'
+            })
+            deptList.innerHTML = html
+            deptList.querySelectorAll('.admin-dept-option').forEach(function (row) {
+                row.addEventListener('click', function () {
+                    var value = this.getAttribute('data-value')
+                    var opt = deptOptions.find(function (o) { return o.value === value })
+                    if (!opt) return
+                    deptSelected = opt
+                    renderDeptList()
+                    if (deptSelectBtn) deptSelectBtn.disabled = false
+                })
+            })
+        }
+
+        function openDeptModal(callback, currentValue) {
+            deptPickCallback = callback
+            deptSelected = null
+            var cur = String(currentValue || '').trim()
+            buildDeptOptions()
+            if (cur) {
+                var found = deptOptions.find(function (o) { return o.value.toLowerCase() === cur.toLowerCase() })
+                if (found) deptSelected = found
+            }
+            if (deptNew) deptNew.value = ''
+            renderDeptList()
+            if (deptSelectBtn) deptSelectBtn.disabled = !deptSelected
+            if (deptOverlay) {
+                deptOverlay.classList.remove('hidden')
+                deptOverlay.classList.add('flex')
+            }
+        }
+
+        function closeDeptModal() {
+            if (deptOverlay) {
+                deptOverlay.classList.add('hidden')
+                deptOverlay.classList.remove('flex')
+            }
+            deptPickCallback = null
+            deptSelected = null
+        }
+
+        function applyDeptPick() {
+            if (!deptSelected || !deptPickCallback) return
+            deptPickCallback(deptSelected)
+            closeDeptModal()
+        }
+
+        if (deptChooseBtn) {
+            deptChooseBtn.addEventListener('click', function () {
+                openDeptModal(function (opt) {
+                    if (deptInput) deptInput.value = opt.value
+                    if (deptDisplay) deptDisplay.textContent = opt.label
+                }, deptInput ? deptInput.value : '')
+            })
+        }
+
+        if (serviceEditChooseDeptBtn) {
+            serviceEditChooseDeptBtn.addEventListener('click', function () {
+                openDeptModal(function (opt) {
+                    if (serviceEditDept) serviceEditDept.value = opt.value
+                    if (serviceEditDeptDisplay) serviceEditDeptDisplay.textContent = opt.label
+                }, serviceEditDept ? serviceEditDept.value : '')
+            })
+        }
+
+        if (deptClose) deptClose.addEventListener('click', closeDeptModal)
+        if (deptCancel) deptCancel.addEventListener('click', closeDeptModal)
+        if (deptSelectBtn) deptSelectBtn.addEventListener('click', applyDeptPick)
+        if (deptOverlay) {
+            deptOverlay.addEventListener('click', function (e) {
+                if (e.target === deptOverlay) closeDeptModal()
+            })
+        }
+
+        if (deptAddBtn) {
+            deptAddBtn.addEventListener('click', function () {
+                var raw = deptNew ? String(deptNew.value || '').trim() : ''
+                if (!raw) return
+                var existing = deptOptions.find(function (o) { return o.value.toLowerCase() === raw.toLowerCase() })
+                if (!existing) {
+                    deptOptions.push({ value: raw, label: raw })
+                    deptOptions.sort(function (a, b) { return a.label.localeCompare(b.label) })
+                }
+                deptSelected = deptOptions.find(function (o) { return o.value.toLowerCase() === raw.toLowerCase() })
+                if (deptNew) deptNew.value = ''
+                renderDeptList()
+                if (deptSelectBtn) deptSelectBtn.disabled = false
+            })
+        }
+        if (deptNew) {
+            deptNew.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault()
+                    if (deptAddBtn) deptAddBtn.click()
+                }
+            })
+        }
 
         var serviceVisibleCount = 6;
         function renderServicePagination() {
@@ -270,6 +666,11 @@
         var serviceEditSubtitle = document.getElementById('adminServiceEditSubtitle')
         var serviceEditError = document.getElementById('adminServiceEditError')
         var serviceEditName = document.getElementById('adminServiceEditName')
+        var serviceEditCategory = document.getElementById('adminServiceEditCategory')
+        var serviceEditCategoryDisplay = document.getElementById('adminServiceEditCategoryDisplay')
+        var serviceEditChooseCategoryBtn = document.getElementById('adminServiceEditChooseCategoryBtn')
+        var serviceEditDept = document.getElementById('adminServiceEditDept')
+        var serviceEditType = document.getElementById('adminServiceEditType')
         var serviceEditDescription = document.getElementById('adminServiceEditDescription')
         var serviceEditDuration = document.getElementById('adminServiceEditDuration')
         var serviceEditPrice = document.getElementById('adminServiceEditPrice')
@@ -458,6 +859,12 @@
                 serviceEditSubtitle.textContent = 'Editing - ' + subtitle
             }
             if (serviceEditName) serviceEditName.value = service.service_name || ''
+            var editCat = String(service.service_category || '').trim().toLowerCase()
+            if (serviceEditCategory) serviceEditCategory.value = editCat || 'consultation'
+            if (serviceEditCategoryDisplay) serviceEditCategoryDisplay.textContent = categoryLabel(editCat || 'consultation')
+            if (serviceEditDept) serviceEditDept.value = service.service_dept || ''
+            if (serviceEditDeptDisplay) serviceEditDeptDisplay.textContent = service.service_dept || '-'
+            if (serviceEditType) serviceEditType.value = service.service_type || 'both'
             if (serviceEditDescription) serviceEditDescription.value = service.description || ''
             if (serviceEditDuration) serviceEditDuration.value = service.duration_minutes != null ? String(service.duration_minutes) : ''
             if (serviceEditPrice) serviceEditPrice.value = service.price != null ? String(service.price) : ''
@@ -482,10 +889,18 @@
                 if (e.target === serviceEditOverlay) closeServiceEditModal()
             })
         }
+        if (serviceEditChooseCategoryBtn) {
+            serviceEditChooseCategoryBtn.addEventListener('click', function () {
+                openCategoryModal(function (opt) {
+                    if (serviceEditCategory) serviceEditCategory.value = opt.value
+                    if (serviceEditCategoryDisplay) serviceEditCategoryDisplay.textContent = opt.label
+                }, serviceEditCategory ? serviceEditCategory.value : '')
+            })
+        }
 
         function loadServices() {
             if (!tableBody) return
-            tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-slate-400">Loading services…</td></tr>'
+            tableBody.innerHTML = '<tr><td colspan="8" class="py-4 text-center text-[0.78rem] text-slate-400">Loading services…</td></tr>'
 
             var sort = sortSelect ? String(sortSelect.value || 'created_desc') : 'created_desc'
             var query = searchInput ? searchInput.value.trim() : ''
@@ -505,7 +920,7 @@
                 })
                 .then(function (result) {
                     if (!result.ok) {
-                        tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-red-500">Failed to load services.</td></tr>'
+                        tableBody.innerHTML = '<tr><td colspan="8" class="py-4 text-center text-[0.78rem] text-red-500">Failed to load services.</td></tr>'
                         return
                     }
                     var payload = result.data
@@ -516,10 +931,12 @@
                         total: payload.total || 0,
                         per_page: payload.per_page || 10
                     }
+                    buildCategoryOptions()
+                    populateCategoryFilter()
                     renderServices()
                 })
                 .catch(function () {
-                    tableBody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[0.78rem] text-red-500">Network error while loading services.</td></tr>'
+                    tableBody.innerHTML = '<tr><td colspan="8" class="py-4 text-center text-[0.78rem] text-red-500">Network error while loading services.</td></tr>'
                 })
         }
 
@@ -527,7 +944,7 @@
             if (!tableBody) return
 
             if (!services.length) {
-                tableBody.innerHTML = '<tr><td colspan="7" class="py-12 text-center"><div class="flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No services found.</span></div></td></tr>'
+                tableBody.innerHTML = '<tr><td colspan="8" class="py-12 text-center"><div class="flex flex-col items-center justify-center gap-2.5"><div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><span class="text-sm font-medium text-slate-400">No services found.</span></div></td></tr>'
                 renderServicePagination()
                 return
             }
@@ -543,13 +960,19 @@
                 var isActive = service && service.is_active !== false
                 var statusText = isActive ? 'Active' : 'Inactive'
                 var statusClass = isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-600 border-slate-100'
+                var cat = String(service.service_category || '').trim().toLowerCase()
+                var catLabel = categoryLabel(cat)
+                var catBadge = cat === 'laboratory'
+                    ? 'bg-violet-50 text-violet-700 border-violet-100'
+                    : (cat === 'consultation' ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-slate-50 text-slate-600 border-slate-100')
 
                 tr.innerHTML =
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + (service.service_name || '') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem]">' +
-                        '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border ' + ((service.service_category === 'Laboratory') ? 'bg-violet-50 text-violet-700 border-violet-100' : 'bg-blue-50 text-blue-700 border-blue-100') + '">' + ((service.service_category === 'Laboratory') ? 'Laboratory' : 'Consultation') + '</span>' +
+                        '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] font-medium border ' + catBadge + '">' + escapeHtml(catLabel || '—') + '</span>' +
                     '</td>' +
-                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (service.description || '') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (service.service_dept ? escapeHtml(service.service_dept) : '<span class="text-slate-400">-</span>') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + escapeHtml(service.service_name || '') + '</td>' +
+                    '<td class="py-2 pr-4 text-[0.78rem] text-slate-500">' + (service.description ? escapeHtml(service.description) : '') + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + duration + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem] text-slate-700">' + price + '</td>' +
                     '<td class="py-2 pr-4 text-[0.78rem]">' +
@@ -725,6 +1148,9 @@
 
                         var body = {
                             service_name: name,
+                            service_category: serviceEditCategory ? String(serviceEditCategory.value || 'consultation').trim() : 'consultation',
+                            service_dept: serviceEditDept ? String(serviceEditDept.value || '').trim() || null : null,
+                            service_type: serviceEditType ? String(serviceEditType.value || 'both') : 'both',
                             description: description || null,
                             duration_minutes: durationRaw === '' ? null : durationMinutes,
                             price: priceRaw === '' ? null : price
@@ -781,6 +1207,8 @@
                 var description = descInput ? descInput.value.trim() : ''
                 var durationRaw = durationInput ? durationInput.value.trim() : ''
                 var priceRaw = priceInput ? priceInput.value.trim() : ''
+                var dept = deptInput ? deptInput.value.trim() : ''
+                var type = typeInput ? (typeInput.value || 'both') : 'both'
 
                 if (!name) {
                     showServiceError('Service name is required.')
@@ -789,7 +1217,9 @@
 
                 var body = {
                     service_name: name,
-                    service_category: categoryInput ? (categoryInput.value || 'Consultation') : 'Consultation',
+                    service_category: categoryInput ? (categoryInput.value || 'consultation') : 'consultation',
+                    service_dept: dept || null,
+                    service_type: type,
                     requires_consultation: (document.querySelector('input[name="admin_service_requires_consultation"]:checked') || {}).value === '1'
                 }
                 if (description) {
@@ -807,9 +1237,12 @@
                     body.price = parseFloat(priceRaw)
                 }
 
+                var typeLabelMap = { walk_in: 'Walk-in only', scheduled: 'Scheduled only', both: 'Walk-in & scheduled' }
                 var detailsHtml = '<div class="grid grid-cols-2 gap-x-4 gap-y-1">' +
                     '<div class="text-slate-500">Name:</div><div class="text-slate-800 font-medium">' + escapeHtml(body.service_name) + '</div>' +
-                    '<div class="text-slate-500">Category:</div><div class="text-slate-800 font-medium">' + escapeHtml(body.service_category) + '</div>' +
+                    '<div class="text-slate-500">Category:</div><div class="text-slate-800 font-medium">' + escapeHtml(categoryLabel(body.service_category)) + '</div>' +
+                    '<div class="text-slate-500">Department:</div><div class="text-slate-800 font-medium">' + (body.service_dept ? escapeHtml(body.service_dept) : '<span class="text-slate-400">-</span>') + '</div>' +
+                    '<div class="text-slate-500">Service type:</div><div class="text-slate-800 font-medium">' + escapeHtml(typeLabelMap[body.service_type] || body.service_type) + '</div>' +
                     '<div class="text-slate-500">Requires Consultation:</div><div class="text-slate-800 font-medium">' + (body.requires_consultation ? 'Yes' : 'No') + '</div>' +
                     (body.description ? '<div class="text-slate-500">Description:</div><div class="text-slate-800 font-medium">' + escapeHtml(body.description) + '</div>' : '') +
                     (body.duration_minutes ? '<div class="text-slate-500">Duration:</div><div class="text-slate-800 font-medium">' + escapeHtml(body.duration_minutes) + ' minutes</div>' : '') +
@@ -840,7 +1273,11 @@
                                     return
                                 }
                                 if (nameInput) nameInput.value = ''
-                                if (categoryInput) categoryInput.value = 'Consultation'
+                                if (categoryInput) categoryInput.value = 'consultation'
+                                if (categoryDisplay) categoryDisplay.textContent = 'Consultation'
+                                if (deptInput) deptInput.value = ''
+                                if (deptDisplay) deptDisplay.textContent = '-'
+                                if (typeInput) typeInput.value = 'both'
                                 var requiresYes = document.getElementById('admin_service_requires_consultation_yes')
                                 if (requiresYes) requiresYes.checked = true
                                 if (descInput) descInput.value = ''

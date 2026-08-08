@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "606244347877",
+    "project_id": "mho123-7eba2",
+    "storage_bucket": "mho123-7eba2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:606244347877:android:5b8545eb459bbde72c990c",
+        "android_client_info": {
+          "package_name": "com.basadre09.patientqueue"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDg8uu9jk-qHCSaAnOQWpvvYRNFAj8NOYQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

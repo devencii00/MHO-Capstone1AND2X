@@ -1,0 +1,32 @@
+export const colors = {
+  primary: '#2563EB',
+  primaryDark: '#1D4ED8',
+  secondary: '#10B981',
+  danger: '#EF4444',
+  warning: '#F59E0B',
+  dark: '#1F2937',
+  gray: '#6B7280',
+  lightGray: '#F3F4F6',
+  white: '#FFFFFF',
+  black: '#000000',
+  border: '#E5E7EB',
+};
+
+export const C = {
+  bg: '#EEEEE8',
+  headerBg: '#1E5E4C',
+  white: '#FFFFFF',
+  green: '#1E5E4C',
+  greenMid: '#2E7D5E',
+  greenLight: '#EAF2EE',
+  greenBorder: '#C8DDD5',
+  textDark: '#1A3329',
+  textMid: '#4A6B5D',
+  textMuted: '#8AA89A',
+  divider: '#D6E5DF',
+  tagBg: '#F0F4F2',
+  tagBorder: '#C8DDD5',
+  overlay: 'rgba(0, 0, 0, 0.5)',
+  red: '#EF4444',
+  redLight: '#FEE2E2',
+};
