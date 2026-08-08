@@ -12,10 +12,10 @@
 
     <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 mb-4">
         <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-1.5">
+            <button type="button" id="admin_medicine_form_title_btn" class="text-[0.8rem] font-semibold text-slate-900 hover:text-green-700 cursor-pointer flex items-center gap-1.5">
                 <x-lucide-plus class="w-4 h-4 text-green-600" />
-                <div class="text-[0.8rem] font-semibold text-slate-900" id="admin_medicine_form_title">Add medicine</div>
-            </div>
+                <span id="admin_medicine_form_title">Add medicine</span>
+            </button>
             <button type="button" id="admin_medicine_form_toggle" class="text-[0.72rem] font-semibold text-slate-600 hover:text-slate-900">Hide</button>
         </div>
 
@@ -779,6 +779,15 @@
 
         if (formToggle) {
             formToggle.addEventListener('click', function () {
+                if (!formBody) return
+                var expanded = !formBody.classList.contains('hidden')
+                setFormExpanded(!expanded)
+            })
+        }
+
+        var formTitleBtn = document.getElementById('admin_medicine_form_title_btn')
+        if (formTitleBtn) {
+            formTitleBtn.addEventListener('click', function () {
                 if (!formBody) return
                 var expanded = !formBody.classList.contains('hidden')
                 setFormExpanded(!expanded)
